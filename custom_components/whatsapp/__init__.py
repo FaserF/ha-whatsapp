@@ -12,17 +12,18 @@ from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
 from .api import WhatsAppApiClient
 
 
+
+from homeassistant.helpers import discovery
+
 _LOGGER = logging.getLogger(__name__)
 
-
-PLATFORMS: list[Platform] = [Platform.NOTIFY, Platform.BINARY_SENSOR]
-
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA WhatsApp from a config entry."""
 
-    client = WhatsAppApiClient(session_data=entry.data.get("session"))
-    # await client.connect() # In a real app, we might connect here
+    addon_url = entry.data.get("url", "http://localhost:8000")
+    client = WhatsAppApiClient(host=addon_url)
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = client
@@ -55,6 +56,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Add other services here (image, buttons, etc)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Set up Notify Platform (Legacy)
+    hass.async_create_task(
+        discovery.async_load_platform(
+            hass, Platform.NOTIFY, DOMAIN, {"entry_id": entry.entry_id}, entry.config
+        )
+    )
 
     return True
 

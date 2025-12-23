@@ -1,5 +1,5 @@
 """Test the HA WhatsApp binary sensor."""
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 from homeassistant.core import HomeAssistant
@@ -11,37 +11,34 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
     entry.add_to_hass(hass)
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient.connect", return_value=True):
-         assert await hass.config_entries.async_setup(entry.entry_id)
-         await hass.async_block_till_done()
+    # Patch the Client Class
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.is_connected = AsyncMock(return_value=True)
+        # Initialize internal state for the synchronous property check if needed,
+        # or we rely on the sensor reading a property.
+        # The sensor implementation reads `self.client._connected`.
+        mock_instance._connected = True
 
-    # Get the client that was created
-    client = hass.data[DOMAIN][entry.entry_id]
+        # We also need to patch async_setup_entry to use our mocked client if it instantiates it internally,
+        # OR we rely on the fact that we patched the class before setup called it?
+        # Actually, async_setup_entry instantiates WhatsAppApiClient().
+        # The patch above should catch that.
 
-    # Verify initial state (API init sets _connected = False until connected?)
-    # Actually our mock 'connect' call in setup logic (if we had one) implies connection.
-    # In __init__.py we commented out the actual connect call.
-    # Let's manually simulate connection.
-    client._connected = True
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
-    # We need to force an update if we were relying on polling, but for the property
-    # read we just read the state.
-    state = hass.states.get("binary_sensor.whats_app")
+        state = hass.states.get("binary_sensor.whatsapp")
+        assert state
+        assert state.state == "on"  # Depending on device class "connectivity", on=Connected
 
-    # Note: Name resolution might vary based on how HA names entities in test env.
-    # Usually device_name + entity_name.
-    # Our entity name is None, so it takes Device Name "WhatsApp".
+        # Simulate disconnect
+        mock_instance._connected = False
+        # Trigger update (normally done by coordinator or callback)
+        entity = entry.async_get_component(hass, "binary_sensor").get_entity("binary_sensor.whatsapp")
+        entity.async_write_ha_state()
+        await hass.async_block_till_done()
 
-    # Let's check all states to find it
-    # ensure platform is loaded
-    assert state
-    assert state.state == "on"
-
-    client._connected = False
-    # In a real entity we'd call async_write_ha_state() or coordinator.async_refresh()
-    # But since we just mocked the property access:
-    entry.async_get_component(hass, "binary_sensor").get_entity("binary_sensor.whats_app").async_write_ha_state()
-    await hass.async_block_till_done()
-
-    state = hass.states.get("binary_sensor.whats_app")
-    assert state.state == "off"
+        state = hass.states.get("binary_sensor.whatsapp")
+        assert state.state == "off"

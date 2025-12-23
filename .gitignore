@@ -9,3 +9,6 @@ venv/
 .vscode/
 dist/
 *.egg-info/
+test_output.log
+*.txt
+/addon

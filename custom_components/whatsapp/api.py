@@ -1,72 +1,61 @@
-"""API Client for HA WhatsApp."""
-from __future__ import annotations
-
+"""Lightweight REST Client for connecting to the WhatsApp Addon."""
 import logging
-from typing import Any, Dict
-
-_LOGGER = logging.getLogger(__name__)
-
-from typing import Any, Dict, Callable
+import aiohttp
+import asyncio
 
 _LOGGER = logging.getLogger(__name__)
 
 class WhatsAppApiClient:
-    """Sample API Client."""
+    """REST Client for the WhatsApp Addon."""
 
-    def __init__(self, session_data: str | None = None) -> None:
+    # In Home Assistant Addons, the hostname is the slug usually.
+    # Or configurable via user input.
+    # For local addon communication, we might default to 'http://local-whatsapp-addon:8000'
+    # but practically we let the user configure the URL or try to discover it.
+
+    def __init__(self, host: str = "http://localhost:8000") -> None:
         """Initialize."""
-        self.session_data = session_data
-        self._connected = False
-        self._callbacks: list[Callable[[dict[str, Any]], None]] = []
-
-    def register_callback(self, callback: Callable[[dict[str, Any]], None]) -> None:
-        """Register a callback for incoming messages."""
-        self._callbacks.append(callback)
-
-    def _mock_incoming_message(self) -> None:
-        """Mock receiving a message (for testing)."""
-        data = {
-            "sender": "123456789",
-            "content": "Hello from WhatsApp",
-            "timestamp": 1234567890
-        }
-        for callback in self._callbacks:
-            callback(data)
-
+        self.host = host.rstrip("/")
+        self._session: aiohttp.ClientSession | None = None
 
     async def get_qr_code(self) -> str:
-        """Get the QR code for scanning.
-
-        Returns:
-            A base64 encoded string or a raw string for the QR code.
-        """
-        # Mocking a QR code string
-        return "mock_qr_token_data"
+        """Get the QR code from the Addon."""
+        url = f"{self.host}/qr"
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, timeout=10) as resp:
+                     if resp.status == 200:
+                         data = await resp.json()
+                         return data.get("qr", "")
+                     return ""
+            except Exception as e:
+                _LOGGER.error("Error fetching QR from addon: %s", e)
+                return ""
 
     async def connect(self) -> bool:
-        """Connect to the WhatsApp service."""
-        # Mock connection logic
-        self._connected = True
-        return True
-
-    async def is_connected(self) -> bool:
-        """Return True if connected."""
-        return self._connected
+        """Check if connected (by checking status)."""
+        url = f"{self.host}/status"
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return data.get("connected", False)
+            except Exception:
+                return False
+        return False
 
     async def send_message(self, number: str, message: str) -> None:
-        """Send a message."""
-        if not self._connected:
-            raise ConnectionError("Not connected")
-        _LOGGER.info("Sending message to %s: %s", number, message)
+        """Send message via Addon."""
+        url = f"{self.host}/send_message"
+        payload = {"number": number, "message": message}
 
-    async def send_image(self, number: str, image_path: str, caption: str | None = None) -> None:
-        """Send an image."""
-        if not self._connected:
-            raise ConnectionError("Not connected")
-        _LOGGER.info("Sending image to %s: %s", number, image_path)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Failed to send: {text}")
 
-    async def send_poll(self, number: str, question: str, options: list[str]) -> None:
-        """Send a poll."""
-        if not self._connected:
-            raise ConnectionError("Not connected")
-        _LOGGER.info("Sending poll to %s: %s %s", number, question, options)
+    async def close(self) -> None:
+        """Close session."""
+        pass

@@ -1,5 +1,6 @@
 """Test the HA WhatsApp config flow."""
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
+import pytest
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
@@ -7,15 +8,20 @@ from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.whatsapp.const import DOMAIN
 
-
 async def test_form(hass: HomeAssistant) -> None:
     """Test we get the form."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "scan"
 
+    # Mock the API client's get_qr_code to avoid Playwright dependency in simple tests
+    with patch("custom_components.whatsapp.WhatsAppApiClient.get_qr_code", new_callable=AsyncMock) as mock_get_qr:
+        mock_get_qr.return_value = "data:image/png;base64,mockqr"
+
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "scan"
+
+    # Test the submit step
     with patch(
         "custom_components.whatsapp.WhatsAppApiClient.connect",
         return_value=True,
