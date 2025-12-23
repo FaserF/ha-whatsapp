@@ -1,0 +1,38 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "WhatsApp verbinden",
+                "description": "Scannen Sie den QR-Code, um Ihr WhatsApp-Konto zu verknüpfen."
+            },
+            "scan": {
+                "title": "QR-Code scannen",
+                "description": "Bitte scannen Sie den untenstehenden QR-Code mit Ihrer WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})"
+            }
+        },
+        "error": {
+            "cannot_connect": "Verbindung fehlgeschlagen",
+            "invalid_auth": "Ungültige Authentifizierung",
+            "unknown": "Unerwarteter Fehler"
+        },
+        "abort": {
+            "already_configured": "Gerät ist bereits konfiguriert"
+        }
+    },
+    "services": {
+        "send_message": {
+            "name": "Nachricht senden",
+            "description": "Sendet eine Textnachricht an eine WhatsApp-Nummer.",
+            "fields": {
+                "message": {
+                    "name": "Nachricht",
+                    "description": "Der zu sendende Text."
+                },
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer, an die gesendet werden soll."
+                }
+            }
+        }
+    }
+}

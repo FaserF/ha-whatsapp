@@ -1,0 +1,33 @@
+name: CI Orchestrator
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      resource_profile:
+        description: 'Resource Profile'
+        required: true
+        default: 'Economy'
+        type: choice
+        options:
+        - Economy
+        - Full
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    needs: lint
+    uses: ./.github/workflows/test.yml
+    with:
+      profile: ${{ inputs.resource_profile || 'Economy' }}
+
+  build:
+    needs: test
+    uses: ./.github/workflows/build.yml
+    with:
+      profile: ${{ inputs.resource_profile || 'Economy' }}

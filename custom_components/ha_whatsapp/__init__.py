@@ -1,0 +1,56 @@
+"""The HA WhatsApp integration."""
+from __future__ import annotations
+
+import logging
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import service
+
+from .const import DOMAIN
+from .api import WhatsAppApiClient
+
+_LOGGER = logging.getLogger(__name__)
+
+PLATFORMS: list[Platform] = [Platform.NOTIFY]  # Example platform
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up HA WhatsApp from a config entry."""
+
+    client = WhatsAppApiClient(session_data=entry.data.get("session"))
+    # await client.connect() # In a real app, we might connect here
+
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = client
+
+    # Register Services
+    async def send_message_service(call: ServiceCall) -> None:
+        """Handle the send_message service."""
+        number = call.data.get("target")
+        message = call.data.get("message")
+        if number and message:
+            await client.send_message(number, message)
+
+    async def send_poll_service(call: ServiceCall) -> None:
+        """Handle the send_poll service."""
+        number = call.data.get("target")
+        question = call.data.get("question")
+        options = call.data.get("options", [])
+        if number and question and options:
+             await client.send_poll(number, question, options)
+
+    hass.services.async_register(DOMAIN, "send_message", send_message_service)
+    hass.services.async_register(DOMAIN, "send_poll", send_poll_service)
+    # Add other services here (image, buttons, etc)
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+
+    return unload_ok

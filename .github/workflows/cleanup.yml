@@ -1,0 +1,14 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old artifacts
+        uses: actions/delete-artifact@v2
+        with:
+          expire_in: '7 days'

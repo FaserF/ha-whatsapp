@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "ha-whatsapp"
+version = "0.0.1"
+description = "Home Assistant WhatsApp Integration"
+authors = ["FaserF"]
+readme = "README.md"
+packages = [{include = "custom_components"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Add actual dependencies here
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+pytest-homeassistant-custom-component = "^0.13"
+ruff = "^0.1.0"
+mypy = "^1.0"
+black = "^23.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20", "RET", "SIM", "ARG"]
+ignore = ["D203", "D213"]
+line-length = 88
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true

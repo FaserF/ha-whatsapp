@@ -1,0 +1,11 @@
+{
+  "domain": "ha_whatsapp",
+  "name": "Home Assistant WhatsApp",
+  "codeowners": ["@FaserF"],
+  "config_flow": true,
+  "documentation": "https://github.com/FaserF/ha-whatsapp",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues",
+  "requirements": [],
+  "version": "0.0.1"
+}

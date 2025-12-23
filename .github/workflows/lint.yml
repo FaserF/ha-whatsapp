@@ -1,0 +1,23 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install ruff black mypy
+      - name: Run Ruff
+        run: ruff check .
+      - name: Run Black Check
+        run: black --check .
+      - name: Run Mypy
+        run: mypy .

@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Asset
+        run: |
+          mkdir dist
+          zip -r dist/ha-whatsapp.zip custom_components/
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./custom_components
+          format: spdx-json
+          output-file: dist/sbom.spdx.json
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: dist/

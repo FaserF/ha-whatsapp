@@ -1,0 +1,38 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect WhatsApp",
+        "description": "Scan the QR Code to link your WhatsApp account."
+      },
+      "scan": {
+        "title": "Scan QR Code",
+        "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\n\n![QR Code]({qr_image})"
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Send Message",
+      "description": "Sends a text message to a WhatsApp number.",
+      "fields": {
+        "message": {
+            "name": "Message",
+            "description": "The text to send."
+        },
+        "target": {
+            "name": "Target Number",
+            "description": "The phone number to send to."
+        }
+      }
+    }
+  }
+}

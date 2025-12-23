@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: pip install pytest pytest-homeassistant-custom-component
+      - name: Run Tests
+        run: pytest tests/
+
+  e2e-test:
+    if: inputs.profile == 'Full' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run E2E (Placeholder)
+        run: echo "Running expensive E2E tests..."
