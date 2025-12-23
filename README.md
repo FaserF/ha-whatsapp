@@ -1,38 +1,49 @@
-# HA WhatsApp
+# HA WhatsApp Integration
 
 ![WhatsApp Logo](https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg)
-<!-- Use a smaller width if possible via HTML, but markdown standard above -->
 
-Home Assistant integration for WhatsApp with Linked Device support (QR Code).
+> **Enterprise-grade WhatsApp integration for Home Assistant.**
+>
+> Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required.
 
-## Features
-- 📲 **Linked Device Login**: Scan QR Code to connect.
-- 💬 **Send Messages**: Text, Images, Buttons.
-- 📊 **Polls**: Create polls directly from HA.
-- 📅 **Events**: Create calendar events (Experimental).
-- 🌍 **Localization**: English & German support.
+## 🌟 Features
 
-## Setup
-1. Go to Home Assistant -> Integrations.
-2. Add "WhatsApp".
-3. Scan the QR Code with your phone (Settings -> Linked Devices).
+- **📲 Local & Private**: Acts as a "Linked Device" (like WhatsApp Web). No cloud bridge required.
+- **💬 Rich Messaging**: Send Text, Images, and Interactive Polls.
+- **🤖 Automation Triggers**: Real-time events for incoming messages.
+- **🌍 Localization**: Native support for English and German.
+- **🛡️ Secure**: Built with strict typing, secret management, and extensive testing.
 
-## Development
-This project deals with:
-- **Strict Typing**: Python 3.11+
-- **Security**: Secret scanning enabled.
+## 📚 Documentation
 
-### Quick Start
-```bash
-# Install dependencies
-pip install -e .
+We believe in comprehensive documentation. Check out our guides below:
 
-# Run Tests
-pytest
+| Guide | Description |
+|-------|-------------|
+| [🚀 Setup & Installation](docs/SETUP.md) | How to install and link your device via QR Code. |
+| [✉️ Services & Actions](docs/SERVICES.md) | Detailed examples for sending messages, images, and polls. |
+| [⚡ Events & Automations](docs/EVENTS.md) | How to react to incoming messages and build chat bots. |
+| [👨‍💻 Development](docs/DEVELOPMENT.md) | Architecture, contributing guidelines, and CI/CD details. |
+
+## 🚀 Quick Example
+
+**Send a message via YAML:**
+```yaml
+service: whatsapp.send_message
+data:
+  target: "+491234567890"
+  message: "Home Assistant says Hello! 👋"
 ```
 
-## Documentation
-See `/docs` for:
-- [Architecture](docs/COMPONENT.md)
-- [API Reference](docs/API.md)
-- [Contributing](docs/CONTRIBUTING.md)
+**React to an incoming message:**
+```yaml
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+    event_data:
+      content: "Status"
+```
+
+## License
+
+MIT

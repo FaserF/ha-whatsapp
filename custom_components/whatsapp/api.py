@@ -6,6 +6,10 @@ from typing import Any, Dict
 
 _LOGGER = logging.getLogger(__name__)
 
+from typing import Any, Dict, Callable
+
+_LOGGER = logging.getLogger(__name__)
+
 class WhatsAppApiClient:
     """Sample API Client."""
 
@@ -13,6 +17,22 @@ class WhatsAppApiClient:
         """Initialize."""
         self.session_data = session_data
         self._connected = False
+        self._callbacks: list[Callable[[dict[str, Any]], None]] = []
+
+    def register_callback(self, callback: Callable[[dict[str, Any]], None]) -> None:
+        """Register a callback for incoming messages."""
+        self._callbacks.append(callback)
+
+    def _mock_incoming_message(self) -> None:
+        """Mock receiving a message (for testing)."""
+        data = {
+            "sender": "123456789",
+            "content": "Hello from WhatsApp",
+            "timestamp": 1234567890
+        }
+        for callback in self._callbacks:
+            callback(data)
+
 
     async def get_qr_code(self) -> str:
         """Get the QR code for scanning.

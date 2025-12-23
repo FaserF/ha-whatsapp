@@ -8,12 +8,15 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import service
 
-from .const import DOMAIN
+from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
 from .api import WhatsAppApiClient
+
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.NOTIFY]  # Example platform
+
+PLATFORMS: list[Platform] = [Platform.NOTIFY, Platform.BINARY_SENSOR]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA WhatsApp from a config entry."""
@@ -23,6 +26,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = client
+
+    # Handle incoming messages
+    def handle_incoming_message(data: dict) -> None:
+        """Handle incoming message from API."""
+        hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
+
+    client.register_callback(handle_incoming_message)
 
     # Register Services
     async def send_message_service(call: ServiceCall) -> None:
