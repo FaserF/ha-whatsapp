@@ -12,3 +12,6 @@ dist/
 test_output.log
 *.txt
 /addon
+test_api_isolated.py
+test_api_isolated_v2.py
+test_api_signature.py

@@ -4,16 +4,13 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import Platform, CONF_URL
+
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import service
+from homeassistant.helpers import service, discovery
 
 from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
 from .api import WhatsAppApiClient
-
-
-
-from homeassistant.helpers import discovery
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +19,7 @@ PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA WhatsApp from a config entry."""
 
-    addon_url = entry.data.get("url", "http://localhost:8000")
+    addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     client = WhatsAppApiClient(host=addon_url)
 
     hass.data.setdefault(DOMAIN, {})

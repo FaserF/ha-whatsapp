@@ -8,8 +8,12 @@
   "documentation": "https://github.com/FaserF/ha-whatsapp",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues",
-  "requirements": [
-    "playwright>=1.40.0"
+  "requirements": [],
+  "zeroconf": [
+    {
+      "type": "_ha-whatsapp._tcp.local.",
+      "name": "WhatsApp Addon*"
+    }
   ],
-  "version": "0.0.1"
+  "version": "0.1.1"
 }

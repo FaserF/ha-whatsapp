@@ -3,22 +3,21 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from urllib.parse import urlparse
 
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.components import zeroconf
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_URL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
-
 
 from .const import DOMAIN
 from .api import WhatsAppApiClient
 
 _LOGGER = logging.getLogger(__name__)
-
-# Schema for the user step (if manual input was needed, but we want QR)
-# STEP_USER_DATA_SCHEMA = vol.Schema({vol.Required("host"): str})
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HA WhatsApp."""
@@ -27,64 +26,81 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        import uuid
-        self.session_id = str(uuid.uuid4())
-        self.client: WhatsAppApiClient | None = None
-        self.qr_code: str | None = None
+        self.discovery_info: dict[str, Any] = {}
+
+    async def async_step_zeroconf(
+        self, discovery_info: zeroconf.ZeroconfServiceInfo
+    ) -> FlowResult:
+        """Handle zeroconf discovery."""
+        _LOGGER.debug("Zeroconf discovered: %s", discovery_info)
+
+        # Check if already configured
+        await self.async_set_unique_id(discovery_info.hostname)
+        self._abort_if_unique_id_configured()
+
+        self.discovery_info = {
+            CONF_HOST: discovery_info.host,
+            CONF_PORT: discovery_info.port,
+            CONF_URL: f"http://{discovery_info.host}:{discovery_info.port}"
+        }
+
+        # Update title for discovery card
+        self.context["title_placeholders"] = {"name": "WhatsApp Addon"}
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Confirm discovery."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="WhatsApp",
+                data=self.discovery_info,
+            )
+
+        return self.async_show_form(
+            step_id="discovery_confirm",
+            description_placeholders={"name": "WhatsApp Addon"},
+        )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
-        # Define storage path for this session
-        storage_dir = self.hass.config.path(".storage", "whatsapp", self.session_id)
-        self.client = WhatsAppApiClient(user_data_dir=storage_dir)
-
-        return await self.async_step_scan()
-
-    async def async_step_scan(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Display the QR code."""
-        if not self.client:
-             return self.async_abort(reason="unknown")
-
-        try:
-            # Trigger browser initialization to get QR
-            # If Playwright is missing, this should raise ImportError/Error from API
-            if not self.qr_code:
-                 self.qr_code = await self.client.get_qr_code()
-        except ImportError:
-            return self.async_abort(reason="missing_dependency")
-        except Exception as e:
-            _LOGGER.exception("Unexpected error initializing WhatsApp client")
-            return self.async_abort(reason="connection_error")
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-             # User clicked "Submit" (meaning they scanned it)
-             # Verify connection
-            valid = await self.client.connect()
-            if valid:
-                # IMPORTANT: Close the client so it releases the directory lock
-                # The __init__ setup will re-open it.
-                await self.client.close()
+            # Construct URL
+            host = user_input[CONF_HOST]
+            port = user_input[CONF_PORT]
+            url = f"http://{host}:{port}"
 
-                return self.async_create_entry(
+            # Validate Connection
+            client = WhatsAppApiClient(host=url)
+            if await client.connect():
+                 # Connection checks out, but we might be unconnected to WhatsApp
+                 # That is fine, we just need to verify we can talk to the addon
+                 await self.async_set_unique_id(f"whatsapp-{host}")
+                 self._abort_if_unique_id_configured()
+
+                 return self.async_create_entry(
                     title="WhatsApp",
-                    data={"session_id": self.session_id},
+                    data={
+                        CONF_HOST: host,
+                        CONF_PORT: port,
+                        CONF_URL: url
+                    },
                 )
-            return self.async_show_progress_done(next_step_id="scan") # Loop back or error
+            else:
+                errors["base"] = "cannot_connect"
 
-        # Get QR Code (Base64 data URI)
-        if not self.qr_code:
-            self.qr_code = await self.client.get_qr_code()
-
-        # We pass the base64 string directly to the markdown
-        # Markdown in HA supports ![Alt](data:image/png;base64,...)
         return self.async_show_form(
-            step_id="scan",
-            data_schema=vol.Schema({}), # No input needed, just "Submit" after scan
-            description_placeholders={"qr_image": self.qr_code},
+            step_id="user",
+            data_schema=vol.Schema({
+                vol.Required(CONF_HOST, default="localhost"): str,
+                vol.Required(CONF_PORT, default=8066): int,
+            }),
+            errors=errors,
         )
 
     @staticmethod
