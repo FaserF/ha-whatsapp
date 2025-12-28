@@ -1,7 +1,6 @@
 """Tests for ha_whatsapp."""
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from custom_components.whatsapp import async_setup_entry
 from custom_components.whatsapp.const import DOMAIN
 

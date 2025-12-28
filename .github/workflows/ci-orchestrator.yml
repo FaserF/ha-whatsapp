@@ -15,6 +15,13 @@ on:
         options:
         - Economy
         - Full
+  workflow_call:
+    inputs:
+      resource_profile:
+        description: 'Resource Profile'
+        required: false
+        default: 'Economy'
+        type: string
 
 jobs:
   lint:

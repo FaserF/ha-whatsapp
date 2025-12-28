@@ -18,9 +18,7 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
 
-    diagnostics_data = {
+    return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
         "client_connected": await client.is_connected(),
     }
-
-    return diagnostics_data

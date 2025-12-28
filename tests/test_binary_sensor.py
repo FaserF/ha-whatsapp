@@ -1,10 +1,10 @@
 """Test the HA WhatsApp binary sensor."""
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import pytest
-from custom_components.whatsapp.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.whatsapp.const import DOMAIN
 
 
 async def test_binary_sensor(hass: HomeAssistant) -> None:
@@ -22,8 +22,9 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         # The sensor implementation reads `self.client._connected`.
         mock_instance._connected = True
 
-        # We also need to patch async_setup_entry to use our mocked client if it instantiates it internally,
-        # OR we rely on the fact that we patched the class before setup called it?
+        # We also need to patch async_setup_entry to use our mocked client if it
+        # instantiates it internally, OR we rely on the fact that we patched the
+        # class before setup called it?
         # Actually, async_setup_entry instantiates WhatsAppApiClient().
         # The patch above should catch that.
 
@@ -32,12 +33,15 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
 
         state = hass.states.get("binary_sensor.whatsapp")
         assert state
-        assert state.state == "on"  # Depending on device class "connectivity", on=Connected
+        assert state.state == "on"
+        # Depending on device class "connectivity", on=Connected
 
         # Simulate disconnect
         mock_instance._connected = False
         # Trigger update (normally done by coordinator or callback)
-        entity = entry.async_get_component(hass, "binary_sensor").get_entity("binary_sensor.whatsapp")
+        entity = entry.async_get_component(hass, "binary_sensor").get_entity(
+            "binary_sensor.whatsapp"
+        )
         entity.async_write_ha_state()
         await hass.async_block_till_done()
 

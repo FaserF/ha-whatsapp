@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from urllib.parse import urlparse
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import zeroconf
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_URL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
@@ -90,8 +89,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_URL: url
                     },
                 )
-            else:
-                errors["base"] = "cannot_connect"
+
+            errors["base"] = "cannot_connect"
 
         return self.async_show_form(
             step_id="user",
@@ -129,13 +128,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     # Example option: Enable debug logging for messages
-                    vol.Optional("debug_payloads", default=self._config_entry.options.get("debug_payloads", False)): bool,
+                    vol.Optional(
+                        "debug_payloads",
+                        default=self._config_entry.options.get("debug_payloads", False),
+                    ): bool,
                 }
             ),
         )
 
-class CannotConnect(HomeAssistantError):
+class CannotConnectError(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
-class InvalidAuth(HomeAssistantError):
+class InvalidAuthError(HomeAssistantError):
     """Error to indicate there is invalid auth."""

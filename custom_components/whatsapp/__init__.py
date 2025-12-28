@@ -6,7 +6,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import discovery, service
+from homeassistant.helpers import discovery
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN, EVENT_MESSAGE_RECEIVED

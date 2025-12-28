@@ -6,7 +6,7 @@ from typing import Any
 from homeassistant.components.notify import BaseNotificationService
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN
@@ -14,7 +14,6 @@ from .const import DOMAIN
 
 async def async_get_service(
     hass: HomeAssistant,
-    config: ConfigType,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> WhatsAppNotificationService | None:
     """Get the WhatsApp notification service."""

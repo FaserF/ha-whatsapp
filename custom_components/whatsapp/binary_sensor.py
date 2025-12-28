@@ -8,7 +8,6 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN
@@ -44,12 +43,17 @@ class WhatsAppConnectionSensor(BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on (connected)."""
-        # In a real implementation, this would likely use a Coordinator to poll or push updates.
-        # For this scaffold, we check the client state directly (synchronously assumed for property).
-        # We need to make sure the client exposes a way to check this without async for this property
+        # In a real implementation, this would likely use a Coordinator to
+        # poll or push updates.
+        # For this scaffold, we check the client state directly
+        # (synchronously assumed for property).
+        # We need to make sure the client exposes a way to check this without
+        # async for this property
         # OR better: use a DataUpdateCoordinator.
-        # For simplicity in this scaffold without a full Coordinator, we assume a connected property.
+        # For simplicity in this scaffold without a full Coordinator, we assume
+        # a connected property.
 
         # NOTE: self.client.is_connected is async in our API definition.
-        # Ideally we use a coordinator. Let's patch 'is_on' to return the internal state variable.
+        # Ideally we use a coordinator. Let's patch 'is_on' to return the
+        # internal state variable.
         return self.client._connected

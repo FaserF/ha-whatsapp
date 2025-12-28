@@ -9,6 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete old artifacts
-        uses: actions/delete-artifact@v2
+        uses: geekyeggo/delete-artifact@v5
         with:
-          expire_in: '7 days'
+          name: '*'

@@ -1,15 +1,18 @@
 """Test the HA WhatsApp diagnostics."""
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
+
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp import diagnostics
 from custom_components.whatsapp.const import DOMAIN
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
     """Test diagnostics redaction."""
-    entry = MockConfigEntry(domain=DOMAIN, data={"session": "SENSITIVE_DATA", "other": "ok"})
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"session": "SENSITIVE_DATA", "other": "ok"}
+    )
     entry.add_to_hass(hass)
 
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:

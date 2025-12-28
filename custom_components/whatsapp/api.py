@@ -1,5 +1,5 @@
 """Lightweight REST Client for connecting to the WhatsApp Addon."""
-import asyncio
+
 import logging
 
 import aiohttp
@@ -51,11 +51,13 @@ class WhatsAppApiClient:
         url = f"{self.host}/send_message"
         payload = {"number": number, "message": message}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as resp:
-                if resp.status != 200:
-                    text = await resp.text()
-                    raise Exception(f"Failed to send: {text}")
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload) as resp,
+        ):
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to send: {text}")
 
     async def close(self) -> None:
         """Close session."""
