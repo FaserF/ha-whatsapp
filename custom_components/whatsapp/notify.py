@@ -8,8 +8,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from .const import DOMAIN
 from .api import WhatsAppApiClient
+from .const import DOMAIN
+
 
 async def async_get_service(
     hass: HomeAssistant,

@@ -1,10 +1,11 @@
 """Test the HA WhatsApp binary sensor."""
-from unittest.mock import MagicMock, patch, AsyncMock
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.core import HomeAssistant
+import pytest
 from custom_components.whatsapp.const import DOMAIN
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 
 async def test_binary_sensor(hass: HomeAssistant) -> None:
     """Test the binary sensor."""

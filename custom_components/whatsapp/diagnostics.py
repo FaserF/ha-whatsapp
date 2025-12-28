@@ -7,8 +7,8 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
 from .api import WhatsAppApiClient
+from .const import DOMAIN
 
 TO_REDACT = {"session_data", "session"}
 

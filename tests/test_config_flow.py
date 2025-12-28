@@ -1,12 +1,12 @@
 """Test the HA WhatsApp config flow."""
-from unittest.mock import MagicMock, patch, AsyncMock
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from custom_components.whatsapp.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.whatsapp.const import DOMAIN
 
 async def test_form(hass: HomeAssistant) -> None:
     """Test we get the form."""

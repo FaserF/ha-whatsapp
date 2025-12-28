@@ -1,7 +1,8 @@
 """Lightweight REST Client for connecting to the WhatsApp Addon."""
-import logging
-import aiohttp
 import asyncio
+import logging
+
+import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 

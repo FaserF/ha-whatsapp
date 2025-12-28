@@ -6,7 +6,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.components import zeroconf
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_URL
@@ -14,8 +13,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
 from .api import WhatsAppApiClient
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
