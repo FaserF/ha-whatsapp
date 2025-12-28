@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "custom_components"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 # Add actual dependencies here
 
 [tool.poetry.group.dev.dependencies]
@@ -23,13 +23,13 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20", "RET", "SIM", "ARG"]
 ignore = ["D203", "D213"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 ignore_missing_imports = true

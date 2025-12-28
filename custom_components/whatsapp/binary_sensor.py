@@ -1,4 +1,5 @@
 """Binary sensor for HA WhatsApp."""
+
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
@@ -21,6 +22,7 @@ async def async_setup_entry(
     """Set up the WhatsApp binary sensors."""
     client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([WhatsAppConnectionSensor(client, entry)])
+
 
 class WhatsAppConnectionSensor(BinarySensorEntity):
     """Representation of a WhatsApp connection status."""

@@ -1,4 +1,5 @@
 """Config flow for HA WhatsApp integration."""
+
 from __future__ import annotations
 
 import logging
@@ -16,6 +17,7 @@ from .api import WhatsAppApiClient
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HA WhatsApp."""
@@ -39,7 +41,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.discovery_info = {
             CONF_HOST: discovery_info.host,
             CONF_PORT: discovery_info.port,
-            CONF_URL: f"http://{discovery_info.host}:{discovery_info.port}"
+            CONF_URL: f"http://{discovery_info.host}:{discovery_info.port}",
         }
 
         # Update title for discovery card
@@ -76,28 +78,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Validate Connection
             client = WhatsAppApiClient(host=url)
             if await client.connect():
-                 # Connection checks out, but we might be unconnected to WhatsApp
-                 # That is fine, we just need to verify we can talk to the addon
-                 await self.async_set_unique_id(f"whatsapp-{host}")
-                 self._abort_if_unique_id_configured()
+                # Connection checks out, but we might be unconnected to WhatsApp
+                # That is fine, we just need to verify we can talk to the addon
+                await self.async_set_unique_id(f"whatsapp-{host}")
+                self._abort_if_unique_id_configured()
 
-                 return self.async_create_entry(
+                return self.async_create_entry(
                     title="WhatsApp",
-                    data={
-                        CONF_HOST: host,
-                        CONF_PORT: port,
-                        CONF_URL: url
-                    },
+                    data={CONF_HOST: host, CONF_PORT: port, CONF_URL: url},
                 )
 
             errors["base"] = "cannot_connect"
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({
-                vol.Required(CONF_HOST, default="localhost"): str,
-                vol.Required(CONF_PORT, default=8066): int,
-            }),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_HOST, default="localhost"): str,
+                    vol.Required(CONF_PORT, default=8066): int,
+                }
+            ),
             errors=errors,
         )
 
@@ -108,6 +108,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
+
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """WhatsApp Options Flow Handler."""
@@ -136,8 +137,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ),
         )
 
+
 class CannotConnectError(HomeAssistantError):
     """Error to indicate we cannot connect."""
+
 
 class InvalidAuthError(HomeAssistantError):
     """Error to indicate there is invalid auth."""

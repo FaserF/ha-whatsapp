@@ -1,4 +1,5 @@
 """The HA WhatsApp integration."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA WhatsApp from a config entry."""
@@ -45,7 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         question = call.data.get("question")
         options = call.data.get("options", [])
         if number and question and options:
-             await client.send_poll(number, question, options)
+            await client.send_poll(number, question, options)
 
     hass.services.async_register(DOMAIN, "send_message", send_message_service)
     hass.services.async_register(DOMAIN, "send_poll", send_poll_service)
@@ -61,6 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

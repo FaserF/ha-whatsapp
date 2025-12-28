@@ -1,4 +1,5 @@
 """Diagnostics support for HA WhatsApp."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -11,6 +12,7 @@ from .api import WhatsAppApiClient
 from .const import DOMAIN
 
 TO_REDACT = {"session_data", "session"}
+
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry

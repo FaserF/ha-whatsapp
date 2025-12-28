@@ -1,4 +1,5 @@
 """Test the HA WhatsApp diagnostics."""
+
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant

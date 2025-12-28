@@ -33,7 +33,7 @@ async def test_form(hass: HomeAssistant) -> None:
     ) as mock_setup_entry:
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {"confirmed": True}, # Simulating user clicking submit
+            {"confirmed": True},  # Simulating user clicking submit
         )
         await hass.async_block_till_done()
 
@@ -41,6 +41,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result2["title"] == "WhatsApp"
     assert result2["data"] == {"session": "mock_session_string"}
     assert len(mock_setup_entry.mock_calls) == 1
+
 
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow."""
@@ -55,7 +56,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         unique_id="1234",
         entry_id="test_entry_id",
         discovery_keys=None,
-        minor_version=1
+        minor_version=1,
     )
     # We must add the entry to hass to test options
     entry.add_to_hass(hass)

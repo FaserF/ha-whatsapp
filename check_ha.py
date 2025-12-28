@@ -3,7 +3,7 @@ import logging
 import sys
 
 # Configure logging to print to stdout
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 logger.info("Sys path: %s", sys.path)
@@ -15,6 +15,7 @@ except Exception as e:
 
 try:
     import homeassistant
+
     logger.info("Imported: %s", homeassistant)
 except ImportError as e:
     logger.error("Import failed: %s", e)

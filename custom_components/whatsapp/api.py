@@ -6,6 +6,7 @@ import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class WhatsAppApiClient:
     """REST Client for the WhatsApp Addon."""
 
@@ -25,10 +26,10 @@ class WhatsAppApiClient:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url, timeout=10) as resp:
-                     if resp.status == 200:
-                         data = await resp.json()
-                         return data.get("qr", "")
-                     return ""
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return data.get("qr", "")
+                    return ""
             except Exception as e:
                 _LOGGER.error("Error fetching QR from addon: %s", e)
                 return ""
