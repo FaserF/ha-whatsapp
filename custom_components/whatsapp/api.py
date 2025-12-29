@@ -27,7 +27,8 @@ class WhatsAppApiClient:
         url = f"{self.host}/qr"
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                timeout = aiohttp.ClientTimeout(total=10)
+                async with session.get(url, timeout=timeout) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         return str(data.get("qr", ""))
@@ -41,7 +42,8 @@ class WhatsAppApiClient:
         url = f"{self.host}/status"
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                timeout = aiohttp.ClientTimeout(total=5)
+                async with session.get(url, timeout=timeout) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         connected = bool(data.get("connected", False))
