@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
@@ -27,7 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = client
 
     # Handle incoming messages
-    def handle_incoming_message(data: dict) -> None:
+    def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
@@ -70,4 +71,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
 
-    return unload_ok
+    return bool(unload_ok)

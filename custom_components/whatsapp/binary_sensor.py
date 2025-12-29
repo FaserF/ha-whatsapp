@@ -24,7 +24,7 @@ async def async_setup_entry(
     async_add_entities([WhatsAppConnectionSensor(client, entry)])
 
 
-class WhatsAppConnectionSensor(BinarySensorEntity):
+class WhatsAppConnectionSensor(BinarySensorEntity):  # type: ignore[misc]
     """Representation of a WhatsApp connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY

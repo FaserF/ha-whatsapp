@@ -2,11 +2,12 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.core import HomeAssistant
 from custom_components.whatsapp import async_setup_entry
 from custom_components.whatsapp.const import DOMAIN
 
 
-async def test_setup_entry(hass):
+async def test_setup_entry(hass: HomeAssistant) -> None:
     """Test setting up the entry."""
     entry = MagicMock()
     entry.data = {"session": "test"}

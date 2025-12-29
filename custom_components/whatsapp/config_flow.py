@@ -19,7 +19,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
     """Handle a config flow for HA WhatsApp."""
 
     VERSION = 1
@@ -102,7 +102,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     @staticmethod
-    @callback
+    @callback  # type: ignore[untyped-decorator]
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
@@ -110,7 +110,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
     """WhatsApp Options Flow Handler."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
@@ -138,9 +138,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
 
 
-class CannotConnectError(HomeAssistantError):
+class CannotConnectError(HomeAssistantError):  # type: ignore[misc]
     """Error to indicate we cannot connect."""
 
 
-class InvalidAuthError(HomeAssistantError):
+class InvalidAuthError(HomeAssistantError):  # type: ignore[misc]
     """Error to indicate there is invalid auth."""

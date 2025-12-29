@@ -29,7 +29,7 @@ async def async_get_service(
     return WhatsAppNotificationService(client)
 
 
-class WhatsAppNotificationService(BaseNotificationService):
+class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
     """Implement the notification service for WhatsApp."""
 
     def __init__(self, client: WhatsAppApiClient) -> None:
