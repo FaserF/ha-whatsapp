@@ -2,13 +2,11 @@
 
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp import diagnostics
 from custom_components.whatsapp.const import DOMAIN
-
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
