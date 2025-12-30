@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.whatsapp.const import DOMAIN
 
 
-@pytest.mark.asyncio
+
 async def test_binary_sensor(hass: HomeAssistant) -> None:
     """Test the binary sensor."""
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})

@@ -8,7 +8,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from custom_components.whatsapp.const import DOMAIN
 
 
-@pytest.mark.asyncio
+
 async def test_form(hass: HomeAssistant) -> None:
     """Test we get the form."""
 
@@ -45,7 +45,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert len(mock_setup_entry.mock_calls) == 1
 
 
-@pytest.mark.asyncio
+
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow."""
     # Create a mock entry

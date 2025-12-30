@@ -9,7 +9,7 @@ from custom_components.whatsapp import async_setup_entry
 from custom_components.whatsapp.const import DOMAIN
 
 
-@pytest.mark.asyncio
+
 async def test_setup_entry(hass: HomeAssistant) -> None:
     """Test setting up the entry."""
     entry = MagicMock()

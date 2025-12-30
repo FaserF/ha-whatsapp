@@ -10,7 +10,7 @@ from custom_components.whatsapp import diagnostics
 from custom_components.whatsapp.const import DOMAIN
 
 
-@pytest.mark.asyncio
+
 async def test_diagnostics(hass: HomeAssistant) -> None:
     """Test diagnostics redaction."""
     entry = MockConfigEntry(
