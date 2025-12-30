@@ -18,16 +18,8 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.is_connected = AsyncMock(return_value=True)
-        # Initialize internal state for the synchronous property check if needed,
-        # or we rely on the sensor reading a property.
         # The sensor implementation reads `self.client._connected`.
         mock_instance._connected = True
-
-        # We also need to patch async_setup_entry to use our mocked client if it
-        # instantiates it internally, OR we rely on the fact that we patched the
-        # class before setup called it?
-        # Actually, async_setup_entry instantiates WhatsAppApiClient().
-        # The patch above should catch that.
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
