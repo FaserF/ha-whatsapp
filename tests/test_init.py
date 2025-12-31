@@ -13,6 +13,7 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     entry = MagicMock()
     entry.data = {"session": "test"}
     entry.entry_id = "test_entry"
+    entry.domain = DOMAIN
 
     # Mock the API client entirely so we don't need Playwright installed
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:

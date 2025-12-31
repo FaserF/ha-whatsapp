@@ -57,6 +57,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         entry_id="test_entry_id",
         discovery_keys=None,
         minor_version=1,
+        subentries_data={},
     )
     # We must add the entry to hass to test options
     entry.add_to_hass(hass)
