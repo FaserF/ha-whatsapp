@@ -44,9 +44,6 @@ async def test_form(hass: HomeAssistant) -> None:
     assert len(mock_setup_entry.mock_calls) == 1
 
 
-
-
-
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow."""
     # Create a mock entry
