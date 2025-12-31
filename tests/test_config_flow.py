@@ -21,7 +21,7 @@ async def test_form(hass: HomeAssistant) -> None:
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == "scan"
+        assert result["step_id"] == "user"
 
     # Test the submit step
     with patch(
@@ -43,10 +43,13 @@ async def test_form(hass: HomeAssistant) -> None:
     assert len(mock_setup_entry.mock_calls) == 1
 
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow."""
     # Create a mock entry
-    entry = config_entries.ConfigEntry(
+    entry = MockConfigEntry(
         version=1,
         domain=DOMAIN,
         title="WhatsApp",
@@ -55,9 +58,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         options={},
         unique_id="1234",
         entry_id="test_entry_id",
-        discovery_keys=None,
         minor_version=1,
-        subentries_data={},
     )
     # We must add the entry to hass to test options
     entry.add_to_hass(hass)

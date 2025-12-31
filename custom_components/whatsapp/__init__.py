@@ -59,7 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Set up Notify Platform (Legacy)
     hass.async_create_task(
         discovery.async_load_platform(
-            hass, Platform.NOTIFY, DOMAIN, {"entry_id": entry.entry_id}, entry.config
+            hass, Platform.NOTIFY, DOMAIN, {"entry_id": entry.entry_id}, {}
         )
     )
 
