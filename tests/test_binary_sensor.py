@@ -32,10 +32,9 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         # Simulate disconnect
         mock_instance._connected = False
         # Trigger update (normally done by coordinator or callback)
-        entity = entry.async_get_component(hass, "binary_sensor").get_entity(
-            "binary_sensor.whatsapp"
-        )
-        entity.async_write_ha_state()
+        from homeassistant.helpers.entity_component import async_update_entity
+
+        await async_update_entity(hass, "binary_sensor.whatsapp")
         await hass.async_block_till_done()
 
         state = hass.states.get("binary_sensor.whatsapp")

@@ -23,5 +23,9 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
         # Mock register_callback as it's called during setup
         mock_instance.register_callback = MagicMock()
 
+    with patch(
+        "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
+    ) as mock_forward:
         assert await async_setup_entry(hass, entry)
         assert DOMAIN in hass.data
+        assert mock_forward.call_count == 1
