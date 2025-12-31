@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
 def auto_enable_custom_integrations(
-    _enable_custom_integrations: Any,
+    enable_custom_integrations: Any,  # noqa: ARG001
 ) -> Generator[None, None, None]:
     """Enable custom integrations defined in the test dir."""
     yield
