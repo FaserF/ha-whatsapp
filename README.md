@@ -1,10 +1,12 @@
 # HA WhatsApp Integration
 
-![WhatsApp Logo](https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="100" alt="WhatsApp Logo">
 
 > **Enterprise-grade WhatsApp integration for Home Assistant.**
 >
 > Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required.
+>
+> **Requires the [Home Assistant Addon](https://github.com/FaserF/hassio-addons) to function.** This integration communicates with the addon to send and receive messages.
 
 ## 🌟 Features
 

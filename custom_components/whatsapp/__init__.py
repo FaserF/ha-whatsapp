@@ -15,7 +15,7 @@ from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -55,13 +55,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Add other services here (image, buttons, etc)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-    # Set up Notify Platform (Legacy)
-    hass.async_create_task(
-        discovery.async_load_platform(
-            hass, Platform.NOTIFY, DOMAIN, {"entry_id": entry.entry_id}, {}
-        )
-    )
 
     return True
 

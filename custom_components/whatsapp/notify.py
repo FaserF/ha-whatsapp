@@ -4,43 +4,42 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.notify import BaseNotificationService
+from homeassistant.components.notify import NotifyEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN
 
 
-async def async_get_service(
+async def async_setup_entry(
     hass: HomeAssistant,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> WhatsAppNotificationService | None:
-    """Get the WhatsApp notification service."""
-    if discovery_info is None:
-        return None
-
-    entry_id = discovery_info.get("entry_id")
-    if not entry_id:
-        return None
-
-    client = hass.data[DOMAIN][entry_id]
-    return WhatsAppNotificationService(client)
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up WhatsApp notify entity."""
+    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([WhatsAppNotificationEntity(client)])
 
 
-class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
-    """Implement the notification service for WhatsApp."""
+class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
+    """Implement the notification entity for WhatsApp."""
+
+    _attr_name = "WhatsApp"
+    _attr_has_entity_name = True
+    _attr_unique_id = "whatsapp_notify"
 
     def __init__(self, client: WhatsAppApiClient) -> None:
-        """Initialize the service."""
+        """Initialize the entity."""
         self.client = client
 
-    async def async_send_message(self, message: str = "", **kwargs: Any) -> None:
-        """Send a message to a user."""
+    async def async_send_message(self, message: str, _title: str | None = None, **kwargs: Any) -> None:
+        """Send a message."""
         targets = kwargs.get("target")
         if not targets:
-            raise HomeAssistantError("Target number is required")
+            raise HomeAssistantError("Target number is required provided via 'target'")
 
         if not isinstance(targets, list):
             targets = [targets]
