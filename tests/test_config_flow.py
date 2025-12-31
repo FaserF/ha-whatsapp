@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp.const import DOMAIN
 
@@ -43,7 +44,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert len(mock_setup_entry.mock_calls) == 1
 
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 
 
 async def test_options_flow(hass: HomeAssistant) -> None:

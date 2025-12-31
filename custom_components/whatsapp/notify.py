@@ -35,7 +35,9 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
         """Initialize the entity."""
         self.client = client
 
-    async def async_send_message(self, message: str, _title: str | None = None, **kwargs: Any) -> None:
+    async def async_send_message(
+        self, message: str, _title: str | None = None, **kwargs: Any
+    ) -> None:
         """Send a message."""
         targets = kwargs.get("target")
         if not targets:
