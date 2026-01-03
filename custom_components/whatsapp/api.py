@@ -1,9 +1,7 @@
-"""Lightweight REST Client for connecting to the WhatsApp Addon."""
 import logging
 from typing import Any
 
 import aiohttp
-from typing import Optional
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +28,8 @@ class WhatsAppApiClient:
                         # We don't raise here strictly to allow "already started" flows?
                         # But 401 must raise.
             except Exception as e:
-                if "Invalid API Key" in str(e): raise
+                if "Invalid API Key" in str(e):
+                    raise
                 _LOGGER.error("Failed to start session: %s", e)
                 raise
 
@@ -60,7 +59,8 @@ class WhatsAppApiClient:
                          return data.get("qr", "")
                      return ""
             except Exception as e:
-                 if "Invalid API Key" in str(e): raise
+                 if "Invalid API Key" in str(e):
+                     raise
                  _LOGGER.error("Error fetching QR from addon: %s", e)
                  return ""
 
@@ -82,9 +82,10 @@ class WhatsAppApiClient:
                     # Any other status is an error (e.g. 404, 500)
                     raise Exception(f"Unexpected API response: {resp.status}")
             except Exception as e:
-                if "Invalid API Key" in str(e): raise
+                if "Invalid API Key" in str(e):
+                    raise
                 # Connectivity error (ClientConnectorError, etc)
-                raise Exception(f"Cannot connect to Addon: {e}")
+                raise Exception(f"Cannot connect to Addon: {e}") from e
         return False
 
     async def is_connected(self) -> bool:
@@ -102,8 +103,10 @@ class WhatsAppApiClient:
         payload = {"number": number, "message": message}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as resp:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
                 if resp.status == 401:
                      raise Exception("Invalid API Key")
                 if resp.status != 200:
