@@ -24,24 +24,51 @@ async def test_form(hass: HomeAssistant) -> None:
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "user"
 
-    # Test the submit step
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient.connect",
-        return_value=True,
-    ), patch(
-        "custom_components.whatsapp.async_setup_entry",
-        return_value=True,
-    ) as mock_setup_entry:
+    # Test the submit step - need to mock all API calls
+    with (
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.connect",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.start_session",
+            new_callable=AsyncMock,
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.get_qr_code",
+            new_callable=AsyncMock,
+            return_value="data:image/png;base64,mockqr",
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.close",
+            new_callable=AsyncMock,
+        ),
+        patch(
+            "custom_components.whatsapp.async_setup_entry",
+            return_value=True,
+        ) as mock_setup_entry,
+    ):
+        # Submit user step
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {"host": "localhost", "api_key": "123"},
+            {"host": "http://localhost:8066", "api_key": "123"},
+        )
+        # After user step, we go to scan step
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] == "scan"
+
+        # Submit scan step (simulate user clicked submit after scanning)
+        result3 = await hass.config_entries.flow.async_configure(
+            result2["flow_id"],
+            {},
         )
         await hass.async_block_till_done()
 
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["title"] == "WhatsApp"
+    assert result3["type"] == FlowResultType.CREATE_ENTRY
+    assert result3["title"] == "WhatsApp"
     # The config flow now generates a session_id
-    assert "session_id" in result2["data"]
+    assert "session_id" in result3["data"]
     assert len(mock_setup_entry.mock_calls) == 1
 
 
