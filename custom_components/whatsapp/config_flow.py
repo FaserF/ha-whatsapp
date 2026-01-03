@@ -221,6 +221,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     errors["base"] = "reset_failed"
                     return self.async_show_form(step_id="init", errors=errors)
 
+            if user_input.get("reset_session"):
+                user_input.pop("reset_session")
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(

@@ -34,17 +34,14 @@ async def test_form(hass: HomeAssistant) -> None:
     ) as mock_setup_entry:
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {"host": "localhost", "port": 8066},
+            {"host": "localhost", "api_key": "123"},
         )
         await hass.async_block_till_done()
 
     assert result2["type"] == FlowResultType.CREATE_ENTRY
     assert result2["title"] == "WhatsApp"
-    assert result2["data"] == {
-        "host": "localhost",
-        "port": 8066,
-        "url": "http://localhost:8066",
-    }
+    # The config flow now generates a session_id
+    assert "session_id" in result2["data"]
     assert len(mock_setup_entry.mock_calls) == 1
 
 
