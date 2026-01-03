@@ -20,7 +20,7 @@ from .const import CONF_API_KEY, DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
     """Handle a config flow for HA WhatsApp."""
 
     VERSION = 1
@@ -260,7 +260,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
         )
 
 
-class CannotConnectError(HomeAssistantError):
+class CannotConnectError(HomeAssistantError):  # type: ignore[misc]
     """Error to indicate we cannot connect."""
 
 

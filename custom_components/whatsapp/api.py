@@ -7,7 +7,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class WhatsAppApiClient:
-    def __init__(self, host: str, api_key: str = None) -> None:
+    def __init__(self, host: str, api_key: str | None = None) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
@@ -56,7 +56,7 @@ class WhatsAppApiClient:
                         raise Exception("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
-                        return data.get("qr", "")
+                        return str(data.get("qr", ""))
                     return ""
             except Exception as e:
                 if "Invalid API Key" in str(e):
@@ -75,7 +75,7 @@ class WhatsAppApiClient:
                         raise Exception("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
-                        connected = data.get("connected", False)
+                        connected = bool(data.get("connected", False))
                         self._connected = connected
                         return connected
 
@@ -115,4 +115,8 @@ class WhatsAppApiClient:
 
     async def close(self) -> None:
         """Close session."""
+        pass
+
+    async def send_poll(self, number: str, question: str, options: list[str]) -> None:
+        """Send a poll."""
         pass
