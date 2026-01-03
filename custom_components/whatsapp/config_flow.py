@@ -19,6 +19,7 @@ from .const import CONF_API_KEY, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HA WhatsApp."""
 
@@ -42,9 +43,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         candidates = [
             "localhost",
-            "7da084a7-whatsapp", # Standard Slug
-            "whatsapp", # Docker
-            "addon-whatsapp" # Supervisor
+            "7da084a7-whatsapp",  # Standard Slug
+            "whatsapp",  # Docker
+            "addon-whatsapp",  # Supervisor
         ]
 
         found_host = None
@@ -65,16 +66,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 suggested_url = f"http://{found_host}:8066"
 
             if user_input is None:
-                 return self.async_show_form(
+                return self.async_show_form(
                     step_id="user",
-                    data_schema=vol.Schema({
-                        vol.Required("host", default=suggested_url): str,
-                        vol.Required(CONF_API_KEY): str,
-                    }),
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("host", default=suggested_url): str,
+                            vol.Required(CONF_API_KEY): str,
+                        }
+                    ),
                     description_placeholders={
                         "setup_url": "https://github.com/FaserF/ha-whatsapp/blob/master/docs/SETUP.md"
                     },
-                    errors=errors
+                    errors=errors,
                 )
 
         self.client = WhatsAppApiClient(
@@ -96,11 +99,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             return self.async_show_form(
                 step_id="user",
-                data_schema=vol.Schema({
-                    vol.Required("host", default=user_input["host"]): str,
-                    vol.Required(CONF_API_KEY, default=user_input[CONF_API_KEY]): str,
-                }),
-                errors=errors
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("host", default=user_input["host"]): str,
+                        vol.Required(
+                            CONF_API_KEY, default=user_input[CONF_API_KEY]
+                        ): str,
+                    }
+                ),
+                errors=errors,
             )
 
         return await self.async_step_scan()
@@ -110,15 +117,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Display the QR code."""
         if not self.client:
-             return self.async_abort(reason="unknown")
+            return self.async_abort(reason="unknown")
 
         try:
             # Trigger browser initialization to get QR
             if not self.qr_code:
-                 # Trigger session start on addon side (Lazy Init)
-                 await self.client.start_session()
-                 await asyncio.sleep(2)
-                 self.qr_code = await self.client.get_qr_code()
+                # Trigger session start on addon side (Lazy Init)
+                await self.client.start_session()
+                await asyncio.sleep(2)
+                self.qr_code = await self.client.get_qr_code()
         except ImportError:
             return self.async_abort(reason="missing_dependency")
         except Exception as e:
@@ -128,9 +135,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="connection_error")
 
         if user_input is not None:
-             # User clicked "Submit" (meaning they scanned it)
-             # Verify connection AGAIN
-             try:
+            # User clicked "Submit" (meaning they scanned it)
+            # Verify connection AGAIN
+            try:
                 valid = await self.client.connect()
                 if valid:
                     await self.client.close()
@@ -139,15 +146,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     title="WhatsApp",
                     data={"session_id": self.session_id},
                 )
-             except Exception:
-                 pass
+            except Exception:
+                pass
 
-             return self.async_show_progress_done(next_step_id="scan") # Loop back
+            return self.async_show_progress_done(next_step_id="scan")  # Loop back
 
         # Get QR Code (Base64 data URI)
         if not self.qr_code:
             # Retry fetching multiple times
-            for _i in range(5): # Try for ~5 seconds
+            for _i in range(5):  # Try for ~5 seconds
                 try:
                     self.qr_code = await self.client.get_qr_code()
                     if self.qr_code:
@@ -157,18 +164,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await asyncio.sleep(1)
 
         if not self.qr_code:
-             # If still no QR code, show a "Waiting" placeholder or instructions
-             # to retry.
-             pass
+            # If still no QR code, show a "Waiting" placeholder or instructions
+            # to retry.
+            pass
 
         return self.async_show_form(
             step_id="scan",
-            data_schema=vol.Schema({}), # No input needed, just "Submit" after scan
+            data_schema=vol.Schema({}),  # No input needed, just "Submit" after scan
             description_placeholders={
-                "qr_image": self.qr_code or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
-                "status_text": "Waiting for QR Code... (Click Submit to refresh)"
-                if not self.qr_code
-                else "Scan this code with WhatsApp",
+                "qr_image": self.qr_code
+                or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                "status_text": (
+                    "Waiting for QR Code... (Click Submit to refresh)"
+                    if not self.qr_code
+                    else "Scan this code with WhatsApp"
+                ),
             },
         )
 
@@ -198,12 +208,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
             if user_input.get("reset_session"):
                 try:
                     # Call DELETE /session
-                    host = (
-                        self.hass.data[DOMAIN][self._config_entry.entry_id].client.host
-                    )
-                    api_key = (
-                        self.hass.data[DOMAIN][self._config_entry.entry_id].client.api_key
-                    )
+                    host = self.hass.data[DOMAIN][
+                        self._config_entry.entry_id
+                    ].client.host
+                    api_key = self.hass.data[DOMAIN][
+                        self._config_entry.entry_id
+                    ].client.api_key
                     client = WhatsAppApiClient(host=host, api_key=api_key)
                     await client.delete_session()
                 except Exception as e:
@@ -224,15 +234,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     vol.Optional("reset_session", default=False): bool,
                 }
             ),
-             description_placeholders={
+            description_placeholders={
                 "warning": "⚠️ CAUTION: 'Reset Session' will log you out and "
-                           "delete session data on the Addon."
-            }
+                "delete session data on the Addon."
+            },
         )
 
-    async def async_step_zeroconf(
-        self, discovery_info: Any
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
         """Handle zeroconf discovery."""
         host = discovery_info.host
         port = discovery_info.port
@@ -250,6 +258,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
         return await self.async_step_user(
             user_input={"host": suggested_url, "api_key": ""}
         )
+
 
 class CannotConnectError(HomeAssistantError):
     """Error to indicate we cannot connect."""

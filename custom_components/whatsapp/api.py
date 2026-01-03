@@ -40,8 +40,8 @@ class WhatsAppApiClient:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.delete(url, headers=headers, timeout=5) as resp:
-                     if resp.status == 401:
-                         raise Exception("Invalid API Key")
+                    if resp.status == 401:
+                        raise Exception("Invalid API Key")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
 
@@ -52,17 +52,17 @@ class WhatsAppApiClient:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url, headers=headers, timeout=10) as resp:
-                     if resp.status == 401:
-                         raise Exception("Invalid API Key")
-                     if resp.status == 200:
-                         data = await resp.json()
-                         return data.get("qr", "")
-                     return ""
+                    if resp.status == 401:
+                        raise Exception("Invalid API Key")
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return data.get("qr", "")
+                    return ""
             except Exception as e:
-                 if "Invalid API Key" in str(e):
-                     raise
-                 _LOGGER.error("Error fetching QR from addon: %s", e)
-                 return ""
+                if "Invalid API Key" in str(e):
+                    raise
+                _LOGGER.error("Error fetching QR from addon: %s", e)
+                return ""
 
     async def connect(self) -> bool:
         """Check connection and validate Auth."""
@@ -107,11 +107,11 @@ class WhatsAppApiClient:
             aiohttp.ClientSession() as session,
             session.post(url, json=payload, headers=headers) as resp,
         ):
-                if resp.status == 401:
-                     raise Exception("Invalid API Key")
-                if resp.status != 200:
-                    text = await resp.text()
-                    raise Exception(f"Failed to send: {text}")
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to send: {text}")
 
     async def close(self) -> None:
         """Close session."""
