@@ -3,7 +3,11 @@
     "step": {
       "user": {
         "title": "Connect WhatsApp",
-        "description": "Scan the QR Code to link your WhatsApp account."
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (from Addon UI)"
+        },
+        "description": "Enter the URL of your WhatsApp Addon.\n\nTypical URLs:\n- `http://localhost:8066` (Docker/Local)\n- `http://addon-slug:8066` (HA Addon)\n\n[Setup Guide]({setup_url})"
       },
       "scan": {
         "title": "Scan QR Code",
@@ -25,12 +29,12 @@
       "description": "Sends a text message to a WhatsApp number.",
       "fields": {
         "message": {
-            "name": "Message",
-            "description": "The text to send."
+          "name": "Message",
+          "description": "The text to send."
         },
         "target": {
-            "name": "Target Number",
-            "description": "The phone number to send to."
+          "name": "Target Number",
+          "description": "The phone number to send to."
         }
       }
     }

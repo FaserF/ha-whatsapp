@@ -1,0 +1,6 @@
+{
+    "name": "Home Assistant WhatsApp",
+    "render_readme": true,
+    "filename": "whatsapp.zip",
+    "homeassistant": "2024.1.0"
+}

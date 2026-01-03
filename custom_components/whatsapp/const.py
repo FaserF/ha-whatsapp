@@ -2,6 +2,7 @@
 
 from typing import Final
 
-DOMAIN: Final = "whatsapp"
+DOMAIN = "whatsapp"
+CONF_API_KEY = "api_key"
 
-EVENT_MESSAGE_RECEIVED: Final = "whatsapp_message_received"
+EVENT_MESSAGE_RECEIVED = "whatsapp_message_received"

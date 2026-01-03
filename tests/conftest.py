@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # type: ignore[misc]
 def auto_enable_custom_integrations(
     enable_custom_integrations: Any,  # noqa: ARG001
 ) -> Generator[None, None, None]:

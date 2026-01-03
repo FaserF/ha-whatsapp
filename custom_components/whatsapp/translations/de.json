@@ -3,7 +3,11 @@
         "step": {
             "user": {
                 "title": "WhatsApp verbinden",
-                "description": "Scannen Sie den QR-Code, um Ihr WhatsApp-Konto zu verknüpfen."
+                "data": {
+                    "host": "Addon Host URL",
+                    "api_key": "API Token (aus Addon UI)"
+                },
+                "description": "Geben Sie die URL Ihres WhatsApp-Addons ein.\n\nTypische URLs:\n- `http://localhost:8066` (Docker/Lokal)\n- `http://addon-slug:8066` (HA Addon)\n\n[Einrichtungsanleitung]({setup_url})"
             },
             "scan": {
                 "title": "QR-Code scannen",
