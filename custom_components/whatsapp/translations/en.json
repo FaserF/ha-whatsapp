@@ -11,12 +11,13 @@
       },
       "scan": {
         "title": "Scan QR Code",
-        "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\\n\\n![QR Code]({qr_image})\\n\\n**Please click Submit after successfully scanning the code.**"
+        "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\n\n![QR Code]({qr_image})\n\n**Please click Submit after successfully scanning the code.**"
       }
     },
     "error": {
       "cannot_connect": "Failed to connect to the WhatsApp Addon. Please ensure the [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) is installed and running.",
       "invalid_auth": "Invalid authentication",
+      "connection_error": "Not connected to WhatsApp. Please scan the QR code first.",
       "unknown": "Unexpected error"
     },
     "abort": {

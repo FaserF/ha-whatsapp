@@ -131,14 +131,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # First check if already connected (e.g. from previous session)
         try:
-            if await self.client.connect():
+            is_connected = await self.client.connect()
+            _LOGGER.debug("Connect check result: %s", is_connected)
+            if is_connected:
                 _LOGGER.info("Already connected to WhatsApp, skipping QR scan")
                 await self.client.close()
                 return self.async_create_entry(
                     title="WhatsApp",
                     data={"session_id": self.session_id},
                 )
-        except Exception:
+        except Exception as e:
+            _LOGGER.debug("Connect check failed with exception: %s", e)
             pass  # Not connected, proceed with QR flow
 
         try:

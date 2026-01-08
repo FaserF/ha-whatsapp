@@ -17,6 +17,7 @@
         "error": {
             "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stellen Sie sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
             "invalid_auth": "Ungültige Authentifizierung",
+            "connection_error": "Nicht mit WhatsApp verbunden. Bitte scannen Sie zuerst den QR-Code.",
             "unknown": "Unerwarteter Fehler"
         },
         "abort": {
