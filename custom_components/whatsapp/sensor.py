@@ -4,13 +4,12 @@ from __future__ import annotations
 
 
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN
+from .coordinator import WhatsAppDataUpdateCoordinator
 
 
 async def async_setup_entry(
@@ -19,15 +18,16 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up WhatsApp sensors."""
-    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
 
     async_add_entities([
-        WhatsAppStatSensor(client, entry, "sent", "Messages Sent"),
-        WhatsAppStatSensor(client, entry, "failed", "Messages Failed"),
+        WhatsAppStatSensor(coordinator, entry, "sent", "Messages Sent"),
+        WhatsAppStatSensor(coordinator, entry, "failed", "Messages Failed"),
     ])
 
 
-class WhatsAppStatSensor(SensorEntity):  # type: ignore[misc]
+class WhatsAppStatSensor(CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity):  # type: ignore[misc]
     """Representation of a WhatsApp statistic sensor."""
 
     _attr_has_entity_name = True
@@ -35,13 +35,13 @@ class WhatsAppStatSensor(SensorEntity):  # type: ignore[misc]
 
     def __init__(
         self,
-        client: WhatsAppApiClient,
+        coordinator: WhatsAppDataUpdateCoordinator,
         entry: ConfigEntry,
         stat_key: str,
         name: str
     ) -> None:
         """Initialize the sensor."""
-        self.client = client
+        super().__init__(coordinator)
         self._stat_key = stat_key
         self._attr_name = name
         self._attr_unique_id = f"{entry.entry_id}_{stat_key}"
@@ -54,4 +54,5 @@ class WhatsAppStatSensor(SensorEntity):  # type: ignore[misc]
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        return int(self.client.stats.get(self._stat_key, 0))
+        stats = self.coordinator.data.get("stats", {})
+        return int(stats.get(self._stat_key, 0))

@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 
 from .api import WhatsAppApiClient
 from .const import CONF_POLLING_INTERVAL, DOMAIN, EVENT_MESSAGE_RECEIVED
+from .coordinator import WhatsAppDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,8 +24,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     client = WhatsAppApiClient(host=addon_url)
 
+    coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
+    await coordinator.async_config_entry_first_refresh()
+
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = client
+    hass.data[DOMAIN][entry.entry_id] = {
+        "client": client,
+        "coordinator": coordinator,
+    }
 
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
@@ -112,8 +119,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
-    await client.stop_polling()
+    data = hass.data[DOMAIN][entry.entry_id]
+    client: WhatsAppApiClient = data["client"]
+    await client.close()
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)

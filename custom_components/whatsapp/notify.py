@@ -20,8 +20,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up WhatsApp notify entity."""
-    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([WhatsAppNotificationEntity(client)])
+    data = hass.data[DOMAIN][entry.entry_id]
+    client: WhatsAppApiClient = data["client"]
+    async_add_entities([WhatsAppNotificationEntity(client, entry)])
 
 
 class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
@@ -31,9 +32,14 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
     _attr_has_entity_name = True
     _attr_unique_id = "whatsapp_notify"
 
-    def __init__(self, client: WhatsAppApiClient) -> None:
+    def __init__(self, client: WhatsAppApiClient, entry: ConfigEntry) -> None:
         """Initialize the entity."""
         self.client = client
+        self._attr_unique_id = f"{entry.entry_id}_notify"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry.entry_id)},
+            "name": "WhatsApp",
+        }
 
     async def async_send_message(
         self, message: str, _title: str | None = None, **kwargs: Any

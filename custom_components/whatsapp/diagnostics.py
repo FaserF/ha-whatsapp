@@ -18,9 +18,12 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
+    data = hass.data[DOMAIN][entry.entry_id]
+    client: WhatsAppApiClient = data["client"]
+    coordinator = data["coordinator"]
 
     return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
-        "client_connected": await client.is_connected(),
+        "client_connected": coordinator.data.get("connected", False),
+        "stats": coordinator.data.get("stats", {}),
     }

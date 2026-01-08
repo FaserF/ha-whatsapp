@@ -57,7 +57,6 @@ class WhatsAppApiClient:
                 if not self._session or self._session.closed:
                     self._session = aiohttp.ClientSession()
 
-                # Long polling or short polling? Assuming short for now.
                 async with self._session.get(url, headers=headers, timeout=10) as resp:
                     if resp.status == 200:
                         events = await resp.json()
@@ -145,6 +144,7 @@ class WhatsAppApiClient:
                     # Any other status is an error (e.g. 404, 500)
                     raise Exception(f"Unexpected API response: {resp.status}")
             except Exception as e:
+                self._connected = False
                 if "Invalid API Key" in str(e):
                     raise
                 # Connectivity error (ClientConnectorError, etc)
@@ -182,7 +182,9 @@ class WhatsAppApiClient:
 
     async def close(self) -> None:
         """Close session."""
-        pass
+        if self._session and not self._session.closed:
+            await self._session.close()
+        await self.stop_polling()
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll."""

@@ -17,24 +17,24 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.is_connected = AsyncMock(return_value=True)
-        # The sensor implementation reads `self.client._connected`.
-        mock_instance._connected = True
+        mock_instance.stats = {"sent": 10, "failed": 2}
 
+        # Setup the integration
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        # The state should be 'on' because mock_instance.connect() returned True
         state = hass.states.get("binary_sensor.whatsapp")
         assert state
         assert state.state == "on"
-        # Depending on device class "connectivity", on=Connected
+        assert state.attributes["messages_sent"] == 10
 
         # Simulate disconnect
-        mock_instance._connected = False
-        # Trigger update (normally done by coordinator or callback)
-        from homeassistant.helpers.entity_component import async_update_entity
+        mock_instance.connect = AsyncMock(return_value=False)
 
-        await async_update_entity(hass, "binary_sensor.whatsapp")
+        # Manually trigger coordinator refresh
+        data = hass.data[DOMAIN][entry.entry_id]
+        await data["coordinator"].async_refresh()
         await hass.async_block_till_done()
 
         state = hass.states.get("binary_sensor.whatsapp")
