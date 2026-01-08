@@ -179,7 +179,6 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = message
             self.stats["last_sent_target"] = number
 
-
     async def close(self) -> None:
         """Close session."""
         if self._session and not self._session.closed:
@@ -246,7 +245,7 @@ class WhatsAppApiClient:
             "latitude": latitude,
             "longitude": longitude,
             "title": name,
-            "description": address
+            "description": address,
         }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
@@ -304,7 +303,7 @@ class WhatsAppApiClient:
             "number": number,
             "message": text,
             "buttons": buttons,
-            "footer": footer
+            "footer": footer,
         }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (

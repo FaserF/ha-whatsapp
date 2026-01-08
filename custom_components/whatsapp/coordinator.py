@@ -61,8 +61,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator):
                 {
                     "title": "WhatsApp Connection Lost",
                     "message": (
-                        "Integration lost connection to the WhatsApp Addon: "
-                        f"{err}"
+                        "Integration lost connection to the WhatsApp Addon: " f"{err}"
                     ),
                     "notification_id": f"{DOMAIN}_connection_lost",
                 },

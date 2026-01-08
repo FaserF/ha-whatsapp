@@ -21,10 +21,12 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
 
-    async_add_entities([
-        WhatsAppStatSensor(coordinator, entry, "sent", "Messages Sent"),
-        WhatsAppStatSensor(coordinator, entry, "failed", "Messages Failed"),
-    ])
+    async_add_entities(
+        [
+            WhatsAppStatSensor(coordinator, entry, "sent", "Messages Sent"),
+            WhatsAppStatSensor(coordinator, entry, "failed", "Messages Failed"),
+        ]
+    )
 
 
 class WhatsAppStatSensor(
@@ -40,7 +42,7 @@ class WhatsAppStatSensor(
         coordinator: WhatsAppDataUpdateCoordinator,
         entry: ConfigEntry,
         stat_key: str,
-        name: str
+        name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
