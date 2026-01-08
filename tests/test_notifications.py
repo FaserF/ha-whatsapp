@@ -20,7 +20,9 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
         mock_instance.stats = {"sent": 0, "failed": 0}
 
         # Mock the service calls
-        with patch.object(hass.services, "async_call", AsyncMock()) as mock_service_call:
+        with patch.object(
+            hass.services, "async_call", AsyncMock()
+        ) as mock_service_call:
             # Setup - this will call first refresh
             assert await hass.config_entries.async_setup(entry.entry_id)
             await hass.async_block_till_done()
@@ -31,7 +33,10 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
                 "create",
                 {
                     "title": "WhatsApp Connection Lost",
-                    "message": "Integration lost connection to the WhatsApp Addon: Connection Failed",
+                    "message": (
+                        "Integration lost connection to the WhatsApp Addon: "
+                        "Connection Failed"
+                    ),
                     "notification_id": f"{DOMAIN}_connection_lost",
                 },
             )

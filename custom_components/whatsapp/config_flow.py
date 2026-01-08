@@ -17,7 +17,6 @@ from homeassistant.exceptions import HomeAssistantError
 from .api import WhatsAppApiClient
 from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, DEFAULT_PORT, DOMAIN
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -60,7 +59,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if user_input is None:
                 for candidate in candidates:
                     try:
-                        sock = socket.create_connection((candidate, DEFAULT_PORT), timeout=0.3)
+                        sock = socket.create_connection(
+                            (candidate, DEFAULT_PORT), timeout=0.3
+                        )
                         sock.close()
                         found_host = candidate
                         _LOGGER.debug("Found reachable host: %s", candidate)

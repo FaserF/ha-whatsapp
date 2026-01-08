@@ -8,7 +8,6 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .api import WhatsAppApiClient
 from .const import DOMAIN
 
 TO_REDACT = {"session_data", "session"}
@@ -19,7 +18,6 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    client: WhatsAppApiClient = data["client"]
     coordinator = data["coordinator"]
 
     return {

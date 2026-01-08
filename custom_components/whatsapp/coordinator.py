@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import WhatsAppApiClient
-from .const import DOMAIN, CONF_POLLING_INTERVAL
+from .const import CONF_POLLING_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,10 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator):
                 "create",
                 {
                     "title": "WhatsApp Connection Lost",
-                    "message": f"Integration lost connection to the WhatsApp Addon: {err}",
+                    "message": (
+                        "Integration lost connection to the WhatsApp Addon: "
+                        f"{err}"
+                    ),
                     "notification_id": f"{DOMAIN}_connection_lost",
                 },
             )
