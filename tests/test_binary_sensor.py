@@ -1,6 +1,6 @@
 """Test the HA WhatsApp binary sensor."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -13,11 +13,15 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
     entry.add_to_hass(hass)
 
-    # Patch the Client Class
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+    # Patch the Client Class and persistent_notification
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("custom_components.whatsapp.coordinator.persistent_notification"),
+    ):
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.stats = {"sent": 10, "failed": 2}
+        mock_instance.register_callback = MagicMock()
 
         # Setup the integration
         assert await hass.config_entries.async_setup(entry.entry_id)

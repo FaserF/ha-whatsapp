@@ -16,23 +16,22 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    # Mock the API client entirely so we don't need Playwright installed
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+    # Mock the API client and persistent notifications
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("custom_components.whatsapp.coordinator.persistent_notification"),
+    ):
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.stats = {"sent": 0, "failed": 0}
         # Mock register_callback as it's called during setup
         mock_instance.register_callback = MagicMock()
 
-        with patch(
-            "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups"
-        ) as mock_forward:
-            # Setup the integration
-            assert await async_setup_entry(hass, entry)
+        # Setup the integration
+        assert await async_setup_entry(hass, entry)
 
-            assert DOMAIN in hass.data
-            assert entry.entry_id in hass.data[DOMAIN]
-            # Check that we have a dict with client and coordinator
-            assert "client" in hass.data[DOMAIN][entry.entry_id]
-            assert "coordinator" in hass.data[DOMAIN][entry.entry_id]
-
-            assert mock_forward.call_count == 1
+        assert DOMAIN in hass.data
+        assert entry.entry_id in hass.data[DOMAIN]
+        # Check that we have a dict with client and coordinator
+        assert "client" in hass.data[DOMAIN][entry.entry_id]
+        assert "coordinator" in hass.data[DOMAIN][entry.entry_id]

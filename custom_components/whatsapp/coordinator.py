@@ -6,6 +6,7 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -33,22 +34,20 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name=DOMAIN,
             update_interval=timedelta(seconds=polling_interval),
         )
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
+        notification_id = f"{DOMAIN}_connection_lost"
         try:
             connected = await self.client.connect()
 
             # If we were disconnected and now we are connected, dismiss notification
             if connected:
-                await self.hass.services.async_call(
-                    "persistent_notification",
-                    "dismiss",
-                    {"notification_id": f"{DOMAIN}_connection_lost"},
-                )
+                persistent_notification.async_dismiss(self.hass, notification_id)
 
             return {
                 "connected": connected,
@@ -56,15 +55,10 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             }
         except Exception as err:
             # Create persistent notification on connection loss
-            await self.hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": "WhatsApp Connection Lost",
-                    "message": (
-                        "Integration lost connection to the WhatsApp Addon: " f"{err}"
-                    ),
-                    "notification_id": f"{DOMAIN}_connection_lost",
-                },
+            persistent_notification.async_create(
+                self.hass,
+                f"Integration lost connection to the WhatsApp Addon: {err}",
+                title="WhatsApp Connection Lost",
+                notification_id=notification_id,
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
