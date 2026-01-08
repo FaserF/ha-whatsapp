@@ -24,6 +24,8 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.stats = {"sent": 0, "failed": 0}
         mock_instance.register_callback = MagicMock()
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.close = AsyncMock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)
 

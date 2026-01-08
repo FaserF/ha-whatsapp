@@ -22,6 +22,8 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         # Initial stats
         mock_instance.stats = {"sent": 5, "failed": 1}
         mock_instance.register_callback = MagicMock()
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.close = AsyncMock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

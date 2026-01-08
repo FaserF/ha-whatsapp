@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp import async_setup_entry
 from custom_components.whatsapp.const import DOMAIN
 
 
@@ -24,11 +23,13 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.stats = {"sent": 0, "failed": 0}
-        # Mock register_callback as it's called during setup
         mock_instance.register_callback = MagicMock()
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.close = AsyncMock()
 
-        # Setup the integration
-        assert await async_setup_entry(hass, entry)
+        # Setup using the config entries flow (not direct call)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
         assert DOMAIN in hass.data
         assert entry.entry_id in hass.data[DOMAIN]
