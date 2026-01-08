@@ -125,7 +125,21 @@ class WhatsAppApiClient:
                         raise Exception("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
-                        return str(data.get("qr", ""))
+                        status = data.get("status", "")
+                        qr = data.get("qr", "")
+                        _LOGGER.debug("QR endpoint returned status=%s, qr_present=%s", status, bool(qr))
+
+                        if status == "connected":
+                            # Already connected, no QR needed
+                            _LOGGER.info("Addon reports already connected, no QR code needed")
+                            return ""
+                        if status == "waiting":
+                            # QR not yet generated
+                            _LOGGER.debug("Addon is still generating QR code")
+                            return ""
+                        # status == "scanning" means QR is available
+                        return str(qr) if qr else ""
+                    _LOGGER.warning("QR endpoint returned status %s", resp.status)
                     return ""
             except Exception as e:
                 if "Invalid API Key" in str(e):

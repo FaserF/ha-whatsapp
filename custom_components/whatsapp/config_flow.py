@@ -96,16 +96,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # Validate connection and Key BEFORE proceeding
         try:
-            if await self.client.connect():
-                # ALREADY CONNECTED!
-                # If we are already connected, we don't need to scan.
-                # Just create the entry.
-                await self.client.close()
-                return self.async_create_entry(
-                    title="WhatsApp",
-                    data={"session_id": self.session_id},
-                )
-            # connect() now raises Exception if not 200 OK
+            await self.client.connect()
+            # connect() now raises Exception if not 200 OK or invalid auth
         except Exception as e:
             error_msg = str(e)
             _LOGGER.error("Config Flow Validation Error: %s", error_msg)
@@ -137,6 +129,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if not self.client:
             return self.async_abort(reason="unknown")
 
+        # First check if already connected (e.g. from previous session)
+        try:
+            if await self.client.connect():
+                _LOGGER.info("Already connected to WhatsApp, skipping QR scan")
+                await self.client.close()
+                return self.async_create_entry(
+                    title="WhatsApp",
+                    data={"session_id": self.session_id},
+                )
+        except Exception:
+            pass  # Not connected, proceed with QR flow
+
         try:
             # Trigger browser initialization to get QR
             if not self.qr_code:
@@ -154,27 +158,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         if user_input is not None:
             # User clicked "Submit" (meaning they scanned it)
-            # Verify connection AGAIN
+            # Verify connection AGAIN - check if WhatsApp is actually connected
             try:
-                valid = await self.client.connect()
-                if valid:
+                connected = await self.client.connect()
+                if connected:
                     await self.client.close()
-
-                return self.async_create_entry(
-                    title="WhatsApp",
-                    data={"session_id": self.session_id},
-                )
+                    return self.async_create_entry(
+                        title="WhatsApp",
+                        data={"session_id": self.session_id},
+                    )
             except Exception:
                 pass
 
-            # If verification failed, show error instead of looping with progress_done
+            # If verification failed (not connected), show error and let user retry
             return self.async_show_form(
                 step_id="scan",
                 data_schema=vol.Schema({}),
                 description_placeholders={
                     "qr_image": self.qr_code
                     or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
-                    "status_text": "Scan failed or not connected. Please try again.",
+                    "status_text": "Not connected yet. Please scan the QR code and try again.",
                 },
                 errors={"base": "connection_error"},
             )
