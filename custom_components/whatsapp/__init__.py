@@ -10,7 +10,7 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from .api import WhatsAppApiClient
-from .const import DOMAIN, EVENT_MESSAGE_RECEIVED, CONF_POLLING_INTERVAL
+from .const import CONF_POLLING_INTERVAL, DOMAIN, EVENT_MESSAGE_RECEIVED
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,7 +67,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         name = call.data.get("name")
         address = call.data.get("address")
         if number and latitude is not None and longitude is not None:
-            await client.send_location(number, float(latitude), float(longitude), name, address)
+            await client.send_location(
+                number, float(latitude), float(longitude), name, address
+            )
 
     async def send_reaction_service(call: ServiceCall) -> None:
         """Handle the send_reaction service."""

@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 import logging
 from typing import Any
 
@@ -36,10 +38,8 @@ class WhatsAppApiClient:
         """Stop the polling loop."""
         if self._polling_task:
             self._polling_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._polling_task
-            except asyncio.CancelledError:
-                pass
             self._polling_task = None
 
         if self._session:
@@ -206,7 +206,9 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = f"Poll: {question}"
             self.stats["last_sent_target"] = number
 
-    async def send_image(self, number: str, image_url: str, caption: str | None = None) -> None:
+    async def send_image(
+        self, number: str, image_url: str, caption: str | None = None
+    ) -> None:
         """Send an image."""
         url = f"{self.host}/send_image"
         payload = {"number": number, "url": image_url, "caption": caption}
@@ -227,7 +229,14 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = "Image Sent"
             self.stats["last_sent_target"] = number
 
-    async def send_location(self, number: str, latitude: float, longitude: float, name: str | None = None, address: str | None = None) -> None:
+    async def send_location(
+        self,
+        number: str,
+        latitude: float,
+        longitude: float,
+        name: str | None = None,
+        address: str | None = None,
+    ) -> None:
         """Send a location."""
         url = f"{self.host}/send_location"
         payload = {
@@ -280,7 +289,13 @@ class WhatsAppApiClient:
                 text_content = await resp.text()
                 raise Exception(f"Failed to set presence: {text_content}")
 
-    async def send_buttons(self, number: str, text: str, buttons: list[dict[str, str]], footer: str | None = None) -> None:
+    async def send_buttons(
+        self,
+        number: str,
+        text: str,
+        buttons: list[dict[str, str]],
+        footer: str | None = None,
+    ) -> None:
         """Send a message with buttons."""
         url = f"{self.host}/send_buttons"
         payload = {

@@ -15,7 +15,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, DOMAIN, CONF_POLLING_INTERVAL
+from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -236,7 +236,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     ): bool,
                     vol.Optional(
                         CONF_POLLING_INTERVAL,
-                        default=self._config_entry.options.get(CONF_POLLING_INTERVAL, 2),
+                        default=self._config_entry.options.get(
+                            CONF_POLLING_INTERVAL, 2
+                        ),
                     ): int,
                     vol.Optional("reset_session", default=False): bool,
                 }
