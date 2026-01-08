@@ -96,7 +96,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # Validate connection and Key BEFORE proceeding
         try:
-            await self.client.connect()
+            if await self.client.connect():
+                # ALREADY CONNECTED!
+                # If we are already connected, we don't need to scan.
+                # Just create the entry.
+                await self.client.close()
+                return self.async_create_entry(
+                    title="WhatsApp",
+                    data={"session_id": self.session_id},
+                )
             # connect() now raises Exception if not 200 OK
         except Exception as e:
             error_msg = str(e)
@@ -159,7 +167,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             except Exception:
                 pass
 
-            return self.async_show_progress_done(next_step_id="scan")  # Loop back
+            # If verification failed, show error instead of looping with progress_done
+            return self.async_show_form(
+                step_id="scan",
+                data_schema=vol.Schema({}),
+                description_placeholders={
+                    "qr_image": self.qr_code
+                    or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                    "status_text": "Scan failed or not connected. Please try again.",
+                },
+                errors={"base": "connection_error"},
+            )
 
         # Get QR Code (Base64 data URI)
         if not self.qr_code:
