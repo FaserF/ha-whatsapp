@@ -15,7 +15,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, DOMAIN
+from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, DEFAULT_PORT, DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,31 +40,36 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         errors: dict[str, str] = {}
 
         # Auto-discovery attempt: Scan candidates
-        suggested_url = "http://localhost:8066"
+        suggested_url = f"http://localhost:{DEFAULT_PORT}"
 
-        candidates = [
-            "localhost",
-            "7da084a7-whatsapp",  # Standard Slug
-            "whatsapp",  # Docker
-            "addon-whatsapp",  # Supervisor
-        ]
+        if self.discovery_info.get("host"):
+            suggested_url = self.discovery_info["host"]
+        else:
+            candidates = [
+                "localhost",
+                "7da084a7-whatsapp",  # Standard Slug
+                "7da084a7-whatsapp-edge",  # Edge Slug
+                "local-whatsapp",  # Local Slug
+                "whatsapp",  # Docker
+                "addon-whatsapp",  # Supervisor
+            ]
 
-        found_host = None
+            found_host = None
 
-        # Only scan if we are NOT submitting (first load)
-        if user_input is None:
-            for candidate in candidates:
-                try:
-                    sock = socket.create_connection((candidate, 8066), timeout=0.3)
-                    sock.close()
-                    found_host = candidate
-                    _LOGGER.debug("Found reachable host: %s", candidate)
-                    break
-                except Exception:
-                    continue
+            # Only scan if we are NOT submitting (first load)
+            if user_input is None:
+                for candidate in candidates:
+                    try:
+                        sock = socket.create_connection((candidate, DEFAULT_PORT), timeout=0.3)
+                        sock.close()
+                        found_host = candidate
+                        _LOGGER.debug("Found reachable host: %s", candidate)
+                        break
+                    except Exception:
+                        continue
 
-            if found_host:
-                suggested_url = f"http://{found_host}:8066"
+                if found_host:
+                    suggested_url = f"http://{found_host}:{DEFAULT_PORT}"
 
             if user_input is None:
                 return self.async_show_form(
@@ -260,13 +265,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
         # Pre-fill host
         suggested_url = f"http://{host}:{port}"
+        self.discovery_info["host"] = suggested_url
 
         self.context["title_placeholders"] = {"name": "WhatsApp Addon"}
 
         # Pass to user step with suggested host
-        return await self.async_step_user(
-            user_input={"host": suggested_url, "api_key": ""}
-        )
+        return await self.async_step_user()
 
 
 class CannotConnectError(HomeAssistantError):  # type: ignore[misc]
