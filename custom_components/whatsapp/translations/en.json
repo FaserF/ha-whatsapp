@@ -68,6 +68,28 @@
             "description": "The chat to update presence for."
           }
         }
+      },
+      "send_buttons": {
+        "name": "Send Buttons",
+        "description": "Sends a message with interactive buttons.",
+        "fields": {
+          "target": {
+            "name": "Target Number",
+            "description": "The chat to send to."
+          },
+          "message": {
+            "name": "Message",
+            "description": "The main text content."
+          },
+          "buttons": {
+            "name": "Buttons",
+            "description": "List of buttons defined as objects: {'id': '1', 'displayText': 'Yes'}."
+          },
+          "footer": {
+            "name": "Footer",
+            "description": "Optional footer text."
+          }
+        }
       }
     }
   }

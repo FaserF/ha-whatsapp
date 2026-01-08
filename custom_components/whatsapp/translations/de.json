@@ -69,6 +69,28 @@
                     "description": "Der Chat, für den der Status aktualisiert werden soll."
                 }
             }
+        },
+        "send_buttons": {
+            "name": "Buttons senden",
+            "description": "Sendet eine Nachricht mit interaktiven Buttons.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Der Chat, an den gesendet werden soll."
+                },
+                "message": {
+                    "name": "Nachricht",
+                    "description": "Der Haupttext."
+                },
+                "buttons": {
+                    "name": "Buttons",
+                    "description": "Liste von Buttons als Objekte: {'id': '1', 'displayText': 'Ja'}."
+                },
+                "footer": {
+                    "name": "Fußzeile",
+                    "description": "Optionaler Text unten."
+                }
+            }
         }
     }
 }

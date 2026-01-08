@@ -10,11 +10,11 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from .api import WhatsAppApiClient
-from .const import DOMAIN, EVENT_MESSAGE_RECEIVED
+from .const import DOMAIN, EVENT_MESSAGE_RECEIVED, CONF_POLLING_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -32,6 +32,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
     client.register_callback(handle_incoming_message)
+    polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 2)
+    await client.start_polling(interval=polling_interval)
 
     # Register Services
     async def send_message_service(call: ServiceCall) -> None:
@@ -82,12 +84,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and presence:
             await client.set_presence(number, presence)
 
+    async def send_buttons_service(call: ServiceCall) -> None:
+        """Handle the send_buttons service."""
+        number = call.data.get("target")
+        text = call.data.get("message")
+        buttons = call.data.get("buttons") or []
+        footer = call.data.get("footer")
+        if number and text and buttons:
+            await client.send_buttons(number, text, buttons, footer)
+
     hass.services.async_register(DOMAIN, "send_message", send_message_service)
     hass.services.async_register(DOMAIN, "send_poll", send_poll_service)
     hass.services.async_register(DOMAIN, "send_image", send_image_service)
     hass.services.async_register(DOMAIN, "send_location", send_location_service)
     hass.services.async_register(DOMAIN, "send_reaction", send_reaction_service)
     hass.services.async_register(DOMAIN, "update_presence", update_presence_service)
+    hass.services.async_register(DOMAIN, "send_buttons", send_buttons_service)
+
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -96,7 +110,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    client: WhatsAppApiClient = hass.data[DOMAIN][entry.entry_id]
+    await client.stop_polling()
+
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return bool(unload_ok)
+
+
+async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update options."""
+    await hass.config_entries.async_reload(entry.entry_id)

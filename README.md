@@ -102,34 +102,210 @@ data:
     - "Only on Friday 📅"
 ```
 
-#### 4. Supported Features
-- **Text Messages**: Fully supported.
-- **Polls**: Create interactive polls.
-- **Images**: Send images via URL.
-- **Locations**: Send pinned locations onto the map.
-- **Incoming Messages**: The integration fires `whatsapp_message_received` events.
+### Service Examples
 
-#### 5. Send Image 🖼️
+We've provided examples for **Personal (Direct)** chats and **Group** chats.
+*   **Direct ID**: `+491234567890` (Phone number with country code)
+*   **Group ID**: `123456789-123456@g.us` (Find this via Events, see below)
+
+#### 1. Send Text Message 📝
+<details>
+<summary>Click to show YAML examples</summary>
+
+**Direct Chat:**
+```yaml
+service: whatsapp.send_message
+data:
+  target: "+491234567890"
+  message: "Hello!"
+```
+
+**Group Chat:**
+```yaml
+service: whatsapp.send_message
+data:
+  target: "123456789-123456@g.us"
+  message: "Hello Everyone! 👋"
+```
+</details>
+
+#### 2. Send Polls 📊
+<details>
+<summary>Click to show YAML examples</summary>
+
+**Direct Chat:**
+```yaml
+service: whatsapp.send_poll
+data:
+  target: "+491234567890"
+  question: "Lunch?"
+  options: ["Pizza", "Sushi"]
+```
+
+**Group Chat:**
+```yaml
+service: whatsapp.send_poll
+data:
+  target: "123456789-123456@g.us"
+  question: "Team Building Activity?"
+  options:
+    - "Bowling 🎳"
+    - "Cinema 🍿"
+    - "Hiking 🥾"
+```
+</details>
+
+#### 3. Send Image 🖼️
+<details>
+<summary>Click to show YAML examples</summary>
+
+**Direct Chat:**
 ```yaml
 service: whatsapp.send_image
 data:
   target: "+491234567890"
   url: "https://www.home-assistant.io/images/favicon.jpg"
-  caption: "Look at this!"
+  caption: "Check this out!"
 ```
 
-#### 6. Send Location 📍
+**Group Chat:**
+```yaml
+service: whatsapp.send_image
+data:
+  target: "123456789-123456@g.us"
+  url: "https://www.home-assistant.io/images/favicon.jpg"
+  caption: "New Logo Proposal"
+```
+</details>
+
+#### 4. Send Location 📍
+<details>
+<summary>Click to show YAML examples</summary>
+
+**Direct Chat:**
 ```yaml
 service: whatsapp.send_location
 data:
   target: "+491234567890"
   latitude: 52.5200
   longitude: 13.4050
-  name: "My Home"
-  address: "Berlin, Germany"
+  name: "Meeting Point"
 ```
 
-### Automation Example: Reply to "Status"
+**Group Chat:**
+```yaml
+service: whatsapp.send_location
+data:
+  target: "123456789-123456@g.us"
+  latitude: 48.8566
+  longitude: 2.3522
+  name: "Holiday Home"
+  address: "Paris, France"
+```
+</details>
+
+#### 5. Send Buttons 🔘
+*Note: Button support varies by WhatsApp version.*
+<details>
+<summary>Click to show YAML examples</summary>
+
+**Direct Chat:**
+```yaml
+service: whatsapp.send_buttons
+data:
+  target: "+491234567890"
+  message: "Arm Alarm System?"
+  footer: "Security Automation"
+  buttons:
+    - id: "arm_home"
+      displayText: "Arm Home 🏠"
+    - id: "arm_away"
+      displayText: "Arm Away 🛡️"
+```
+
+**Group Chat:**
+```yaml
+service: whatsapp.send_buttons
+data:
+  target: "123456789-123456@g.us"
+  message: "Who is coming?"
+  buttons:
+    - id: "yes"
+      displayText: "I'm in!"
+    - id: "no"
+      displayText: "Can't make it"
+```
+</details>
+
+#### 6. Reactions & Presence
+<details>
+<summary>Click to show YAML examples</summary>
+
+**React to a message** (Direct or Group):
+```yaml
+service: whatsapp.send_reaction
+data:
+  target: "123456789-123456@g.us"
+  message_id: "BAE5F..."  # ID from event
+  reaction: "❤️"
+```
+
+**Set Presence** (Direct or Group):
+```yaml
+service: whatsapp.update_presence
+data:
+  target: "+491234567890"
+  presence: "composing"  # status: typing...
+```
+</details>
+
+### 🤖 Automating Replies
+
+You can use Home Assistant automations to react to **incoming messages**, **button clicks**, and **poll votes**.
+
+#### 1. React to a Button Click
+When a user clicks a button, a `whatsapp_message_received` event is fired with `type: button_reply` (depending on Addon version).
+The most important field is `buttonId` or `selectedId`.
+
+```yaml
+alias: Handle Alarm Button
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+    event_data:
+      type: "button_reply" # Check your event listener for exact type
+      buttonId: "arm_away" # Matches the ID you sent
+action:
+  - service: alarm_control_panel.alarm_arm_away
+    target:
+      entity_id: alarm_control_panel.home_alarm
+  - service: whatsapp.send_message
+    data:
+      target: "{{ trigger.event.data.from }}"
+      message: "Alarm Armed! 🛡️"
+```
+
+#### 2. React to a Poll Vote
+Polls fire updates when votes change.
+
+```yaml
+alias: Pizza Poll Handler
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+    event_data:
+      type: "poll_update"
+condition:
+  - condition: template
+    value_template: "{{ 'Pizza' in trigger.event.data.vote }}"
+action:
+  - service: whatsapp.send_message
+    data:
+      target: "{{ trigger.event.data.from }}"
+      message: "Great choice! 🍕"
+```
+
+#### 3. General Message Handler
 ```yaml
 alias: WhatsApp Auto-Reply
 trigger:
