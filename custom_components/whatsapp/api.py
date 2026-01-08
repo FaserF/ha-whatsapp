@@ -13,7 +13,6 @@ class WhatsAppApiClient:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
-        self.api_key = api_key
         self._connected = False
         self.stats: dict[str, Any] = {
             "sent": 0,
@@ -22,7 +21,7 @@ class WhatsAppApiClient:
             "last_sent_target": None,
         }
         self._callback: Any = None
-        self._polling_task: asyncio.Task | None = None
+        self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
 
     async def start_polling(self, interval: int = 2) -> None:
@@ -57,7 +56,9 @@ class WhatsAppApiClient:
                 if not self._session or self._session.closed:
                     self._session = aiohttp.ClientSession()
 
-                async with self._session.get(url, headers=headers, timeout=10) as resp:
+                async with self._session.get(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                ) as resp:
                     if resp.status == 200:
                         events = await resp.json()
                         if isinstance(events, list) and self._callback:
@@ -82,7 +83,9 @@ class WhatsAppApiClient:
         async with aiohttp.ClientSession() as session:
             try:
                 # We just fire and forget, or wait for 200 OK
-                async with session.post(url, headers=headers, timeout=5) as resp:
+                async with session.post(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status == 401:
                         raise Exception("Invalid API Key")
                     if resp.status != 200:
@@ -101,7 +104,9 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.delete(url, headers=headers, timeout=5) as resp:
+                async with session.delete(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status == 401:
                         raise Exception("Invalid API Key")
             except Exception as e:
@@ -113,7 +118,9 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, headers=headers, timeout=10) as resp:
+                async with session.get(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                ) as resp:
                     if resp.status == 401:
                         raise Exception("Invalid API Key")
                     if resp.status == 200:
@@ -132,7 +139,9 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, headers=headers, timeout=5) as resp:
+                async with session.get(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status == 401:
                         raise Exception("Invalid API Key")
                     if resp.status == 200:

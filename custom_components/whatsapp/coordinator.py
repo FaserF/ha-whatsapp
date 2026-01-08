@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,7 +16,7 @@ from .const import CONF_POLLING_INTERVAL, DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator):
+class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # type: ignore[misc]
     """Class to manage fetching data from the WhatsApp API."""
 
     def __init__(
@@ -36,7 +37,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=polling_interval),
         )
 
-    async def _async_update_data(self) -> dict:
+    async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
         try:
             connected = await self.client.connect()

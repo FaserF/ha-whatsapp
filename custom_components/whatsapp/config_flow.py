@@ -41,8 +41,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # Auto-discovery attempt: Scan candidates
         suggested_url = f"http://localhost:{DEFAULT_PORT}"
 
-        if self.discovery_info.get("host"):
-            suggested_url = self.discovery_info["host"]
+        if self.discovery_info and self.discovery_info.get("host"):
+            suggested_url = str(self.discovery_info["host"])
         else:
             candidates = [
                 "localhost",
@@ -87,8 +87,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     errors=errors,
                 )
 
+        # If we reach here, user_input must be set
+        assert user_input is not None
+
         self.client = WhatsAppApiClient(
-            host=user_input["host"], api_key=user_input[CONF_API_KEY]
+            host=str(user_input["host"]), api_key=str(user_input[CONF_API_KEY])
         )
 
         # Validate connection and Key BEFORE proceeding
@@ -108,9 +111,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("host", default=user_input["host"]): str,
+                        vol.Required("host", default=user_input.get("host")): str,
                         vol.Required(
-                            CONF_API_KEY, default=user_input[CONF_API_KEY]
+                            CONF_API_KEY, default=user_input.get(CONF_API_KEY)
                         ): str,
                     }
                 ),

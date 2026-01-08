@@ -29,8 +29,8 @@ async def async_setup_entry(
 
 
 class WhatsAppConnectionSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], BinarySensorEntity
-):  # type: ignore[misc]
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator], BinarySensorEntity  # type: ignore[misc]
+):
     """Representation of a WhatsApp connection status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -53,7 +53,7 @@ class WhatsAppConnectionSensor(
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on (connected)."""
-        return self.coordinator.data.get("connected", False)
+        return bool(self.coordinator.data.get("connected", False))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
