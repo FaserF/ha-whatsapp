@@ -11,7 +11,15 @@ class WhatsAppApiClient:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
+        self.api_key = api_key
         self._connected = False
+        self.stats: dict[str, Any] = {
+            "sent": 0,
+            "failed": 0,
+            "last_sent_message": None,
+            "last_sent_target": None,
+        }
+        self._callback: Any = None
 
     async def start_session(self) -> None:
         """Start (or restart) the session negotiation."""
@@ -94,8 +102,7 @@ class WhatsAppApiClient:
 
     def register_callback(self, callback: Any) -> None:
         """Register a callback."""
-        # Check logic later, for now stubs to satisfy MyPy and usage
-        pass
+        self._callback = callback
 
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon."""
@@ -113,10 +120,107 @@ class WhatsAppApiClient:
                 text = await resp.text()
                 raise Exception(f"Failed to send: {text}")
 
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = message
+            self.stats["last_sent_target"] = number
+
+
     async def close(self) -> None:
         """Close session."""
         pass
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll."""
-        pass
+        url = f"{self.host}/send_poll"
+        payload = {"number": number, "question": question, "options": options}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                # Track failure in stats?
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send poll: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Poll: {question}"
+            self.stats["last_sent_target"] = number
+
+    async def send_image(self, number: str, image_url: str, caption: str | None = None) -> None:
+        """Send an image."""
+        url = f"{self.host}/send_image"
+        payload = {"number": number, "url": image_url, "caption": caption}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send image: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = "Image Sent"
+            self.stats["last_sent_target"] = number
+
+    async def send_location(self, number: str, latitude: float, longitude: float, name: str | None = None, address: str | None = None) -> None:
+        """Send a location."""
+        url = f"{self.host}/send_location"
+        payload = {
+            "number": number,
+            "latitude": latitude,
+            "longitude": longitude,
+            "title": name,
+            "description": address
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send location: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Location: {name or 'Pinned'}"
+            self.stats["last_sent_target"] = number
+
+    async def send_reaction(self, number: str, text: str, message_id: str) -> None:
+        """Send a reaction to a specific message."""
+        url = f"{self.host}/send_reaction"
+        payload = {"number": number, "reaction": text, "messageId": message_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status != 200:
+                text_content = await resp.text()
+                raise Exception(f"Failed to send reaction: {text_content}")
+
+    async def set_presence(self, number: str, presence: str) -> None:
+        """Set presence (available, composing, recording, paused)."""
+        url = f"{self.host}/set_presence"
+        payload = {"number": number, "presence": presence}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status != 200:
+                text_content = await resp.text()
+                raise Exception(f"Failed to set presence: {text_content}")

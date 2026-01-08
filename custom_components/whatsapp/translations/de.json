@@ -11,11 +11,11 @@
             },
             "scan": {
                 "title": "QR-Code scannen",
-                "description": "Bitte scannen Sie den untenstehenden QR-Code mit Ihrer WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})"
+                "description": "Bitte scannen Sie den untenstehenden QR-Code mit Ihrer WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicken Sie nach erfolgreichem Scannen auf Absenden.**"
             }
         },
         "error": {
-            "cannot_connect": "Verbindung fehlgeschlagen",
+            "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stellen Sie sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
             "invalid_auth": "Ungültige Authentifizierung",
             "unknown": "Unerwarteter Fehler"
         },
@@ -35,6 +35,38 @@
                 "target": {
                     "name": "Zielnummer",
                     "description": "Die Telefonnummer, an die gesendet werden soll."
+                }
+            }
+        },
+        "send_reaction": {
+            "name": "Reaktion senden",
+            "description": "Reagiert mit einem Emoji auf eine Nachricht.",
+            "fields": {
+                "reaction": {
+                    "name": "Reaktion",
+                    "description": "Das Emoji, mit dem reagiert werden soll."
+                },
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer des Chats."
+                },
+                "message_id": {
+                    "name": "Nachrichten-ID",
+                    "description": "Die ID der Nachricht, auf die reagiert werden soll."
+                }
+            }
+        },
+        "update_presence": {
+            "name": "Status aktualisieren",
+            "description": "Aktualisiert Ihren Status (z. B. schreibt...).",
+            "fields": {
+                "presence": {
+                    "name": "Status",
+                    "description": "Einer von: available, unavailable, composing, recording, paused."
+                },
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Der Chat, für den der Status aktualisiert werden soll."
                 }
             }
         }

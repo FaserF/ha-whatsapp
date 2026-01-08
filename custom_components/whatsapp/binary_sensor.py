@@ -59,3 +59,18 @@ class WhatsAppConnectionSensor(BinarySensorEntity):  # type: ignore[misc]
         # Ideally we use a coordinator. Let's patch 'is_on' to return the
         # internal state variable.
         return self.client._connected
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes."""
+        return {
+            "messages_sent": self.client.stats.get("sent", 0),
+            "messages_failed": self.client.stats.get("failed", 0),
+            "last_message_content": self.client.stats.get("last_sent_message"),
+            "last_message_target": self.client.stats.get("last_sent_target"),
+        }
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added."""
+        return True

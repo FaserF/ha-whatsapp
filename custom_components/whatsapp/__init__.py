@@ -49,9 +49,45 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and question and options:
             await client.send_poll(number, question, options)
 
+    async def send_image_service(call: ServiceCall) -> None:
+        """Handle the send_image service."""
+        number = call.data.get("target")
+        image_url = call.data.get("url")
+        caption = call.data.get("caption")
+        if number and image_url:
+            await client.send_image(number, image_url, caption)
+
+    async def send_location_service(call: ServiceCall) -> None:
+        """Handle the send_location service."""
+        number = call.data.get("target")
+        latitude = call.data.get("latitude")
+        longitude = call.data.get("longitude")
+        name = call.data.get("name")
+        address = call.data.get("address")
+        if number and latitude is not None and longitude is not None:
+            await client.send_location(number, float(latitude), float(longitude), name, address)
+
+    async def send_reaction_service(call: ServiceCall) -> None:
+        """Handle the send_reaction service."""
+        number = call.data.get("target")
+        reaction = call.data.get("reaction")
+        message_id = call.data.get("message_id")
+        if number and reaction and message_id:
+            await client.send_reaction(number, reaction, message_id)
+
+    async def update_presence_service(call: ServiceCall) -> None:
+        """Handle the update_presence service."""
+        number = call.data.get("target")
+        presence = call.data.get("presence")
+        if number and presence:
+            await client.set_presence(number, presence)
+
     hass.services.async_register(DOMAIN, "send_message", send_message_service)
     hass.services.async_register(DOMAIN, "send_poll", send_poll_service)
-    # Add other services here (image, buttons, etc)
+    hass.services.async_register(DOMAIN, "send_image", send_image_service)
+    hass.services.async_register(DOMAIN, "send_location", send_location_service)
+    hass.services.async_register(DOMAIN, "send_reaction", send_reaction_service)
+    hass.services.async_register(DOMAIN, "update_presence", update_presence_service)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
