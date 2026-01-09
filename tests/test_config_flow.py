@@ -68,7 +68,9 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result3["type"] == FlowResultType.CREATE_ENTRY
     assert result3["title"] == "WhatsApp"
     # The config flow now generates a session_id
-    assert "session_id" in result3["data"]
+    assert result3["data"]["session_id"]
+    assert result3["data"]["url"] == "http://localhost:8066"
+    assert result3["data"]["api_key"] == "123"
     assert len(mock_setup_entry.mock_calls) == 1
 
 

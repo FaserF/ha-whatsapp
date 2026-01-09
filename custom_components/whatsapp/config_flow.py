@@ -38,6 +38,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
+        # Store host and api_key for scan step
+        self.discovery_info = self.discovery_info or {}
+
         # Auto-discovery attempt: Scan candidates
         suggested_url = f"http://localhost:{DEFAULT_PORT}"
 
@@ -89,6 +92,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # If we reach here, user_input must be set
         assert user_input is not None
+        self.discovery_info[CONF_URL] = user_input["host"]
+        self.discovery_info[CONF_API_KEY] = user_input[CONF_API_KEY]
+
 
         self.client = WhatsAppApiClient(
             host=str(user_input["host"]), api_key=str(user_input[CONF_API_KEY])
@@ -168,8 +174,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     await self.client.close()
                     return self.async_create_entry(
                         title="WhatsApp",
-                        data={"session_id": self.session_id},
+                        data={
+                            "session_id": self.session_id,
+                            CONF_URL: self.discovery_info[CONF_URL],
+                            CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                        },
                     )
+
             except Exception:
                 pass
 

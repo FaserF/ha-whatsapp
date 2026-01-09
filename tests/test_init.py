@@ -11,7 +11,7 @@ from custom_components.whatsapp.const import DOMAIN
 async def test_setup_entry(hass: HomeAssistant) -> None:
     """Test setting up the entry."""
     entry = MockConfigEntry(
-        domain=DOMAIN, data={"session": "test"}, entry_id="test_entry"
+        domain=DOMAIN, data={"url": "test", "api_key": "abc"}, entry_id="test_entry"
     )
     entry.add_to_hass(hass)
 
