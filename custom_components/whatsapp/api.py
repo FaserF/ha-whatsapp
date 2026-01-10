@@ -127,11 +127,17 @@ class WhatsAppApiClient:
                         data = await resp.json()
                         status = data.get("status", "")
                         qr = data.get("qr", "")
-                        _LOGGER.debug("QR endpoint returned status=%s, qr_present=%s", status, bool(qr))
+                        _LOGGER.debug(
+                            "QR endpoint returned status=%s, qr_present=%s",
+                            status,
+                            bool(qr),
+                        )
 
                         if status == "connected":
                             # Already connected, no QR needed
-                            _LOGGER.info("Addon reports already connected, no QR code needed")
+                            _LOGGER.info(
+                                "Addon reports already connected, no QR code needed"
+                            )
                             return ""
                         if status == "waiting":
                             # QR not yet generated

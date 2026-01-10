@@ -10,6 +10,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.const import CONF_URL
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -191,7 +192,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 description_placeholders={
                     "qr_image": self.qr_code
                     or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
-                    "status_text": "Not connected yet. Please scan the QR code and try again.",
+                    "status_text": (
+                        "Not connected yet. Please scan the QR code and try again."
+                    ),
                 },
                 errors={"base": "connection_error"},
             )

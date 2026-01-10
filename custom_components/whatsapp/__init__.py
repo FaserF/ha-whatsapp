@@ -10,9 +10,13 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, CONF_URL, DOMAIN, EVENT_MESSAGE_RECEIVED
+from .const import (
+    CONF_API_KEY,
+    CONF_POLLING_INTERVAL,
+    DOMAIN,
+    EVENT_MESSAGE_RECEIVED,
+)
 from .coordinator import WhatsAppDataUpdateCoordinator
-
 
 _LOGGER = logging.getLogger(__name__)
 
