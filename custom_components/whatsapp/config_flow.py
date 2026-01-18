@@ -96,7 +96,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.discovery_info[CONF_URL] = user_input["host"]
         self.discovery_info[CONF_API_KEY] = user_input[CONF_API_KEY]
 
-
         self.client = WhatsAppApiClient(
             host=str(user_input["host"]), api_key=str(user_input[CONF_API_KEY])
         )
