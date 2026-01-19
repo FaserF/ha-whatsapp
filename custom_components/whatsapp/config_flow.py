@@ -131,7 +131,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Display the QR code."""
-        _LOGGER.error("DEBUG: discovery_info in scan: %s", self.discovery_info)
         if not self.client:
             return self.async_abort(reason="unknown")
 
@@ -144,7 +143,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 await self.client.close()
                 return self.async_create_entry(
                     title="WhatsApp",
-                    data={"session_id": self.session_id},
+                    data={
+                        "session_id": self.session_id,
+                        CONF_URL: self.discovery_info[CONF_URL],
+                        CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                    },
                 )
         except Exception as e:
             _LOGGER.debug("Connect check failed with exception: %s", e)
