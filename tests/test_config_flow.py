@@ -29,7 +29,7 @@ async def test_form(hass: HomeAssistant) -> None:
         patch(
             "custom_components.whatsapp.config_flow.WhatsAppApiClient.connect",
             new_callable=AsyncMock,
-            side_effect=[True, False],
+            side_effect=[True, False, True],
         ),
         patch(
             "custom_components.whatsapp.config_flow.WhatsAppApiClient.start_session",

@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp.const import DOMAIN
@@ -29,9 +30,11 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         # Enable entities
-        er = hass.helpers.entity_registry.async_get(hass)
-        er.async_update_entity("sensor.whatsapp_messages_sent", disabled_by=None)
-        er.async_update_entity("sensor.whatsapp_messages_failed", disabled_by=None)
+        registry = er.async_get(hass)
+        registry.async_update_entity("sensor.whatsapp_messages_sent", disabled_by=None)
+        registry.async_update_entity(
+            "sensor.whatsapp_messages_failed", disabled_by=None
+        )
         await hass.async_block_till_done()
 
         # Check sensors
