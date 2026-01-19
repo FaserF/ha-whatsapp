@@ -10,13 +10,13 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_URL
+
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, DEFAULT_PORT, DOMAIN
+from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, CONF_URL, DEFAULT_PORT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,6 +132,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Display the QR code."""
+        _LOGGER.error("DEBUG: discovery_info in scan: %s", self.discovery_info)
         if not self.client:
             return self.async_abort(reason="unknown")
 
