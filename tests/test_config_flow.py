@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp.const import DOMAIN
+from custom_components.whatsapp.const import CONF_URL, DOMAIN
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -69,7 +69,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result3["title"] == "WhatsApp"
     # The config flow now generates a session_id
     assert result3["data"]["session_id"]
-    assert result3["data"]["url"] == "http://localhost:8066"
+    assert result3["data"][CONF_URL] == "http://localhost:8066"
     assert result3["data"]["api_key"] == "123"
     assert len(mock_setup_entry.mock_calls) == 1
 
