@@ -28,6 +28,16 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        # Enable entities
+        er = hass.helpers.entity_registry.async_get(hass)
+        er.async_update_entity(
+            "sensor.whatsapp_messages_sent", disabled_by=None
+        )
+        er.async_update_entity(
+            "sensor.whatsapp_messages_failed", disabled_by=None
+        )
+        await hass.async_block_till_done()
+
         # Check sensors
         state_sent = hass.states.get("sensor.whatsapp_messages_sent")
         state_failed = hass.states.get("sensor.whatsapp_messages_failed")
