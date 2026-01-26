@@ -1,97 +1,142 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
-// --- Brand Colors ---
-$whatsapp-green: #25D366;
-$whatsapp-dark-green: #075E54;
-$whatsapp-teal: #128C7E;
-$bg-dark: #0b141a;
-$sidebar-dark: #111b21;
+// --- Advanced Color Palette ---
+$wa-green: #25D366;
+$wa-green-glow: rgba(37, 211, 102, 0.4);
+$wa-bg-dark: #0b141a;
+$wa-sidebar-dark: #111b21;
+$wa-border: rgba(255, 255, 255, 0.08);
+$text-subtle: #8696a0;
 
 :root {
-  --brand-color: #{$whatsapp-green};
-  --header-bg-color: #{$bg-dark};
-  --body-heading-color: #e9edef;
+  --brand-color: #{$wa-green};
 }
 
-// --- Global Aesthetics ---
+// --- Smooth Styling ---
 body {
-  font-family: 'Outfit', -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif !important;
-  background-color: $bg-dark !important;
-  color: #d1d7db !important;
-  transition: all 0.3s ease;
+  font-family: 'Outfit', sans-serif !important;
+  background-color: $wa-bg-dark !important;
+  color: #e9edef !important;
+  line-height: 1.6;
 }
 
-// --- Header & Hero ---
+// --- Modern Glassmorphism Hero ---
 .hero-section {
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, $whatsapp-dark-green 0%, #0b141a 100%);
-  border-radius: 20px;
-  margin-bottom: 3rem;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  padding: 5rem 2rem;
+  background: radial-gradient(circle at top right, rgba(37, 211, 102, 0.15), transparent),
+    linear-gradient(135deg, $wa-bg-dark 0%, #1c272d 100%);
+  border-radius: 24px;
+  border: 1px solid $wa-border;
+  margin-bottom: 4rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(37, 211, 102, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
 
   h1 {
-    font-size: 3.5rem !important;
+    font-size: 4rem !important;
     font-weight: 700 !important;
-    background: linear-gradient(to right, $whatsapp-green, #fff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem !important;
+    letter-spacing: -0.04em !important;
+    color: #fff !important;
+    text-shadow: 0 0 20px $wa-green-glow;
+    margin-bottom: 1.5rem !important;
+  }
+
+  p {
+    color: $text-subtle !important;
+    font-size: 1.3rem !important;
+    max-width: 800px;
+    margin: 0 auto 2.5rem !important;
   }
 }
 
-// --- Navigation ---
+// --- Premium Navigation ---
 .side-bar {
-  background-color: $sidebar-dark !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background-color: $wa-sidebar-dark !important;
+  border-right: 1px solid $wa-border !important;
 }
 
 .nav-list-link {
-  color: #8696a0 !important;
-  font-weight: 400 !important;
+  font-size: 1.05rem !important;
+  padding: 0.8rem 1.5rem !important;
+  border-radius: 8px !important;
+  margin: 4px 12px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: #fff !important;
+  }
 
   &.active {
-    color: $whatsapp-green !important;
-    background-color: rgba(37, 211, 102, 0.1) !important;
-    border-left: 3px solid $whatsapp-green;
+    background: rgba(37, 211, 102, 0.1) !important;
+    color: $wa-green !important;
+    font-weight: 600 !important;
+    box-shadow: inset 4px 0 0 $wa-green;
   }
 }
 
-// --- Code Blocks ---
-.highlight {
-  background-color: #111b21 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  padding: 1.5rem !important;
-  font-size: 0.95rem !important;
+// --- Code & Markdown Polish ---
+code {
+  font-family: 'JetBrains Mono', monospace !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px;
+  padding: 2px 6px;
 }
 
-// --- Callouts ---
+.highlight {
+  background: #111b21 !important;
+  border: 1px solid $wa-border !important;
+  border-radius: 16px !important;
+  padding: 2rem !important;
+  margin: 2rem 0 !important;
+}
+
+// --- UI Elements ---
+.btn {
+  background: linear-gradient(to bottom, $wa-green, #1fab53) !important;
+  border: none !important;
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4) !important;
+  border-radius: 12px !important;
+  padding: 1rem 2.5rem !important;
+  font-size: 1.1rem !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-3px);
+  }
+}
+
+// --- Mermaid Adjustments ---
+.mermaid {
+  background: #111b21;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid $wa-border;
+
+  svg {
+    filter: drop-shadow(0 0 10px rgba(37, 211, 102, 0.1));
+  }
+}
+
+// --- Alerts ---
 .important,
 .note,
 .warning {
-  border-radius: 12px !important;
-  border-left-width: 8px !important;
-  background-color: rgba(255, 255, 255, 0.03) !important;
-  padding: 1.5rem !important;
-}
-
-.important {
-  border-left-color: $whatsapp-green !important;
-}
-
-// --- Buttons ---
-.btn {
-  background-color: $whatsapp-green !important;
-  color: #fff !important;
-  border-radius: 50px !important;
-  padding: 0.8rem 2rem !important;
-  font-weight: 600 !important;
-  border: none !important;
-  transition: transform 0.2s ease !important;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
-  }
+  border-radius: 16px !important;
+  padding: 1.5rem 2rem !important;
+  border-left-width: 10px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
 }

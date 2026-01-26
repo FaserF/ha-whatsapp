@@ -20,6 +20,10 @@ dark_mode:
   enabled: true
   toggle: true
 
+# Mermaid support
+mermaid:
+  latest_version: "10.9.5"
+
 # Footer
 footer_content: "Maintained by <b>FaserF</b>. This project is not affiliated with WhatsApp Inc."
 

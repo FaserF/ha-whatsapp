@@ -15,8 +15,8 @@ This integration follows the modern **Home Assistant Notify Standard (ADR-0010)*
 This is the primary way to send content. You must specify the WhatsApp entity and the target.
 
 ### Standard Text
-> [!TIP]
-> Use standard text messages for simple alerts. They are compatible with 100% of WhatsApp clients.
+> **Tip**: Use standard text messages for simple alerts. They are compatible with 100% of WhatsApp clients.
+{: .note }
 
 ```yaml
 service: notify.send_message
@@ -87,8 +87,8 @@ data:
 ```
 
 ### Images & Snapshots
-> [!IMPORTANT]
-> To send local Home Assistant images, you must first save them to the `/config/www/` (local) folder so they are accessible via an HTTP URL.
+> **Important**: To send local Home Assistant images, you must first save them to the `/config/www/` (local) folder so they are accessible via an HTTP URL.
+{: .important }
 
 ```yaml
 service: notify.send_message

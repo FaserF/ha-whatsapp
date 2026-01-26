@@ -2,6 +2,7 @@
 layout: default
 title: Home
 nav_order: 1
+mermaid: true
 description: "A professional WhatsApp bridge for Home Assistant using Baileys and Node.js."
 ---
 
@@ -35,8 +36,8 @@ graph TD
     BL <-->|Encrypted| WA((WhatsApp Web))
 ```
 
-> [!IMPORTANT]
 > **Privacy First**: Your WhatsApp connection is local. No external servers (other than WhatsApp's official ones) ever see your message content.
+{: .important }
 
 ---
 
@@ -51,5 +52,5 @@ graph TD
 
 *Maintained by [FaserF](https://github.com/FaserF)*.
 
-> [!NOTE]
 > This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp Inc. or any of its subsidiaries or its affiliates.
+{: .note }
