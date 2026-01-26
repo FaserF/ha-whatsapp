@@ -4,7 +4,7 @@ send_message:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to (e.g., +49123456789).
+      description: The phone number or Group ID (e.g., +49123456789 or 123456789-987654321@g.us).
       example: "+49123456789"
       required: true
       selector:
@@ -23,7 +23,7 @@ send_poll:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to.
+      description: The phone number or Group ID to send to.
       required: true
       selector:
         text:
@@ -46,7 +46,7 @@ send_image:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to.
+      description: The phone number or Group ID to send to.
       required: true
       selector:
         text:
@@ -68,7 +68,7 @@ send_location:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to.
+      description: The phone number or Group ID to send to.
       required: true
       selector:
         text:
@@ -105,7 +105,7 @@ send_reaction:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to.
+      description: The phone number or Group ID to send to.
       required: true
       selector:
         text:
@@ -151,7 +151,7 @@ send_buttons:
   fields:
     target:
       name: Target Number
-      description: The phone number to send to.
+      description: The phone number or Group ID to send to.
       required: true
       selector:
         text:
