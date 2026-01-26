@@ -5,6 +5,7 @@ description: "Advanced WhatsApp integration for Home Assistant"
 
 # Enable search
 search_enabled: true
+favicon_ico: "favicon.svg"
 search:
   tokenizer_separator: /[\s/]+/
   # Display the results as you type
