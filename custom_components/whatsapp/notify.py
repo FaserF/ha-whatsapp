@@ -80,7 +80,7 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
                 footer = data.get("footer")
                 await self.client.send_buttons(target, message, buttons, footer)
             elif "location" in data:
-                # Send location: data: { location: { latitude, longitude, name, address } }
+                # Send location: data: { location: { lat, lon, name, address } }
                 loc = data["location"]
                 await self.client.send_location(
                     target,

@@ -1,29 +1,97 @@
-@import "just-the-docs/color_schemes/dark";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+// --- Brand Colors ---
+$whatsapp-green: #25D366;
+$whatsapp-dark-green: #075E54;
+$whatsapp-teal: #128C7E;
+$bg-dark: #0b141a;
+$sidebar-dark: #111b21;
 
 :root {
-  --brand-color: #25D366;
-  --header-bg-color: #0b141a;
-  --code-block-bg: #111b21;
+  --brand-color: #{$whatsapp-green};
+  --header-bg-color: #{$bg-dark};
+  --body-heading-color: #e9edef;
 }
 
-// Custom styling for code blocks
-.highlight {
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-// Callout/Alert enhancements
-.important, .note, .warning {
-  border-radius: 6px;
-  border-left-width: 5px;
-}
-
-// Typography tweaks
-h1, h2, h3 {
-  letter-spacing: -0.02em;
-}
-
-// Dark mode transitions
+// --- Global Aesthetics ---
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Outfit', -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif !important;
+  background-color: $bg-dark !important;
+  color: #d1d7db !important;
+  transition: all 0.3s ease;
+}
+
+// --- Header & Hero ---
+.hero-section {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, $whatsapp-dark-green 0%, #0b141a 100%);
+  border-radius: 20px;
+  margin-bottom: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  h1 {
+    font-size: 3.5rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(to right, $whatsapp-green, #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem !important;
+  }
+}
+
+// --- Navigation ---
+.side-bar {
+  background-color: $sidebar-dark !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.nav-list-link {
+  color: #8696a0 !important;
+  font-weight: 400 !important;
+
+  &.active {
+    color: $whatsapp-green !important;
+    background-color: rgba(37, 211, 102, 0.1) !important;
+    border-left: 3px solid $whatsapp-green;
+  }
+}
+
+// --- Code Blocks ---
+.highlight {
+  background-color: #111b21 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 1.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+// --- Callouts ---
+.important,
+.note,
+.warning {
+  border-radius: 12px !important;
+  border-left-width: 8px !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  padding: 1.5rem !important;
+}
+
+.important {
+  border-left-color: $whatsapp-green !important;
+}
+
+// --- Buttons ---
+.btn {
+  background-color: $whatsapp-green !important;
+  color: #fff !important;
+  border-radius: 50px !important;
+  padding: 0.8rem 2rem !important;
+  font-weight: 600 !important;
+  border: none !important;
+  transition: transform 0.2s ease !important;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+  }
 }

@@ -30,3 +30,7 @@ aux_links:
 
 # Theme customization
 brand_color: "#25D366" # WhatsApp Green
+
+# Custom CSS
+# Note: Jekyll will look in assets/css/
+custom_css: "custom.scss"
