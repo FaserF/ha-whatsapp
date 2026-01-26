@@ -256,6 +256,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
 
+    async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
+        """Handle zeroconf discovery."""
+        host = discovery_info.host
+        port = discovery_info.port
+
+        # Check if already configured
+        await self.async_set_unique_id(f"{host}:{port}")
+        self._abort_if_unique_id_configured()
+
+        # Pre-fill host
+        suggested_url = f"http://{host}:{port}"
+        self.discovery_info["host"] = suggested_url
+
+        self.context["title_placeholders"] = {"name": "WhatsApp Addon"}
+
+        # Pass to user step with suggested host
+        return await self.async_step_user()
+
 
 class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
     """WhatsApp Options Flow Handler."""
@@ -313,24 +331,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 "delete session data on the Addon."
             },
         )
-
-    async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
-        """Handle zeroconf discovery."""
-        host = discovery_info.host
-        port = discovery_info.port
-
-        # Check if already configured
-        await self.async_set_unique_id(f"{host}:{port}")
-        self._abort_if_unique_id_configured()
-
-        # Pre-fill host
-        suggested_url = f"http://{host}:{port}"
-        self.discovery_info["host"] = suggested_url
-
-        self.context["title_placeholders"] = {"name": "WhatsApp Addon"}
-
-        # Pass to user step with suggested host
-        return await self.async_step_user()
 
 
 class CannotConnectError(HomeAssistantError):  # type: ignore[misc]

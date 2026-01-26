@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.const import EntityCategory
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -60,6 +60,22 @@ class WhatsAppStatSensor(
         }
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes."""
+        stats = self.coordinator.data.get("stats", {})
+        if self._stat_key == "sent":
+            return {
+                "last_message": stats.get("last_sent_message"),
+                "last_target": stats.get("last_sent_target"),
+            }
+        if self._stat_key == "received":
+            return {
+                "last_message": stats.get("last_received_message"),
+                "last_sender": stats.get("last_received_sender"),
+            }
+        return {}
+
+    @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
         stats = self.coordinator.data.get("stats", {})
@@ -89,6 +105,7 @@ class WhatsAppUptimeSensor(
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": "WhatsApp",
         }
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self) -> int:
@@ -118,6 +135,7 @@ class WhatsAppVersionSensor(
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": "WhatsApp",
         }
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self) -> str:
@@ -147,6 +165,7 @@ class WhatsAppPhoneNumberSensor(
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": "WhatsApp",
         }
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self) -> str:
