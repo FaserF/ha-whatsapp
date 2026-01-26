@@ -132,5 +132,15 @@
                 "name": "Telefonnummer"
             }
         }
+    },
+    "issues": {
+        "connection_failed": {
+            "title": "Verbindung zum WhatsApp-Addon fehlgeschlagen",
+            "description": "Die Integration kann das WhatsApp-Addon unter der konfigurierten URL nicht erreichen. Bitte stelle sicher, dass das Addon läuft und die URL korrekt ist.\n\nFehler: {error}"
+        },
+        "session_expired": {
+            "title": "WhatsApp-Sitzung abgelaufen",
+            "description": "Deine WhatsApp-Sitzung ist nicht mehr aktiv oder wurde auf dem Telefon beendet. Bitte kopple dein Gerät erneut über das Addon-Webinterface."
+        }
     }
 }

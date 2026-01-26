@@ -6,7 +6,6 @@ import logging
 from datetime import timedelta
 from typing import Any
 
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -41,13 +40,27 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
-        notification_id = f"{DOMAIN}_connection_lost"
+        from homeassistant.helpers import issue_registry as ir
+
         try:
             connected = await self.client.connect()
 
-            # If we were disconnected and now we are connected, dismiss notification
-            if connected:
-                persistent_notification.async_dismiss(self.hass, notification_id)
+            # Fix for issue #1: WhatsApp Disconnected (Addon is running, but session is gone)
+            if not connected:
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    "session_expired",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="session_expired",
+                    learn_more_url="https://github.com/FaserF/ha-whatsapp/blob/master/docs/installation.md#pairing-with-whatsapp",
+                )
+            else:
+                ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
+
+            # Always delete connection issue if we successfully reached this point
+            ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
 
             # Fetch full stats from addon
             stats = await self.client.get_stats()
@@ -57,11 +70,14 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "stats": stats,
             }
         except Exception as err:
-            # Create persistent notification on connection loss
-            persistent_notification.async_create(
+            # Create issue for connection failure (Addon unreachable)
+            ir.async_create_issue(
                 self.hass,
-                f"Integration lost connection to the WhatsApp Addon: {err}",
-                title="WhatsApp Connection Lost",
-                notification_id=notification_id,
+                DOMAIN,
+                "connection_failed",
+                is_fixable=False,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="connection_failed",
+                translation_placeholders={"error": str(err)},
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err

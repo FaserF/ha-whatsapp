@@ -132,5 +132,15 @@
         "name": "Phone Number"
       }
     }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Connection to WhatsApp Addon failed",
+      "description": "The integration cannot reach the WhatsApp Addon at the configured URL. Please ensure the Addon is running and the URL is correct.\n\nError: {error}"
+    },
+    "session_expired": {
+      "title": "WhatsApp session expired",
+      "description": "Your WhatsApp session is no longer active or was terminated on the phone. Please re-pair your device via the Addon Web UI."
+    }
   }
 }
