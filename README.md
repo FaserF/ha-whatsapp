@@ -5,11 +5,18 @@
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/release/FaserF/ha-whatsapp.svg)](https://github.com/FaserF/ha-whatsapp/releases)
 
-> **Enterprise-grade WhatsApp integration for Home Assistant.**
->
 > Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required. 🚀
 >
 > **Requires the [Home Assistant Addon](https://github.com/FaserF/hassio-addons) to function.** This integration communicates with the addon to send and receive messages.
+
+---
+
+> [!CAUTION]
+> **Legal Disclaimer / Haftungsausschluss**
+>
+> Using this integration may violate WhatsApp's **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**. WhatsApp explicitly prohibits unauthorized automated or bulk messaging.
+>
+> **The developers of this project assume no liability for any banned or blocked accounts.** Use at your own risk. For more information, please read the official statement on **[Unauthorized Messaging](https://faq.whatsapp.com/583411470476406/)**.
 
 ---
 

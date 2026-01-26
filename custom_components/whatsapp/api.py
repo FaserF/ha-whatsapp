@@ -83,7 +83,8 @@ class WhatsAppApiClient:
                             for event in events:
                                 # Mask sensitive data if needed (debug logging)
                                 if _LOGGER.isEnabledFor(logging.DEBUG):
-                                    # Optionally mask deep structure here if strictly required
+                                    # Optionally mask deep structure here if strictly
+                                    # required
                                     _LOGGER.debug("Received event: %s", events)
                                 self._callback(event)
                     elif resp.status == 401:

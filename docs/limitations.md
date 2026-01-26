@@ -10,10 +10,19 @@ Every tool has its limits. To ensure you have the best experience, please be awa
 
 ---
 
-## 🚫 Not an Official API
+## 🚫 Not an Official API & Legal Terms
 This project uses **Baileys**, which simulates a **WhatsApp Web** client. It does **not** use the official WhatsApp Business API.
-- **Risk**: WhatsApp generally discourages the use of third-party clients. While Baileys is one of the most stealthy libraries available, there is always a non-zero risk of account bans if you spam or violate WhatsApp's terms of service.
-- **Recommendation**: Use this integration for personal notifications or small private bots. Do **not** use it for mass marketing or unsolicited messages.
+
+> [!CAUTION]
+> **Account Ban Risk / Haftungsausschluss**
+>
+> Using third-party clients or automated messaging on personal accounts is a violation of WhatsApp's **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**. This can lead to your account being **permanently banned**.
+>
+> **The developers assume no liability for any such damage.** By using this software, you acknowledge that you are responsible for any consequences.
+>
+> For official information, see: **[WhatsApp Unauthorized Messaging Policy](https://faq.whatsapp.com/583411470476406/)**
+
+- **Recommendation**: Use this integration only for personal notifications or small private bots. Do **not** use it for mass marketing or unsolicited messages.
 
 ---
 

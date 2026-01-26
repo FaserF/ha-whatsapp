@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant.components.notify import (
     ATTR_DATA,
     ATTR_MESSAGE,
@@ -17,7 +17,6 @@ from homeassistant.components.notify import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -70,7 +69,7 @@ async def async_setup_entry(
 
 class WhatsAppNotificationEntity(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator], NotifyEntity  # type: ignore[misc]
-):
+):  # type: ignore[misc]
     """Implement the notification entity for WhatsApp."""
 
     _attr_name = None
@@ -158,7 +157,7 @@ class WhatsAppNotificationEntity(
                 await self.client.send_message(target, message)
 
 
-class WhatsAppNotificationService(BaseNotificationService):
+class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
     """Implement the legacy notification service for WhatsApp."""
 
     def __init__(self, client: WhatsAppApiClient) -> None:

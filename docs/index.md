@@ -14,6 +14,15 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
   </div>
 </div>
 
+> [!CAUTION]
+> **Legal Disclaimer / Haftungsausschluss**
+>
+> Using automated messaging on WhatsApp may violate their **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)** and lead to a **permanent account ban**.
+> The developers of this project assume no liability for any blocked or banned accounts. Use at your own risk.
+>
+> Official Policy: **[Unauthorized Messaging](https://faq.whatsapp.com/583411470476406/)**
+{: .important }
+
 ## 🏗️ Technical Architecture
 
 This project is built for performance and absolute privacy.
