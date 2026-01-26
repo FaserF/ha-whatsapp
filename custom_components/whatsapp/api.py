@@ -390,7 +390,9 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(
+                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+            ) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
