@@ -21,6 +21,8 @@ class WhatsAppApiClient:
             "last_sent_message": None,
             "last_sent_target": None,
             "uptime": 0,
+            "version": None,
+            "my_number": None,
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None

@@ -108,9 +108,9 @@ data:
 | Entity | Type | Description |
 | :--- | :--- | :--- |
 | `notify.whatsapp` | Notify | Main notification channel. |
-| `binary_sensor.whatsapp_connected` | Binary Sensor | Status of the connection to WhatsApp servers. |
-| `sensor.whatsapp_messages_sent` | Sensor | Count of messages sent in the current session. |
-| `sensor.whatsapp_messages_received` | Sensor | Count of messages received. |
+| `binary_sensor.whatsapp_connected` | Binary Sensor | Status of the connection. |
+| `sensor.whatsapp_uptime` | Sensor | **Diagnostic**: Uptime, Version, and Phone Number. |
+| `sensor.whatsapp_messages_sent` | Sensor | Stats for sent messages. |
 
 > [!TIP]
-> Check the **Attributes** of the `sent` and `received` sensors to see the content and recipient of the last message!
+> Check the **Attributes** of the `uptime` sensor to see the version and paired phone number!

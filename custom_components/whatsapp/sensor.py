@@ -30,8 +30,6 @@ async def async_setup_entry(
             WhatsAppStatSensor(coordinator, entry, "received"),
             WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppUptimeSensor(coordinator, entry),
-            WhatsAppVersionSensor(coordinator, entry),
-            WhatsAppPhoneNumberSensor(coordinator, entry),
         ]
     )
 
@@ -107,7 +105,8 @@ class WhatsAppUptimeSensor(
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": "WhatsApp",
         }
-        self._attr_entity_registry_enabled_default = False
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        self._attr_entity_registry_enabled_default = True
 
     @property
     def native_value(self) -> int:
@@ -115,62 +114,11 @@ class WhatsAppUptimeSensor(
         stats = self.coordinator.data.get("stats", {})
         return int(stats.get("uptime", 0))
 
-
-class WhatsAppVersionSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity  # type: ignore[misc]
-):
-    """Representation of the WhatsApp version sensor."""
-
-    _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(
-        self,
-        coordinator: WhatsAppDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._attr_translation_key = "version"
-        self._attr_unique_id = f"{entry.entry_id}_version"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
-        }
-        self._attr_entity_registry_enabled_default = False
-
     @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes."""
         stats = self.coordinator.data.get("stats", {})
-        return str(stats.get("version", "Unknown"))
-
-
-class WhatsAppPhoneNumberSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity  # type: ignore[misc]
-):
-    """Representation of the WhatsApp phone number sensor."""
-
-    _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(
-        self,
-        coordinator: WhatsAppDataUpdateCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._attr_translation_key = "phone_number"
-        self._attr_unique_id = f"{entry.entry_id}_phone_number"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
+        return {
+            "version": stats.get("version", "Unknown"),
+            "phone_number": stats.get("my_number", "Unknown"),
         }
-        self._attr_entity_registry_enabled_default = False
-
-    @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
-        stats = self.coordinator.data.get("stats", {})
-        return str(stats.get("my_number", "Unknown"))

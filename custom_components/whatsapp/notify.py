@@ -30,7 +30,7 @@ async def async_setup_entry(
 class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
     """Implement the notification entity for WhatsApp."""
 
-    _attr_name = "WhatsApp"
+    _attr_name = None
     _attr_has_entity_name = True
     _attr_unique_id = "whatsapp_notify"
 
@@ -48,6 +48,11 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": "WhatsApp",
         }
+
+    @property
+    def state(self) -> str:
+        """Return the state of the entity."""
+        return "online" if self.available else "offline"
 
     @property
     def available(self) -> bool:
