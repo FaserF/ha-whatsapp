@@ -1,12 +1,31 @@
 remote_theme: pmarsceill/just-the-docs
 
-title: WhatsApp for Home Assistant
+title: WhatsApp for HA
 description: "Advanced WhatsApp integration for Home Assistant"
 
-# Footer text
-footer_content: "Maintained by FaserF. This project is not affiliated with WhatsApp Inc."
+# Enable search
+search_enabled: true
+search:
+  tokenizer_separator: /[\s/]+/
+  # Display the results as you type
+  rel_url: true
 
-# Header
+# Navigation
+nav_order: 1
+
+# Color scheme support
+color_scheme: dark # Default to dark, but switchable
+dark_mode:
+  enabled: true
+  toggle: true
+
+# Footer
+footer_content: "Maintained by <b>FaserF</b>. This project is not affiliated with WhatsApp Inc."
+
+# Aux links
 aux_links:
-  "GitHub Repository": "https://github.com/FaserF/ha-whatsapp"
-  "Addon Repository": "https://github.com/FaserF/hassio-addons"
+  "Integration GitHub": "https://github.com/FaserF/ha-whatsapp"
+  "Addon GitHub": "https://github.com/FaserF/hassio-addons"
+
+# Theme customization
+brand_color: "#25D366" # WhatsApp Green

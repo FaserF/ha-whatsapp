@@ -80,7 +80,7 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
                 footer = data.get("footer")
                 await self.client.send_buttons(target, message, buttons, footer)
             elif "location" in data:
-                # Send location: data: { location: { latitude: ..., longitude: ..., name: "...", address: "..." } }
+                # Send location: data: { location: { latitude, longitude, name, address } }
                 loc = data["location"]
                 await self.client.send_location(
                     target,
@@ -94,7 +94,11 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
                 react = data["reaction"]
                 # If reaction is provided as a simple string, use it
                 reaction = react if isinstance(react, str) else react.get("reaction")
-                msg_id = react.get("message_id") if isinstance(react, dict) else data.get("message_id")
+                msg_id = (
+                    react.get("message_id")
+                    if isinstance(react, dict)
+                    else data.get("message_id")
+                )
                 if reaction and msg_id:
                   await self.client.send_reaction(target, reaction, msg_id)
             elif "image" in data:

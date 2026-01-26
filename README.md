@@ -46,14 +46,12 @@
 
 ## 📚 Documentation
 
-We believe in comprehensive documentation. Check out our detailed guides below:
+The most up-to-date and detailed documentation is available at our **[Official Documentation Site](https://faserf.github.io/ha-whatsapp/)**.
 
 | Guide | Description |
 | :--- | :--- |
-| **[🚀 Setup & Installation](docs/SETUP.md)** | How to install, configure URL (`8066`), and link your device via QR Code. |
-| **[✉️ Services & Actions](docs/SERVICES.md)** | Detailed examples for sending messages, images, and polls. |
-| **[⚡ Events & Automations](docs/EVENTS.md)** | How to react to incoming messages and build chat bots. |
-| **[👨‍💻 Development](docs/DEVELOPMENT.md)** | Architecture, contributing guidelines, and CI/CD details. |
+| **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)** | Installation, Services, Automations, and Pro-Tips. |
+| **[📖 Local Examples](EXAMPLES.md)** | Quick reference for YAML snippets inside this repository. |
 
 ---
 

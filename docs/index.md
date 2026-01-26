@@ -19,12 +19,25 @@ This project consists of two main components working together:
 2.  **[WhatsApp Custom Integration](https://github.com/FaserF/ha-whatsapp)** (This Repo): the Home Assistant component that connects to the addon and exposes sensors, notify entities, and services.
 
 ```mermaid
-graph LR
-    HA[Home Assistant] <--> INT[Custom Integration]
-    INT <--> AD[WhatsApp Addon]
-    AD <--> WA[WhatsApp Web / Baileys]
-    WA <--> CL[WhatsApp Servers]
+graph TD
+    subgraph "Home Assistant Ecosystem"
+        HA[Home Assistant Core]
+        INT[WhatsApp Integration]
+    end
+
+    subgraph "Addon Bridge"
+        AD[WhatsApp Addon]
+        BL[Baileys Engine]
+    end
+
+    HA <-->|Entity State| INT
+    INT <-->|REST API / Events| AD
+    AD <-->|Node.js| BL
+    BL <-->|Encrypted Socket| WA((WhatsApp Web))
 ```
+
+> [!NOTE]
+> **Privacy First**: This integration processes all data locally. Your messages never leave your private network except when being sent to WhatsApp's official servers.
 
 ## 🚀 Key Features
 
@@ -49,4 +62,7 @@ If you are new here, follow these steps in order:
 
 ---
 
-*Maintained by [FaserF](https://github.com/FaserF)*. Released under the MIT License.
+*Maintained by [FaserF](https://github.com/FaserF)*.
+
+> [!NOTE]
+> This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp Inc. or any of its subsidiaries or its affiliates.

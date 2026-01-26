@@ -1,0 +1,29 @@
+@import "just-the-docs/color_schemes/dark";
+
+:root {
+  --brand-color: #25D366;
+  --header-bg-color: #0b141a;
+  --code-block-bg: #111b21;
+}
+
+// Custom styling for code blocks
+.highlight {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+// Callout/Alert enhancements
+.important, .note, .warning {
+  border-radius: 6px;
+  border-left-width: 5px;
+}
+
+// Typography tweaks
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+// Dark mode transitions
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
