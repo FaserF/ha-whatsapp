@@ -86,14 +86,14 @@ trigger:
     event_type: whatsapp_message_received
 condition:
   - condition: template
-    value_template: "{{ trigger.event.data.text == '/status' }}"
+    value_template: "{{ trigger.event.data.content | lower == '/status' }}"
 action:
   - service: notify.send_message
     target:
       entity_id: notify.whatsapp
     data:
       message: "Home Status: {{ states('alarm_control_panel.home') }}"
-      target: "{{ trigger.event.data.raw.key.remoteJid }}" # Sends reply back to origin (User or Group)
+      target: "{{ trigger.event.data.sender }}" # Sends reply back to origin (User or Group)
 ```
 
 ---

@@ -12,7 +12,7 @@ The real power of the WhatsApp integration lies in the events. Every message rec
 
 ## 📨 Building a WhatsApp Bot
 
-To react to commands, listen for the event and check the `text` field.
+To react to commands, listen for the event and check the `content` field.
 
 ### Simple Command: `/status`
 {% raw %}
@@ -23,11 +23,11 @@ trigger:
     event_type: whatsapp_message_received
 condition:
   - condition: template
-    value_template: "{{ trigger.event.data.text == '/status' }}"
+    value_template: "{{ trigger.event.data.content | lower == '/status' }}"
 action:
   - service: whatsapp.send_message
     data:
-      target: "{{ trigger.event.data.raw.key.remoteJid }}"
+      target: "{{ trigger.event.data.sender }}"
       message: "The server is online! 🚀\nUptime: {{ states('sensor.whatsapp_uptime') }}"
 ```
 {% endraw %}
@@ -42,19 +42,19 @@ trigger:
     event_type: whatsapp_message_received
 condition:
   - condition: template
-    value_template: "{{ trigger.event.data.text.startswith('/light') }}"
+    value_template: "{{ trigger.event.data.content | lower | startswith('/light') }}"
 action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ 'on' in trigger.event.data.text }}"
+            value_template: "{{ 'on' in trigger.event.data.content | lower }}"
         sequence:
           - service: light.turn_on
             target:
               entity_id: light.living_room
       - conditions:
           - condition: template
-            value_template: "{{ 'off' in trigger.event.data.text }}"
+            value_template: "{{ 'off' in trigger.event.data.content | lower }}"
         sequence:
           - service: light.turn_off
             target:
@@ -79,12 +79,13 @@ trigger:
 condition:
   - condition: template
     value_template: >
-      {{ trigger.event.data.is_group and
-         ('Beer' in trigger.event.data.text or 'Cheers' in trigger.event.data.text) }}
+      {{ 'beer' in trigger.event.data.content | lower or
+         'cheers' in trigger.event.data.content | lower or
+         'bier' in trigger.event.data.content | lower }}
 action:
   - service: whatsapp.send_reaction
     data:
-      target: "{{ trigger.event.data.raw.key.remoteJid }}"
+      target: "{{ trigger.event.data.sender }}"
       message_id: "{{ trigger.event.data.raw.key.id }}"
       reaction: "🍺"
 ```
