@@ -45,7 +45,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         try:
             connected = await self.client.connect()
 
-            # Fix for issue #1: WhatsApp Disconnected (Addon is running, but session is gone)
+            # Fix for issue #1: WhatsApp Disconnected
+            # (Addon is running, but session is gone)
             if not connected:
                 ir.async_create_issue(
                     self.hass,

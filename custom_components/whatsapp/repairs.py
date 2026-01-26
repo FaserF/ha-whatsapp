@@ -7,8 +7,6 @@ from homeassistant import data_entry_flow
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-
 
 class WhatsAppRepairFlow(RepairsFlow):
     """Handler for an issue fixing flow."""
@@ -18,7 +16,7 @@ class WhatsAppRepairFlow(RepairsFlow):
         self.issue_id = issue_id
 
     async def async_step_init(
-        self, user_input: dict[str, str] | None = None
+        self, _user_input: dict[str, str] | None = None
     ) -> data_entry_flow.FlowResult:
         """Handle the first step of a fix flow."""
         return await self.async_step_confirm()
@@ -34,9 +32,9 @@ class WhatsAppRepairFlow(RepairsFlow):
 
 
 async def async_setup_repair_flow(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     issue_id: str,
-    data: dict[str, str] | None,
+    _data: dict[str, str] | None,
 ) -> RepairsFlow:
     """Handle the setup of a repair flow."""
     if issue_id == "session_expired":

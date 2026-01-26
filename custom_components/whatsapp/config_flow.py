@@ -301,7 +301,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
     def _get_placeholders(self) -> dict[str, str]:
         """Return description placeholders."""
         return {
-            "warning": "⚠️ CAUTION: 'Reset Session' will log you out and delete session data on the Addon."
+            "warning": (
+                "⚠️ CAUTION: 'Reset Session' will log you out and "
+                "delete session data on the Addon."
+            )
         }
 
     async def async_step_init(
@@ -316,7 +319,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     # Call DELETE /session
                     data = self.hass.data[DOMAIN][self._config_entry.entry_id]
                     client: WhatsAppApiClient = data["client"]
-                    _LOGGER.info("Triggering session reset for WhatsApp instance: %s", self._config_entry.entry_id)
+                    _LOGGER.info(
+                        "Triggering session reset for WhatsApp instance: %s",
+                        self._config_entry.entry_id,
+                    )
                     await client.delete_session()
                     _LOGGER.info("Session reset request sent successfully")
                 except Exception as e:
