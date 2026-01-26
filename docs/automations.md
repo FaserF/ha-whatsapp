@@ -15,6 +15,7 @@ The real power of the WhatsApp integration lies in the events. Every message rec
 To react to commands, listen for the event and check the `text` field.
 
 ### Simple Command: `/status`
+{% raw %}
 ```yaml
 alias: "WhatsApp Bot: Status"
 trigger:
@@ -31,9 +32,11 @@ action:
       message: "The server is online! 🚀\nUptime: {{ states('sensor.uptime') }}"
       target: "{{ trigger.event.data.raw.key.remoteJid }}"
 ```
+{% endraw %}
 
 ### Complex Command: `/light [on|off]`
 Using regex or simple "in" checks to handle parameters.
+{% raw %}
 ```yaml
 alias: "WhatsApp Bot: Light Switch"
 trigger:
@@ -59,6 +62,7 @@ action:
             target:
               entity_id: light.living_room
 ```
+{% endraw %}
 
 ---
 
@@ -68,6 +72,7 @@ Automating group chats requires checking if the message came from a group.
 
 ### Auto-Emoji Reaction
 React with a specific emoji if a keyword is mentioned in a group.
+{% raw %}
 ```yaml
 alias: "WhatsApp Bot: Beer Keyword"
 trigger:
@@ -90,6 +95,7 @@ action:
           reaction: "🍺"
           message_id: "{{ trigger.event.data.raw.key.id }}"
 ```
+{% endraw %}
 
 ---
 
@@ -97,6 +103,7 @@ action:
 
 Send an image when motion is detected.
 
+{% raw %}
 ```yaml
 alias: "WhatsApp: Motion Security"
 trigger:
@@ -119,6 +126,7 @@ action:
       data:
         image: "https://your-domain.com/local/tmp/snapshot.jpg"
 ```
+{% endraw %}
 
-> [!IMPORTANT]
 > **Image Access**: The Addon needs to be able to download the image from the URL you provided. If using `localhost` URLs, ensure the Addon has network access to the Home Assistant instance.
+{: .important }

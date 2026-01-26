@@ -2,8 +2,8 @@
 
 This documentation provides detailed examples for using the WhatsApp integration in Home Assistant, following the **modern Notify Standard (ADR-0010)**.
 
-> [!TIP]
-> **View this guide with more detailed documentations: [faserf.github.io/ha-whatsapp](https://faserf.github.io/ha-whatsapp/)**
+> **Tip**: View this guide with more detailed documentations at [faserf.github.io/ha-whatsapp](https://faserf.github.io/ha-whatsapp/)
+{: .note }
 
 ---
 

@@ -113,8 +113,12 @@ class WhatsAppApiClient:
                 ) as resp:
                     if resp.status == 401:
                         raise Exception("Invalid API Key")
+                    if resp.status != 200:
+                        text = await resp.text()
+                        raise Exception(f"Addon error {resp.status}: {text}")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
+                raise
 
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""

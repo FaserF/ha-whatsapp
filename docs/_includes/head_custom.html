@@ -1,0 +1,173 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+</script>
+
+<style>
+    /* --- Advanced Premium Styling --- */
+    :root {
+        --wa-green: #25D366;
+        --wa-green-glow: rgba(37, 211, 102, 0.4);
+        --wa-bg-dark: #0b141a;
+        --wa-sidebar-dark: #111b21;
+        --wa-border: rgba(255, 255, 255, 0.08);
+        --text-subtle: #8696a0;
+        --brand-color: var(--wa-green);
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif !important;
+        background-color: var(--wa-bg-dark) !important;
+        color: #e9edef !important;
+        line-height: 1.6;
+    }
+
+    /* Stunning Hero Overlay */
+    .hero-section {
+        position: relative;
+        padding: 6rem 2rem;
+        background: radial-gradient(circle at top right, rgba(37, 211, 102, 0.2), transparent),
+            radial-gradient(circle at bottom left, rgba(18, 140, 126, 0.1), transparent),
+            linear-gradient(135deg, var(--wa-bg-dark) 0%, #1c272d 100%);
+        border-radius: 32px;
+        border: 1px solid var(--wa-border);
+        margin-bottom: 5rem;
+        overflow: hidden;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+        text-align: center;
+        animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-section h1 {
+        font-size: 4.5rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.05em !important;
+        background: linear-gradient(to right, #fff, var(--wa-green));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .hero-section p {
+        color: #fff !important;
+        opacity: 0.9;
+        font-size: 1.4rem !important;
+        font-weight: 300;
+        max-width: 850px;
+        margin: 0 auto 3rem !important;
+    }
+
+    /* Sticky Premium Navigation */
+    .side-bar {
+        background-color: var(--wa-sidebar-dark) !important;
+        border-right: 1px solid var(--wa-border) !important;
+    }
+
+    .nav-list-link {
+        font-size: 1.1rem !important;
+        padding: 0.9rem 1.6rem !important;
+        border-radius: 12px !important;
+        margin: 6px 16px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .nav-list-link:hover {
+        background: rgba(37, 211, 102, 0.05) !important;
+        color: var(--wa-green) !important;
+        transform: translateX(5px);
+    }
+
+    .nav-list-link.active {
+        background: linear-gradient(90deg, rgba(37, 211, 102, 0.15), transparent) !important;
+        color: var(--wa-green) !important;
+        font-weight: 600 !important;
+        border-left: 4px solid var(--wa-green);
+    }
+
+    /* Modern Code Blocks */
+    .highlight {
+        background: #111b21 !important;
+        border: 1px solid var(--wa-border) !important;
+        border-radius: 20px !important;
+        padding: 2.5rem !important;
+        margin: 2.5rem 0 !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    code {
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    /* Callouts with custom glass effect */
+    .important,
+    .note,
+    .warning {
+        border-radius: 20px !important;
+        padding: 2rem !important;
+        border-left: 12px solid !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(5px);
+        margin: 3rem 0 !important;
+    }
+
+    /* Floating Button */
+    .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--wa-green) 0%, #1fab53 100%) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4) !important;
+        border-radius: 16px !important;
+        padding: 1.2rem 3rem !important;
+        font-size: 1.2rem !important;
+        text-decoration: none !important;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    .btn:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(37, 211, 102, 0.6) !important;
+        color: #fff !important;
+    }
+
+    /* Mermaid Visualization Upgrade */
+    .mermaid {
+        background: #111b21 !important;
+        padding: 3rem !important;
+        border-radius: 24px !important;
+        border: 1px solid var(--wa-border) !important;
+        margin: 3rem 0;
+        transition: transform 0.3s ease;
+    }
+
+    .mermaid:hover {
+        transform: scale(1.01);
+    }
+
+    /* Custom Search Input */
+    .search-input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid var(--wa-border) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+    }
+</style>

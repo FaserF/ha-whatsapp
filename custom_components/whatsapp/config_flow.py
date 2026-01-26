@@ -282,6 +282,28 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
         """Initialize options flow."""
         self._config_entry = config_entry
 
+    def _get_schema(self) -> vol.Schema:
+        """Return the options schema."""
+        return vol.Schema(
+            {
+                vol.Optional(
+                    "debug_payloads",
+                    default=self._config_entry.options.get("debug_payloads", False),
+                ): bool,
+                vol.Optional(
+                    CONF_POLLING_INTERVAL,
+                    default=self._config_entry.options.get(CONF_POLLING_INTERVAL, 2),
+                ): int,
+                vol.Optional("reset_session", default=False): bool,
+            }
+        )
+
+    def _get_placeholders(self) -> dict[str, str]:
+        """Return description placeholders."""
+        return {
+            "warning": "⚠️ CAUTION: 'Reset Session' will log you out and delete session data on the Addon."
+        }
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -292,18 +314,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
             if user_input.get("reset_session"):
                 try:
                     # Call DELETE /session
-                    host = self.hass.data[DOMAIN][
-                        self._config_entry.entry_id
-                    ].client.host
-                    api_key = self.hass.data[DOMAIN][
-                        self._config_entry.entry_id
-                    ].client.api_key
-                    client = WhatsAppApiClient(host=host, api_key=api_key)
+                    data = self.hass.data[DOMAIN][self._config_entry.entry_id]
+                    client: WhatsAppApiClient = data["client"]
+                    _LOGGER.info("Triggering session reset for WhatsApp instance: %s", self._config_entry.entry_id)
                     await client.delete_session()
+                    _LOGGER.info("Session reset request sent successfully")
                 except Exception as e:
                     _LOGGER.error("Failed to reset session: %s", e)
                     errors["base"] = "reset_failed"
-                    return self.async_show_form(step_id="init", errors=errors)
+                    return self.async_show_form(
+                        step_id="init",
+                        data_schema=self._get_schema(),
+                        description_placeholders=self._get_placeholders(),
+                        errors=errors,
+                    )
 
             # Always remove ephemeral reset_session option
             user_input.pop("reset_session", None)
@@ -311,25 +335,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        "debug_payloads",
-                        default=self._config_entry.options.get("debug_payloads", False),
-                    ): bool,
-                    vol.Optional(
-                        CONF_POLLING_INTERVAL,
-                        default=self._config_entry.options.get(
-                            CONF_POLLING_INTERVAL, 2
-                        ),
-                    ): int,
-                    vol.Optional("reset_session", default=False): bool,
-                }
-            ),
-            description_placeholders={
-                "warning": "⚠️ CAUTION: 'Reset Session' will log you out and "
-                "delete session data on the Addon."
-            },
+            data_schema=self._get_schema(),
+            description_placeholders=self._get_placeholders(),
         )
 
 

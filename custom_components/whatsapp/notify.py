@@ -52,12 +52,15 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
     @property
     def state(self) -> str:
         """Return the state of the entity."""
-        return "online" if self.available else "offline"
+        connected = bool(self.coordinator.data.get("connected", False))
+        return "online" if connected else "offline"
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return bool(self.coordinator.data.get("connected", False))
+        # Always available as long as coordinator has data (addon is up)
+        # unless the last update failed completely.
+        return self.coordinator.last_update_success
 
     async def async_send_message(
         self, message: str, _title: str | None = None, **kwargs: Any
@@ -105,7 +108,7 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
                     else data.get("message_id")
                 )
                 if reaction and msg_id:
-                  await self.client.send_reaction(target, reaction, msg_id)
+                    await self.client.send_reaction(target, reaction, msg_id)
             elif "image" in data:
                 # Send image: data: { image: "..." }
                 image_url = data["image"]

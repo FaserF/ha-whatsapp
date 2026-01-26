@@ -23,6 +23,7 @@ The event payload contains the following fields:
 ### 1. Simple "Ping-Pong" Bot
 If someone writes "Status", reply with "Online".
 
+{% raw %}
 ```yaml
 alias: WhatsApp Status Bot
 description: "Replies to 'Status' with system health."
@@ -37,10 +38,12 @@ action:
       target: "{{ trigger.event.data.sender }}"
       message: "✅ Home Assistant is Online!\nTime: {{ now().strftime('%H:%M') }}"
 ```
+{% endraw %}
 
 ### 2. Security Disarm via Code
 Allows disarming the alarm by sending a specific code from a specific number.
 
+{% raw %}
 ```yaml
 alias: Disarm Alarm via WhatsApp
 trigger:
@@ -60,3 +63,4 @@ action:
       target: "{{ trigger.event.data.sender }}"
       message: "🔓 Alarm Disarmed."
 ```
+{% endraw %}
