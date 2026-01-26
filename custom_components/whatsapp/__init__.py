@@ -51,6 +51,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 2)
     await client.start_polling(interval=polling_interval)
 
+    # Automatically try to start the session on HA startup/load
+    # This ensures that the addon starts working without manual intervention
+    hass.async_create_task(client.start_session())
+
     # Register Services
     async def send_message_service(call: ServiceCall) -> None:
         """Handle the send_message service."""

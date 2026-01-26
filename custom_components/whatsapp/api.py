@@ -181,15 +181,17 @@ class WhatsAppApiClient:
                         self._connected = connected
                         return connected
 
-                    # Any other status is an error (e.g. 404, 500)
-                    raise Exception(f"Unexpected API response: {resp.status}")
+                    # Any other status is an error
+                    _LOGGER.debug("Unexpected API response in connect: %s", resp.status)
+                    self._connected = False
+                    return False
             except Exception as e:
                 self._connected = False
                 if "Invalid API Key" in str(e):
                     raise
                 # Connectivity error (ClientConnectorError, etc)
-                raise Exception(f"Cannot connect to Addon: {e}") from e
-        return False
+                _LOGGER.debug("Cannot connect to Addon (expected during startup): %s", e)
+                return False
 
     async def is_connected(self) -> bool:
         """Return if connected."""
@@ -257,7 +259,7 @@ class WhatsAppApiClient:
 
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
@@ -283,7 +285,7 @@ class WhatsAppApiClient:
 
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
@@ -320,7 +322,9 @@ class WhatsAppApiClient:
 
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(
+                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+            ) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
@@ -343,7 +347,7 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
         ):
             if resp.status != 200:
                 text_content = await resp.text()
@@ -360,7 +364,9 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers) as resp,
+            session.post(
+                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+            ) as resp,
         ):
             if resp.status != 200:
                 text_content = await resp.text()
