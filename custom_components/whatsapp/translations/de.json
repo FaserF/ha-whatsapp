@@ -7,21 +7,38 @@
                     "host": "Addon Host URL",
                     "api_key": "API Token (aus Addon UI)"
                 },
-                "description": "Geben Sie die URL Ihres WhatsApp-Addons ein.\n\nTypische URLs:\n- `http://localhost:8066` (Docker/Lokal)\n- `http://addon-slug:8066` (HA Addon)\n\n[Einrichtungsanleitung]({setup_url})"
+                "description": "Gib die URL deines WhatsApp-Addons ein.\n\nTypische URLs:\n- `http://localhost:8066` (Docker/Lokal)\n- `http://addon-slug:8066` (HA Addon)\n\n[Einrichtungsanleitung]({setup_url})"
             },
             "scan": {
                 "title": "QR-Code scannen",
-                "description": "Bitte scannen Sie den untenstehenden QR-Code mit Ihrer WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicken Sie nach erfolgreichem Scannen auf Absenden.**"
+                "description": "Bitte scanne den untenstehenden QR-Code mit deiner WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicke nach erfolgreichem Scannen auf Absenden.**"
             }
         },
         "error": {
-            "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stellen Sie sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
+            "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stelle sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
             "invalid_auth": "Ungültige Authentifizierung",
-            "connection_error": "Nicht mit WhatsApp verbunden. Bitte scannen Sie zuerst den QR-Code.",
+            "connection_error": "Nicht mit WhatsApp verbunden. Bitte scanne zuerst den QR-Code.",
             "unknown": "Unerwarteter Fehler"
         },
         "abort": {
-            "already_configured": "Gerät ist bereits konfiguriert"
+            "already_configured": "Gerät ist bereits konfiguriert",
+            "single_instance_allowed": "Es ist nur eine einzige Instanz dieser Integration erlaubt."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "WhatsApp Optionen",
+                "data": {
+                    "debug_payloads": "Debug Payloads (Eingehende Events im HA Log protokollieren)",
+                    "polling_interval": "Abfrageintervall (Sekunden)",
+                    "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
+                },
+                "description": "{warning}"
+            }
+        },
+        "error": {
+            "reset_failed": "Sitzung konnte nicht zurückgesetzt werden. Prüfe die Logs."
         }
     },
     "services": {
@@ -59,7 +76,7 @@
         },
         "update_presence": {
             "name": "Status aktualisieren",
-            "description": "Aktualisiert Ihren Status (z. B. schreibt...).",
+            "description": "Aktualisiert deinen Status (z. B. schreibt...).",
             "fields": {
                 "presence": {
                     "name": "Status",
@@ -91,6 +108,28 @@
                     "name": "Fußzeile",
                     "description": "Optionaler Text unten."
                 }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "sent": {
+                "name": "Gesendete Nachrichten"
+            },
+            "received": {
+                "name": "Empfangene Nachrichten"
+            },
+            "failed": {
+                "name": "Fehlgeschlagene Nachrichten"
+            },
+            "uptime": {
+                "name": "Betriebszeit"
+            },
+            "version": {
+                "name": "WhatsApp Version"
+            },
+            "phone_number": {
+                "name": "Telefonnummer"
             }
         }
     }

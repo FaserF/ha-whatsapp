@@ -24,9 +24,9 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            WhatsAppStatSensor(coordinator, entry, "sent", "Messages Sent"),
-            WhatsAppStatSensor(coordinator, entry, "received", "Messages Received"),
-            WhatsAppStatSensor(coordinator, entry, "failed", "Messages Failed"),
+            WhatsAppStatSensor(coordinator, entry, "sent"),
+            WhatsAppStatSensor(coordinator, entry, "received"),
+            WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppUptimeSensor(coordinator, entry),
             WhatsAppVersionSensor(coordinator, entry),
             WhatsAppPhoneNumberSensor(coordinator, entry),
@@ -47,12 +47,11 @@ class WhatsAppStatSensor(
         coordinator: WhatsAppDataUpdateCoordinator,
         entry: ConfigEntry,
         stat_key: str,
-        name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._stat_key = stat_key
-        self._attr_name = name
+        self._attr_translation_key = stat_key
         self._attr_unique_id = f"{entry.entry_id}_{stat_key}"
         self._attr_entity_registry_enabled_default = False
         self._attr_device_info = {
@@ -84,7 +83,7 @@ class WhatsAppUptimeSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._attr_name = "Uptime"
+        self._attr_translation_key = "uptime"
         self._attr_unique_id = f"{entry.entry_id}_uptime"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
@@ -113,7 +112,7 @@ class WhatsAppVersionSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._attr_name = "WhatsApp Version"
+        self._attr_translation_key = "version"
         self._attr_unique_id = f"{entry.entry_id}_version"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
@@ -142,7 +141,7 @@ class WhatsAppPhoneNumberSensor(
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._attr_name = "Phone Number"
+        self._attr_translation_key = "phone_number"
         self._attr_unique_id = f"{entry.entry_id}_phone_number"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},

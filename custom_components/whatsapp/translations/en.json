@@ -21,7 +21,24 @@
       "unknown": "Unexpected error"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "single_instance_allowed": "Only a single instance of this integration is allowed."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WhatsApp Options",
+        "data": {
+          "debug_payloads": "Debug Payloads (Log incoming events to HA log)",
+          "polling_interval": "Polling Interval (Seconds)",
+          "reset_session": "Reset Session (Logout and clear Addon data)"
+        },
+        "description": "{warning}"
+      }
+    },
+    "error": {
+      "reset_failed": "Failed to reset session. Check logs."
     }
   },
   "services": {
@@ -37,60 +54,82 @@
           "name": "Target Number",
           "description": "The phone number to send to."
         }
-      },
-      "send_reaction": {
-        "name": "Send Reaction",
-        "description": "Reacts to a message with an emoji.",
-        "fields": {
-          "reaction": {
-            "name": "Reaction",
-            "description": "The emoji to react with."
-          },
-          "target": {
-            "name": "Target Number",
-            "description": "The phone number of the chat."
-          },
-          "message_id": {
-            "name": "Message ID",
-            "description": "The ID of the message to react to."
-          }
+      }
+    },
+    "send_reaction": {
+      "name": "Send Reaction",
+      "description": "Reacts to a message with an emoji.",
+      "fields": {
+        "reaction": {
+          "name": "Reaction",
+          "description": "The emoji to react with."
+        },
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number of the chat."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to react to."
         }
-      },
-      "update_presence": {
-        "name": "Update Presence",
-        "description": "Updates your presence status (e.g. typing).",
-        "fields": {
-          "presence": {
-            "name": "Presence",
-            "description": "One of: available, unavailable, composing, recording, paused."
-          },
-          "target": {
-            "name": "Target Number",
-            "description": "The chat to update presence for."
-          }
+      }
+    },
+    "update_presence": {
+      "name": "Update Presence",
+      "description": "Updates your presence status (e.g. typing).",
+      "fields": {
+        "presence": {
+          "name": "Presence",
+          "description": "One of: available, unavailable, composing, recording, paused."
+        },
+        "target": {
+          "name": "Target Number",
+          "description": "The chat to update presence for."
         }
-      },
-      "send_buttons": {
-        "name": "Send Buttons",
-        "description": "Sends a message with interactive buttons.",
-        "fields": {
-          "target": {
-            "name": "Target Number",
-            "description": "The chat to send to."
-          },
-          "message": {
-            "name": "Message",
-            "description": "The main text content."
-          },
-          "buttons": {
-            "name": "Buttons",
-            "description": "List of buttons defined as objects: {'id': '1', 'displayText': 'Yes'}."
-          },
-          "footer": {
-            "name": "Footer",
-            "description": "Optional footer text."
-          }
+      }
+    },
+    "send_buttons": {
+      "name": "Send Buttons",
+      "description": "Sends a message with interactive buttons.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The chat to send to."
+        },
+        "message": {
+          "name": "Message",
+          "description": "The main text content."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "List of buttons defined as objects: {'id': '1', 'displayText': 'Yes'}."
+        },
+        "footer": {
+          "name": "Footer",
+          "description": "Optional footer text."
         }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sent": {
+        "name": "Messages Sent"
+      },
+      "received": {
+        "name": "Messages Received"
+      },
+      "failed": {
+        "name": "Messages Failed"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
+      "version": {
+        "name": "WhatsApp Version"
+      },
+      "phone_number": {
+        "name": "Phone Number"
       }
     }
   }
