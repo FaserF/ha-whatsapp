@@ -8,7 +8,7 @@ from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.core import HomeAssistant
 
 
-class WhatsAppRepairFlow(RepairsFlow):
+class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
     """Handler for an issue fixing flow."""
 
     def __init__(self, issue_id: str) -> None:

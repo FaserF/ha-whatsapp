@@ -60,7 +60,7 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
         """Return if entity is available."""
         # Always available as long as coordinator has data (addon is up)
         # unless the last update failed completely.
-        return self.coordinator.last_update_success
+        return bool(self.coordinator.last_update_success)
 
     async def async_send_message(
         self, message: str, _title: str | None = None, **kwargs: Any
