@@ -20,7 +20,7 @@ This project uses **Baileys**, which simulates a **WhatsApp Web** client. It doe
 >
 > **The developers assume no liability for any such damage.** By using this software, you acknowledge that you are responsible for any consequences.
 >
-> For official information, see: **[WhatsApp Unauthorized Messaging Policy](https://faq.whatsapp.com/583411470476406/)**
+> For official information, see: **[WhatsApp Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**
 
 - **Recommendation**: Use this integration only for personal notifications or small private bots. Do **not** use it for mass marketing or unsolicited messages.
 

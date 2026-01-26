@@ -16,7 +16,7 @@
 >
 > Using this integration may violate WhatsApp's **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**. WhatsApp explicitly prohibits unauthorized automated or bulk messaging.
 >
-> **The developers of this project assume no liability for any banned or blocked accounts.** Use at your own risk. For more information, please read the official statement on **[Unauthorized Messaging](https://faq.whatsapp.com/583411470476406/)**.
+> **The developers of this project assume no liability for any banned or blocked accounts.** Use at your own risk. For more information, please read the official **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**.
 
 ---
 
