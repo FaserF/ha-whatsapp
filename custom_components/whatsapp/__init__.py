@@ -10,8 +10,9 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import config_validation as cv
+import homeassistant.helpers.config_validation as cv
 
+from . import binary_sensor, notify, sensor
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,

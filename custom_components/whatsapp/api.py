@@ -190,7 +190,7 @@ class WhatsAppApiClient:
                 if "Invalid API Key" in str(e):
                     raise
                 # Connectivity error (ClientConnectorError, etc)
-                _LOGGER.debug("Cannot connect to Addon (expected during startup): %s", e)
+                _LOGGER.debug("Cannot connect to Addon: %s", e)
                 return False
 
     async def is_connected(self) -> bool:
@@ -227,7 +227,10 @@ class WhatsAppApiClient:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
             if resp.status == 401:
@@ -259,7 +262,12 @@ class WhatsAppApiClient:
 
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
@@ -285,14 +293,21 @@ class WhatsAppApiClient:
 
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
-                self.stats["last_failed_message"] = "Image" if not caption else f"Image: {caption}"
+                self.stats["last_failed_message"] = (
+                    "Image" if not caption else f"Image: {caption}"
+                )
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send image: {text}")
@@ -323,7 +338,10 @@ class WhatsAppApiClient:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
             if resp.status == 401:
@@ -347,7 +365,12 @@ class WhatsAppApiClient:
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
-            session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
         ):
             if resp.status != 200:
                 text_content = await resp.text()
@@ -365,7 +388,10 @@ class WhatsAppApiClient:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
             if resp.status != 200:
@@ -391,7 +417,10 @@ class WhatsAppApiClient:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
             if resp.status == 401:

@@ -20,6 +20,7 @@ from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import WhatsAppApiClient
 from .const import DOMAIN
@@ -42,7 +43,7 @@ async def async_setup_entry(
     async_add_entities([WhatsAppNotificationEntity(client, entry, coordinator)])
 
     # 2. Register legacy notify service (notify.whatsapp)
-    # This provides a service 'notify.whatsapp' which is much more flexible for YAML users.
+    # This provides a service 'notify.whatsapp' for YAML users.
     service = WhatsAppNotificationService(client)
 
     async def async_notify_service(call: Any) -> None:
@@ -98,7 +99,7 @@ class WhatsAppNotificationEntity(
         return "online" if connected else "offline"
 
     async def async_send_message(
-        self, message: str, title: str | None = None, **kwargs: Any
+        self, message: str, _title: str | None = None, **kwargs: Any
     ) -> None:
         """Send a message."""
         data = kwargs.get(ATTR_DATA) or {}
@@ -195,9 +196,9 @@ class WhatsAppNotificationService(BaseNotificationService):
 
 
 async def async_get_service(
-    hass: HomeAssistant,
-    config: ConfigType,
-    discovery_info: DiscoveryInfoType | None = None,
+    _hass: HomeAssistant,
+    _config: ConfigType,
+    _discovery_info: DiscoveryInfoType | None = None,
 ) -> WhatsAppNotificationService | None:
     """Get the WhatsApp notification service (Legacy YAML support)."""
     # This is mainly for legacy/manual setup, but we focus on setup_entry
