@@ -1,0 +1,174 @@
+send_message:
+  name: Send Message
+  description: Sends a text message to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to (e.g., +49123456789).
+      example: "+49123456789"
+      required: true
+      selector:
+        text:
+    message:
+      name: Message
+      description: The text message content.
+      example: "Hello from Home Assistant!"
+      required: true
+      selector:
+        text:
+
+send_poll:
+  name: Send Poll
+  description: Sends a poll to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to.
+      required: true
+      selector:
+        text:
+    question:
+      name: Question
+      description: The poll question.
+      required: true
+      selector:
+        text:
+    options:
+      name: Options
+      description: List of options for the poll.
+      required: true
+      selector:
+        object:
+
+send_image:
+  name: Send Image
+  description: Sends an image to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to.
+      required: true
+      selector:
+        text:
+    url:
+      name: Image URL
+      description: A publicly accessible URL to the image.
+      required: true
+      selector:
+        text:
+    caption:
+      name: Caption
+      description: Optional text caption for the image.
+      selector:
+        text:
+
+send_location:
+  name: Send Location
+  description: Sends a location (map pin) to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to.
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Latitude of the location.
+      required: true
+      selector:
+        number:
+          mode: box
+          step: any
+    longitude:
+      name: Longitude
+      description: Longitude of the location.
+      required: true
+      selector:
+        number:
+          mode: box
+          step: any
+    name:
+      name: Name
+      description: Name of the location.
+      selector:
+        text:
+    address:
+      name: Address
+      description: Address of the location.
+      selector:
+        text:
+
+send_reaction:
+  name: Send Reaction
+  description: Sends a reaction emoji to a message.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to.
+      required: true
+      selector:
+        text:
+    reaction:
+      name: Reaction
+      description: The emoji to react with.
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The ID of the message to react to.
+      required: true
+      selector:
+        text:
+
+update_presence:
+  name: Update Presence
+  description: Updates your chat presence (e.g., "typing...").
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to update presence for.
+      required: true
+      selector:
+        text:
+    presence:
+      name: Presence
+      description: The presence status.
+      required: true
+      selector:
+        select:
+          options:
+            - available
+            - unavailable
+            - composing
+            - recording
+            - paused
+
+send_buttons:
+  name: Send Buttons
+  description: Sends a message with interactive buttons.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number to send to.
+      required: true
+      selector:
+        text:
+    message:
+      name: Message
+      description: The main message text.
+      required: true
+      selector:
+        text:
+    buttons:
+      name: Buttons
+      description: List of buttons (e.g., [{"id": "1", "displayText": "Yes"}]).
+      required: true
+      selector:
+        object:
+    footer:
+      name: Footer
+      description: Optional footer text below the buttons.
+      selector:
+        text:

@@ -69,28 +69,8 @@ If the sensor is `disabled`, check your Home Assistant "Entities" settings and e
 
 ### Services
 
-#### 1. Send simple text (Standard Notify)
-You can use the standard `notify.whatsapp` service.
-```yaml
-service: notify.whatsapp
-data:
-  message: "Washing machine is done! 🧺"
-  target: "+491234567890"
-```
-
-**New: Send Images via Notify**
-You can also send images directly using the standard notify service by passing `data`:
-```yaml
-service: notify.whatsapp
-data:
-  message: "Check this out!"
-  target: "+491234567890"
-  data:
-    image: "https://www.home-assistant.io/images/favicon.ico"
-```
-
-#### 2. Send Message (Native Service)
-For more control, use the native service.
+#### 1. Native WhatsApp Services (Recommended)
+Use these for the most robust experience in YAML.
 ```yaml
 service: whatsapp.send_message
 data:
@@ -98,7 +78,29 @@ data:
   message: "Hello from HA!"
 ```
 
-#### 3. Send Polls 📊
+#### 2. Legacy Notify (`notify.whatsapp`)
+Great for sending to multiple numbers at once or for simple alerts.
+```yaml
+service: notify.whatsapp
+data:
+  message: "Washing machine is done! 🧺"
+  target:
+    - "+491234567890"
+    - "123456789@g.us"
+```
+
+#### 3. Modern Notify Action (`notify.send_message`)
+> [!WARNING]
+> Only use this in the **Visual Editor (UI)**. In YAML, it often fails with `extra keys not allowed`.
+
+```yaml
+action: notify.send_message
+target:
+  entity_id: notify.whatsapp
+data:
+  message: "Hello World!"
+```
+#### 4. Send Polls 📊
 You can send interactive polls to groups or users.
 ```yaml
 service: whatsapp.send_poll

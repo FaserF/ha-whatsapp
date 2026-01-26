@@ -27,13 +27,10 @@ Home Assistant doesn't list WhatsApp Group IDs in the UI. To find them:
 
 Use the **Developer Tools** -> **Services** tab to verify your configuration before building automations.
 
-1.  Select `notify.send_message`.
-2.  Choose the `notify.whatsapp` entity.
-3.  Switch to **YAML Mode**.
-4.  Paste one of the examples from the **[Service Docs](services.md)**.
-5.  Click **Call Service**.
-
----
+1.  Select `whatsapp.send_message` (or `notify.whatsapp`).
+2.  Switch to **YAML Mode**.
+3.  Paste one of the examples from the **[Service Docs](services.md)** (Ensure you use the correct recipient number).
+4.  Click **Call Service**.
 
 ## 🛠️ Troubleshooting
 

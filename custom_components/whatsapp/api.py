@@ -20,6 +20,9 @@ class WhatsAppApiClient:
             "failed": 0,
             "last_sent_message": None,
             "last_sent_target": None,
+            "last_failed_message": None,
+            "last_failed_target": None,
+            "last_error_reason": None,
             "uptime": 0,
             "version": None,
             "my_number": None,
@@ -227,10 +230,10 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise Exception(f"Failed to send: {text}")
-
-            if resp.status != 200:
-                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = message
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send: {text}")
 
             # Local fallback increment (stats will update on next poll)
@@ -258,14 +261,10 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                # Track failure in stats?
                 self.stats["failed"] += 1
-                raise Exception(f"Failed to send poll: {text}")
-
-            if resp.status != 200:
-                text = await resp.text()
-                # Track failure in stats?
-                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Poll: {question}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send poll: {text}")
 
             self.stats["sent"] += 1
@@ -289,11 +288,9 @@ class WhatsAppApiClient:
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
-                raise Exception(f"Failed to send image: {text}")
-
-            if resp.status != 200:
-                text = await resp.text()
-                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = "Image" if not caption else f"Image: {caption}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send image: {text}")
 
             self.stats["sent"] += 1
@@ -328,11 +325,9 @@ class WhatsAppApiClient:
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
-                raise Exception(f"Failed to send location: {text}")
-
-            if resp.status != 200:
-                text = await resp.text()
-                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Location: {name or 'Pinned'}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send location: {text}")
 
             self.stats["sent"] += 1
@@ -350,6 +345,10 @@ class WhatsAppApiClient:
         ):
             if resp.status != 200:
                 text_content = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Reaction: {text}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text_content
                 raise Exception(f"Failed to send reaction: {text_content}")
 
     async def set_presence(self, number: str, presence: str) -> None:
@@ -390,11 +389,9 @@ class WhatsAppApiClient:
             if resp.status != 200:
                 text_content = await resp.text()
                 self.stats["failed"] += 1
-                raise Exception(f"Failed to send buttons: {text_content}")
-
-            if resp.status != 200:
-                text_content = await resp.text()
-                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Buttons: {text}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text_content
                 raise Exception(f"Failed to send buttons: {text_content}")
 
             self.stats["sent"] += 1

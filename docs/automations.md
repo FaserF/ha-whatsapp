@@ -25,12 +25,10 @@ condition:
   - condition: template
     value_template: "{{ trigger.event.data.text == '/status' }}"
 action:
-  - service: notify.send_message
-    target:
-      entity_id: notify.whatsapp
+  - service: whatsapp.send_message
     data:
-      message: "The server is online! 🚀\nUptime: {{ states('sensor.uptime') }}"
       target: "{{ trigger.event.data.raw.key.remoteJid }}"
+      message: "The server is online! 🚀\nUptime: {{ states('sensor.whatsapp_uptime') }}"
 ```
 {% endraw %}
 
@@ -84,16 +82,11 @@ condition:
       {{ trigger.event.data.is_group and
          ('Beer' in trigger.event.data.text or 'Cheers' in trigger.event.data.text) }}
 action:
-  - service: notify.send_message
-    target:
-      entity_id: notify.whatsapp
+  - service: whatsapp.send_reaction
     data:
-      message: "Reaction"
       target: "{{ trigger.event.data.raw.key.remoteJid }}"
-      data:
-        reaction:
-          reaction: "🍺"
-          message_id: "{{ trigger.event.data.raw.key.id }}"
+      message_id: "{{ trigger.event.data.raw.key.id }}"
+      reaction: "🍺"
 ```
 {% endraw %}
 
@@ -117,14 +110,11 @@ action:
     target:
       entity_id: camera.front_door
   - delay: "00:00:02"
-  - service: notify.send_message
-    target:
-      entity_id: notify.whatsapp
+  - service: whatsapp.send_image
     data:
-      message: "Movement at the door! 📷"
       target: "+49123456789"
-      data:
-        image: "https://your-domain.com/local/tmp/snapshot.jpg"
+      message: "Movement at the door! 📷"
+      url: "https://your-domain.com/local/tmp/snapshot.jpg"
 ```
 {% endraw %}
 

@@ -5,9 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
 
 from .api import WhatsAppApiClient
 from .const import (
@@ -108,13 +111,93 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and text and buttons:
             await client.send_buttons(number, text, buttons, footer)
 
-    hass.services.async_register(DOMAIN, "send_message", send_message_service)
-    hass.services.async_register(DOMAIN, "send_poll", send_poll_service)
-    hass.services.async_register(DOMAIN, "send_image", send_image_service)
-    hass.services.async_register(DOMAIN, "send_location", send_location_service)
-    hass.services.async_register(DOMAIN, "send_reaction", send_reaction_service)
-    hass.services.async_register(DOMAIN, "update_presence", update_presence_service)
-    hass.services.async_register(DOMAIN, "send_buttons", send_buttons_service)
+    hass.services.async_register(
+        DOMAIN,
+        "send_message",
+        send_message_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_poll",
+        send_poll_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("question"): cv.string,
+                vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_image",
+        send_image_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("url"): cv.string,
+                vol.Optional("caption"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_location",
+        send_location_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("latitude"): vol.Coerce(float),
+                vol.Required("longitude"): vol.Coerce(float),
+                vol.Optional("name"): cv.string,
+                vol.Optional("address"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_reaction",
+        send_reaction_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("reaction"): cv.string,
+                vol.Required("message_id"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "update_presence",
+        update_presence_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("presence"): vol.In(
+                    ["available", "unavailable", "composing", "recording", "paused"]
+                ),
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_buttons",
+        send_buttons_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message"): cv.string,
+                vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
+                vol.Optional("footer"): cv.string,
+            }
+        ),
+    )
 
     entry.async_on_unload(entry.add_update_listener(async_update_options))
 

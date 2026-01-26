@@ -73,6 +73,12 @@ class WhatsAppStatSensor(
                 "last_message": stats.get("last_received_message"),
                 "last_sender": stats.get("last_received_sender"),
             }
+        if self._stat_key == "failed":
+            return {
+                "last_message": stats.get("last_failed_message"),
+                "last_target": stats.get("last_failed_target"),
+                "error_reason": stats.get("last_error_reason"),
+            }
         return {}
 
     @property
