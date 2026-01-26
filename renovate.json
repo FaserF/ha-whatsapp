@@ -8,31 +8,6 @@
     "dependencies"
   ],
   "commitMessagePrefix": "⬆️",
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)docs/_config\\.yml$"
-      ],
-      "matchStrings": [
-        "mermaid:\\s*\\n\\s*latest_version:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s*"
-      ],
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "mermaid",
-      "description": "Track Mermaid version in docs config"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)docs/_config\\.yml$"
-      ],
-      "matchStrings": [
-        "remote_theme:\\s*(?<depName>pmarsceill/just-the-docs)"
-      ],
-      "datasourceTemplate": "github-tags",
-      "description": "Monitor Jekyll theme repository for tags"
-    }
-  ],
   "packageRules": [
     {
       "matchDatasources": [
