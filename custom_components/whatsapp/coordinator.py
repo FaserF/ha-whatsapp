@@ -29,7 +29,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         self.client = client
         self.entry = entry
 
-        polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 2)
+        polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 5)
         super().__init__(
             hass,
             _LOGGER,

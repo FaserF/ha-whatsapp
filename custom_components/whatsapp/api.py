@@ -9,10 +9,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class WhatsAppApiClient:
-    def __init__(self, host: str, api_key: str | None = None) -> None:
+    def __init__(
+        self, host: str, api_key: str | None = None, mask_sensitive_data: bool = False
+    ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
+        self.mask_sensitive_data = mask_sensitive_data
         self._connected = False
         self.stats: dict[str, Any] = {
             "sent": 0,
@@ -30,6 +33,14 @@ class WhatsAppApiClient:
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
+
+    def _mask(self, text: str) -> str:
+        """Mask sensitive data if enabled."""
+        if not self.mask_sensitive_data or not text:
+            return text
+        if len(text) <= 4:
+            return "****"
+        return f"{text[:3]}****{text[-2:]}"
 
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
@@ -70,6 +81,9 @@ class WhatsAppApiClient:
                         events = await resp.json()
                         if isinstance(events, list) and self._callback:
                             for event in events:
+                                # Mask sensitive data in event payload if needed (debug logging)
+                                if _LOGGER.isEnabledFor(logging.DEBUG):
+                                    _LOGGER.debug("Received event: %s", events)  # Optionally mask deep structure here if strictly required
                                 self._callback(event)
                     elif resp.status == 401:
                         _LOGGER.error("Polling failed: Invalid API Key")

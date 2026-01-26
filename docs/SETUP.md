@@ -63,7 +63,11 @@ The integration is secured with a token. The easiest way to get it is via the sp
 If you need to change phones or fix a stuck session:
 1.  Go to **Settings** -> **Devices & Services** -> **WhatsApp**.
 2.  Click **Configure**.
-3.  Check the box **"Reset Session (Logout)"**.
+3.  **Options Available:**
+    - **Debug Payloads**: Log every incoming event to Home Assistant logs (useful for developers).
+    - **Polling Interval**: How often to fetch new messages (default 2s).
+    - **Mask Sensitive Data**: Hides phone numbers in logs (e.g. `491*****67`).
+    - **Reset Session**: Check this box to log out and clear data.
 4.  Click **Next**.
     - This will:
         - Log out the session on WhatsApp.

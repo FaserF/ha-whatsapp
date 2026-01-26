@@ -30,9 +30,10 @@
       "init": {
         "title": "WhatsApp Options",
         "data": {
-          "debug_payloads": "Debug Payloads (Log incoming events to HA log)",
+          "debug_payloads": "Debug Payloads (Log incoming events)",
           "polling_interval": "Polling Interval (Seconds)",
-          "reset_session": "Reset Session (Logout and clear Addon data)"
+          "mask_sensitive_data": "Mask Sensitive Data in Logs",
+          "reset_session": "Reset Session (Logout & Clear Data)"
         },
         "description": "{warning}"
       }

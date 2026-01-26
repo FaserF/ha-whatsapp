@@ -32,7 +32,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     api_key = entry.data.get(CONF_API_KEY)
-    client = WhatsAppApiClient(host=addon_url, api_key=api_key)
+    mask_sensitive_data = entry.options.get("mask_sensitive_data", False)
+    client = WhatsAppApiClient(
+        host=addon_url, api_key=api_key, mask_sensitive_data=mask_sensitive_data
+    )
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -49,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
     client.register_callback(handle_incoming_message)
-    polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 2)
+    polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 5)
     await client.start_polling(interval=polling_interval)
 
     # Automatically try to start the session on HA startup/load

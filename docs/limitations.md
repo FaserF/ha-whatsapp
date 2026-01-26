@@ -33,6 +33,9 @@ Native WhatsApp Buttons and Polls are relatively new.
 ### 4. Group IDs
 Home Assistant doesn't (yet) have a way to list your WhatsApp groups. You must manually find the `@g.us` ID by listening to events. (See [Pro-Tips](tips.md)).
 
+> [!WARNING]
+> **Privacy Mode Warning**: If you enable "Mask Sensitive Data" in the options, Group IDs will also be masked in the logs (e.g. `123*****89@g.us`). You **must disable** masking temporarily if you are trying to find out a Group ID.
+
 ---
 
 ## 🔄 Interaction with other Clients

@@ -83,8 +83,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     step_id="user",
                     data_schema=vol.Schema(
                         {
-                            vol.Required("host", default=suggested_url): str,
-                            vol.Required(CONF_API_KEY): str,
+                            vol.Required("host", default=suggested_url): vol.All(
+                                str, vol.Length(min=1)
+                            ),
+                            vol.Required(CONF_API_KEY): vol.All(str, vol.Length(min=1)),
                         }
                     ),
                     description_placeholders={
@@ -119,10 +121,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("host", default=user_input.get("host")): str,
+                        vol.Required("host", default=user_input.get("host")): vol.All(
+                            str, vol.Length(min=1)
+                        ),
                         vol.Required(
                             CONF_API_KEY, default=user_input.get(CONF_API_KEY)
-                        ): str,
+                        ): vol.All(str, vol.Length(min=1)),
                     }
                 ),
                 errors=errors,
@@ -292,8 +296,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): bool,
                 vol.Optional(
                     CONF_POLLING_INTERVAL,
-                    default=self._config_entry.options.get(CONF_POLLING_INTERVAL, 2),
-                ): int,
+                    default=self._config_entry.options.get(CONF_POLLING_INTERVAL, 5),
+                ): vol.All(int, vol.Range(min=5)),
+                vol.Optional(
+                    "mask_sensitive_data",
+                    default=self._config_entry.options.get("mask_sensitive_data", False),
+                ): bool,
                 vol.Optional("reset_session", default=False): bool,
             }
         )
