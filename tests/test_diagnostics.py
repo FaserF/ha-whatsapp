@@ -18,7 +18,6 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.coordinator.persistent_notification"),
     ):
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)

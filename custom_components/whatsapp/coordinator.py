@@ -10,6 +10,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from homeassistant.helpers import issue_registry as ir
+
 from .api import WhatsAppApiClient
 from .const import CONF_POLLING_INTERVAL, DOMAIN
 
@@ -40,7 +42,6 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
-        from homeassistant.helpers import issue_registry as ir
 
         try:
             connected = await self.client.connect()

@@ -13,11 +13,8 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
     entry.add_to_hass(hass)
 
-    # Patch the Client Class and persistent_notification
-    with (
-        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.coordinator.persistent_notification"),
-    ):
+    # Patch the Client Class
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.stats = {"sent": 10, "failed": 2}

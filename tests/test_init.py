@@ -15,11 +15,8 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    # Mock the API client and persistent notifications
-    with (
-        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.coordinator.persistent_notification"),
-    ):
+    # Mock the API client
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.stats = {"sent": 0, "failed": 0}

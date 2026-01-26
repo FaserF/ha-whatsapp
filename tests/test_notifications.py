@@ -13,34 +13,28 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
     entry.add_to_hass(hass)
 
-    with (
-        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch(
-            "custom_components.whatsapp.coordinator.persistent_notification"
-        ) as mock_pn,
-    ):
+    from homeassistant.helpers import issue_registry as ir
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         # Fail initially to trigger notification
         mock_instance.connect = AsyncMock(side_effect=Exception("Connection Failed"))
         mock_instance.stats = {"sent": 0, "failed": 0}
         mock_instance.register_callback = MagicMock()
 
-        # Setup - this will fail the first refresh, but entry should still load
-        # with UpdateFailed being raised. We expect setup to return False.
-        result = await hass.config_entries.async_setup(entry.entry_id)
+        # Setup
+        await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        # The setup might fail due to UpdateFailed, but notification should still
-        # have been created.
-        mock_pn.async_create.assert_called_once()
-        call_args = mock_pn.async_create.call_args
-        assert "WhatsApp Connection Lost" in str(call_args)
+        # Check for issue in registry
+        issue_registry = ir.async_get(hass)
+        assert issue_registry.async_get_issue(DOMAIN, "connection_failed")
 
-        # If setup succeeded, verify notification dismiss on reconnect
-        if result:
-            mock_instance.connect = AsyncMock(return_value=True)
-            data = hass.data[DOMAIN][entry.entry_id]
-            await data["coordinator"].async_refresh()
-            await hass.async_block_till_done()
+        # Simulate reconnect
+        mock_instance.connect = AsyncMock(return_value=True)
+        data = hass.data[DOMAIN][entry.entry_id]
+        await data["coordinator"].async_refresh()
+        await hass.async_block_till_done()
 
-            mock_pn.async_dismiss.assert_called()
+        # Notification (issue) should be removed
+        assert not issue_registry.async_get_issue(DOMAIN, "connection_failed")

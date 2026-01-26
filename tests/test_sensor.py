@@ -14,10 +14,7 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
     entry.add_to_hass(hass)
 
-    with (
-        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.coordinator.persistent_notification"),
-    ):
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         # Initial stats
