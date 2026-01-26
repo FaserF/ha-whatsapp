@@ -36,6 +36,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
         errors: dict[str, str] = {}
 
         # Store host and api_key for scan step
@@ -209,6 +212,19 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     self.qr_code = await self.client.get_qr_code()
                     if self.qr_code:
                         break
+
+                    # If no QR code, check if we actually connected in the background
+                    if await self.client.connect():
+                        _LOGGER.debug("Connected in background during QR scan")
+                        await self.client.close()
+                        return self.async_create_entry(
+                            title="WhatsApp",
+                            data={
+                                "session_id": self.session_id,
+                                CONF_URL: self.discovery_info[CONF_URL],
+                                CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                            },
+                        )
                 except Exception:
                     pass
                 await asyncio.sleep(1)
