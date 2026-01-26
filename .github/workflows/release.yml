@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'custom_components/whatsapp/manifest.json'
+  schedule:
+    - cron: '0 0 * * 6' # Weekly on Saturday Midnight
   workflow_dispatch:
     inputs:
       release_type:
@@ -39,6 +41,12 @@ jobs:
           # Get version from manifest
           RAW_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
           RELEASE_TYPE="${{ inputs.release_type || 'auto' }}"
+
+          # If triggered by schedule, force nightly (pre-release)
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            RELEASE_TYPE="nightly"
+            echo "📅 Scheduled run: Forcing release type to nightly"
+          fi
 
           # Initialize variables
           VERSION="$RAW_VERSION"
