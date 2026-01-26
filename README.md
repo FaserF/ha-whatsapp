@@ -80,6 +80,17 @@ data:
   target: "+491234567890"
 ```
 
+**New: Send Images via Notify**
+You can also send images directly using the standard notify service by passing `data`:
+```yaml
+service: notify.whatsapp
+data:
+  message: "Check this out!"
+  target: "+491234567890"
+  data:
+    image: "https://www.home-assistant.io/images/favicon.ico"
+```
+
 #### 2. Send Message (Native Service)
 For more control, use the native service.
 ```yaml

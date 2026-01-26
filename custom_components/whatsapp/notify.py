@@ -53,4 +53,12 @@ class WhatsAppNotificationEntity(NotifyEntity):  # type: ignore[misc]
             targets = [targets]
 
         for target in targets:
-            await self.client.send_message(target, message)
+            data = kwargs.get("data")
+            if data and "image" in data:
+                # Send image
+                image_url = data["image"]
+                caption = message  # Use message as caption
+                await self.client.send_image(target, image_url, caption)
+            else:
+                # Send text
+                await self.client.send_message(target, message)

@@ -49,9 +49,12 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             if connected:
                 persistent_notification.async_dismiss(self.hass, notification_id)
 
+            # Fetch full stats from addon
+            stats = await self.client.get_stats()
+
             return {
                 "connected": connected,
-                "stats": self.client.stats.copy(),
+                "stats": stats,
             }
         except Exception as err:
             # Create persistent notification on connection loss

@@ -16,9 +16,11 @@ class WhatsAppApiClient:
         self._connected = False
         self.stats: dict[str, Any] = {
             "sent": 0,
+            "received": 0,
             "failed": 0,
             "last_sent_message": None,
             "last_sent_target": None,
+            "uptime": 0,
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
@@ -184,6 +186,23 @@ class WhatsAppApiClient:
         """Return if connected."""
         return self._connected
 
+    async def get_stats(self) -> dict[str, Any]:
+        """Fetch stats from the Addon."""
+        url = f"{self.host}/stats"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        self.stats.update(data)
+                        return self.stats
+            except Exception as e:
+                _LOGGER.debug(f"Failed to fetch stats: {e}")
+        return self.stats
+
     def register_callback(self, callback: Any) -> None:
         """Register a callback."""
         self._callback = callback
@@ -204,6 +223,11 @@ class WhatsAppApiClient:
                 text = await resp.text()
                 raise Exception(f"Failed to send: {text}")
 
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to send: {text}")
+
+            # Local fallback increment (stats will update on next poll)
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = message
             self.stats["last_sent_target"] = number
@@ -232,6 +256,12 @@ class WhatsAppApiClient:
                 self.stats["failed"] += 1
                 raise Exception(f"Failed to send poll: {text}")
 
+            if resp.status != 200:
+                text = await resp.text()
+                # Track failure in stats?
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send poll: {text}")
+
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Poll: {question}"
             self.stats["last_sent_target"] = number
@@ -250,6 +280,11 @@ class WhatsAppApiClient:
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send image: {text}")
+
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
@@ -284,6 +319,11 @@ class WhatsAppApiClient:
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send location: {text}")
+
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
@@ -341,6 +381,11 @@ class WhatsAppApiClient:
         ):
             if resp.status == 401:
                 raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text_content = await resp.text()
+                self.stats["failed"] += 1
+                raise Exception(f"Failed to send buttons: {text_content}")
+
             if resp.status != 200:
                 text_content = await resp.text()
                 self.stats["failed"] += 1
