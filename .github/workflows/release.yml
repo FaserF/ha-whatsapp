@@ -17,6 +17,11 @@ on:
         - stable
         - beta
         - nightly
+        - manual
+      manual_version:
+        description: 'Manual Version (only for Manual release type)'
+        required: false
+        type: string
 
 jobs:
   release:
@@ -70,6 +75,18 @@ jobs:
             # Release exactly as is, even with -dev
             SHOULD_RELEASE="true"
             PRERELEASE="true"
+
+          elif [[ "$RELEASE_TYPE" == "manual" ]]; then
+            if [[ -z "${{ inputs.manual_version }}" ]]; then
+              echo "Error: Manual version is required for 'manual' release type"
+              exit 1
+            fi
+            VERSION="${{ inputs.manual_version }}"
+            SHOULD_RELEASE="true"
+            PRERELEASE="false"  # Default to stable unless version contains beta/nightly
+            if [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
+              PRERELEASE="true"
+            fi
           fi
 
           echo "Final Version: $VERSION"

@@ -1,0 +1,12 @@
+remote_theme: pmarsceill/just-the-docs
+
+title: WhatsApp for Home Assistant
+description: "Advanced WhatsApp integration for Home Assistant"
+
+# Footer text
+footer_content: "Maintained by FaserF. This project is not affiliated with WhatsApp Inc."
+
+# Header
+aux_links:
+  "GitHub Repository": "https://github.com/FaserF/ha-whatsapp"
+  "Addon Repository": "https://github.com/FaserF/hassio-addons"
