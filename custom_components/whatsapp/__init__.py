@@ -12,7 +12,6 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 import homeassistant.helpers.config_validation as cv
 
-from . import binary_sensor, notify, sensor
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,

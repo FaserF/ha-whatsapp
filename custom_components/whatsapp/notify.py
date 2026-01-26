@@ -103,7 +103,8 @@ class WhatsAppNotificationEntity(
     ) -> None:
         """Send a message."""
         data = kwargs.get(ATTR_DATA) or {}
-        # Support target as kwarg OR inside data (if schema allows, though HA core might reject it in data)
+        # Support target as kwarg OR inside data
+        # (if schema allows, though HA core might reject it in data)
         target_list = kwargs.get(ATTR_TARGET) or data.get(ATTR_TARGET)
 
         if not target_list:

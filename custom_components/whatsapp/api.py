@@ -81,9 +81,10 @@ class WhatsAppApiClient:
                         events = await resp.json()
                         if isinstance(events, list) and self._callback:
                             for event in events:
-                                # Mask sensitive data in event payload if needed (debug logging)
+                                # Mask sensitive data if needed (debug logging)
                                 if _LOGGER.isEnabledFor(logging.DEBUG):
-                                    _LOGGER.debug("Received event: %s", events)  # Optionally mask deep structure here if strictly required
+                                    # Optionally mask deep structure here if strictly required
+                                    _LOGGER.debug("Received event: %s", events)
                                 self._callback(event)
                     elif resp.status == 401:
                         _LOGGER.error("Polling failed: Invalid API Key")

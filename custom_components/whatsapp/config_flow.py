@@ -300,7 +300,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): vol.All(int, vol.Range(min=5)),
                 vol.Optional(
                     "mask_sensitive_data",
-                    default=self._config_entry.options.get("mask_sensitive_data", False),
+                    default=self._config_entry.options.get(
+                        "mask_sensitive_data", False
+                    ),
                 ): bool,
                 vol.Optional("reset_session", default=False): bool,
             }
