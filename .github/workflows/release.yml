@@ -176,6 +176,7 @@ jobs:
           configuration: "whatsapp/integration/.github/release-changelog-config.json"
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
+          mode: "HYBRID"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
