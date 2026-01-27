@@ -1,12 +1,12 @@
-
 """Test the WhatsApp services."""
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.const import CONF_API_KEY, CONF_URL
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_URL, CONF_API_KEY
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp.const import DOMAIN
+
 
 async def test_services(hass: HomeAssistant) -> None:
     """Test the whatsapp services."""
@@ -20,22 +20,117 @@ async def test_services(hass: HomeAssistant) -> None:
         "custom_components.whatsapp.WhatsAppApiClient"
     ) as mock_client_cls:
         mock_instance = mock_client_cls.return_value
-        # Mock methods
+        # Mock methods - Unified list
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.get_stats = AsyncMock(return_value={})
         mock_instance.send_message = AsyncMock()
+        mock_instance.send_image = AsyncMock()
+        mock_instance.send_poll = AsyncMock()
+        mock_instance.send_location = AsyncMock()
+        mock_instance.send_reaction = AsyncMock()
+        mock_instance.send_buttons = AsyncMock()
+        mock_instance.set_presence = AsyncMock()
         mock_instance.send_media = AsyncMock()
         mock_instance.send_list = AsyncMock()
         mock_instance.send_contact = AsyncMock()
         mock_instance.edit_message = AsyncMock()
         mock_instance.revoke_message = AsyncMock()
         mock_instance.set_webhook = AsyncMock()
+        mock_instance.send_document = AsyncMock()
+        mock_instance.send_video = AsyncMock()
+        mock_instance.send_audio = AsyncMock()
 
         # Setup
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        # 1. Test send_list
+        # 1. Test send_message
+        await hass.services.async_call(
+            DOMAIN,
+            "send_message",
+            {"target": "12345", "message": "Hello"},
+            blocking=True,
+        )
+        mock_instance.send_message.assert_awaited_with("12345", "Hello")
+
+        # 2. Test send_poll
+        await hass.services.async_call(
+            DOMAIN,
+            "send_poll",
+            {
+                "target": "12345",
+                "question": "Q?",
+                "options": ["A", "B"],
+            },
+            blocking=True,
+        )
+        mock_instance.send_poll.assert_awaited_with(
+            "12345", "Q?", ["A", "B"]
+        )
+
+        # 3. Test send_image
+        await hass.services.async_call(
+            DOMAIN,
+            "send_image",
+            {
+                "target": "12345",
+                "url": "http://img.jpg",
+                "caption": "Cap",
+            },
+            blocking=True,
+        )
+        mock_instance.send_image.assert_awaited_with("12345", "http://img.jpg", "Cap")
+
+        # 4. Test send_location
+        await hass.services.async_call(
+            DOMAIN,
+            "send_location",
+            {
+                "target": "12345",
+                "latitude": 1.0,
+                "longitude": 2.0,
+                "name": "Loc",
+            },
+            blocking=True,
+        )
+        mock_instance.send_location.assert_awaited_with(
+            "12345", 1.0, 2.0, "Loc", None
+        )
+
+        # 5. Test send_reaction
+        await hass.services.async_call(
+            DOMAIN,
+            "send_reaction",
+            {"target": "12345", "message_id": "ID", "reaction": "Emoji"},
+            blocking=True,
+        )
+        mock_instance.send_reaction.assert_awaited_with("12345", "Emoji", "ID")
+
+        # 6. Test send_buttons
+        await hass.services.async_call(
+            DOMAIN,
+            "send_buttons",
+            {
+                "target": "12345",
+                "message": "Msg",
+                "buttons": [{"id": "1", "displayText": "Btn"}],
+            },
+            blocking=True,
+        )
+        mock_instance.send_buttons.assert_awaited_with(
+            "12345", "Msg", [{"id": "1", "displayText": "Btn"}], None
+        )
+
+        # 7. Test update_presence
+        await hass.services.async_call(
+            DOMAIN,
+            "update_presence",
+            {"target": "12345", "presence": "composing"},
+            blocking=True,
+        )
+        mock_instance.set_presence.assert_awaited_with("12345", "composing")
+
+        # 8. Test send_list
         await hass.services.async_call(
             DOMAIN,
             "send_list",
@@ -56,7 +151,7 @@ async def test_services(hass: HomeAssistant) -> None:
             [{"title": "S1", "rows": [{"title": "O1", "rowId": "1"}]}],
         )
 
-        # 2. Test send_contact
+        # 9. Test send_contact
         await hass.services.async_call(
             DOMAIN,
             "send_contact",
@@ -71,18 +166,7 @@ async def test_services(hass: HomeAssistant) -> None:
             "12345", "Test User", "98765"
         )
 
-        # 3. Test send_video (via send_media internal logic usually, but exposed as service)
-        # Note: The service implementation for send_video/audio uses client.send_media or specialized method
-        # Let's verify what the service calls.
-        # Assuming there are separate services for video/audio.
-
-        # Checking implementation of send_video in __init__.py...
-        # It usually calls client.send_media(..., type="video") or similar.
-        # Let's check if there are specific methods or reused ones.
-        # Actually I didn't see explicit send_video method in my recent edits,
-        # but I implemented `send_list` and `send_contact`.
-
-        # 4. Test configure_webhook
+        # 10. Test configure_webhook
         await hass.services.async_call(
             DOMAIN,
             "configure_webhook",
@@ -97,7 +181,7 @@ async def test_services(hass: HomeAssistant) -> None:
             "http://ha/hook", True, "123"
         )
 
-        # 5. Test revoke_message
+        # 11. Test revoke_message
         await hass.services.async_call(
             DOMAIN,
             "revoke_message",
@@ -106,7 +190,7 @@ async def test_services(hass: HomeAssistant) -> None:
         )
         mock_instance.revoke_message.assert_awaited_with("12345", "MSGID")
 
-        # 6. Test edit_message
+        # 12. Test edit_message
         await hass.services.async_call(
             DOMAIN,
             "edit_message",
