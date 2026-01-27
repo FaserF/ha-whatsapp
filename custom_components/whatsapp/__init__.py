@@ -189,6 +189,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and message_id and new_content:
             await client.edit_message(number, message_id, new_content)
 
+    async def configure_webhook_service(call: ServiceCall) -> None:
+        """Handle the configure_webhook service."""
+        url = call.data.get("url")
+        enabled = call.data.get("enabled", True)
+        token = call.data.get("token")
+        if url:
+            await client.set_webhook(url, enabled, token)
+
     async def update_presence_service(call: ServiceCall) -> None:
         """Handle the update_presence service."""
         number = call.data.get("target")
@@ -342,6 +350,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Required("target"): cv.string,
                 vol.Required("message_id"): cv.string,
                 vol.Required("message"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "configure_webhook",
+        configure_webhook_service,
+        schema=vol.Schema(
+            {
+                vol.Required("url"): cv.string,
+                vol.Optional("enabled", default=True): cv.boolean,
+                vol.Optional("token"): cv.string,
             }
         ),
     )

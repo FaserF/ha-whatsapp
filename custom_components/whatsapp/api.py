@@ -757,7 +757,36 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Reaction: {text}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text_content
+                self.stats["last_error_reason"] = text_content
                 raise Exception(f"Failed to send reaction: {text_content}")
+
+    async def set_webhook(
+        self,
+        url: str,
+        enabled: bool = True,
+        token: str | None = None,
+    ) -> None:
+        """Configure the webhook settings on the Addon."""
+        api_url = f"{self.host}/settings/webhook"
+        payload = {"url": url, "enabled": enabled}
+        if token:
+            payload["token"] = token
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to set webhook: {text}")
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""

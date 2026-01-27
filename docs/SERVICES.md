@@ -125,6 +125,16 @@ data:
   message: "Corrected text"
 ```
 
+### 🔗 Webhook (`configure_webhook`)
+Configure the Addon to push events (messages) to a specific URL.
+
+```yaml
+service: whatsapp.configure_webhook
+data:
+  url: "http://homeassistant:8123/api/webhook/YOUR_ID"
+  enabled: true
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

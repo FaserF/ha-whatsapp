@@ -173,6 +173,28 @@ edit_message:
       selector:
         text:
 
+configure_webhook:
+  name: Configure Webhook
+  description: Sets the webhook URL for the Addon to push events to.
+  fields:
+    url:
+      name: Webhook URL
+      description: The URL to push events to (e.g., Home Assistant webhook).
+      required: true
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Enable or disable the webhook.
+      default: true
+      selector:
+        boolean:
+    token:
+      name: Token
+      description: Optional security token (X-Webhook-Token header).
+      selector:
+        text:
+
 send_location:
   name: Send Location
   description: Sends a location (map pin) to a WhatsApp number.

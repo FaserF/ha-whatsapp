@@ -151,6 +151,24 @@
         }
       }
     },
+    "configure_webhook": {
+      "name": "Configure Webhook",
+      "description": "Sets the webhook URL for the Addon to push events to.",
+      "fields": {
+        "url": {
+          "name": "Webhook URL",
+          "description": "The URL to push events to."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Enable or disable the webhook."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Optional security token."
+        }
+      }
+    },
     "send_reaction": {
       "name": "Send Reaction",
       "description": "Reacts to a message with an emoji.",
