@@ -46,7 +46,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
         # The integration calls register_callback in __init__
         # If the side_effect didn't fire, we can check the call args
         if callback_capture is None and mock_instance.register_callback.called:
-             callback_capture = mock_instance.register_callback.call_args[0][0]
+            callback_capture = mock_instance.register_callback.call_args[0][0]
 
         # Simulate incoming message
         assert callback_capture is not None
@@ -62,7 +62,8 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
         # Verify mark_as_read was called
         mock_instance.mark_as_read.assert_called_with(
-            "123456789@s.whatsapp.net", "MSGID123"
+            "123456789@s.whatsapp.net",
+            "MSGID123",
         )
 
 
@@ -94,7 +95,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
 
         # Manually ensure callback is captured
         if callback_capture is None and mock_instance.register_callback.called:
-             callback_capture = mock_instance.register_callback.call_args[0][0]
+            callback_capture = mock_instance.register_callback.call_args[0][0]
 
         # Simulate incoming message
         assert callback_capture is not None
