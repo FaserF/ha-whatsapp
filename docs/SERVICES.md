@@ -68,6 +68,31 @@ data:
   message: "Here is your monthly invoice." # Optional: Add a caption
 ```
 
+  message: "Here is your monthly invoice." # Optional: Add a caption
+```
+
+### 🎥 Videos (`send_video`)
+Send video files (MP4, etc).
+
+```yaml
+service: whatsapp.send_video
+data:
+  target: "49123456789"
+  url: "https://example.com/video.mp4"
+  message: "Check this out! 🎥" # Optional: Add a caption
+```
+
+### 🎤 Audio (`send_audio`)
+Send audio files or voice notes.
+
+```yaml
+service: whatsapp.send_audio
+data:
+  target: "49123456789"
+  url: "https://example.com/audio.mp3"
+  ptt: true # Set to true to send as a voice note (waveform), false for audio file
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

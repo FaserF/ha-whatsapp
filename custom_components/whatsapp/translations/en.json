@@ -83,6 +83,42 @@
         }
       }
     },
+    "send_video": {
+      "name": "Send Video",
+      "description": "Sends a video file to a WhatsApp number.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the video to send."
+        },
+        "message": {
+          "name": "Caption",
+          "description": "Optional text caption for the video."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Send Audio",
+      "description": "Sends an audio file or voice note.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the audio file."
+        },
+        "ptt": {
+          "name": "Voice Note (PTT)",
+          "description": "Send as a voice note (waveform) instead of audio (file)."
+        }
+      }
+    },
     "send_reaction": {
       "name": "Send Reaction",
       "description": "Reacts to a message with an emoji.",

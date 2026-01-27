@@ -259,6 +259,15 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     url = data["document"]
                     file_name = data.get("file_name")
                     await self.client.send_document(target, url, file_name, message)
+                elif "video" in data:
+                    # Send video: data: { video: "http://..." }
+                    url = data["video"]
+                    await self.client.send_video(target, url, message)
+                elif "audio" in data:
+                    # Send audio: data: { audio: "http://..." }
+                    url = data["audio"]
+                    ptt = data.get("ptt", False)
+                    await self.client.send_audio(target, url, ptt)
                 else:
                     await self.client.send_message(target, message)
             except Exception as err:

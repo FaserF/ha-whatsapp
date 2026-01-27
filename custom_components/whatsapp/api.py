@@ -496,6 +496,98 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
             self.stats["last_sent_target"] = number
 
+    async def send_video(
+        self,
+        number: str,
+        url: str,
+        caption: str | None = None,
+    ) -> None:
+        """Send a video (with retry)."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(self._send_video_internal, number, url, caption)
+
+    async def _send_video_internal(
+        self,
+        number: str,
+        url: str,
+        caption: str | None = None,
+    ) -> None:
+        """Internal send video logic."""
+        api_url = f"{self.host}/send_video"
+        payload = {"number": number, "url": url, "caption": caption}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for video
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Video: {caption or 'unnamed'}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send video: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Video: {caption or 'unnamed'}"
+            self.stats["last_sent_target"] = number
+
+    async def send_audio(
+        self,
+        number: str,
+        url: str,
+        ptt: bool = False,
+    ) -> None:
+        """Send audio (with retry)."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(self._send_audio_internal, number, url, ptt)
+
+    async def _send_audio_internal(
+        self,
+        number: str,
+        url: str,
+        ptt: bool = False,
+    ) -> None:
+        """Internal send audio logic."""
+        api_url = f"{self.host}/send_audio"
+        payload = {"number": number, "url": url, "ptt": ptt}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for audio
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = "Voice Note" if ptt else "Audio"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send audio: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
+            self.stats["last_sent_target"] = number
+
     async def send_location(
         self,
         number: str,
