@@ -43,6 +43,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
       - name: Determine Release Parameters
         id: params
@@ -230,7 +231,7 @@ jobs:
           toTag: HEAD
           mode: "HYBRID"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         if: steps.params.outputs.should_release == 'true'
