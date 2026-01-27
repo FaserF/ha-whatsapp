@@ -32,6 +32,20 @@ graph LR
 | **Webhook URL** | `string` | The full URL (including `http://` and port) of your destination. |
 | **Webhook Token** | `string` | A secret string that will be sent in the `X-Webhook-Token` header. |
 
+### 🔄 Dynamic Configuration
+
+You can also change these settings dynamically using the **Start > Services** tab in Developer Tools or via automations:
+
+```yaml
+service: whatsapp.configure_webhook
+data:
+  url: "https://my-new-url.com/api/webhook"
+  enabled: true
+  token: "my-secret-token"
+```
+
+This is useful if your external URL changes (e.g., Nabu Casa URL) or you want to toggle the webhook based on conditions.
+
 ---
 
 ## 🔐 Security
