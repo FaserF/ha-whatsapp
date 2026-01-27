@@ -15,6 +15,7 @@ The real power of the WhatsApp integration lies in the events. Every message rec
 To react to commands, listen for the event and check the `content` field.
 
 ### Simple Command: `/status`
+
 {% raw %}
 ```yaml
 alias: "WhatsApp Bot: Status"
@@ -28,12 +29,15 @@ action:
   - service: whatsapp.send_message
     data:
       target: "{{ trigger.event.data.sender }}"
-      message: "The server is online! 🚀\nUptime: {{ states('sensor.whatsapp_uptime') }}"
+      message: |
+        The server is online! 🚀
+        Uptime: {{ states('sensor.whatsapp_uptime') }}
 ```
 {% endraw %}
 
 ### Complex Command: `/light [on|off]`
 Using regex or simple "in" checks to handle parameters.
+
 {% raw %}
 ```yaml
 alias: "WhatsApp Bot: Light Switch"
@@ -70,6 +74,7 @@ Automating group chats requires checking if the message came from a group.
 
 ### Auto-Emoji Reaction
 React with a specific emoji if a keyword is mentioned in a group.
+
 {% raw %}
 ```yaml
 alias: "WhatsApp Bot: Beer Keyword"
@@ -96,6 +101,7 @@ action:
 ## 📸 Security: Camera Snapshots
 
 Send an image when motion is detected.
+
 
 {% raw %}
 ```yaml

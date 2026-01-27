@@ -9,8 +9,10 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
 <div class="hero-section">
   <h1>WhatsApp for HA</h1>
   <p style="font-size: 1.2rem; opacity: 0.8;">The most robust, private, and localized WhatsApp integration for Home Assistant.</p>
-  <div style="margin-top: 2rem;">
-    <a href="installation.html" class="btn">Get Started Now</a>
+  <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+    <a href="installation.html" class="btn btn-green">Get Started Now</a>
+    <a href="https://github.com/FaserF/ha-whatsapp" class="btn">Integration Repo</a>
+    <a href="https://github.com/FaserF/hassio-addons" class="btn">Addon Repo</a>
   </div>
 </div>
 

@@ -25,6 +25,7 @@ This integration provides three ways to send messages. Choosing the right one de
 These services are custom-built for this integration. They are the most reliable way to use all features (Polls, Buttons, etc.) without running into Home Assistant's strict schema errors.
 
 ### Text Message
+
 ```yaml
 service: whatsapp.send_message
 data:
@@ -33,6 +34,7 @@ data:
 ```
 
 ### Polls 📊
+
 ```yaml
 service: whatsapp.send_poll
 data:
@@ -43,6 +45,7 @@ data:
 
 ### Reactions ❤️
 React to a message using its ID (from receiver events).
+
 ```yaml
 service: whatsapp.send_reaction
 data:
@@ -60,16 +63,20 @@ This is a classic Home Assistant notification service. It is very flexible and w
 > [!TIP]
 > Use this service if you want to send the same message to **multiple recipients** at once.
 
+
 ```yaml
 service: notify.whatsapp
 data:
-  message: "Intruder detected! 🚨"
+  message: |
+    🚨 Intruder detected!
+    Action: Police notified.
   target:
     - "+49111222333"
     - "12345678@g.us" # Group
 ```
 
 **Sending Images via Legacy Notify:**
+
 ```yaml
 service: notify.whatsapp
 data:
@@ -87,6 +94,7 @@ This follows the modern **ADR-0010** standard. It is primarily designed for the 
 
 > [!WARNING]
 > **Strict Schema**: If you use this service in **YAML**, Home Assistant may reject the `target` parameter inside the `data` block. If you see "extra keys not allowed", switch to `whatsapp.send_message` or `notify.whatsapp`.
+
 
 ```yaml
 action: notify.send_message

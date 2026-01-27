@@ -12,6 +12,7 @@ This documentation provides detailed examples for using the WhatsApp integration
 In the new `notify.send_message` standard, the recipient phone number is passed via the `target` parameter within the `data` block.
 
 ### 🏠 Simple Text Message
+
 ```yaml
 service: notify.send_message
 target:
@@ -22,6 +23,7 @@ data:
 ```
 
 ### 🔘 Message with Interactive Buttons
+
 ```yaml
 service: notify.send_message
 target:
@@ -41,6 +43,7 @@ data:
 ```
 
 ### 📊 Polls
+
 ```yaml
 service: notify.send_message
 target:
@@ -57,6 +60,7 @@ data:
 ```
 
 ### 📍 Location
+
 ```yaml
 service: notify.send_message
 target:
@@ -79,6 +83,7 @@ data:
 When building automations, the "target" is dynamic.
 
 ### 📨 Reacting to Bot Commands
+
 ```yaml
 alias: "WhatsApp Bot: Status Request"
 trigger:
@@ -92,13 +97,16 @@ action:
     target:
       entity_id: notify.whatsapp
     data:
-      message: "Home Status: {{ states('alarm_control_panel.home') }}"
+      message: |
+        Home Status: {{ states('alarm_control_panel.home') }}
+        Time: {{ now().strftime('%H:%M:%S') }}
       target: "{{ trigger.event.data.sender }}" # Sends reply back to origin (User or Group)
 ```
 
 ---
 
 ### 📸 Camera Snapshot on Alarm
+
 ```yaml
 alias: "WhatsApp: Camera Alarm"
 trigger:
@@ -116,7 +124,9 @@ action:
     target:
       entity_id: notify.whatsapp
     data:
-      message: "Motion at the door!"
+      message: |
+        🚨 Motion detected at the door!
+        Time: {{ now().strftime('%H:%M:%S') }}
       target: "+49123456789"
       data:
         image: "https://your-domain.com/local/tmp/snapshot.jpg"
