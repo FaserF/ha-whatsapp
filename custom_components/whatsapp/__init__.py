@@ -128,12 +128,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 groups = [g for g in groups if name_filter in g["name"].lower()]
 
             if not groups:
-                message = f"No groups found{' matching \"' + name_filter + '\"' if name_filter else ''}."
+                msg_suffix = f' matching "{name_filter}"' if name_filter else ""
+                message = f"No groups found{msg_suffix}."
             else:
                 table = "| Name | Group ID | Participants |\n| :--- | :--- | :--- |\n"
                 for g in groups:
                     table += f"| {g['name']} | `{g['id']}` | {g['participants']} |\n"
-                message = f"Found {len(groups)} group(s):\n\n{table}\n\n*Tip: Use the Group ID in the 'target' field of other services.*"
+
+                message = (
+                    f"Found {len(groups)} group(s):\n\n{table}\n\n"
+                    "*Tip: Use the Group ID in the 'target' field of other services.*"
+                )
 
             await hass.services.async_call(
                 "persistent_notification",
