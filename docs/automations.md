@@ -14,7 +14,9 @@ The real power of the WhatsApp integration lies in the events. Every message rec
 
 To react to commands, listen for the event and check the `content` field. You can create these automations directly in the Home Assistant UI.
 
-[![Open your Home Assistant instance and show your automations.](https://my.home-assistant.io/badges/automations.svg)](https://my.home-assistant.io/redirect/automations/)
+<a href="https://my.home-assistant.io/redirect/automations/" target="_blank">
+  <img src="https://my.home-assistant.io/badges/automations.svg" alt="Open your Home Assistant instance and show your automations.">
+</a>
 
 ### Simple Command: `/status`
 

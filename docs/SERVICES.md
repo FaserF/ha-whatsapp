@@ -124,7 +124,9 @@ If you want to send messages to a group, you need its **Group ID** (JID). The in
 
 To use these services, go to **Developer Tools** -> **Services** in Home Assistant.
 
-[![Open your Home Assistant instance and show your service developer tools.](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
+<a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank">
+  <img src="https://my.home-assistant.io/badges/developer_services.svg" alt="Open your Home Assistant instance and show your service developer tools.">
+</a>
 
 ---
 

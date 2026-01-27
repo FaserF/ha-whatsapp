@@ -5,7 +5,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp.const import CONF_URL, DOMAIN
+from custom_components.whatsapp.const import (
+    CONF_API_KEY,
+    CONF_MARK_AS_READ,
+    CONF_POLLING_INTERVAL,
+    CONF_URL,
+    DOMAIN,
+)
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -81,7 +87,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         version=1,
         domain=DOMAIN,
         title="WhatsApp",
-        data={"session": "mock"},
+        data={"session": "mock", CONF_API_KEY: "mock_key"},
         source="user",
         options={},
         unique_id="1234",
