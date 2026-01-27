@@ -18,6 +18,17 @@ This integration provides three ways to send messages. Choosing the right one de
 | **Legacy Notify** | `notify.whatsapp` | Multi-target, Simple Alerts | **Very Reliable** ✅ |
 | **Entity Action** | `notify.send_message` | Visual Editor (UI), Dashboard | Use only in the UI 🛠️ |
 
+## 🎨 Rich Formatting
+
+You can use standard WhatsApp Markdown in any text field (message, caption, etc.):
+
+| Style | Syntax | Example | Result |
+| :--- | :--- | :--- | :--- |
+| **Bold** | `*text*` | `*Alert*` | **Alert** |
+| _Italic_ | `_text_` | `_Warning_` | _Warning_ |
+| ~Strikethrough~ | `~text~` | `~Old~` | ~~Old~~ |
+| `Monospace` | ` ```text``` ` | ` ```Code``` ` | `Code` |
+
 ---
 
 ## 1. `whatsapp.*` Services (Recommended)
