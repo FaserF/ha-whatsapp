@@ -150,10 +150,18 @@ graph TD
 > **Privacy First**: Your WhatsApp connection is local. No external servers (other than WhatsApp's official ones) ever see your message content.
 {: .important }
 
+> [!TIP]
+> **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
+
+## 🏷️ Versions
+
 ---
 
 ## 🔥 Why choose this integration?
 
+- **💡 [Tips & Tricks](tips.md)**: Optimize your experience.
+- **💬 [Rocket.Chat Bridge](rocketchat.md)**: Connect WhatsApp to your team chat.
+- **📜 [API Documentation](SERVICES.md)**: For developers and advanced users.
 - **Real-time**: Near-zero latency for incoming and outgoing messages.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
 - **Rich Content**: Interactive Buttons, Polls, Reactions, and Media support.
