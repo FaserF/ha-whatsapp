@@ -25,7 +25,7 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Addon (Stable)</strong></td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
             <a href="https://github.com/FaserF/hassio-addons/tree/master/whatsapp">
-              <img src="https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square" alt="Addon Stable">
+              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fmaster%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Addon&style=flat-square&color=blue" alt="Addon Stable">
             </a>
           </td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">engine</td>
@@ -75,8 +75,13 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
   </div>
 
   <div style="text-align: center; margin: 2rem 0;">
-    <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank">
-      <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Add Integration" height="36">
+    <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha">
+      <div class="logo-box">
+        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+          <path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" />
+        </svg>
+      </div>
+      <div class="label-box">Add Integration</div>
     </a>
   </div>
 
