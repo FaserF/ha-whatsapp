@@ -8,4 +8,5 @@ CONF_URL = "url"
 CONF_MARK_AS_READ = "mark_as_read"
 CONF_RETRY_ATTEMPTS = "retry_attempts"
 
+CONF_WHITELIST = "whitelist"
 EVENT_MESSAGE_RECEIVED = "whatsapp_message_received"

@@ -16,6 +16,7 @@ from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_WHITELIST,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
 )
@@ -32,8 +33,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     api_key = entry.data.get(CONF_API_KEY)
     mask_sensitive_data = entry.options.get("mask_sensitive_data", False)
+    whitelist_str = entry.options.get(CONF_WHITELIST, "")
+    whitelist = None
+    if whitelist_str:
+        whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
+
     client = WhatsAppApiClient(
-        host=addon_url, api_key=api_key, mask_sensitive_data=mask_sensitive_data
+        host=addon_url,
+        api_key=api_key,
+        mask_sensitive_data=mask_sensitive_data,
+        whitelist=whitelist,
     )
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
@@ -58,6 +67,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         data["sender"] = clean_sender
         data["raw_sender"] = full_sender
+
+        # Whitelist filtering
+        if whitelist is not None:
+            # For groups, the raw data contains the group JID in remoteJid
+            raw_msg = data.get("raw", {})
+            remote_id = raw_msg.get("key", {}).get("remoteJid", "")
+            is_group = "@g.us" in remote_id
+            target = remote_id if is_group else full_sender
+
+            if not client._is_allowed(target):
+                _LOGGER.info(
+                    "Ignoring incoming message from non-whitelisted %s: %s",
+                    "group" if is_group else "sender",
+                    target,
+                )
+                return
 
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 

@@ -10,12 +10,17 @@ _LOGGER = logging.getLogger(__name__)
 
 class WhatsAppApiClient:
     def __init__(
-        self, host: str, api_key: str | None = None, mask_sensitive_data: bool = False
+        self,
+        host: str,
+        api_key: str | None = None,
+        mask_sensitive_data: bool = False,
+        whitelist: list[str] | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
         self.mask_sensitive_data = mask_sensitive_data
+        self.whitelist = whitelist or []
         self.retry_attempts = 2
         self._connected = False
         self.stats: dict[str, Any] = {
@@ -34,6 +39,33 @@ class WhatsAppApiClient:
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
+
+    def _is_allowed(self, target: str) -> bool:
+        """Check if a target JID is allowed by the whitelist."""
+        if not self.whitelist:
+            return True
+
+        # Normalize target for comparison
+        target_jid = self._ensure_jid(target)
+
+        for allowed in self.whitelist:
+            allowed = allowed.strip()
+            if not allowed:
+                continue
+            # If allowed already has @, compare directly (after normalization)
+            if "@" in allowed:
+                if target_jid == self._ensure_jid(allowed):
+                    return True
+            # If it's a numeric ID, compare the numeric part
+            elif allowed.isdigit():
+                if target_jid.split("@")[0] == allowed:
+                    return True
+            # If it contains a hyphen but no @, it's a group ID
+            elif "-" in allowed and target_jid == f"{allowed}@g.us":
+                return True
+
+        _LOGGER.info("Blocking outgoing message to non-whitelisted target: %s", target)
+        return False
 
     def _ensure_jid(self, target: str) -> str:
         """Ensure the target is a valid JID."""
@@ -257,6 +289,8 @@ class WhatsAppApiClient:
 
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(self._send_message_internal, number, message)
 
@@ -327,6 +361,8 @@ class WhatsAppApiClient:
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(self._send_poll_internal, number, question, options)
 
@@ -365,6 +401,8 @@ class WhatsAppApiClient:
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
         """Send an image (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_image_internal, number, image_url, caption
@@ -412,6 +450,8 @@ class WhatsAppApiClient:
         address: str | None = None,
     ) -> None:
         """Send a location (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_location_internal, number, latitude, longitude, name, address
@@ -461,6 +501,8 @@ class WhatsAppApiClient:
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_reaction_internal, number, text, message_id
@@ -492,6 +534,8 @@ class WhatsAppApiClient:
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         url = f"{self.host}/set_presence"
         payload = {"number": number, "presence": presence}
@@ -517,6 +561,8 @@ class WhatsAppApiClient:
         footer: str | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
+        if not self._is_allowed(number):
+            return
         number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_buttons_internal, number, text, buttons, footer

@@ -21,6 +21,7 @@ from .const import (
     CONF_POLLING_INTERVAL,
     CONF_RETRY_ATTEMPTS,
     CONF_URL,
+    CONF_WHITELIST,
     DEFAULT_PORT,
     DOMAIN,
 )
@@ -324,6 +325,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     CONF_RETRY_ATTEMPTS,
                     default=self._config_entry.options.get(CONF_RETRY_ATTEMPTS, 2),
                 ): vol.All(int, vol.Range(min=0, max=10)),
+                vol.Optional(
+                    CONF_WHITELIST,
+                    default=self._config_entry.options.get(CONF_WHITELIST, ""),
+                ): str,
                 vol.Optional("reset_session", default=False): bool,
             }
         )

@@ -36,6 +36,7 @@
           "mark_as_read": "Mark messages as read (send blue ticks)",
           "api_key": "API Key",
           "retry_attempts": "Retry Attempts (on failure)",
+          "whitelist": "Whitelisted Users/Groups (Comma-separated phone numbers or Group IDs. Leave empty for no whitelist)",
           "reset_session": "Reset Session (Logout & Clear Data)"
         },
         "description": "{warning}"

@@ -36,6 +36,7 @@
                     "mark_as_read": "Nachrichten als gelesen markieren (blaue Haken senden)",
                     "api_key": "API Schlüssel",
                     "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
+                    "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
                     "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
                 },
                 "description": "{warning}"
