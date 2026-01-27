@@ -33,6 +33,8 @@
           "debug_payloads": "Debug Payloads (Log incoming events)",
           "polling_interval": "Polling Interval (Seconds)",
           "mask_sensitive_data": "Mask Sensitive Data in Logs",
+          "mark_as_read": "Mark messages as read (send blue ticks)",
+          "api_key": "API Key",
           "reset_session": "Reset Session (Logout & Clear Data)"
         },
         "description": "{warning}"

@@ -33,6 +33,8 @@
                     "debug_payloads": "Debug Payloads (Eingehende Events im HA Log protokollieren)",
                     "polling_interval": "Abfrageintervall (Sekunden)",
                     "mask_sensitive_data": "Sensible Daten in Logs maskieren",
+                    "mark_as_read": "Nachrichten als gelesen markieren (blaue Haken senden)",
+                    "api_key": "API Schlüssel",
                     "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
                 },
                 "description": "{warning}"
