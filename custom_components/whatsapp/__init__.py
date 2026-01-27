@@ -52,9 +52,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Automatically mark as read if enabled
         if entry.options.get(CONF_MARK_AS_READ, True):
-            message_id = data.get("id") or data.get("key", {}).get("id")
-            # "from" is a reserved word in Python, so we use data.get("from")
-            number = data.get("from") or data.get("key", {}).get("remoteJid")
+            # Extract ID and sender JID from the nested raw data
+            # The addon sends full data in 'raw'
+            raw_msg = data.get("raw", {})
+            message_id = raw_msg.get("key", {}).get("id")
+            number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
 
             if message_id and number:
                 hass.async_create_task(client.mark_as_read(number, message_id))

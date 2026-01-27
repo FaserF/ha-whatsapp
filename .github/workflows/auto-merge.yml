@@ -19,9 +19,57 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Merge
-        if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]' || github.actor == 'FaserF' }}
+      - name: 🔍 Find PR for this commit
+        id: find-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge --auto --merge ${{ github.event.workflow_run.pull_requests[0].number }}
+          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "Looking for PR with head SHA: $HEAD_SHA"
+
+          # Try workflow_run.pull_requests first (fastest if available)
+          PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "workflow_run.pull_requests is empty, querying API..."
+            PR_DATA=$(gh api "repos/${{ github.repository }}/commits/$HEAD_SHA/pulls" \
+              --jq '.[0] | {number: .number, author: .user.login}' 2>/dev/null || echo "")
+
+            if [ -z "$PR_DATA" ] || [ "$PR_DATA" = "null" ]; then
+              echo "No PR found via SHA. Trying branch fallback..."
+              HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+              if [ -n "$HEAD_BRANCH" ]; then
+                 PR_DATA=$(gh pr list --head "$HEAD_BRANCH" --state open --json number,author --jq '.[0] | {number: .number, author: .author.login}' 2>/dev/null || echo "")
+              fi
+            fi
+
+            if [ -z "$PR_DATA" ] || [ "$PR_DATA" = "null" ]; then
+              echo "found=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.author')
+          else
+            PR_AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login' 2>/dev/null || echo "${{ github.event.workflow_run.actor.login }}")
+          fi
+
+          echo "Found PR #$PR_NUMBER by $PR_AUTHOR"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
+          echo "found=true" >> "$GITHUB_OUTPUT"
+
+      - name: 🤖 Enable Auto-Merge
+        if: steps.find-pr.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.find-pr.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.find-pr.outputs.pr_author }}
+        run: |
+          ALLOWED_AUTHORS="dependabot[bot] renovate[bot] app/renovate FaserF"
+          if echo "$ALLOWED_AUTHORS" | grep -Fqw "$PR_AUTHOR"; then
+            echo "🚀 Enabling auto-merge for PR #$PR_NUMBER"
+            gh pr merge --auto --merge "$PR_NUMBER"
+          else
+            echo "⏭️ Author '$PR_AUTHOR' is not in auto-merge list. Skipping."
+          fi
