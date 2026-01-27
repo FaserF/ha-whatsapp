@@ -37,7 +37,8 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
         assert issue_registry.async_get_issue(DOMAIN, "connection_failed")
 
         # Simulate reconnect
-        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.connect.side_effect = None
+        mock_instance.connect.return_value = True
         data = hass.data[DOMAIN][entry.entry_id]
         await data["coordinator"].async_refresh()
         await hass.async_block_till_done()
