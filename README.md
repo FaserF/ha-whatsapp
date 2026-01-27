@@ -397,8 +397,9 @@ You **Must** install the Addon from the repo above for this to work.
 
 ## 🏷️ Versioning & Releases
 
-- **Pre-release** (`< 1.0.0`): Development versions. May contain breaking changes.
-- **Stable** (`>= 1.0.0`): Production-ready. Follows semantic versioning.
+- **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.0.1`).
+- **Beta**: Feature-complete testing versions (e.g., `v1.0.1b0`).
+- **Nightly/Dev**: Experimental builds from the latest code (e.g., `v1.0.2-dev`).
 
 Releases are automatically created when the version in `manifest.json` is updated.
 

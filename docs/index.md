@@ -155,12 +155,17 @@ graph TD
 
 ## 🏷️ Versions
 
+- **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.0.1`).
+- **Beta**: Feature-complete testing versions (e.g., `v1.0.1b0`).
+- **Nightly/Dev**: Experimental builds from the latest code (e.g., `v1.0.2-dev`).
+
 ---
 
 ## 🔥 Why choose this integration?
 
 - **💡 [Tips & Tricks](tips.md)**: Optimize your experience.
 - **💬 [Rocket.Chat Bridge](rocketchat.md)**: Connect WhatsApp to your team chat.
+- **🔗 [Webhook Support](webhooks.md)**: Forward messages to any external service.
 - **📜 [API Documentation](SERVICES.md)**: For developers and advanced users.
 - **Real-time**: Near-zero latency for incoming and outgoing messages.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
