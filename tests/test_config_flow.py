@@ -108,7 +108,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result2["type"] == FlowResultType.CREATE_ENTRY
     assert result2["data"] == {
         "debug_payloads": True,
-        "polling_interval": 5,
+        CONF_POLLING_INTERVAL: 5,
         "mask_sensitive_data": False,
-        "mark_as_read": True,
+        CONF_MARK_AS_READ: True,
     }
