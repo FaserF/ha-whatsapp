@@ -104,4 +104,5 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         "debug_payloads": True,
         "polling_interval": 5,
         "mask_sensitive_data": False,
+        "mark_as_read": True,
     }

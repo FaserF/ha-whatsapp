@@ -42,6 +42,12 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        # Manually ensure callback is captured if it wasn't during setup
+        # The integration calls register_callback in __init__
+        # If the side_effect didn't fire, we can check the call args
+        if callback_capture is None and mock_instance.register_callback.called:
+             callback_capture = mock_instance.register_callback.call_args[0][0]
+
         # Simulate incoming message
         assert callback_capture is not None
 
@@ -85,6 +91,10 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
 
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
+
+        # Manually ensure callback is captured
+        if callback_capture is None and mock_instance.register_callback.called:
+             callback_capture = mock_instance.register_callback.call_args[0][0]
 
         # Simulate incoming message
         assert callback_capture is not None
