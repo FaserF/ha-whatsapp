@@ -166,7 +166,7 @@ graph TD
 - **💡 [Tips & Tricks](tips.md)**: Optimize your experience.
 - **💬 [Rocket.Chat Bridge](rocketchat.md)**: Connect WhatsApp to your team chat.
 - **🔗 [Webhook Support](webhooks.md)**: Forward messages to any external service.
-- **📜 [API Documentation](SERVICES.md)**: For developers and advanced users.
+- **📜 [API Documentation](api.html)**: For developers and advanced users.
 - **Real-time**: Near-zero latency for incoming and outgoing messages.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
 - **Rich Content**: Interactive Buttons, Polls, Reactions, and Media support.
