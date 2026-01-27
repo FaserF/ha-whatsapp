@@ -53,8 +53,9 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
         # Message data structure (simplified)
         msg_data = {
-            "key": {"remoteJid": "123456789@s.whatsapp.net", "id": "MSGID123"},
-            "message": {"conversation": "Hello"},
+            "sender": "123456789@s.whatsapp.net",
+            "raw": {"key": {"id": "MSGID123"}},
+            "content": "Hello",
         }
 
         callback_capture(msg_data)
