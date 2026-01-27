@@ -15,7 +15,14 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, CONF_MARK_AS_READ, CONF_POLLING_INTERVAL, CONF_URL, DEFAULT_PORT, DOMAIN
+from .const import (
+    CONF_API_KEY,
+    CONF_MARK_AS_READ,
+    CONF_POLLING_INTERVAL,
+    CONF_URL,
+    DEFAULT_PORT,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

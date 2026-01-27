@@ -5,7 +5,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp.const import CONF_API_KEY, CONF_MARK_AS_READ, CONF_URL, DOMAIN
+from custom_components.whatsapp.const import (
+    CONF_API_KEY,
+    CONF_MARK_AS_READ,
+    CONF_URL,
+    DOMAIN,
+)
 
 
 async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
@@ -26,6 +31,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
         # We need to capture the callback registered
         callback_capture = None
+
         def register_side_effect(callback):
             nonlocal callback_capture
             callback_capture = callback
@@ -51,7 +57,9 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         # Verify mark_as_read was called
-        mock_instance.mark_as_read.assert_called_with("123456789@s.whatsapp.net", "MSGID123")
+        mock_instance.mark_as_read.assert_called_with(
+            "123456789@s.whatsapp.net", "MSGID123"
+        )
 
 
 async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
