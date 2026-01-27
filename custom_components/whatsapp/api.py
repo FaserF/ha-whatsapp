@@ -474,3 +474,23 @@ class WhatsAppApiClient:
                     raise
                 _LOGGER.error("Error fetching groups from addon: %s", e)
                 return []
+
+    async def mark_as_read(self, number: str, message_id: str) -> None:
+        """Mark a message as read."""
+        url = f"{self.host}/mark_as_read"
+        payload = {"number": number, "messageId": message_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text_content = await resp.text()
+                _LOGGER.error("Failed to mark message as read: %s", text_content)

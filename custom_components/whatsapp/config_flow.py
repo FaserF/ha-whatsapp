@@ -15,7 +15,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
-from .const import CONF_API_KEY, CONF_POLLING_INTERVAL, CONF_URL, DEFAULT_PORT, DOMAIN
+from .const import CONF_API_KEY, CONF_MARK_AS_READ, CONF_POLLING_INTERVAL, CONF_URL, DEFAULT_PORT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -303,6 +303,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     default=self._config_entry.options.get(
                         "mask_sensitive_data", False
                     ),
+                ): bool,
+                vol.Optional(
+                    CONF_MARK_AS_READ,
+                    default=self._config_entry.options.get(CONF_MARK_AS_READ, True),
                 ): bool,
                 vol.Optional("reset_session", default=False): bool,
             }

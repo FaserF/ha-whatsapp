@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,
+    CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
@@ -48,6 +49,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
+
+        # Automatically mark as read if enabled
+        if entry.options.get(CONF_MARK_AS_READ, True):
+            message_id = data.get("id") or data.get("key", {}).get("id")
+            # "from" is a reserved word in Python, so we use data.get("from")
+            number = data.get("from") or data.get("key", {}).get("remoteJid")
+
+            if message_id and number:
+                hass.async_create_task(client.mark_as_read(number, message_id))
 
     client.register_callback(handle_incoming_message)
     polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 5)
