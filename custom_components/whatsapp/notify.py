@@ -209,6 +209,28 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     question = poll_data.get("question", message)
                     options = poll_data.get("options", [])
                     await self.client.send_poll(target, question, options)
+                elif "location" in data:
+                    loc = data["location"]
+                    await self.client.send_location(
+                        target,
+                        loc.get("latitude"),
+                        loc.get("longitude"),
+                        loc.get("name"),
+                        loc.get("address"),
+                    )
+                elif "reaction" in data:
+                    react = data["reaction"]
+                    if isinstance(react, str):
+                        reaction = react
+                    else:
+                        reaction = react.get("reaction")
+                    msg_id = (
+                        react.get("message_id")
+                        if isinstance(react, dict)
+                        else data.get("message_id")
+                    )
+                    if reaction and msg_id:
+                        await self.client.send_reaction(target, reaction, msg_id)
                 elif "image" in data:
                     await self.client.send_image(target, data["image"], message)
                 elif "buttons" in data or "inline_keyboard" in data:

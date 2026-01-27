@@ -35,6 +35,26 @@ class WhatsAppApiClient:
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
 
+    def _ensure_jid(self, target: str) -> str:
+        """Ensure the target is a valid JID."""
+        if not target:
+            return target
+
+        target = target.strip()
+
+        # If it already has an @, assume it's a full JID (e.g. standard, group, or lid)
+        if "@" in target:
+            return target.replace("+", "") if target.startswith("+") else target
+
+        # If it contains a hyphen, it's likely a group ID (e.g. 123456789-987654321)
+        if "-" in target:
+            return f"{target}@g.us"
+
+        # Otherwise treat as phone number
+        # Remove any leading + and non-digit characters
+        clean_number = "".join(filter(str.isdigit, target))
+        return f"{clean_number}@s.whatsapp.net"
+
     def _mask(self, text: str) -> str:
         """Mask sensitive data if enabled."""
         if not self.mask_sensitive_data or not text:
@@ -237,6 +257,7 @@ class WhatsAppApiClient:
 
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(self._send_message_internal, number, message)
 
     async def _send_message_internal(self, number: str, message: str) -> None:
@@ -306,6 +327,7 @@ class WhatsAppApiClient:
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(self._send_poll_internal, number, question, options)
 
     async def _send_poll_internal(
@@ -343,6 +365,7 @@ class WhatsAppApiClient:
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
         """Send an image (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_image_internal, number, image_url, caption
         )
@@ -389,6 +412,7 @@ class WhatsAppApiClient:
         address: str | None = None,
     ) -> None:
         """Send a location (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_location_internal, number, latitude, longitude, name, address
         )
@@ -437,6 +461,7 @@ class WhatsAppApiClient:
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_reaction_internal, number, text, message_id
         )
@@ -467,6 +492,7 @@ class WhatsAppApiClient:
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
+        number = self._ensure_jid(number)
         url = f"{self.host}/set_presence"
         payload = {"number": number, "presence": presence}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -491,6 +517,7 @@ class WhatsAppApiClient:
         footer: str | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
+        number = self._ensure_jid(number)
         await self._send_with_retry(
             self._send_buttons_internal, number, text, buttons, footer
         )
@@ -558,6 +585,7 @@ class WhatsAppApiClient:
 
     async def mark_as_read(self, number: str, message_id: str) -> None:
         """Mark a message as read."""
+        number = self._ensure_jid(number)
         url = f"{self.host}/mark_as_read"
         payload = {"number": number, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}

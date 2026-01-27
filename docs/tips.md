@@ -19,7 +19,7 @@ Home Assistant doesn't list WhatsApp Group IDs in the UI. To find them:
 3.  Click **Start Listening**.
 4.  Send a message into the WhatsApp group you want to identify.
 5.  Check the event output. The `target` (or `raw.key.remoteJid`) will look like `123456789@g.us`.
-6.  Use this ID (including the `@g.us`) as your `target` in service calls.
+6.  Use this ID (the suffix `@g.us` is optional in service calls) as your `target`.
 
 ---
 

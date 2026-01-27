@@ -48,6 +48,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
+        # Normalize sender for the event
+        # If it's a standard user (@s.whatsapp.net or @lid), strip the suffix
+        # This makes it easier for users to use numeric strings in automations
+        full_sender = data.get("sender", "")
+        clean_sender = full_sender
+        if "@s.whatsapp.net" in full_sender or "@lid" in full_sender:
+            clean_sender = full_sender.split("@")[0]
+
+        data["sender"] = clean_sender
+        data["raw_sender"] = full_sender
+
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
         # Automatically mark as read if enabled
@@ -56,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # The addon sends full data in 'raw'
             raw_msg = data.get("raw", {})
             message_id = raw_msg.get("key", {}).get("id")
-            number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
+            number = data.get("raw_sender")  # Use full JID for API calls
 
             if message_id and number:
                 hass.async_create_task(client.mark_as_read(number, message_id))
