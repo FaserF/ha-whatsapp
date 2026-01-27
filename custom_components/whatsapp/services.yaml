@@ -163,7 +163,7 @@ send_buttons:
         text:
     buttons:
       name: Buttons
-      description: 'List of buttons (e.g., [{"id": "1", "displayText": "Yes"}]).'
+      description: 'List of buttons (e.g., [{"id": "1", "displayText": "Yes"}]). Also supports Telegram-style inline_keyboard format.'
       required: true
       selector:
         object:

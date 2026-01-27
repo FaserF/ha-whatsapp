@@ -22,7 +22,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import WhatsAppApiClient
-from .const import DOMAIN
+from .const import CONF_RETRY_ATTEMPTS, DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,6 +37,9 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     client: WhatsAppApiClient = data["client"]
     coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
+
+    # 0. Configure client options
+    client.retry_attempts = entry.options.get(CONF_RETRY_ATTEMPTS, 2)
 
     # 1. Add modern NotifyEntity
     async_add_entities([WhatsAppNotificationEntity(client, entry, coordinator)])
@@ -152,6 +155,25 @@ class WhatsAppNotificationEntity(
                 # Send image: data: { image: "..." }
                 image_url = data["image"]
                 await self.client.send_image(target, image_url, message)
+            elif "buttons" in data or "inline_keyboard" in data:
+                # Send buttons: data: { buttons: [...], footer: "..." }
+                # OR Telegram-style:
+                # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
+                buttons = data.get("buttons")
+                if not buttons and "inline_keyboard" in data:
+                    # Map Telegram-style to WhatsApp style
+                    buttons = []
+                    for row in data["inline_keyboard"]:
+                        for btn in row:
+                            buttons.append(
+                                {
+                                    "id": btn.get("callback_data", btn.get("url", "")),
+                                    "displayText": btn.get("text", ""),
+                                }
+                            )
+                footer = data.get("footer")
+                if buttons:
+                    await self.client.send_buttons(target, message, buttons, footer)
             else:
                 # Default text message
                 await self.client.send_message(target, message)
@@ -189,6 +211,23 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     await self.client.send_poll(target, question, options)
                 elif "image" in data:
                     await self.client.send_image(target, data["image"], message)
+                elif "buttons" in data or "inline_keyboard" in data:
+                    buttons = data.get("buttons")
+                    if not buttons and "inline_keyboard" in data:
+                        buttons = []
+                        for row in data["inline_keyboard"]:
+                            for btn in row:
+                                buttons.append(
+                                    {
+                                        "id": btn.get(
+                                            "callback_data", btn.get("url", "")
+                                        ),
+                                        "displayText": btn.get("text", ""),
+                                    }
+                                )
+                    footer = data.get("footer")
+                    if buttons:
+                        await self.client.send_buttons(target, message, buttons, footer)
                 else:
                     await self.client.send_message(target, message)
             except Exception as err:

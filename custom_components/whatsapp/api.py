@@ -16,6 +16,7 @@ class WhatsAppApiClient:
         self.host = host.rstrip("/")
         self.api_key = api_key
         self.mask_sensitive_data = mask_sensitive_data
+        self.retry_attempts = 2
         self._connected = False
         self.stats: dict[str, Any] = {
             "sent": 0,
@@ -235,7 +236,11 @@ class WhatsAppApiClient:
         self._callback = callback
 
     async def send_message(self, number: str, message: str) -> None:
-        """Send message via Addon."""
+        """Send message via Addon (with retry)."""
+        await self._send_with_retry(self._send_message_internal, number, message)
+
+    async def _send_message_internal(self, number: str, message: str) -> None:
+        """Internal send message logic."""
         url = f"{self.host}/send_message"
         payload = {"number": number, "message": message}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -264,6 +269,35 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = message
             self.stats["last_sent_target"] = number
 
+    async def _send_with_retry(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+        """Helper to retry API calls."""
+        last_error: Exception | None = None
+        for attempt in range(self.retry_attempts + 1):
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                last_error = e
+                if attempt < self.retry_attempts:
+                    _LOGGER.warning(
+                        "Attempt %s failed to send WhatsApp message: %s. Retrying...",
+                        attempt + 1,
+                        e,
+                    )
+                    await asyncio.sleep(1)
+                else:
+                    _LOGGER.error(
+                        "All %s attempts failed to send WhatsApp message: %s",
+                        self.retry_attempts + 1,
+                        e,
+                    )
+
+        if last_error:
+            raise last_error
+
+        # Should never reach here if retry_attempts >= 0 and no error occurs
+        # as func returns directly in the loop.
+        return None
+
     async def close(self) -> None:
         """Close session."""
         if self._session and not self._session.closed:
@@ -271,7 +305,13 @@ class WhatsAppApiClient:
         await self.stop_polling()
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
-        """Send a poll."""
+        """Send a poll (with retry)."""
+        await self._send_with_retry(self._send_poll_internal, number, question, options)
+
+    async def _send_poll_internal(
+        self, number: str, question: str, options: list[str]
+    ) -> None:
+        """Internal send poll logic."""
         url = f"{self.host}/send_poll"
         payload = {"number": number, "question": question, "options": options}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -302,7 +342,15 @@ class WhatsAppApiClient:
     async def send_image(
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
-        """Send an image."""
+        """Send an image (with retry)."""
+        await self._send_with_retry(
+            self._send_image_internal, number, image_url, caption
+        )
+
+    async def _send_image_internal(
+        self, number: str, image_url: str, caption: str | None = None
+    ) -> None:
+        """Internal send image logic."""
         url = f"{self.host}/send_image"
         payload = {"number": number, "url": image_url, "caption": caption}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -340,7 +388,20 @@ class WhatsAppApiClient:
         name: str | None = None,
         address: str | None = None,
     ) -> None:
-        """Send a location."""
+        """Send a location (with retry)."""
+        await self._send_with_retry(
+            self._send_location_internal, number, latitude, longitude, name, address
+        )
+
+    async def _send_location_internal(
+        self,
+        number: str,
+        latitude: float,
+        longitude: float,
+        name: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        """Internal send location logic."""
         url = f"{self.host}/send_location"
         payload = {
             "number": number,
@@ -375,7 +436,15 @@ class WhatsAppApiClient:
             self.stats["last_sent_target"] = number
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
-        """Send a reaction to a specific message."""
+        """Send a reaction to a specific message (with retry)."""
+        await self._send_with_retry(
+            self._send_reaction_internal, number, text, message_id
+        )
+
+    async def _send_reaction_internal(
+        self, number: str, text: str, message_id: str
+    ) -> None:
+        """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
         payload = {"number": number, "reaction": text, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -421,7 +490,19 @@ class WhatsAppApiClient:
         buttons: list[dict[str, str]],
         footer: str | None = None,
     ) -> None:
-        """Send a message with buttons."""
+        """Send a message with buttons (with retry)."""
+        await self._send_with_retry(
+            self._send_buttons_internal, number, text, buttons, footer
+        )
+
+    async def _send_buttons_internal(
+        self,
+        number: str,
+        text: str,
+        buttons: list[dict[str, str]],
+        footer: str | None = None,
+    ) -> None:
+        """Internal send buttons logic."""
         url = f"{self.host}/send_buttons"
         payload = {
             "number": number,

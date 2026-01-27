@@ -9,6 +9,7 @@ from custom_components.whatsapp.const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RETRY_ATTEMPTS,
     CONF_URL,
     DOMAIN,
 )
@@ -111,4 +112,5 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         CONF_POLLING_INTERVAL: 5,
         "mask_sensitive_data": False,
         CONF_MARK_AS_READ: True,
+        CONF_RETRY_ATTEMPTS: 2,
     }
