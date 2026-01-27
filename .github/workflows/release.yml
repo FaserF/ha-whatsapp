@@ -20,6 +20,15 @@ on:
         - beta
         - nightly
         - manual
+      bump_type:
+        description: 'Auto-Bump Type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
       manual_version:
         description: 'Manual Version (only for Manual release type)'
         required: false
@@ -41,6 +50,7 @@ jobs:
           # Get version from manifest
           RAW_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
           RELEASE_TYPE="${{ inputs.release_type || 'auto' }}"
+          BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
 
           # If triggered by schedule, force nightly (pre-release)
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
@@ -50,18 +60,23 @@ jobs:
 
           # Initialize variables
           BASE_VERSION="${RAW_VERSION%%-*}"
-          VERSION="$BASE_VERSION"
+          # Extra cleaning: strip beta suffix (b0, b1, etc) and dev suffix
+          BASE_VERSION="${BASE_VERSION%%b*}"
+          BASE_VERSION="${BASE_VERSION%%.dev*}"
+
+          VERSION="$RAW_VERSION"
           SHOULD_RELEASE="false"
           PRERELEASE="false"
 
           echo "Raw Version: $RAW_VERSION"
+          echo "Base Version (Clean): $BASE_VERSION"
           echo "Release Type: $RELEASE_TYPE"
 
           if [[ "$RELEASE_TYPE" == "auto" ]]; then
             if [[ "$RAW_VERSION" != *"-dev"* ]]; then
               SHOULD_RELEASE="true"
               # Auto-detect prerelease for auto mode
-              if [[ "$RAW_VERSION" == *"b"* ]] || [[ "$RAW_VERSION" == *"dev"* ]]; then
+              if [[ "$RAW_VERSION" == *"b"* ]]; then
                  PRERELEASE="true"
               fi
             else
@@ -75,19 +90,19 @@ jobs:
 
           elif [[ "$RELEASE_TYPE" == "beta" ]]; then
             # Ensure it has a beta suffix if it doesn't already
-            if [[ "$BASE_VERSION" != *"b"* ]]; then
+            if [[ "$RAW_VERSION" != *"b"* ]]; then
                # Check tags to see if we already have a beta for this base
                LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
                if [[ -z "$LAST_BETA" ]]; then
                  VERSION="${BASE_VERSION}b0"
                else
                  # Increment last beta (e.g. v1.0.1b0 -> 1.0.1b1)
-                 # Shell magic to increment the number after 'b'
                  B_NUM=$(echo "$LAST_BETA" | sed 's/.*b//')
                  VERSION="${BASE_VERSION}b$((B_NUM + 1))"
                fi
             else
-               VERSION="$BASE_VERSION"
+               # If already a beta, we keep it as is or increment it if it's workflow_dispatch
+               VERSION="$RAW_VERSION"
             fi
             SHOULD_RELEASE="true"
             PRERELEASE="true"
@@ -120,6 +135,7 @@ jobs:
           echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
           echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
 
       - name: Prepare Release Version (Update Manifest)
         if: steps.params.outputs.should_release == 'true'
@@ -192,31 +208,36 @@ jobs:
           target_commitish: ${{ env.NEW_SHA }}
 
       - name: Bump to next dev version
-        # Only run bump if we did a release AND it was 'auto' mode (standard flow).
-        # Manual releases (stable/beta/nightly) do not auto-bump to avoid repo state confusion.
-        if: steps.params.outputs.should_release == 'true' && steps.params.outputs.release_type == 'auto'
+        # Only run bump if we did a release AND it was 'auto' OR 'stable' (standard flow).
+        if: steps.params.outputs.should_release == 'true' && (steps.params.outputs.release_type == 'auto' || steps.params.outputs.release_type == 'stable')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase
           VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
-          # Clean version (remove bX or .dev)
+          BUMP_TYPE="${{ steps.params.outputs.bump_type }}"
+
+          # Clean version
           CLEAN_VERSION="${VERSION%%b*}"
           CLEAN_VERSION="${CLEAN_VERSION%%.dev*}"
+          CLEAN_VERSION="${CLEAN_VERSION%%-*}"
 
           # Parse major.minor.patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_VERSION"
-          # Bump patch
-          NEXT_PATCH=$((PATCH + 1))
 
-          DEV_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-dev"
+          if [[ "$BUMP_TYPE" == "major" ]]; then
+            NEXT_VERSION="$((MAJOR + 1)).0.0-dev"
+          elif [[ "$BUMP_TYPE" == "minor" ]]; then
+            NEXT_VERSION="${MAJOR}.$((MINOR + 1)).0-dev"
+          else
+            NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+          fi
+
+          echo "Bumping version from $VERSION to $NEXT_VERSION ($BUMP_TYPE)"
 
           # Update manifest.json
-          jq --arg v "$DEV_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
+          jq --arg v "$NEXT_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
           mv tmp.json custom_components/whatsapp/manifest.json
           # Commit and push
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add custom_components/whatsapp/manifest.json
-          git commit -m "chore: bump to dev version $DEV_VERSION [skip ci]"
+          git commit -m "chore: bump to dev version $NEXT_VERSION [skip ci]"
           git push
