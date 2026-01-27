@@ -74,43 +74,77 @@
     "label_extractor": [
         {
             "pattern": "^(feat|feature)(\\s*\\(.*?\\))?:",
-            "target": "feature"
+            "target": "feature",
+            "on_property": "message"
         },
         {
             "pattern": "^fix(\\s*\\(.*?\\))?:",
-            "target": "fix"
+            "target": "fix",
+            "on_property": "message"
         },
         {
             "pattern": "^(deps|dependency)(\\s*\\(.*?\\))?:",
-            "target": "dependency"
+            "target": "dependency",
+            "on_property": "message"
         },
         {
             "pattern": "^docs(\\s*\\(.*?\\))?:",
-            "target": "docs"
+            "target": "docs",
+            "on_property": "message"
         },
         {
             "pattern": "^perf(\\s*\\(.*?\\))?:",
-            "target": "perf"
+            "target": "perf",
+            "on_property": "message"
         },
         {
             "pattern": "^refactor(\\s*\\(.*?\\))?:",
-            "target": "refactor"
+            "target": "refactor",
+            "on_property": "message"
         },
         {
             "pattern": "^style(\\s*\\(.*?\\))?:",
-            "target": "style"
+            "target": "style",
+            "on_property": "message"
         },
         {
             "pattern": "^test(\\s*\\(.*?\\))?:",
-            "target": "test"
+            "target": "test",
+            "on_property": "message"
         },
         {
             "pattern": "^(chore|config)(\\s*\\(.*?\\))?:",
-            "target": "chore"
+            "target": "chore",
+            "on_property": "message"
         },
         {
             "pattern": ".*\\[skip ci\\].*",
-            "target": "ignore"
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^chore: bump to dev version.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^chore: release version.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^Merge pull request.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^Merge branch.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^(Update|CI|Fix|Fixes|Tests) .*",
+            "target": "chore"
         }
     ],
     "duplicate_filter": {
