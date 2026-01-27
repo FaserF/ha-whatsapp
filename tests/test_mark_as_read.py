@@ -46,11 +46,8 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
         # Message data structure (simplified)
         msg_data = {
-            "key": {
-                "remoteJid": "123456789@s.whatsapp.net",
-                "id": "MSGID123"
-            },
-            "message": {"conversation": "Hello"}
+            "key": {"remoteJid": "123456789@s.whatsapp.net", "id": "MSGID123"},
+            "message": {"conversation": "Hello"},
         }
 
         callback_capture(msg_data)
@@ -78,6 +75,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
         mock_instance.start_session = AsyncMock()
 
         callback_capture = None
+
         def register_side_effect(callback):
             nonlocal callback_capture
             callback_capture = callback
@@ -89,11 +87,8 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
 
         # Simulate incoming message
         msg_data = {
-            "key": {
-                "remoteJid": "123456789@s.whatsapp.net",
-                "id": "MSGID123"
-            },
-            "message": {"conversation": "Hello"}
+            "key": {"remoteJid": "123456789@s.whatsapp.net", "id": "MSGID123"},
+            "message": {"conversation": "Hello"},
         }
 
         callback_capture(msg_data)
