@@ -239,5 +239,6 @@ jobs:
           jq --arg v "$NEXT_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
           mv tmp.json custom_components/whatsapp/manifest.json
           # Commit and push
+          git add custom_components/whatsapp/manifest.json
           git commit -m "chore: bump to dev version $NEXT_VERSION [skip ci]"
           git push

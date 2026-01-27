@@ -15,50 +15,27 @@
             ]
         },
         {
+            "title": "📝 Documentation",
+            "labels": [
+                "docs"
+            ]
+        },
+        {
             "title": "📦 Dependencies",
             "labels": [
-                "deps",
                 "dependency"
             ]
         },
         {
-            "title": "📝 Documentation",
+            "title": "🔧 Maintenance & CI",
             "labels": [
-                "docs",
-                "documentation"
-            ]
-        },
-        {
-            "title": "⚡ Performance",
-            "labels": [
-                "perf",
-                "performance"
-            ]
-        },
-        {
-            "title": "♻️ Refactor",
-            "labels": [
-                "refactor"
-            ]
-        },
-        {
-            "title": "🎨 Style",
-            "labels": [
-                "style"
+                "chore"
             ]
         },
         {
             "title": "🧪 Tests",
             "labels": [
-                "test",
-                "tests"
-            ]
-        },
-        {
-            "title": "🔧 Configuration",
-            "labels": [
-                "config",
-                "chore"
+                "test"
             ]
         }
     ],
@@ -67,53 +44,38 @@
         "no-changelog"
     ],
     "sort": "ASC",
-    "template": "#${{TITLE}}\n\n${{CHANGELOG}}\n\n",
-    "pr_template": "- ${{TITLE}} #${{NUMBER}}",
+    "template": "# ${{TITLE}}\n\n${{CHANGELOG}}\n",
+    "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
     "commit_template": "- ${{MESSAGE}}",
     "empty_template": "No significant changes in this release.",
     "label_extractor": [
         {
-            "pattern": "^(feat|feature)(\\s*\\(.*?\\))?:",
+            "pattern": "^(?i)(feat|feature|add)(\\s*\\(.*?\\))?:",
             "target": "feature",
             "on_property": "message"
         },
         {
-            "pattern": "^fix(\\s*\\(.*?\\))?:",
+            "pattern": "^(?i)fix(\\s*\\(.*?\\))?:",
             "target": "fix",
             "on_property": "message"
         },
         {
-            "pattern": "^(deps|dependency)(\\s*\\(.*?\\))?:",
-            "target": "dependency",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^docs(\\s*\\(.*?\\))?:",
+            "pattern": "^(?i)docs(\\s*\\(.*?\\))?:",
             "target": "docs",
             "on_property": "message"
         },
         {
-            "pattern": "^perf(\\s*\\(.*?\\))?:",
-            "target": "perf",
+            "pattern": "^(?i)deps(\\s*\\(.*?\\))?:",
+            "target": "dependency",
             "on_property": "message"
         },
         {
-            "pattern": "^refactor(\\s*\\(.*?\\))?:",
-            "target": "refactor",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^style(\\s*\\(.*?\\))?:",
-            "target": "style",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^test(\\s*\\(.*?\\))?:",
+            "pattern": "^(?i)test(\\s*\\(.*?\\))?:",
             "target": "test",
             "on_property": "message"
         },
         {
-            "pattern": "^(chore|config)(\\s*\\(.*?\\))?:",
+            "pattern": "^(?i)(chore|config|ci|workflow|ruff)(\\s*\\(.*?\\))?:",
             "target": "chore",
             "on_property": "message"
         },
@@ -123,28 +85,24 @@
             "on_property": "message"
         },
         {
-            "pattern": "^chore: bump to dev version.*",
+            "pattern": "(?i)^chore: bump to dev version.*",
             "target": "ignore",
             "on_property": "message"
         },
         {
-            "pattern": "^chore: release version.*",
+            "pattern": "(?i)^chore: release version.*",
             "target": "ignore",
             "on_property": "message"
         },
         {
-            "pattern": "^Merge pull request.*",
+            "pattern": "(?i)^Merge (pull request|branch).*",
             "target": "ignore",
             "on_property": "message"
         },
         {
-            "pattern": "^Merge branch.*",
-            "target": "ignore",
+            "pattern": "(?i)^(Update|Fixed|Fix|CI|Docs|Improved|Instructions|New|allow|New option) .*",
+            "target": "chore",
             "on_property": "message"
-        },
-        {
-            "pattern": "^(Update|CI|Fix|Fixes|Tests) .*",
-            "target": "chore"
         }
     ],
     "duplicate_filter": {
