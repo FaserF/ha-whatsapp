@@ -84,7 +84,31 @@ jobs:
             fi
 
           elif [[ "$RELEASE_TYPE" == "stable" ]]; then
-            VERSION="$BASE_VERSION"
+            # Parse Major.Minor from Base Version
+            IFS='.' read -r major minor patch <<< "$BASE_VERSION"
+
+            # Find highest existing tag for this Major.Minor version
+            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" --sort=-v:refname | head -n 1)
+
+            if [[ -n "$HIGHEST_TAG" ]]; then
+              # Extract patch from highest tag (v1.0.1 -> 1)
+              HIGHEST_VERSION=${HIGHEST_TAG#v}
+              IFS='.' read -r h_major h_minor h_patch <<< "$HIGHEST_VERSION"
+
+              # If existing tag is >= manifest version, we simply increment the highest found patch
+              if (( h_patch >= patch )); then
+                 NEW_PATCH=$((h_patch + 1))
+                 VERSION="${major}.${minor}.${NEW_PATCH}"
+                 echo "ℹ️ Existing tag v$BASE_VERSION (or higher) found. Auto-incrementing to $VERSION"
+              else
+                 # Manifest is already higher (e.g. 1.0.2 vs 1.0.1)
+                 VERSION="$BASE_VERSION"
+              fi
+            else
+              # No existing tags for this minor version
+              VERSION="$BASE_VERSION"
+            fi
+
             SHOULD_RELEASE="true"
             PRERELEASE="false"
 
@@ -128,6 +152,18 @@ jobs:
           fi
 
           echo "Final Version: $VERSION"
+
+          # Check if tag already exists to prevent accidental overwrites
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "⚠️ Tag v$VERSION already exists."
+            if [[ "$RELEASE_TYPE" != "manual" ]]; then
+               echo "⛔ $RELEASE_TYPE mode: Aborting release to avoid overwriting existing tag."
+               SHOULD_RELEASE="false"
+            else
+               echo "⚠️ Manual mode: Proceeding (will update existing tag)."
+            fi
+          fi
+
           echo "Should Release: $SHOULD_RELEASE"
           echo "Prerelease: $PRERELEASE"
 
