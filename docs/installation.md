@@ -18,13 +18,13 @@ The Addon handles the heavy lifting of connecting to WhatsApp.
 
 
 <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank">
-  <img src="https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg" alt="Open your Home Assistant instance and show the add-on store with a specific repository pre-filled.">
+  <img src="https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg" alt="Add Repository" height="36">
 </a>
 
 2.  **Install the Add-on**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
 <a href="https://my.home-assistant.io/redirect/supervisor_addons/" target="_blank">
-  <img src="https://my.home-assistant.io/badges/supervisor_addons.svg" alt="Open your Home Assistant instance and show the add-on dashboard.">
+  <img src="https://my.home-assistant.io/badges/supervisor_addons.svg" alt="Add-on Dashboard" height="36">
 </a>
 
 3.  **Start & Get Token**:
@@ -51,7 +51,7 @@ The Integration connects Home Assistant's core to the Addon and provides the ent
 1.  **Install Repository**: Add the custom repository in HACS.
 
 <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration" target="_blank">
-  <img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and show a specific repository inside HACS.">
+  <img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="HACS" height="36">
 </a>
 
 2.  **Restart**: Once installed via HACS, **Restart Home Assistant**.
@@ -75,7 +75,7 @@ Now we connect the components and link your device.
 1.  Click the button below to start the setup:
 
 <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank">
-  <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Open your Home Assistant instance and start setting up a new integration.">
+  <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Add Integration" height="36">
 </a>
 
 2.  **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the addon), you will see a notification in Home Assistant. Click **Configure**.

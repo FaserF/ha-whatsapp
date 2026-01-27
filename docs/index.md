@@ -11,25 +11,72 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
   <h1>WhatsApp for HA</h1>
   <p style="font-size: 1.2rem; opacity: 0.8; max-width: 600px; margin: 0 auto 2rem;">The most robust, private, and localized WhatsApp integration for Home Assistant. Connect your automations to the world's most popular messaging platform.</p>
 
----
-
-| Component | Version | Status |
-| :--- | :--- | :--- |
-| **Addon (Stable)** | [![Addon Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) | engine |
-| **Addon (Edge)** | [![Addon Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
-| **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases) | interface |
-| **Integration (Beta)** | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases) | testing |
-| **Activity** | [![Last Release](https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/releases) | |
-
----
+  <div style="overflow-x: auto; margin: 2rem 0;">
+    <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.02); border-radius: 12px; overflow: hidden; border: 1px solid var(--wa-border);">
+      <thead>
+        <tr style="background: rgba(37, 211, 102, 0.1);">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--wa-border);">Component</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--wa-border);">Version</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--wa-border);">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Addon (Stable)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
+            <a href="https://github.com/FaserF/hassio-addons/tree/master/whatsapp">
+              <img src="https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square" alt="Addon Stable">
+            </a>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">engine</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Addon (Edge)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
+            <a href="https://github.com/FaserF/hassio-addons/tree/edge/whatsapp">
+              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange" alt="Addon Edge">
+            </a>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">engine-dev</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Integration (Stable)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
+            <a href="https://github.com/FaserF/ha-whatsapp/releases">
+              <img src="https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable" alt="Integration Stable">
+            </a>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">interface</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Integration (Beta)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
+            <a href="https://github.com/FaserF/ha-whatsapp/releases">
+              <img src="https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange" alt="Integration Beta">
+            </a>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">testing</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px;"><strong>Activity</strong></td>
+          <td style="padding: 12px;">
+            <a href="https://github.com/FaserF/ha-whatsapp/releases">
+              <img src="https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update" alt="Last Update">
+            </a>
+          </td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: center; margin-bottom: 2rem;">
     <a href="installation.html" class="btn btn-green" style="padding: 12px 24px; font-weight: bold;">🚀 Get Started</a>
   </div>
 
-  <div style="text-align: center; margin-bottom: 2rem;">
+  <div style="text-align: center; margin: 2rem 0;">
     <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank">
-      <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Open your Home Assistant instance and start setting up a new integration.">
+      <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Add Integration" height="36">
     </a>
   </div>
 
