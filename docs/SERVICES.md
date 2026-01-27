@@ -157,6 +157,17 @@ data:
           rowId: "opt_b"
 ```
 
+### 👤 Contact (`send_contact`)
+Send a VCard contact that users can easily save.
+
+```yaml
+service: whatsapp.send_contact
+data:
+  target: "1234567890"
+  name: "Home Assistant"
+  contact_number: "1234567890"
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

@@ -838,6 +838,50 @@ class WhatsAppApiClient:
                 resp_text = await resp.text()
                 raise Exception(f"Failed to send list: {resp_text}")
 
+    async def send_contact(
+        self,
+        number: str,
+        contact_name: str,
+        contact_number: str,
+    ) -> None:
+        """Send a contact card (VCard)."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(
+            self._send_contact_internal, number, contact_name, contact_number
+        )
+
+    async def _send_contact_internal(
+        self,
+        number: str,
+        contact_name: str,
+        contact_number: str,
+    ) -> None:
+        """Internal send contact logic."""
+        api_url = f"{self.host}/send_contact"
+        payload = {
+            "number": number,
+            "contact_name": contact_name,
+            "contact_number": contact_number,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                resp_text = await resp.text()
+                raise Exception(f"Failed to send contact: {resp_text}")
+
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
         if not self._is_allowed(number):

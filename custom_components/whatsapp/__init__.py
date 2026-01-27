@@ -199,6 +199,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and sections:
             await client.send_list(number, title, text, button_text, sections)
 
+    async def send_contact_service(call: ServiceCall) -> None:
+        """Handle the send_contact service."""
+        number = call.data.get("target")
+        contact_name = call.data.get("name")
+        contact_number = call.data.get("contact_number")
+        if number and contact_name and contact_number:
+            await client.send_contact(number, contact_name, contact_number)
+
     async def configure_webhook_service(call: ServiceCall) -> None:
         """Handle the configure_webhook service."""
         url = call.data.get("url")
@@ -374,6 +382,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Optional("title"): cv.string,
                 vol.Optional("text"): cv.string,
                 vol.Optional("button_text"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_contact",
+        send_contact_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("name"): cv.string,
+                vol.Required("contact_number"): cv.string,
             }
         ),
     )

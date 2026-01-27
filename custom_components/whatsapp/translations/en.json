@@ -177,6 +177,24 @@
         }
       }
     },
+    "send_contact": {
+      "name": "Send Contact",
+      "description": "Sends a contact card (VCard).",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID."
+        },
+        "name": {
+          "name": "Display Name",
+          "description": "The name of the contact."
+        },
+        "contact_number": {
+          "name": "Contact Number",
+          "description": "The phone number of the contact."
+        }
+      }
+    },
     "configure_webhook": {
       "name": "Configure Webhook",
       "description": "Sets the webhook URL for the Addon to push events to.",

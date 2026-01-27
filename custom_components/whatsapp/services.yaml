@@ -205,6 +205,29 @@ send_list:
       selector:
         object:
 
+send_contact:
+  name: Send Contact (VCard)
+  description: Sends a contact card.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID.
+      required: true
+      selector:
+        text:
+    name:
+      name: Display Name
+      description: The proper name of the contact.
+      required: true
+      selector:
+        text:
+    contact_number:
+      name: Phone Number
+      description: The phone number of the contact.
+      required: true
+      selector:
+        text:
+
 configure_webhook:
   name: Configure Webhook
   description: Sets the webhook URL for the Addon to push events to.
