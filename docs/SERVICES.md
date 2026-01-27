@@ -135,6 +135,28 @@ data:
   enabled: true
 ```
 
+### 📋 List Message (`send_list`)
+Send an interactive menu with sections and rows. Preferred over buttons on iOS.
+
+```yaml
+service: whatsapp.send_list
+data:
+  target: "1234567890"
+  title: "Main Title"
+  text: "Body text description"
+  button_text: "View Menu"
+  sections:
+    - title: "Section 1"
+      rows:
+        - title: "Option A"
+          rowId: "opt_a"
+          description: "Description for A"
+    - title: "Section 2"
+      rows:
+        - title: "Option B"
+          rowId: "opt_b"
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

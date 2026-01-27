@@ -151,6 +151,32 @@
                 }
             }
         },
+        "send_list": {
+            "name": "Listen-Nachricht senden",
+            "description": "Sendet eine interaktive Liste (Aktionsmenü).",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID."
+                },
+                "title": {
+                    "name": "Titel",
+                    "description": "Der Titel des Menüs."
+                },
+                "text": {
+                    "name": "Text",
+                    "description": "Der Haupttext."
+                },
+                "button_text": {
+                    "name": "Button-Label",
+                    "description": "Text für den Menü-Button (z. B. Menü)."
+                },
+                "sections": {
+                    "name": "Sektionen (JSON)",
+                    "description": "Die Sektionen und Zeilen (JSON-Liste)."
+                }
+            }
+        },
         "configure_webhook": {
             "name": "Webhook konfigurieren",
             "description": "Legt die Webhook-URL fest, an die das Addon Ereignisse sendet.",

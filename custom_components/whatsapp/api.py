@@ -788,6 +788,56 @@ class WhatsAppApiClient:
                 text = await resp.text()
                 raise Exception(f"Failed to set webhook: {text}")
 
+    async def send_list(
+        self,
+        number: str,
+        title: str,
+        text: str,
+        button_text: str,
+        sections: list[dict],
+    ) -> None:
+        """Send a list message (interactive menu)."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(
+            self._send_list_internal, number, title, text, button_text, sections
+        )
+
+    async def _send_list_internal(
+        self,
+        number: str,
+        title: str,
+        text: str,
+        button_text: str,
+        sections: list[dict],
+    ) -> None:
+        """Internal send list logic."""
+        api_url = f"{self.host}/send_list"
+        payload = {
+            "number": number,
+            "title": title,
+            "text": text,
+            "button_text": button_text,
+            "sections": sections,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                resp_text = await resp.text()
+                raise Exception(f"Failed to send list: {resp_text}")
+
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
         if not self._is_allowed(number):

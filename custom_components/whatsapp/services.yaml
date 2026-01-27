@@ -173,6 +173,38 @@ edit_message:
       selector:
         text:
 
+send_list:
+  name: Send List Message (Menu)
+  description: Sends an interactive list menu.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID.
+      required: true
+      selector:
+        text:
+    title:
+      name: Title
+      description: The title of the menu.
+      selector:
+        text:
+    text:
+      name: Body Text
+      description: The main body text.
+      selector:
+        text:
+    button_text:
+      name: Button Label
+      description: Text for the menu button (e.g., "Menu").
+      selector:
+        text:
+    sections:
+      name: Sections (JSON/List)
+      description: The sections and rows for the list.
+      required: true
+      selector:
+        object:
+
 configure_webhook:
   name: Configure Webhook
   description: Sets the webhook URL for the Addon to push events to.

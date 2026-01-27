@@ -151,6 +151,32 @@
         }
       }
     },
+    "send_list": {
+      "name": "Send List Message",
+      "description": "Sends an interactive list (action menu).",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID."
+        },
+        "title": {
+          "name": "Title",
+          "description": "The title of the menu."
+        },
+        "text": {
+          "name": "Body Text",
+          "description": "The main body text."
+        },
+        "button_text": {
+          "name": "Button Label",
+          "description": "Text for the menu button (e.g. Menu)."
+        },
+        "sections": {
+          "name": "Sections (JSON)",
+          "description": "The sections and rows (JSON list)."
+        }
+      }
+    },
     "configure_webhook": {
       "name": "Configure Webhook",
       "description": "Sets the webhook URL for the Addon to push events to.",
