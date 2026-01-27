@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp import diagnostics
-from custom_components.whatsapp.const import DOMAIN
+from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL, DOMAIN
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:

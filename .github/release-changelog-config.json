@@ -1,0 +1,122 @@
+{
+    "categories": [
+        {
+            "title": "✨ Features",
+            "labels": [
+                "feature",
+                "feat"
+            ]
+        },
+        {
+            "title": "🐛 Bug Fixes",
+            "labels": [
+                "fix",
+                "bug"
+            ]
+        },
+        {
+            "title": "📦 Dependencies",
+            "labels": [
+                "deps",
+                "dependency"
+            ]
+        },
+        {
+            "title": "📝 Documentation",
+            "labels": [
+                "docs",
+                "documentation"
+            ]
+        },
+        {
+            "title": "⚡ Performance",
+            "labels": [
+                "perf",
+                "performance"
+            ]
+        },
+        {
+            "title": "♻️ Refactor",
+            "labels": [
+                "refactor"
+            ]
+        },
+        {
+            "title": "🎨 Style",
+            "labels": [
+                "style"
+            ]
+        },
+        {
+            "title": "🧪 Tests",
+            "labels": [
+                "test",
+                "tests"
+            ]
+        },
+        {
+            "title": "🔧 Configuration",
+            "labels": [
+                "config",
+                "chore"
+            ]
+        }
+    ],
+    "ignore_labels": [
+        "ignore",
+        "no-changelog"
+    ],
+    "sort": "ASC",
+    "template": "#${{TITLE}}\n\n${{CHANGELOG}}\n\n",
+    "pr_template": "- ${{TITLE}} #${{NUMBER}}",
+    "empty_template": "No significant changes in this release.",
+    "label_extractor": [
+        {
+            "pattern": "^(feat|feature)(\\s*\\(.*?\\))?:",
+            "target": "feature"
+        },
+        {
+            "pattern": "^fix(\\s*\\(.*?\\))?:",
+            "target": "fix"
+        },
+        {
+            "pattern": "^(deps|dependency)(\\s*\\(.*?\\))?:",
+            "target": "dependency"
+        },
+        {
+            "pattern": "^docs(\\s*\\(.*?\\))?:",
+            "target": "docs"
+        },
+        {
+            "pattern": "^perf(\\s*\\(.*?\\))?:",
+            "target": "perf"
+        },
+        {
+            "pattern": "^refactor(\\s*\\(.*?\\))?:",
+            "target": "refactor"
+        },
+        {
+            "pattern": "^style(\\s*\\(.*?\\))?:",
+            "target": "style"
+        },
+        {
+            "pattern": "^test(\\s*\\(.*?\\))?:",
+            "target": "test"
+        },
+        {
+            "pattern": "^(chore|config)(\\s*\\(.*?\\))?:",
+            "target": "chore"
+        },
+        {
+            "pattern": ".*\\[skip ci\\].*",
+            "target": "ignore"
+        }
+    ],
+    "duplicate_filter": {
+        "pattern": "^(v)?\\d+\\.\\d+\\.\\d+.*",
+        "on_property": "title"
+    },
+    "base_branches": [
+        "main"
+    ]
+}

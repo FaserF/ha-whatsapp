@@ -126,14 +126,43 @@ jobs:
           cd custom_components
           zip -r ../whatsapp.zip whatsapp
 
+      - name: 📝 Determine Base Tag for Changelog
+        if: steps.params.outputs.should_release == 'true'
+        id: base_tag
+        run: |
+          RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
+
+          if [[ "$RELEASE_TYPE" == "stable" ]] || { [[ "$RELEASE_TYPE" == "auto" ]] && [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; }; then
+            # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/nightlies)
+            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "beta|nightly" | head -n 1)
+            echo "base_tag=$LAST_STABLE" >> $GITHUB_OUTPUT
+            echo "🔍 Comparing stable release against last stable: $LAST_STABLE"
+          else
+            # Releasing BETA/NIGHTLY: Compare against the absolute last tag
+            LAST_TAG=$(git tag --sort=-v:refname | head -n 1)
+            echo "base_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+            echo "🔍 Comparing prerelease against last tag: $LAST_TAG"
+          fi
+
+      - name: 📝 Build Changelog
+        if: steps.params.outputs.should_release == 'true'
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configuration: "whatsapp/integration/.github/release-changelog-config.json"
+          fromTag: ${{ steps.base_tag.outputs.base_tag }}
+          toTag: HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub Release
         if: steps.params.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.params.outputs.version }}
           name: v${{ steps.params.outputs.version }}
+          body: ${{ steps.build_changelog.outputs.changelog }}
           prerelease: ${{ steps.params.outputs.prerelease }}
-          generate_release_notes: true
           files: whatsapp.zip
 
       - name: Bump to next dev version

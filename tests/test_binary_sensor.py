@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp.const import DOMAIN
+from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL, DOMAIN
 
 
 async def test_binary_sensor(hass: HomeAssistant) -> None:
