@@ -30,6 +30,6 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
         result = await diagnostics.async_get_config_entry_diagnostics(hass, entry)
 
-        assert result["entry"]["data"]["session"] == "**REDACTED**"
+        assert result["entry"]["data"]["api_key"] == "**REDACTED**"
         assert result["entry"]["data"]["other"] == "ok"
         assert result["client_connected"] is True

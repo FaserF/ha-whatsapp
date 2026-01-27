@@ -49,7 +49,7 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         assert state_failed.state == "1"
 
         # Update stats
-        mock_instance.stats = {"sent": 12, "failed": 3}
+        mock_instance.get_stats.return_value = {"sent": 12, "failed": 3}
 
         # Trigger coordinator refresh
         data = hass.data[DOMAIN][entry.entry_id]

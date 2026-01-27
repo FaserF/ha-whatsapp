@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-TO_REDACT = {"session_data", "session"}
+TO_REDACT = {"api_key", "session_data", "session"}
 
 
 async def async_get_config_entry_diagnostics(
