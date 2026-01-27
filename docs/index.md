@@ -75,14 +75,7 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
   </div>
 
   <div style="text-align: center; margin: 2rem 0;">
-    <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha">
-      <div class="logo-box">
-        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-          <path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" />
-        </svg>
-      </div>
-      <div class="label-box">Add Integration</div>
-    </a>
+    <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha"><div class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></div><div class="label-box">Add Integration</div></a>
   </div>
 
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0.9;">
@@ -105,20 +98,51 @@ This project is built for performance and absolute privacy.
 
 ```mermaid
 graph TD
-    subgraph "Home Assistant Core"
-        HA[Automation Engine]
-        INT[Custom Integration]
+    %% Define Styles
+    classDef wa fill:#25D366,stroke:#075E54,stroke-width:2px,color:#fff,font-weight:bold;
+    classDef ha fill:#111b21,stroke:#25D366,stroke-width:1px,color:#e9edef;
+    classDef logic fill:#128C7E,stroke:#075E54,stroke-width:1px,color:#fff;
+    classDef network fill:#000,stroke:#25D366,stroke-width:1px,dasharray: 5 5;
+
+    subgraph UserInterface ["User Layer"]
+        User((User))
+        HA_UI[HA Dashboard]
     end
 
-    subgraph "The Bridge (Addon)"
-        AD[WhatsApp Server]
-        BL[Baileys Engine]
+    subgraph HACore ["Home Assistant Core"]
+        direction TB
+        WH[WhatsApp Integration]
+        Core[Automation Engine]
+        Notify[Notify Service]
     end
 
-    HA <-->|State & Notifications| INT
-    INT <-->|Secure REST API| AD
-    AD <-->|Node.js Socket| BL
-    BL <-->|Encrypted| WA((WhatsApp Web))
+    subgraph AddonBridge ["Add-on Architecture (Local)"]
+        direction TB
+        API[Express API Server]
+        BL[Baileys Node.js Engine]
+        Auth[Local Auth Session]
+    end
+
+    subgraph External ["WhatsApp Cloud"]
+        WA[WhatsApp Servers]
+    end
+
+    %% Flows
+    User <-->|Control & Status| HA_UI
+    HA_UI <-->|Web Interface| Core
+    Core <-->|Triggers| WH
+    Notify -->|Send Message| WH
+    WH <-->|REST API :8066| API
+    API <-->|Local Events| BL
+    BL <-->|Persistent Session| Auth
+    BL <-->|Websocket / MD| WA
+    WA <-->|End-to-End Encrypted| Recipient((Phone))
+
+    %% Assign Styles
+    class WA,User,Recipient wa;
+    class WH,Core,Notify,API,Auth ha;
+    class BL logic;
+    class External network;
 ```
 
 > **Privacy First**: Your WhatsApp connection is local. No external servers (other than WhatsApp's official ones) ever see your message content.

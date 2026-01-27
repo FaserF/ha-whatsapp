@@ -124,14 +124,7 @@ If you want to send messages to a group, you need its **Group ID** (JID). The in
 
 To use these services, go to **Developer Tools** -> **Services** in Home Assistant.
 
-<a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank" class="btn-myha">
-  <div class="logo-box">
-    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-      <path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" />
-    </svg>
-  </div>
-  <div class="label-box">Developer Tools</div>
-</a>
+<a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank" class="btn-myha"><div class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></div><div class="label-box">Developer Tools</div></a>
 
 ---
 

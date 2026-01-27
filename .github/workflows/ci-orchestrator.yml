@@ -24,17 +24,33 @@ on:
         type: string
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - '!(docs/**|**/*.md)'
+              - '*'
+
   lint:
     uses: ./.github/workflows/lint.yml
 
   test:
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/test.yml
     with:
       profile: ${{ inputs.resource_profile || 'Economy' }}
 
   build:
-    needs: test
+    needs: [changes, test]
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/build.yml
     with:
       profile: ${{ inputs.resource_profile || 'Economy' }}
