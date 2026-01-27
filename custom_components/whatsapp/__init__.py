@@ -174,6 +174,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and url:
             await client.send_audio(number, url, ptt)
 
+    async def revoke_message_service(call: ServiceCall) -> None:
+        """Handle the revoke_message service."""
+        number = call.data.get("target")
+        message_id = call.data.get("message_id")
+        if number and message_id:
+            await client.revoke_message(number, message_id)
+
+    async def edit_message_service(call: ServiceCall) -> None:
+        """Handle the edit_message service."""
+        number = call.data.get("target")
+        message_id = call.data.get("message_id")
+        new_content = call.data.get("message")
+        if number and message_id and new_content:
+            await client.edit_message(number, message_id, new_content)
+
     async def update_presence_service(call: ServiceCall) -> None:
         """Handle the update_presence service."""
         number = call.data.get("target")
@@ -304,6 +319,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("ptt", default=False): cv.boolean,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "revoke_message",
+        revoke_message_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message_id"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "edit_message",
+        edit_message_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message_id"): cv.string,
+                vol.Required("message"): cv.string,
             }
         ),
     )

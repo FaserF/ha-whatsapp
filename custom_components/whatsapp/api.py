@@ -588,6 +588,86 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
             self.stats["last_sent_target"] = number
 
+    async def revoke_message(
+        self,
+        number: str,
+        message_id: str,
+    ) -> None:
+        """Revoke (delete) a message."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(self._revoke_message_internal, number, message_id)
+
+    async def _revoke_message_internal(
+        self,
+        number: str,
+        message_id: str,
+    ) -> None:
+        """Internal revoke message logic."""
+        api_url = f"{self.host}/revoke_message"
+        payload = {"number": number, "message_id": message_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to revoke message: {text}")
+
+    async def edit_message(
+        self,
+        number: str,
+        message_id: str,
+        new_content: str,
+    ) -> None:
+        """Edit a message."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(
+            self._edit_message_internal, number, message_id, new_content
+        )
+
+    async def _edit_message_internal(
+        self,
+        number: str,
+        message_id: str,
+        new_content: str,
+    ) -> None:
+        """Internal edit message logic."""
+        api_url = f"{self.host}/edit_message"
+        payload = {
+            "number": number,
+            "message_id": message_id,
+            "new_content": new_content,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to edit message: {text}")
+
     async def send_location(
         self,
         number: str,

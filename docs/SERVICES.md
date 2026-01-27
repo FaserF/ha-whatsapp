@@ -93,6 +93,27 @@ data:
   ptt: true # Set to true to send as a voice note (waveform), false for audio file
 ```
 
+### 🗑️ Delete/Revoke (`revoke_message`)
+Delete a message for everyone in the chat.
+
+```yaml
+service: whatsapp.revoke_message
+data:
+  target: "49123456789"
+  message_id: "BAE5CCF5A..." # ID from event or reaction
+```
+
+### ✏️ Edit (`edit_message`)
+Edit the text of a sent message.
+
+```yaml
+service: whatsapp.edit_message
+data:
+  target: "49123456789"
+  message_id: "BAE5CCF5A..."
+  message: "Corrected text"
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

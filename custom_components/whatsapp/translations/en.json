@@ -119,6 +119,38 @@
         }
       }
     },
+    "revoke_message": {
+      "name": "Revoke Message",
+      "description": "Deletes a sent message for everyone.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to revoke."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Edit Message",
+      "description": "Edits the text of a sent message.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to edit."
+        },
+        "message": {
+          "name": "New Text",
+          "description": "The new text content for the message."
+        }
+      }
+    },
     "send_reaction": {
       "name": "Send Reaction",
       "description": "Reacts to a message with an emoji.",

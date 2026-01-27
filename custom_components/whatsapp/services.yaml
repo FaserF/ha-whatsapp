@@ -133,6 +133,46 @@ send_audio:
       selector:
         boolean:
 
+revoke_message:
+  name: Revoke Message
+  description: Deletes a sent message for everyone.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID the message was sent to.
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The ID of the message to revoke.
+      required: true
+      selector:
+        text:
+
+edit_message:
+  name: Edit Message
+  description: Edits the text of a sent message.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID the message was sent to.
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The ID of the message to edit.
+      required: true
+      selector:
+        text:
+    message:
+      name: New Text
+      description: The new text content for the message.
+      required: true
+      selector:
+        text:
+
 send_location:
   name: Send Location
   description: Sends a location (map pin) to a WhatsApp number.

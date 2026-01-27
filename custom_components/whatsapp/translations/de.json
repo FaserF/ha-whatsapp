@@ -119,6 +119,38 @@
                 }
             }
         },
+        "revoke_message": {
+            "name": "Nachricht löschen",
+            "description": "Löscht eine gesendete Nachricht für alle.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+                },
+                "message_id": {
+                    "name": "Nachrichten-ID",
+                    "description": "Die ID der zu löschenden Nachricht."
+                }
+            }
+        },
+        "edit_message": {
+            "name": "Nachricht bearbeiten",
+            "description": "Bearbeitet den Text einer gesendeten Nachricht.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+                },
+                "message_id": {
+                    "name": "Nachrichten-ID",
+                    "description": "Die ID der zu bearbeitenden Nachricht."
+                },
+                "message": {
+                    "name": "Neuer Text",
+                    "description": "Der neue Textinhalt für die Nachricht."
+                }
+            }
+        },
         "send_reaction": {
             "name": "Reaktion senden",
             "description": "Reagiert mit einem Emoji auf eine Nachricht.",
