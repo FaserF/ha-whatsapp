@@ -157,7 +157,8 @@ class WhatsAppNotificationEntity(
                 await self.client.send_image(target, image_url, message)
             elif "buttons" in data or "inline_keyboard" in data:
                 # Send buttons: data: { buttons: [...], footer: "..." }
-                # OR Telegram-style: data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
+                # OR Telegram-style:
+                # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
                 buttons = data.get("buttons")
                 if not buttons and "inline_keyboard" in data:
                     # Map Telegram-style to WhatsApp style

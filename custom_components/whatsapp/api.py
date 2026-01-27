@@ -294,6 +294,10 @@ class WhatsAppApiClient:
         if last_error:
             raise last_error
 
+        # Should never reach here if retry_attempts >= 0 and no error occurs
+        # as func returns directly in the loop.
+        return None
+
     async def close(self) -> None:
         """Close session."""
         if self._session and not self._session.closed:
@@ -304,7 +308,9 @@ class WhatsAppApiClient:
         """Send a poll (with retry)."""
         await self._send_with_retry(self._send_poll_internal, number, question, options)
 
-    async def _send_poll_internal(self, number: str, question: str, options: list[str]) -> None:
+    async def _send_poll_internal(
+        self, number: str, question: str, options: list[str]
+    ) -> None:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
         payload = {"number": number, "question": question, "options": options}
@@ -337,7 +343,9 @@ class WhatsAppApiClient:
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
         """Send an image (with retry)."""
-        await self._send_with_retry(self._send_image_internal, number, image_url, caption)
+        await self._send_with_retry(
+            self._send_image_internal, number, image_url, caption
+        )
 
     async def _send_image_internal(
         self, number: str, image_url: str, caption: str | None = None
@@ -429,9 +437,13 @@ class WhatsAppApiClient:
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
-        await self._send_with_retry(self._send_reaction_internal, number, text, message_id)
+        await self._send_with_retry(
+            self._send_reaction_internal, number, text, message_id
+        )
 
-    async def _send_reaction_internal(self, number: str, text: str, message_id: str) -> None:
+    async def _send_reaction_internal(
+        self, number: str, text: str, message_id: str
+    ) -> None:
         """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
         payload = {"number": number, "reaction": text, "messageId": message_id}
