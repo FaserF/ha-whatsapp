@@ -122,16 +122,31 @@ data:
 
 If you want to send messages to a group, you need its **Group ID** (JID). The integration provides a helper service to find these IDs.
 
-### `whatsapp.search_groups`
+To use these services, go to **Developer Tools** -> **Services** in Home Assistant.
 
-1.  Go to **Developer Tools** -> **Services**.
-2.  Select **WhatsApp: Search Groups**.
-3.  (Optional) Enter a **Name Filter** (e.g. "Family").
-4.  Click **Call Service**.
-5.  A **Persistent Notification** will appear in the bottom left of your Home Assistant sidebar containing a table of all matching groups and their IDs.
+[![Open your Home Assistant instance and show your service developer tools.](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
 
-> [!TIP]
+---
+
+## 🔍 `whatsapp.search_groups` (Helper)
+
+Finding the "JID" (Group ID) for a group can be tricky. This service helps you find it easily.
+
+**Parameters:**
+- `name_filter` (Optional): Filter groups by name (case-insensitive).
+
+**How it works:**
+1.  Call the service with a name filter.
+2.  Check your **Persistent Notifications** in the bottom left of Home Assistant.
+3.  A table will appear with all matching groups and their IDs.
+
+---
+
+## 💬 `whatsapp.send_message` (Base)
+
+> **Tip**
 > Group IDs look like `1234567890@g.us`. Copy the full ID including the `@g.us` part.
+{: .tip }
 
 ---
 

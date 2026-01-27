@@ -12,7 +12,9 @@ The real power of the WhatsApp integration lies in the events. Every message rec
 
 ## 📨 Building a WhatsApp Bot
 
-To react to commands, listen for the event and check the `content` field.
+To react to commands, listen for the event and check the `content` field. You can create these automations directly in the Home Assistant UI.
+
+[![Open your Home Assistant instance and show your automations.](https://my.home-assistant.io/badges/automations.svg)](https://my.home-assistant.io/redirect/automations/)
 
 ### Simple Command: `/status`
 

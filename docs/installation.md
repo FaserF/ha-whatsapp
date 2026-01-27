@@ -14,17 +14,26 @@ Setting up the WhatsApp integration is a two-step process: installing the **Addo
 
 The Addon handles the heavy lifting of connecting to WhatsApp.
 
-1.  Open your Home Assistant instance.
-2.  Navigate to **Settings** -> **Add-ons**.
-3.  Click the **Add-on Store** button in the bottom right.
-4.  Add the repository: `https://github.com/FaserF/hassio-addons`.
-5.  Find the **WhatsApp** addon and click **Install**.
-6.  Go to the **Configuration** tab and ensure the `log_level` is set to `info`.
-7.  Start the addon.
-8.  **Important**: Open the **Web UI** of the addon and look for the **API Token** (often hidden behind a "Show API Key" button). **Copy this token**, you will need it for the next step.
+1.  **Add the Repository**: Click the button below to add the addon repository to your Home Assistant.
 
-> [!NOTE]
+    [![Open your Home Assistant instance and show the add-on store with a specific repository pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons)
+
+2.  **Install the Add-on**: Navigate to the store, search for **WhatsApp**, and click **Install**.
+
+    [![Open your Home Assistant instance and show the add-on dashboard.](https://my.home-assistant.io/badges/supervisor_addons.svg)](https://my.home-assistant.io/redirect/supervisor_addons/)
+
+3.  **Start & Get Token**:
+    - Ensure `log_level` is set to `info` in the **Configuration** tab.
+    - **Start** the addon.
+    - Open the **Web UI** and look for the **API Token** (hidden behind "Show API Key"). **Copy this token** for the next step.
+
+> **Tip**
+> **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the addon configuration.
+{: .tip }
+
+> **Note**
 > The QR Code might not appear immediately in the Addon Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
+{: .note }
 
 ---
 
@@ -34,12 +43,11 @@ The Integration connects Home Assistant's core to the Addon and provides the ent
 
 ### Option A: HACS (Recommended)
 
-1.  Ensure you have **HACS** installed.
-2.  Go to **HACS** -> **Integrations**.
-3.  Click the three dots in the top right and select **Custom repositories**.
-4.  Add `https://github.com/FaserF/ha-whatsapp` as an **Integration**.
-5.  Install the **WhatsApp** integration via HACS.
-6.  Restart Home Assistant.
+1.  **Install Repository**: Add the custom repository in HACS.
+
+    [![Open your Home Assistant instance and show a specific repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
+
+2.  **Restart**: Once installed via HACS, **Restart Home Assistant**.
 
 ### Option B: Manual Installation (Fallback)
 
@@ -57,13 +65,15 @@ The Integration connects Home Assistant's core to the Addon and provides the ent
 
 Now we connect the components and link your device.
 
-1.  Navigate to **Settings** -> **Devices & Services**.
-2.  Click **Add Integration** and search for **WhatsApp**.
-3.  **Auto-Discovery**: If your network supports mDNS, Home Assistant might already show a notification. Click **Configure**.
-4.  **Connection Details**:
-    - **Host**: Enter the URL of your Addon. (Default: `http://localhost:8066` if on the same machine).
-    - **API Key**: Paste the **API Token** you copied from the Addon Web UI in Step 1.
-5.  Click **Submit**.
+1.  Click the button below to start the setup:
+
+    [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow.svg)](https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp)
+
+2.  **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the addon), you will see a notification in Home Assistant. Click **Configure**.
+3.  **Connection Details**:
+    - **Host**: Enter the URL of your Addon. (Default: `http://localhost:8066`).
+    - **API Key**: Paste the **API Token** you copied from the Addon Web UI.
+4.  Click **Submit**.
 
 ### 📱 Pairing with WhatsApp
 

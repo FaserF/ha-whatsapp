@@ -10,7 +10,10 @@ from custom_components.whatsapp.const import DOMAIN
 
 async def test_connection_lost_notification(hass: HomeAssistant) -> None:
     """Test that a notification is created on connection loss."""
-    entry = MockConfigEntry(domain=DOMAIN, data={"session": "mock"})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "mock"},
+    )
     entry.add_to_hass(hass)
 
     from homeassistant.helpers import issue_registry as ir
@@ -19,8 +22,11 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         # Fail initially to trigger notification
         mock_instance.connect = AsyncMock(side_effect=Exception("Connection Failed"))
-        mock_instance.stats = {"sent": 0, "failed": 0}
+        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
         mock_instance.register_callback = MagicMock()
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.start_session = AsyncMock()
+        mock_instance.close = AsyncMock()
 
         # Setup
         await hass.config_entries.async_setup(entry.entry_id)

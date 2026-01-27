@@ -7,16 +7,23 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
 ---
 
 <div class="hero-section">
+  <img src="logo.png" alt="WhatsApp Logo" style="width: 100px; margin-bottom: 20px;">
   <h1>WhatsApp for HA</h1>
-  <p style="font-size: 1.2rem; opacity: 0.8;">The most robust, private, and localized WhatsApp integration for Home Assistant.</p>
-  <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-    <a href="installation.html" class="btn btn-green">Get Started Now</a>
-    <a href="https://github.com/FaserF/ha-whatsapp" class="btn">Integration Repo</a>
-    <a href="https://github.com/FaserF/hassio-addons" class="btn">Addon Repo</a>
+  <p style="font-size: 1.2rem; opacity: 0.8; max-width: 600px; margin: 0 auto 2rem;">The most robust, private, and localized WhatsApp integration for Home Assistant. Connect your automations to the world's most popular messaging platform.</p>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: center; margin-bottom: 2rem;">
+    <a href="installation.html" class="btn btn-green" style="padding: 12px 24px; font-weight: bold;">🚀 Get Started</a>
+    <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank">
+      <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Open your Home Assistant instance and start setting up a new integration.">
+    </a>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0.9;">
+    <a href="https://github.com/FaserF/ha-whatsapp" class="btn btn-outline">Integration Repo</a>
+    <a href="https://github.com/FaserF/hassio-addons" class="btn btn-outline">Addon Repo</a>
   </div>
 </div>
 
-> [!CAUTION]
 > **Legal Disclaimer / Haftungsausschluss**
 >
 > Using automated messaging on WhatsApp may violate their **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)** and lead to a **permanent account ban**.

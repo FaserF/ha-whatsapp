@@ -13,14 +13,14 @@ Every tool has its limits. To ensure you have the best experience, please be awa
 ## 🚫 Not an Official API & Legal Terms
 This project uses **Baileys**, which simulates a **WhatsApp Web** client. It does **not** use the official WhatsApp Business API.
 
-> [!CAUTION]
-> **Account Ban Risk / Haftungsausschluss**
+> **Legal Disclaimer / Haftungsausschluss**
 >
-> Using third-party clients or automated messaging on personal accounts is a violation of WhatsApp's **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**. This can lead to your account being **permanently banned**.
+> Using automated messaging on WhatsApp may violate their **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)** and lead to a **permanent account ban**.
 >
 > **The developers assume no liability for any such damage.** By using this software, you acknowledge that you are responsible for any consequences.
 >
 > For official information, see: **[WhatsApp Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**
+{: .important }
 
 - **Recommendation**: Use this integration only for personal notifications or small private bots. Do **not** use it for mass marketing or unsolicited messages.
 
@@ -42,8 +42,9 @@ Native WhatsApp Buttons and Polls are relatively new.
 ### 4. Group IDs
 Home Assistant doesn't (yet) have a way to list your WhatsApp groups. You must manually find the `@g.us` ID by listening to events. (See [Pro-Tips](tips.md)).
 
-> [!WARNING]
+> **Warning**
 > **Privacy Mode Warning**: If you enable "Mask Sensitive Data" in the options, Group IDs will also be masked in the logs (e.g. `123*****89@g.us`). You **must disable** masking temporarily if you are trying to find out a Group ID.
+{: .warning }
 
 ---
 
