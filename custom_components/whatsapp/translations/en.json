@@ -35,6 +35,7 @@
           "mask_sensitive_data": "Mask Sensitive Data in Logs",
           "mark_as_read": "Mark messages as read (send blue ticks)",
           "api_key": "API Key",
+          "retry_attempts": "Retry Attempts (on failure)",
           "reset_session": "Reset Session (Logout & Clear Data)"
         },
         "description": "{warning}"

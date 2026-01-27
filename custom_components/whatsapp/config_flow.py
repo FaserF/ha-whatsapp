@@ -19,6 +19,7 @@ from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RETRY_ATTEMPTS,
     CONF_URL,
     DEFAULT_PORT,
     DOMAIN,
@@ -319,6 +320,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     CONF_MARK_AS_READ,
                     default=self._config_entry.options.get(CONF_MARK_AS_READ, True),
                 ): bool,
+                vol.Optional(
+                    CONF_RETRY_ATTEMPTS,
+                    default=self._config_entry.options.get(CONF_RETRY_ATTEMPTS, 2),
+                ): vol.All(int, vol.Range(min=0, max=10)),
                 vol.Optional("reset_session", default=False): bool,
             }
         )
