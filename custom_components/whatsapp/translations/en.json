@@ -61,6 +61,28 @@
         }
       }
     },
+    "send_document": {
+      "name": "Send Document",
+      "description": "Sends a document (PDF, Zip, Doc, etc.) to a WhatsApp number.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the document to send."
+        },
+        "file_name": {
+          "name": "File Name",
+          "description": "Optional override for the filename."
+        },
+        "message": {
+          "name": "Caption",
+          "description": "Optional text caption for the document."
+        }
+      }
+    },
     "send_reaction": {
       "name": "Send Reaction",
       "description": "Reacts to a message with an emoji.",

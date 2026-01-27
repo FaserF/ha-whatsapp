@@ -56,6 +56,18 @@ data:
   caption: "Front door movement! 📷"
 ```
 
+### 📄 Documents (`send_document`)
+Send files like PDFs, Zip archives, or spreadsheets.
+
+```yaml
+service: whatsapp.send_document
+data:
+  target: "49123456789"
+  url: "https://example.com/invoice.pdf"
+  file_name: "Invoice_January.pdf"  # Optional: Rename the file
+  message: "Here is your monthly invoice." # Optional: Add a caption
+```
+
 ### 📍 Location (`send_location`)
 Send a map pin with an optional name and address.
 

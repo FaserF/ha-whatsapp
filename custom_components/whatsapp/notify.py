@@ -174,6 +174,11 @@ class WhatsAppNotificationEntity(
                 footer = data.get("footer")
                 if buttons:
                     await self.client.send_buttons(target, message, buttons, footer)
+            elif "document" in data:
+                # Send document: data: { document: "http://..." }
+                url = data["document"]
+                file_name = data.get("file_name")
+                await self.client.send_document(target, url, file_name, message)
             else:
                 # Default text message
                 await self.client.send_message(target, message)
@@ -250,6 +255,10 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     footer = data.get("footer")
                     if buttons:
                         await self.client.send_buttons(target, message, buttons, footer)
+                elif "document" in data:
+                    url = data["document"]
+                    file_name = data.get("file_name")
+                    await self.client.send_document(target, url, file_name, message)
                 else:
                     await self.client.send_message(target, message)
             except Exception as err:

@@ -441,6 +441,61 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = "Image Sent"
             self.stats["last_sent_target"] = number
 
+    async def send_document(
+        self,
+        number: str,
+        url: str,
+        file_name: str | None = None,
+        caption: str | None = None,
+    ) -> None:
+        """Send a document (with retry)."""
+        if not self._is_allowed(number):
+            return
+        number = self._ensure_jid(number)
+        await self._send_with_retry(
+            self._send_document_internal, number, url, file_name, caption
+        )
+
+    async def _send_document_internal(
+        self,
+        number: str,
+        url: str,
+        file_name: str | None = None,
+        caption: str | None = None,
+    ) -> None:
+        """Internal send document logic."""
+        api_url = f"{self.host}/send_document"
+        payload = {
+            "number": number,
+            "url": url,
+            "fileName": file_name,
+            "caption": caption,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Document: {file_name or 'unnamed'}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send document: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
+            self.stats["last_sent_target"] = number
+
     async def send_location(
         self,
         number: str,

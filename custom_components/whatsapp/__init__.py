@@ -149,6 +149,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and reaction and message_id:
             await client.send_reaction(number, reaction, message_id)
 
+    async def send_document_service(call: ServiceCall) -> None:
+        """Handle the send_document service."""
+        number = call.data.get("target")
+        url = call.data.get("url")
+        file_name = call.data.get("file_name")
+        caption = call.data.get("message")  # Use 'message' for caption consistency
+        if number and url:
+            await client.send_document(number, url, file_name, caption)
+
     async def update_presence_service(call: ServiceCall) -> None:
         """Handle the update_presence service."""
         number = call.data.get("target")
@@ -242,6 +251,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("caption"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_document",
+        send_document_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("url"): cv.string,
+                vol.Optional("file_name"): cv.string,
+                vol.Optional("message"): cv.string,
             }
         ),
     )
