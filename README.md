@@ -11,6 +11,16 @@
 
 ---
 
+| Component | Version | Status |
+| :--- | :--- | :--- |
+| **Addon (Stable)** | [![Addon Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) | engine |
+| **Addon (Edge)** | [![Addon Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
+| **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases) | interface |
+| **Integration (Beta)** | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases) | testing |
+| **Activity** | [![Last Release](https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/releases) | |
+
+---
+
 > [!CAUTION]
 > **Legal Disclaimer / Haftungsausschluss**
 >

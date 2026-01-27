@@ -390,8 +390,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     # Only show error if we didn't just fix the API key
                     # If API key was fixed, maybe the old client failed (expected).
                     if not (new_key and new_key != current_key):
-                         errors["base"] = "reset_failed"
-                         return self.async_show_form(
+                        errors["base"] = "reset_failed"
+                        return self.async_show_form(
                             step_id="init",
                             data_schema=self._get_schema(),
                             description_placeholders=self._get_placeholders(),

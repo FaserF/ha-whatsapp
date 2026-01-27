@@ -15,11 +15,7 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
     <a href="installation.html" class="btn btn-green" style="padding: 12px 24px; font-weight: bold;">🚀 Get Started</a>
   </div>
 
-<div style="text-align: center; margin-bottom: 2rem;">
-  <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank">
-    <img src="https://my.home-assistant.io/badges/config_flow.svg" alt="Open your Home Assistant instance and start setting up a new integration.">
-  </a>
-</div>
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow.svg)](https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp)
 
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0.9;">
     <a href="https://github.com/FaserF/ha-whatsapp" class="btn btn-outline">Integration Repo</a>

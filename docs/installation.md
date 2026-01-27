@@ -16,11 +16,12 @@ The Addon handles the heavy lifting of connecting to WhatsApp.
 
 1.  **Add the Repository**: Click the button below to add the addon repository to your Home Assistant.
 
-    [![Open your Home Assistant instance and show the add-on store with a specific repository pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons)
+
+[![Open your Home Assistant instance and show the add-on store with a specific repository pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons)
 
 2.  **Install the Add-on**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
-    [![Open your Home Assistant instance and show the add-on dashboard.](https://my.home-assistant.io/badges/supervisor_addons.svg)](https://my.home-assistant.io/redirect/supervisor_addons/)
+[![Open your Home Assistant instance and show the add-on dashboard.](https://my.home-assistant.io/badges/supervisor_addons.svg)](https://my.home-assistant.io/redirect/supervisor_addons/)
 
 3.  **Start & Get Token**:
     - Ensure `log_level` is set to `info` in the **Configuration** tab.
