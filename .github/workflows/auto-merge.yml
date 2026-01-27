@@ -14,6 +14,11 @@ jobs:
       pull-requests: write
       contents: write
     steps:
+      - name: ⤵️ Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Merge
         if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]' || github.actor == 'FaserF' }}
         env:
