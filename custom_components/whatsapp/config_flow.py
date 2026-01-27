@@ -372,16 +372,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     # Call DELETE /session
                     data = self.hass.data[DOMAIN][self._config_entry.entry_id]
                     client: WhatsAppApiClient = data["client"]
-                    # If we just updated the key, make sure we use the client with new key?
-                    # Actually valid point, but data['client'] is likely stale if key changed.
-                    # Since we perform a reload on options update usually, simply returning
-                    # create_entry will trigger reload and re-init client.
-                    # BUT reset_session happens before reload.
-                    # If key changed, let's skip reset_session or use test_client?
-                    # For simplicity: If key changed, we assume user just wants to fix auth.
-                    # If they also checked reset_session, we try it, but it might fail if client is old.
-                    # However, since we just validated the new key, let's just use a fresh client if needed
-                    # or better: rely on the reload that happens after options update.
+                    # data['client'] may be stale if key changed.
+                    # Reload happens on update. returning create_entry triggers it.
+                    # Reset session happens before reload.
+                    # If key changed, we assume user just wants to fix auth.
+                    # If reset_session checked, try it (might fail if old client).
+                    # Validated new key, so use fresh client or rely on reload.
 
                     _LOGGER.info(
                         "Triggering session reset for WhatsApp instance: %s",
@@ -392,7 +388,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 except Exception as e:
                     _LOGGER.error("Failed to reset session: %s", e)
                     # Only show error if we didn't just fix the API key
-                    # If API key was fixed, maybe the old client failed, which is expected.
+                    # If API key was fixed, maybe the old client failed (expected).
                     if not (new_key and new_key != current_key):
                          errors["base"] = "reset_failed"
                          return self.async_show_form(
