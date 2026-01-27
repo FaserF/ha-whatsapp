@@ -75,7 +75,7 @@
                 },
                 "file_name": {
                     "name": "Dateiname",
-                    "description": "Optionaler override für den Dateinamen."
+                    "description": "Optionaler Ersatz für den Dateinamen."
                 },
                 "message": {
                     "name": "Bildunterschrift",

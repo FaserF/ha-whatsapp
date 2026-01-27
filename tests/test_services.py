@@ -1,9 +1,10 @@
 """Test the WhatsApp services."""
 from unittest.mock import AsyncMock, patch
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from homeassistant.const import CONF_API_KEY, CONF_URL
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.whatsapp.const import DOMAIN
 
@@ -198,3 +199,49 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.edit_message.assert_awaited_with("12345", "MSGID", "New Text")
+
+        # 13. Test send_document
+        await hass.services.async_call(
+            DOMAIN,
+            "send_document",
+            {
+                "target": "12345",
+                "url": "http://doc.pdf",
+                "file_name": "My Doc.pdf",
+                "message": "Caption",
+            },
+            blocking=True,
+        )
+        mock_instance.send_document.assert_awaited_with(
+            "12345", "http://doc.pdf", "My Doc.pdf", "Caption"
+        )
+
+        # 14. Test send_video
+        await hass.services.async_call(
+            DOMAIN,
+            "send_video",
+            {
+                "target": "12345",
+                "url": "http://vid.mp4",
+                "message": "Caption",
+            },
+            blocking=True,
+        )
+        mock_instance.send_video.assert_awaited_with(
+            "12345", "http://vid.mp4", "Caption"
+        )
+
+        # 15. Test send_audio
+        await hass.services.async_call(
+            DOMAIN,
+            "send_audio",
+            {
+                "target": "12345",
+                "url": "http://audio.mp3",
+                "ptt": True,
+            },
+            blocking=True,
+        )
+        mock_instance.send_audio.assert_awaited_with(
+            "12345", "http://audio.mp3", True
+        )

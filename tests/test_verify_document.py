@@ -1,25 +1,23 @@
 
+import logging
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Mock homeassistant modules before possible imports
 import sys
-import os
-import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
-
-# Add the integration directory to sys.path so we can import api directly
-sys.path.append(os.path.abspath("custom_components/whatsapp"))
-
-# Mock a few things that might be needed if they were added
-sys.modules["homeassistant"] = MagicMock()
-sys.modules["homeassistant.core"] = MagicMock()
+if "homeassistant" not in sys.modules:
+    sys.modules["homeassistant"] = MagicMock()
+if "homeassistant.core" not in sys.modules:
+    sys.modules["homeassistant.core"] = MagicMock()
 
 try:
-    from api import WhatsAppApiClient
+    from custom_components.whatsapp.api import WhatsAppApiClient
 except ImportError:
-    # If that fails, try the full path
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("api", "custom_components/whatsapp/api.py")
-    api_mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(api_mod)
-    WhatsAppApiClient = api_mod.WhatsAppApiClient
+    # Fallback if running directly without package context, though pytest usually handles this
+    import os
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from custom_components.whatsapp.api import WhatsAppApiClient
+
+_LOGGER = logging.getLogger(__name__)
 
 class MockAsyncContextManager:
     def __init__(self, return_value):
@@ -29,8 +27,9 @@ class MockAsyncContextManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
-async def verify_send_document():
-    print("Verifying send_document logic...")
+async def test_verify_send_document():
+    """Verify the send_document logic."""
+    _LOGGER.info("Verifying send_document logic...")
 
     client = WhatsAppApiClient(
         host="http://localhost:8066",
@@ -39,7 +38,7 @@ async def verify_send_document():
     )
 
     # 1. Test allowed target
-    print("Testing allowed target...")
+    _LOGGER.info("Testing allowed target...")
 
     # Mocking response
     mock_response = MagicMock()
@@ -54,10 +53,14 @@ async def verify_send_document():
     mock_session_cm = MockAsyncContextManager(mock_session)
 
     with patch("aiohttp.ClientSession", return_value=mock_session_cm):
-        await client.send_document("49123456789", "http://test.com/file.pdf", "test.pdf", "Here is a file")
+        await client.send_document(
+            "49123456789",
+            "http://test.com/file.pdf",
+            "test.pdf",
+            "Here is a file"
+        )
 
         # Verify call data
-        # Note: session is the return value of ClientSession().__aenter__()
         args, kwargs = mock_session.post.call_args
         url = args[0]
         payload = kwargs["json"]
@@ -69,16 +72,13 @@ async def verify_send_document():
         assert payload["fileName"] == "test.pdf"
         assert payload["caption"] == "Here is a file"
         assert headers["X-Auth-Token"] == "test_key"
-        print("✅ Allowed target passed.")
+        _LOGGER.info("✅ Allowed target passed.")
 
         # 2. Test blocked target
-        print("Testing blocked target (whitelist)...")
+        _LOGGER.info("Testing blocked target (whitelist)...")
         mock_session.post.reset_mock()
         await client.send_document("49987654321", "http://test.com/file.pdf")
         assert not mock_session.post.called
-        print("✅ Blocked target passed.")
+        _LOGGER.info("✅ Blocked target passed.")
 
-    print("\nAll verification tests for send_document PASSED!")
-
-if __name__ == "__main__":
-    asyncio.run(verify_send_document())
+    _LOGGER.info("All verification tests for send_document PASSED!")

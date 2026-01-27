@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             is_group = "@g.us" in remote_id
             target = remote_id if is_group else full_sender
 
-            if not client._is_allowed(target):
+            if not client.is_allowed(target):
                 _LOGGER.info(
                     "Ignoring incoming message from non-whitelisted %s: %s",
                     "group" if is_group else "sender",

@@ -79,9 +79,6 @@ data:
   message: "Here is your monthly invoice." # Optional: Add a caption
 ```
 
-  message: "Here is your monthly invoice." # Optional: Add a caption
-```
-
 ### 🎥 Videos (`send_video`)
 Send video files (MP4, etc).
 

@@ -40,13 +40,13 @@ class WhatsAppApiClient:
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
 
-    def _is_allowed(self, target: str) -> bool:
+    def is_allowed(self, target: str) -> bool:
         """Check if a target JID is allowed by the whitelist."""
         if not self.whitelist:
             return True
 
         # Normalize target for comparison
-        target_jid = self._ensure_jid(target)
+        target_jid = self.ensure_jid(target)
 
         for allowed in self.whitelist:
             allowed = allowed.strip()
@@ -54,7 +54,7 @@ class WhatsAppApiClient:
                 continue
             # If allowed already has @, compare directly (after normalization)
             if "@" in allowed:
-                if target_jid == self._ensure_jid(allowed):
+                if target_jid == self.ensure_jid(allowed):
                     return True
             # If it's a numeric ID, compare the numeric part
             elif allowed.isdigit():
@@ -67,7 +67,7 @@ class WhatsAppApiClient:
         _LOGGER.info("Blocking outgoing message to non-whitelisted target: %s", target)
         return False
 
-    def _ensure_jid(self, target: str) -> str:
+    def ensure_jid(self, target: str | None) -> str | None:
         """Ensure the target is a valid JID."""
         if not target:
             return target
@@ -289,9 +289,9 @@ class WhatsAppApiClient:
 
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(self._send_message_internal, number, message)
 
     async def _send_message_internal(self, number: str, message: str) -> None:
@@ -361,9 +361,9 @@ class WhatsAppApiClient:
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(self._send_poll_internal, number, question, options)
 
     async def _send_poll_internal(
@@ -401,9 +401,9 @@ class WhatsAppApiClient:
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
         """Send an image (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_image_internal, number, image_url, caption
         )
@@ -449,9 +449,9 @@ class WhatsAppApiClient:
         caption: str | None = None,
     ) -> None:
         """Send a document (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_document_internal, number, url, file_name, caption
         )
@@ -487,7 +487,8 @@ class WhatsAppApiClient:
             if resp.status != 200:
                 text = await resp.text()
                 self.stats["failed"] += 1
-                self.stats["last_failed_message"] = f"Document: {file_name or 'unnamed'}"
+                label = file_name or "unnamed"
+                self.stats["last_failed_message"] = f"Document: {label}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
                 raise Exception(f"Failed to send document: {text}")
@@ -503,9 +504,9 @@ class WhatsAppApiClient:
         caption: str | None = None,
     ) -> None:
         """Send a video (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(self._send_video_internal, number, url, caption)
 
     async def _send_video_internal(
@@ -549,9 +550,9 @@ class WhatsAppApiClient:
         ptt: bool = False,
     ) -> None:
         """Send audio (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(self._send_audio_internal, number, url, ptt)
 
     async def _send_audio_internal(
@@ -594,9 +595,9 @@ class WhatsAppApiClient:
         message_id: str,
     ) -> None:
         """Revoke (delete) a message."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(self._revoke_message_internal, number, message_id)
 
     async def _revoke_message_internal(
@@ -631,9 +632,9 @@ class WhatsAppApiClient:
         new_content: str,
     ) -> None:
         """Edit a message."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._edit_message_internal, number, message_id, new_content
         )
@@ -677,9 +678,9 @@ class WhatsAppApiClient:
         address: str | None = None,
     ) -> None:
         """Send a location (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_location_internal, number, latitude, longitude, name, address
         )
@@ -728,9 +729,9 @@ class WhatsAppApiClient:
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_reaction_internal, number, text, message_id
         )
@@ -757,7 +758,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Reaction: {text}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text_content
-                self.stats["last_error_reason"] = text_content
+
                 raise Exception(f"Failed to send reaction: {text_content}")
 
     async def set_webhook(
@@ -797,9 +798,9 @@ class WhatsAppApiClient:
         sections: list[dict],
     ) -> None:
         """Send a list message (interactive menu)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_list_internal, number, title, text, button_text, sections
         )
