@@ -49,7 +49,8 @@ jobs:
           fi
 
           # Initialize variables
-          VERSION="$RAW_VERSION"
+          BASE_VERSION="${RAW_VERSION%%-*}"
+          VERSION="$BASE_VERSION"
           SHOULD_RELEASE="false"
           PRERELEASE="false"
 
@@ -59,8 +60,8 @@ jobs:
           if [[ "$RELEASE_TYPE" == "auto" ]]; then
             if [[ "$RAW_VERSION" != *"-dev"* ]]; then
               SHOULD_RELEASE="true"
-              # Auto-detect prerelease for auto mode (e.g. < 1.0.0 or explicit beta tag)
-              if [[ "$RAW_VERSION" < "1.0.0" ]] || [[ "$RAW_VERSION" == *"beta"* ]]; then
+              # Auto-detect prerelease for auto mode
+              if [[ "$RAW_VERSION" == *"b"* ]] || [[ "$RAW_VERSION" == *"dev"* ]]; then
                  PRERELEASE="true"
               fi
             else
@@ -68,19 +69,33 @@ jobs:
             fi
 
           elif [[ "$RELEASE_TYPE" == "stable" ]]; then
-            # Strip -dev suffix if present
-            VERSION="${RAW_VERSION//-dev/}"
+            VERSION="$BASE_VERSION"
             SHOULD_RELEASE="true"
             PRERELEASE="false"
 
           elif [[ "$RELEASE_TYPE" == "beta" ]]; then
-            # Strip -dev suffix if present
-            VERSION="${RAW_VERSION//-dev/}"
+            # Ensure it has a beta suffix if it doesn't already
+            if [[ "$BASE_VERSION" != *"b"* ]]; then
+               # Check tags to see if we already have a beta for this base
+               LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
+               if [[ -z "$LAST_BETA" ]]; then
+                 VERSION="${BASE_VERSION}b0"
+               else
+                 # Increment last beta (e.g. v1.0.1b0 -> 1.0.1b1)
+                 # Shell magic to increment the number after 'b'
+                 B_NUM=$(echo "$LAST_BETA" | sed 's/.*b//')
+                 VERSION="${BASE_VERSION}b$((B_NUM + 1))"
+               fi
+            else
+               VERSION="$BASE_VERSION"
+            fi
             SHOULD_RELEASE="true"
             PRERELEASE="true"
 
           elif [[ "$RELEASE_TYPE" == "nightly" ]]; then
-            # Release exactly as is, even with -dev
+            # Nightly releases should follow the pattern: X.Y.Z.dev<date>
+            DATE_TAG=$(date +'%Y%m%d')
+            VERSION="${BASE_VERSION}.dev${DATE_TAG}"
             SHOULD_RELEASE="true"
             PRERELEASE="true"
 
@@ -91,8 +106,8 @@ jobs:
             fi
             VERSION="${{ inputs.manual_version }}"
             SHOULD_RELEASE="true"
-            PRERELEASE="false"  # Default to stable unless version contains beta/nightly
-            if [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
+            PRERELEASE="false"
+            if [[ "$VERSION" == *"b"* ]] || [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
               PRERELEASE="true"
             fi
           fi
@@ -109,15 +124,24 @@ jobs:
       - name: Prepare Release Version (Update Manifest)
         if: steps.params.outputs.should_release == 'true'
         run: |
-            # If the version changed (e.g. we stripped -dev), update the manifest in the file system
-            # so the zip file contains the clean version.
             MANIFEST_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
             TARGET_VERSION="${{ steps.params.outputs.version }}"
 
             if [[ "$MANIFEST_VERSION" != "$TARGET_VERSION" ]]; then
-              echo "Updating manifest version from $MANIFEST_VERSION to $TARGET_VERSION before zipping..."
+              echo "Updating manifest version from $MANIFEST_VERSION to $TARGET_VERSION..."
               jq --arg v "$TARGET_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
               mv tmp.json custom_components/whatsapp/manifest.json
+
+              # Commit the change so the release tag points to a commit with the correct version
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add custom_components/whatsapp/manifest.json
+              git commit -m "chore: release version $TARGET_VERSION"
+              git push
+              echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+            else
+              echo "Manifest version already correct: $MANIFEST_VERSION"
+              echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
             fi
 
       - name: Create release archive
@@ -133,8 +157,8 @@ jobs:
           RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
 
           if [[ "$RELEASE_TYPE" == "stable" ]] || { [[ "$RELEASE_TYPE" == "auto" ]] && [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; }; then
-            # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/nightlies)
-            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "beta|nightly" | head -n 1)
+            # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
+            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "b[0-9]|\.dev[0-9]" | head -n 1)
             echo "base_tag=$LAST_STABLE" >> $GITHUB_OUTPUT
             echo "🔍 Comparing stable release against last stable: $LAST_STABLE"
           else
@@ -164,19 +188,28 @@ jobs:
           body: ${{ steps.build_changelog.outputs.changelog }}
           prerelease: ${{ steps.params.outputs.prerelease }}
           files: whatsapp.zip
+          target_commitish: ${{ env.NEW_SHA }}
 
       - name: Bump to next dev version
         # Only run bump if we did a release AND it was 'auto' mode (standard flow).
         # Manual releases (stable/beta/nightly) do not auto-bump to avoid repo state confusion.
         if: steps.params.outputs.should_release == 'true' && steps.params.outputs.release_type == 'auto'
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
           VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
+          # Clean version (remove bX or .dev)
+          CLEAN_VERSION="${VERSION%%b*}"
+          CLEAN_VERSION="${CLEAN_VERSION%%.dev*}"
+
           # Parse major.minor.patch
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          # Bump minor, reset patch
-          NEXT_MINOR=$((MINOR + 1))
-          COMMIT_ID=$(git rev-parse --short HEAD)
-          DEV_VERSION="${MAJOR}.${NEXT_MINOR}.0-dev-${COMMIT_ID}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_VERSION"
+          # Bump patch
+          NEXT_PATCH=$((PATCH + 1))
+
+          DEV_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-dev"
+
           # Update manifest.json
           jq --arg v "$DEV_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
           mv tmp.json custom_components/whatsapp/manifest.json
