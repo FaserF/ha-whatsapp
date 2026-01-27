@@ -116,5 +116,24 @@ data:
 | `sensor.whatsapp_uptime` | Sensor | **Diagnostic**: Uptime, Version, and Phone Number. |
 | `sensor.whatsapp_messages_sent` | Sensor | Stats for sent messages. |
 
+---
+
+## 🔍 Finding Group IDs
+
+If you want to send messages to a group, you need its **Group ID** (JID). The integration provides a helper service to find these IDs.
+
+### `whatsapp.search_groups`
+
+1.  Go to **Developer Tools** -> **Services**.
+2.  Select **WhatsApp: Search Groups**.
+3.  (Optional) Enter a **Name Filter** (e.g. "Family").
+4.  Click **Call Service**.
+5.  A **Persistent Notification** will appear in the bottom left of your Home Assistant sidebar containing a table of all matching groups and their IDs.
+
+> [!TIP]
+> Group IDs look like `1234567890@g.us`. Copy the full ID including the `@g.us` part.
+
+---
+
 > [!TIP]
 > Check the **Attributes** of the `uptime` sensor to see the version and paired phone number!

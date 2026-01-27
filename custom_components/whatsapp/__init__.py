@@ -117,6 +117,46 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if number and text and buttons:
             await client.send_buttons(number, text, buttons, footer)
 
+    async def search_groups_service(call: ServiceCall) -> None:
+        """Handle the search_groups service."""
+        name_filter = call.data.get("name_filter", "").lower()
+
+        try:
+            groups = await client.get_groups()
+
+            if name_filter:
+                groups = [g for g in groups if name_filter in g["name"].lower()]
+
+            if not groups:
+                message = f"No groups found{' matching \"' + name_filter + '\"' if name_filter else ''}."
+            else:
+                table = "| Name | Group ID | Participants |\n| :--- | :--- | :--- |\n"
+                for g in groups:
+                    table += f"| {g['name']} | `{g['id']}` | {g['participants']} |\n"
+                message = f"Found {len(groups)} group(s):\n\n{table}\n\n*Tip: Use the Group ID in the 'target' field of other services.*"
+
+            await hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": "WhatsApp Group Search",
+                    "message": message,
+                    "notification_id": "whatsapp_group_search",
+                },
+            )
+
+        except Exception as e:
+            _LOGGER.error("Failed to search groups: %s", e)
+            await hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": "WhatsApp Group Search Error",
+                    "message": f"Error: {e}",
+                    "notification_id": "whatsapp_group_search_error",
+                },
+            )
+
     hass.services.async_register(
         DOMAIN,
         "send_message",
@@ -201,6 +241,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Required("message"): cv.string,
                 vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
                 vol.Optional("footer"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "search_groups",
+        search_groups_service,
+        schema=vol.Schema(
+            {
+                vol.Optional("name_filter"): cv.string,
             }
         ),
     )

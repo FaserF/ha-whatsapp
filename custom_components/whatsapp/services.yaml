@@ -172,3 +172,14 @@ send_buttons:
       description: Optional footer text below the buttons.
       selector:
         text:
+
+search_groups:
+  name: Search Groups
+  description: Find Group IDs by searching for a name. Results are shown as a Persistent Notification.
+  fields:
+    name_filter:
+      name: Name Filter
+      description: Optional keyword to filter group names (case-insensitive).
+      example: "Family"
+      selector:
+        text:

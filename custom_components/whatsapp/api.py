@@ -452,3 +452,25 @@ class WhatsAppApiClient:
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Buttons: {text}"
             self.stats["last_sent_target"] = number
+
+    async def get_groups(self) -> list[dict[str, Any]]:
+        """Fetch all participating groups."""
+        url = f"{self.host}/groups"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                ) as resp:
+                    if resp.status == 401:
+                        raise Exception("Invalid API Key")
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return list(data)
+                    _LOGGER.warning("Groups endpoint returned status %s", resp.status)
+                    return []
+            except Exception as e:
+                if "Invalid API Key" in str(e):
+                    raise
+                _LOGGER.error("Error fetching groups from addon: %s", e)
+                return []
