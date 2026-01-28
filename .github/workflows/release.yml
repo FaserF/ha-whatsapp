@@ -13,16 +13,23 @@ on:
         description: |
           ℹ️ QUICK HELP - HOW VERSIONING WORKS:
           --------------------------------------
+          The version is ALWAYS calculated from the ABSOLUTE LATEST tag.
+          (Including Betas/Nightlies).
+
+          TARGET       | TYPE   | BUMP  | RESULT
+          -------------|--------|-------|-------
+          Next Beta    | Beta   | none  | 1.1.0b0 -> 1.1.0b1
+          New Stable   | Stable | none  | 1.1.0b0 -> 1.1.0
+          New Patch    | Stable | patch | 1.1.0 -> 1.1.1
+          New Minor    | Stable | minor | 1.1.1 -> 1.2.0
+
           1. RELEASE TYPE:
-             • Stable: Tags X.Y.Z (from Latest Stable + Bump).
+             • Stable: Tags X.Y.Z.
              • Beta: Tags X.Y.ZbN (Increments N automatically).
-             • Nightly: Tags X.Y.Z.devYYYYMMDD.
 
-          2. AUTO-BUMP TYPE (Base Versioning):
-             • Applies to the LATEST STABLE tag in git.
-             • Example: Latest=1.0.5, Minor+Beta -> 1.1.0b0. Next run -> 1.1.0b1.
-
-          3. MANUAL: Use this only if you provide a version manually.
+          2. AUTO-BUMP TYPE:
+             • Applied to the latest tag (e.g. 1.1.0b0).
+             • 'none' means: Keep the same Major.Minor.Patch series.
         required: false
         type: boolean
         default: true
@@ -38,11 +45,12 @@ on:
         - addon_sync
         - manual
       bump_type:
-        description: 'Bump type applied to the last STABLE version (determines the base for Beta/Nightly)'
+        description: 'How should the version be incremented from the last tag?'
         required: true
-        default: 'patch'
+        default: 'none'
         type: choice
         options:
+        - none
         - patch
         - minor
         - major
@@ -75,18 +83,20 @@ jobs:
             echo "📅 Scheduled run: Forcing release type to nightly"
           fi
 
-          # Get BASE_VERSION from the latest stable git tag (not manifest!)
-          # This ensures consistent versioning regardless of manifest state
-          LATEST_STABLE_TAG=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
+          # Get BASE_VERSION from the absolute latest tag (including betas)
+          LATEST_TAG=$(git tag -l "v[0-9]*" --sort=-v:refname | head -n 1)
 
-          if [[ -z "$LATEST_STABLE_TAG" ]]; then
-            # No stable tags exist, start from 1.0.0
+          if [[ -z "$LATEST_TAG" ]]; then
+            # No tags exist at all, start from 1.0.0
             BASE_VERSION="1.0.0"
-            echo "ℹ️ No stable tags found, starting from $BASE_VERSION"
+            echo "ℹ️ No tags found, starting from $BASE_VERSION"
           else
-            # Strip 'v' prefix and any suffixes
-            BASE_VERSION="${LATEST_STABLE_TAG#v}"
-            echo "ℹ️ Derived BASE_VERSION from latest stable tag: $LATEST_STABLE_TAG -> $BASE_VERSION"
+            # Strip 'v' and everything after b or .dev to get the core X.Y.Z
+            CLEAN_VERSION="${LATEST_TAG#v}"
+            CLEAN_VERSION="${CLEAN_VERSION%%b*}"
+            CLEAN_VERSION="${CLEAN_VERSION%%.dev*}"
+            BASE_VERSION="$CLEAN_VERSION"
+            echo "ℹ️ Derived BASE_VERSION from latest tag: $LATEST_TAG -> $BASE_VERSION"
           fi
 
           # Handle manual bump override from workflow_dispatch
@@ -101,6 +111,8 @@ jobs:
              elif [[ "$BUMP_TYPE" == "patch" ]]; then
                  BASE_VERSION="${major}.${minor}.$((patch + 1))"
                  echo "ℹ️ Manual Patch Bump: Adjusted Base Version to $BASE_VERSION"
+             else
+                 echo "ℹ️ No bump requested (none): Staying on $BASE_VERSION"
              fi
           fi
 
@@ -108,7 +120,7 @@ jobs:
           SHOULD_RELEASE="false"
           PRERELEASE="false"
 
-          echo "Base Version (from git tags): $BASE_VERSION"
+          echo "Base Version (after bump check): $BASE_VERSION"
           echo "Release Type: $RELEASE_TYPE"
 
           if [[ "$RELEASE_TYPE" == "auto" ]]; then
