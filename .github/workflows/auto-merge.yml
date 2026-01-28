@@ -69,7 +69,9 @@ jobs:
           ALLOWED_AUTHORS="dependabot[bot] renovate[bot] app/renovate FaserF"
           if echo "$ALLOWED_AUTHORS" | grep -Fqw "$PR_AUTHOR"; then
             echo "🚀 Enabling auto-merge for PR #$PR_NUMBER"
-            gh pr merge --auto --merge "$PR_NUMBER"
+            # Using --squash checks immediately because branch protection is not active.
+            # Workflow relies on CI Orchestrator success check above.
+            gh pr merge --squash "$PR_NUMBER"
           else
             echo "⏭️ Author '$PR_AUTHOR' is not in auto-merge list. Skipping."
           fi

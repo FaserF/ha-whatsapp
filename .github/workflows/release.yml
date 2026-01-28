@@ -12,10 +12,9 @@ on:
       release_type:
         description: 'Release Type'
         required: true
-        default: 'auto'
+        default: 'beta'
         type: choice
         options:
-        - auto
         - stable
         - beta
         - nightly
@@ -42,7 +41,7 @@ jobs:
       contents: write
       pull-requests: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
