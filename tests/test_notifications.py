@@ -16,12 +16,15 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
+    from homeassistant.exceptions import HomeAssistantError
     from homeassistant.helpers import issue_registry as ir
 
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         # Fail initially to trigger notification
-        mock_instance.connect = AsyncMock(side_effect=Exception("Connection Failed"))
+        mock_instance.connect = AsyncMock(
+            side_effect=HomeAssistantError("Connection Failed")
+        )
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()

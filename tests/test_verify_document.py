@@ -4,6 +4,10 @@ import sys
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+import pytest_asyncio
+from homeassistant.exceptions import HomeAssistantError
+
 # Mock homeassistant modules before possible imports
 if "homeassistant" not in sys.modules:
     sys.modules["homeassistant"] = MagicMock()
@@ -76,7 +80,8 @@ async def test_verify_send_document() -> None:
         # 2. Test blocked target
         _LOGGER.info("Testing blocked target (whitelist)...")
         mock_session.post.reset_mock()
-        await client.send_document("49987654321", "http://test.com/file.pdf")
+        with pytest.raises(HomeAssistantError):
+            await client.send_document("49987654321", "http://test.com/file.pdf")
         assert not mock_session.post.called
         _LOGGER.info("✅ Blocked target passed.")
 

@@ -63,7 +63,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
         # Verify mark_as_read was called
         mock_instance.mark_as_read.assert_called_with(
-            "123456789@s.whatsapp.net",
+            "123456789",
             "MSGID123",
         )
 
