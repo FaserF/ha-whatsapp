@@ -159,6 +159,6 @@ Returns the recent internal connection logs (same as shown in the Dashboard).
 
 ---
 
-> [!TIP]
+> **Tip:**
 > **Base URL**: Most users will access the API at `http://YOUR_HA_IP:8066`.
 > If using SSL/Ingress, use the appropriate internal proxy URL provided by Home Assistant.

@@ -221,7 +221,7 @@ data:
 
 This is a classic Home Assistant notification service. It is very flexible and works great for simple text or media alerts.
 
-> [!TIP]
+> **Tip:**
 > Use this service if you want to send the same message to **multiple recipients** at once.
 
 ```yaml
@@ -294,10 +294,10 @@ Finding the "JID" (Group ID) for a group can be tricky. This service helps you f
 
 ---
 
-> [!TIP]
+> **Tip:**
 > Group IDs look like `1234567890-111111111@g.us`. However, you can also just use the ID part `1234567890-111111111` and the integration will automatically add `@g.us`.
 
 ---
 
-> [!TIP]
+> **Tip:**
 > Check the **Attributes** of the `uptime` sensor to see the version and paired phone number!

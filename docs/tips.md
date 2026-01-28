@@ -8,7 +8,7 @@ nav_order: 5
 
 Manage your integration like a pro and resolve common issues.
 
-> [!TIP]
+> **Tip:**
 > **[🛡️ Whitelist Guide](WHITELIST.md)**: Secure your integration by restricting interaction to specific numbers and groups.
 
 ---

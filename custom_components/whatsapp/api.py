@@ -188,7 +188,7 @@ class WhatsAppApiClient:
                 raise
             except Exception as e:
                 _LOGGER.error("Failed to start session: %s", e)
-                raise HomeAssistantError(f"Failed to start session: {e}")
+                raise HomeAssistantError(f"Failed to start session: {e}") from e
 
     async def delete_session(self) -> None:
         """Delete the session (Logout/Reset)."""
@@ -206,7 +206,7 @@ class WhatsAppApiClient:
                         raise HomeAssistantError(f"Addon error {resp.status}: {text}")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
-                raise HomeAssistantError(f"Failed to delete session: {e}")
+                raise HomeAssistantError(f"Failed to delete session: {e}") from e
 
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""
@@ -1078,4 +1078,6 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                raise HomeAssistantError(f"Failed to mark message as read: {text_content}")
+                raise HomeAssistantError(
+                    f"Failed to mark message as read: {text_content}"
+                )

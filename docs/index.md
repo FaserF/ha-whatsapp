@@ -160,7 +160,7 @@ graph TD
 > **Privacy First**: Your WhatsApp connection is local. No external servers (other than WhatsApp's official ones) ever see your message content.
 {: .important }
 
-> [!TIP]
+> **Tip:**
 > **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
 
 ## 🏷️ Versions

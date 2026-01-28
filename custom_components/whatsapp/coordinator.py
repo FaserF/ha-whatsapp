@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
 from .const import CONF_POLLING_INTERVAL, DOMAIN
@@ -83,4 +84,6 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         except Exception as err:
-             raise UpdateFailed(f"Unexpected error communicating with API: {err}") from err
+             raise UpdateFailed(
+                 f"Unexpected error communicating with API: {err}"
+             ) from err

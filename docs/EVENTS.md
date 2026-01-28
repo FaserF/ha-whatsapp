@@ -86,5 +86,5 @@ action:
 ```
 {% endraw %}
 
-> [!TIP]
+> **Tip:**
 > For advanced logic, you can inspect `trigger.event.data.raw.message.buttonsResponseMessage` to get the specific `id` of the button that was clicked.

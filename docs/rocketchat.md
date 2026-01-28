@@ -69,7 +69,7 @@ Any incoming WhatsApp message will automatically appear in your configured Rocke
 To send a message back to WhatsApp, prefix your message with the recipient's phone number in brackets:
 > `[49123456789] Hello from Rocket.Chat!`
 
-> [!TIP]
+> **Tip:**
 > You can also send messages to WhatsApp Groups by using the group JID (if you know it) or the group number from the logs.
 
 ---

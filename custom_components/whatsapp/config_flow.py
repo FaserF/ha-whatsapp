@@ -140,7 +140,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 ),
                 errors=errors,
             )
-        except Exception as e:
+        except Exception:
             _LOGGER.exception("Unexpected error in config flow")
             errors["base"] = "unknown"
             return self.async_show_form(
