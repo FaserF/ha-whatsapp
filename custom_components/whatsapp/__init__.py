@@ -58,12 +58,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
         # Normalize sender for the event
-        # If it's a standard user (@s.whatsapp.net or @lid), strip the suffix
-        # This makes it easier for users to use numeric strings in automations
+        # The addon now sends 'sender_number' which is the best-effort phone number
+        # We prefer that over splitting the raw JID which might be an LID (UUID)
         full_sender = data.get("sender", "")
-        clean_sender = full_sender
-        if "@s.whatsapp.net" in full_sender or "@lid" in full_sender:
-            clean_sender = full_sender.split("@")[0]
+        sender_number = data.get("sender_number")
+
+        if sender_number:
+            clean_sender = sender_number
+        else:
+            # Fallback for older addon versions or weird cases
+            clean_sender = full_sender
+            if "@s.whatsapp.net" in full_sender or "@lid" in full_sender:
+                clean_sender = full_sender.split("@")[0]
 
         data["sender"] = clean_sender
         data["raw_sender"] = full_sender

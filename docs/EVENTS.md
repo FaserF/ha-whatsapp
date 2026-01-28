@@ -12,9 +12,14 @@ The event payload contains the following fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `sender` | string | The cleaned phone number (e.g., `49123456789`). Best for simple automation triggers. |
-| `raw_sender` | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `12345678-999...@g.us`). |
+| `sender` | string | The cleaned sender (e.g., `49123456789` or `remoteJid`) or Group ID. |
+| `sender_number` | string | The numeric part of the sender (e.g., `49123456789`). |
+| `raw_sender` | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`). |
 | `content` | string | The text body of the message. |
+| `media_url` | string | URL to download the received media (if any). |
+| `media_path` | string | Internal local path to the media file. |
+| `media_type` | string | Type of media: `image`, `video`, `audio`, `document`, `sticker`. |
+| `media_mimetype` | string | MIME type of the media (e.g., `image/jpeg`). |
 | `timestamp` | int | Unix timestamp of when the message was received. |
 | `raw` | object | The complete raw JSON payload from the WhatsApp engine (for advanced users). |
 
