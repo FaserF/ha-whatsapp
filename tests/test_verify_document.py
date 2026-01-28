@@ -4,8 +4,8 @@ import sys
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.exceptions import HomeAssistantError
 import pytest
+from homeassistant.exceptions import HomeAssistantError
 
 # Mock homeassistant modules before possible imports
 if "homeassistant" not in sys.modules:
