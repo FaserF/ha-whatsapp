@@ -8,9 +8,9 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
 from .const import CONF_POLLING_INTERVAL, DOMAIN
