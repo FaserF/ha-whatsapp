@@ -40,8 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
@@ -75,6 +76,9 @@ jobs:
              elif [[ "$BUMP_TYPE" == "major" ]]; then
                  BASE_VERSION="$((major + 1)).0.0"
                  echo "ℹ️ Manual Major Bump: Adjusted Base Version to $BASE_VERSION"
+             elif [[ "$BUMP_TYPE" == "patch" ]]; then
+                 BASE_VERSION="${major}.${minor}.$((patch + 1))"
+                 echo "ℹ️ Manual Patch Bump: Adjusted Base Version to $BASE_VERSION"
              fi
           fi
 
@@ -127,23 +131,20 @@ jobs:
             PRERELEASE="false"
 
           elif [[ "$RELEASE_TYPE" == "beta" ]]; then
-            # Ensure it has a beta suffix if it doesn't already
-            if [[ "$RAW_VERSION" != *"b"* ]]; then
-               # Check tags to see if we already have a beta for this base
-               LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
-               if [[ -z "$LAST_BETA" ]]; then
+             # Always look for the next logical beta tag for the calculated BASE_VERSION
+             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
+
+             if [[ -z "$LAST_BETA" ]]; then
+                 # No beta exists for this base, start at b0
                  VERSION="${BASE_VERSION}b0"
-               else
+             else
                  # Increment last beta (e.g. v1.0.1b0 -> 1.0.1b1)
                  B_NUM=$(echo "$LAST_BETA" | sed 's/.*b//')
                  VERSION="${BASE_VERSION}b$((B_NUM + 1))"
-               fi
-            else
-               # If already a beta, we keep it as is or increment it if it's workflow_dispatch
-               VERSION="$RAW_VERSION"
-            fi
-            SHOULD_RELEASE="true"
-            PRERELEASE="true"
+             fi
+
+             SHOULD_RELEASE="true"
+             PRERELEASE="true"
 
           elif [[ "$RELEASE_TYPE" == "nightly" ]]; then
             # Nightly releases should follow the pattern: X.Y.Z.dev<date>
@@ -248,6 +249,10 @@ jobs:
             LAST_TAG=$(git tag --sort=-v:refname | head -n 1)
             echo "base_tag=$LAST_TAG" >> $GITHUB_OUTPUT
             echo "🔍 Comparing prerelease against last tag: $LAST_TAG"
+          fi
+
+          if [[ -z "$LAST_STABLE" ]] && [[ -z "$LAST_TAG" ]]; then
+             echo "⚠️ No previous tags found. Changelog will cover all commits."
           fi
 
       - name: 📝 Build Changelog

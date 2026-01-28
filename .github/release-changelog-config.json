@@ -44,7 +44,7 @@
         "no-changelog"
     ],
     "sort": "ASC",
-    "template": "# ${{TITLE}}\n\n${{CHANGELOG}}\n",
+    "template": "# Changelog\n\n${{CHANGELOG}}\n",
     "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
     "commit_template": "- ${{MESSAGE}}",
     "empty_template": "No significant changes in this release.",
