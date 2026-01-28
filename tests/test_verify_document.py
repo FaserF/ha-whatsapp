@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Mock homeassistant modules before possible imports
@@ -20,17 +21,17 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MockAsyncContextManager:
-    def __init__(self, return_value):
+    def __init__(self, return_value: Any) -> None:
         self.return_value = return_value
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Any:
         return self.return_value
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         pass
 
 
-async def test_verify_send_document():
+async def test_verify_send_document() -> None:
     """Verify the send_document logic."""
     _LOGGER.info("Verifying send_document logic...")
 

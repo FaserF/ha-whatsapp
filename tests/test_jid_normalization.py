@@ -1,7 +1,7 @@
 from custom_components.whatsapp.api import WhatsAppApiClient
 
 
-def test_jid_normalization():
+def test_jid_normalization() -> None:
     """Test JID normalization logic."""
     client = WhatsAppApiClient(host="http://localhost:8066")
 
