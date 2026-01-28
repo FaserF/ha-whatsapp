@@ -9,19 +9,36 @@ on:
     - cron: '0 0 * * 6' # Weekly on Saturday Midnight
   workflow_dispatch:
     inputs:
+      help:
+        description: |
+          ℹ️ QUICK HELP - HOW VERSIONING WORKS:
+          --------------------------------------
+          1. RELEASE TYPE:
+             • Stable: Tags X.Y.Z (from Latest Stable + Bump).
+             • Beta: Tags X.Y.ZbN (Increments N automatically).
+             • Nightly: Tags X.Y.Z.devYYYYMMDD.
+
+          2. AUTO-BUMP TYPE (Base Versioning):
+             • Applies to the LATEST STABLE tag in git.
+             • Example: Latest=1.0.5, Minor+Beta -> 1.1.0b0. Next run -> 1.1.0b1.
+
+          3. MANUAL: Use this only if you provide a version manually.
+        required: false
+        type: boolean
+        default: true
       release_type:
-        description: 'Release Type'
+        description: 'Which type of release to create?'
         required: true
         default: 'beta'
         type: choice
         options:
-        - stable
         - beta
+        - stable
         - nightly
-        - manual
         - addon_sync
+        - manual
       bump_type:
-        description: 'Auto-Bump Type'
+        description: 'Bump type applied to the last STABLE version (determines the base for Beta/Nightly)'
         required: true
         default: 'patch'
         type: choice
@@ -30,7 +47,7 @@ on:
         - minor
         - major
       manual_version:
-        description: 'Manual Version (only for Manual release type)'
+        description: 'Manual Version (only for Manual release type, e.g. 1.2.3b5)'
         required: false
         type: string
 
