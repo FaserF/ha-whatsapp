@@ -117,7 +117,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         try:
             await self.client.connect()
             # connect() now raises Exception if not 200 OK or invalid auth
-        except Exception as e:
+        except HomeAssistantError as e:
             error_msg = str(e)
             _LOGGER.error("Config Flow Validation Error: %s", error_msg)
 
@@ -126,6 +126,23 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             else:
                 errors["base"] = "cannot_connect"
 
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("host", default=user_input.get("host")): vol.All(
+                            str, vol.Length(min=1)
+                        ),
+                        vol.Required(
+                            CONF_API_KEY, default=user_input.get(CONF_API_KEY)
+                        ): vol.All(str, vol.Length(min=1)),
+                    }
+                ),
+                errors=errors,
+            )
+        except Exception as e:
+            _LOGGER.exception("Unexpected error in config flow")
+            errors["base"] = "unknown"
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -178,10 +195,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 self.qr_code = await self.client.get_qr_code()
         except ImportError:
             return self.async_abort(reason="missing_dependency")
-        except Exception as e:
-            _LOGGER.exception("Unexpected error initializing WhatsApp client")
+        except HomeAssistantError as e:
+            _LOGGER.warning("Error initializing WhatsApp client: %s", e)
             if "Invalid API Key" in str(e):
                 return self.async_abort(reason="invalid_auth")
+            return self.async_abort(reason="connection_error")
+        except Exception:
+            _LOGGER.exception("Unexpected error initializing WhatsApp client")
             return self.async_abort(reason="connection_error")
 
         if user_input is not None:
@@ -359,9 +379,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 test_client = WhatsAppApiClient(host=host, api_key=new_key)
                 try:
                     await test_client.connect()
-                except Exception:
+                except HomeAssistantError:
                     errors["base"] = "invalid_auth"
                     # Redisplay form with error
+                    return self.async_show_form(
+                        step_id="init",
+                        data_schema=self._get_schema(),
+                        description_placeholders=self._get_placeholders(),
+                        errors=errors,
+                    )
+                except Exception:
+                    _LOGGER.exception("Unexpected error validation API Key")
+                    errors["base"] = "invalid_auth"
                     return self.async_show_form(
                         step_id="init",
                         data_schema=self._get_schema(),

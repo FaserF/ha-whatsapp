@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 import aiohttp
+from homeassistant.exceptions import HomeAssistantError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -178,16 +179,16 @@ class WhatsAppApiClient:
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
                 ) as resp:
                     if resp.status == 401:
-                        raise Exception("Invalid API Key")
+                        raise HomeAssistantError("Invalid API Key")
                     if resp.status != 200:
                         _LOGGER.error("Start session failed: %s", resp.status)
                         # We don't raise here strictly to allow "already started" flows?
                         # But 401 must raise.
-            except Exception as e:
-                if "Invalid API Key" in str(e):
-                    raise
-                _LOGGER.error("Failed to start session: %s", e)
+            except HomeAssistantError:
                 raise
+            except Exception as e:
+                _LOGGER.error("Failed to start session: %s", e)
+                raise HomeAssistantError(f"Failed to start session: {e}")
 
     async def delete_session(self) -> None:
         """Delete the session (Logout/Reset)."""
@@ -199,13 +200,13 @@ class WhatsAppApiClient:
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
                 ) as resp:
                     if resp.status == 401:
-                        raise Exception("Invalid API Key")
+                        raise HomeAssistantError("Invalid API Key")
                     if resp.status != 200:
                         text = await resp.text()
-                        raise Exception(f"Addon error {resp.status}: {text}")
+                        raise HomeAssistantError(f"Addon error {resp.status}: {text}")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
-                raise
+                raise HomeAssistantError(f"Failed to delete session: {e}")
 
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""
@@ -217,7 +218,7 @@ class WhatsAppApiClient:
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
                 ) as resp:
                     if resp.status == 401:
-                        raise Exception("Invalid API Key")
+                        raise HomeAssistantError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
                         status = data.get("status", "")
@@ -242,9 +243,9 @@ class WhatsAppApiClient:
                         return str(qr) if qr else ""
                     _LOGGER.warning("QR endpoint returned status %s", resp.status)
                     return ""
+            except HomeAssistantError:
+                raise
             except Exception as e:
-                if "Invalid API Key" in str(e):
-                    raise
                 _LOGGER.error("Error fetching QR from addon: %s", e)
                 return ""
 
@@ -258,7 +259,7 @@ class WhatsAppApiClient:
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
                 ) as resp:
                     if resp.status == 401:
-                        raise Exception("Invalid API Key")
+                        raise HomeAssistantError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
                         connected = bool(data.get("connected", False))
@@ -269,10 +270,11 @@ class WhatsAppApiClient:
                     _LOGGER.debug("Unexpected API response in connect: %s", resp.status)
                     self._connected = False
                     return False
+            except HomeAssistantError:
+                self._connected = False
+                raise
             except Exception as e:
                 self._connected = False
-                if "Invalid API Key" in str(e):
-                    raise
                 # Connectivity error (ClientConnectorError, etc)
                 _LOGGER.debug("Cannot connect to Addon: %s", e)
                 return False
@@ -305,10 +307,10 @@ class WhatsAppApiClient:
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(self._send_message_internal, target_jid, message)
 
     async def _send_message_internal(self, number: str, message: str) -> None:
@@ -333,8 +335,9 @@ class WhatsAppApiClient:
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = message
                 self.stats["last_failed_target"] = number
+                self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send: {text}")
+                raise HomeAssistantError(f"Failed to send: {text}")
 
             # Local fallback increment (stats will update on next poll)
             self.stats["sent"] += 1
@@ -379,10 +382,10 @@ class WhatsAppApiClient:
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_poll_internal, target_jid, question, options
         )
@@ -411,8 +414,9 @@ class WhatsAppApiClient:
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Poll: {question}"
                 self.stats["last_failed_target"] = number
+                self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send poll: {text}")
+                raise HomeAssistantError(f"Failed to send poll: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Poll: {question}"
@@ -423,10 +427,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send an image (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_image_internal, target_jid, image_url, caption
         )
@@ -458,7 +462,7 @@ class WhatsAppApiClient:
                 )
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send image: {text}")
+                raise HomeAssistantError(f"Failed to send image: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Image Sent"
@@ -473,10 +477,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a document (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_document_internal, target_jid, url, file_name, caption
         )
@@ -516,7 +520,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Document: {label}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send document: {text}")
+                raise HomeAssistantError(f"Failed to send document: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
@@ -530,10 +534,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a video (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(self._send_video_internal, target_jid, url, caption)
 
     async def _send_video_internal(
@@ -564,7 +568,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Video: {caption or 'unnamed'}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send video: {text}")
+                raise HomeAssistantError(f"Failed to send video: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Video: {caption or 'unnamed'}"
@@ -578,10 +582,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send audio (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(self._send_audio_internal, target_jid, url, ptt)
 
     async def _send_audio_internal(
@@ -612,7 +616,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = "Voice Note" if ptt else "Audio"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send audio: {text}")
+                raise HomeAssistantError(f"Failed to send audio: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
@@ -625,10 +629,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Revoke (delete) a message."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._revoke_message_internal, target_jid, message_id
         )
@@ -656,7 +660,7 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise Exception(f"Failed to revoke message: {text}")
+                raise HomeAssistantError(f"Failed to revoke message: {text}")
 
     async def edit_message(
         self,
@@ -666,10 +670,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Edit a message."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._edit_message_internal, target_jid, message_id, new_content
         )
@@ -702,7 +706,7 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise Exception(f"Failed to edit message: {text}")
+                raise HomeAssistantError(f"Failed to edit message: {text}")
 
     async def send_location(
         self,
@@ -714,10 +718,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a location (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_location_internal,
             target_jid,
@@ -763,7 +767,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Location: {name or 'Pinned'}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
-                raise Exception(f"Failed to send location: {text}")
+                raise HomeAssistantError(f"Failed to send location: {text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Location: {name or 'Pinned'}"
@@ -772,10 +776,10 @@ class WhatsAppApiClient:
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_reaction_internal, target_jid, text, message_id
         )
@@ -804,8 +808,7 @@ class WhatsAppApiClient:
                 self.stats["last_failed_message"] = f"Reaction: {text}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text_content
-
-                raise Exception(f"Failed to send reaction: {text_content}")
+                raise HomeAssistantError(f"Failed to send reaction: {text_content}")
 
     async def set_webhook(
         self,
@@ -830,10 +833,10 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise Exception(f"Failed to set webhook: {text}")
+                raise HomeAssistantError(f"Failed to set webhook: {text}")
 
     async def send_list(
         self,
@@ -845,10 +848,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a list message (interactive menu)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_list_internal, target_jid, title, text, button_text, sections
         )
@@ -882,14 +885,14 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"List: {title}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = resp_text
-                raise Exception(f"Failed to send list: {resp_text}")
+                raise HomeAssistantError(f"Failed to send list: {resp_text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"List: {title}"
@@ -903,10 +906,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a contact card (VCard)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_contact_internal, target_jid, contact_name, contact_number
         )
@@ -936,14 +939,14 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Contact: {contact_name}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = resp_text
-                raise Exception(f"Failed to send contact: {resp_text}")
+                raise HomeAssistantError(f"Failed to send contact: {resp_text}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Contact: {contact_name}"
@@ -952,10 +955,10 @@ class WhatsAppApiClient:
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         url = f"{self.host}/set_presence"
         payload = {"number": target_jid, "presence": presence}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -969,10 +972,10 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                raise Exception(f"Failed to set presence: {text_content}")
+                raise HomeAssistantError(f"Failed to set presence: {text_content}")
 
     async def send_buttons(
         self,
@@ -983,10 +986,10 @@ class WhatsAppApiClient:
     ) -> None:
         """Send a message with buttons (with retry)."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
             self._send_buttons_internal, target_jid, text, buttons, footer
         )
@@ -1017,14 +1020,14 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Buttons: {text}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text_content
-                raise Exception(f"Failed to send buttons: {text_content}")
+                raise HomeAssistantError(f"Failed to send buttons: {text_content}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Buttons: {text}"
@@ -1040,25 +1043,25 @@ class WhatsAppApiClient:
                     url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
                 ) as resp:
                     if resp.status == 401:
-                        raise Exception("Invalid API Key")
+                        raise HomeAssistantError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
                         return list(data)
                     _LOGGER.warning("Groups endpoint returned status %s", resp.status)
                     return []
+            except HomeAssistantError:
+                raise
             except Exception as e:
-                if "Invalid API Key" in str(e):
-                    raise
                 _LOGGER.error("Error fetching groups from addon: %s", e)
                 return []
 
     async def mark_as_read(self, number: str, message_id: str) -> None:
         """Mark a message as read."""
         if not self.is_allowed(number):
-            return
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            return
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         url = f"{self.host}/mark_as_read"
         payload = {"number": target_jid, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -1072,7 +1075,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                raise Exception(f"Failed to mark message as read: {text_content}")
+                raise HomeAssistantError(f"Failed to mark message as read: {text_content}")

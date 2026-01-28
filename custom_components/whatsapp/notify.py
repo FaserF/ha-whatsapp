@@ -275,6 +275,8 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     await self.client.send_audio(target, url, ptt)
                 else:
                     await self.client.send_message(target, message)
+            except HomeAssistantError as err:
+                raise err
             except Exception as err:
                 _LOGGER.error("Error sending WhatsApp message to %s: %s", target, err)
 

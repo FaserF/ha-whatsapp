@@ -70,8 +70,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "connected": connected,
                 "stats": stats,
             }
-        except Exception as err:
-            # Create issue for connection failure (Addon unreachable)
+        except HomeAssistantError as err:
+            # Create issue for connection failure (Addon unreachable or Auth)
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
@@ -82,3 +82,5 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 translation_placeholders={"error": str(err)},
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+        except Exception as err:
+             raise UpdateFailed(f"Unexpected error communicating with API: {err}") from err
