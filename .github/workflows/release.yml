@@ -114,8 +114,8 @@ jobs:
             # Parse Major.Minor from Base Version
             IFS='.' read -r major minor patch <<< "$BASE_VERSION"
 
-            # Find highest existing tag for this Major.Minor version
-            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" --sort=-v:refname | head -n 1)
+            # Find highest existing STABLE tag for this Major.Minor version (exclude betas/devs)
+            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
 
             if [[ -n "$HIGHEST_TAG" ]]; then
               # Extract patch from highest tag (v1.0.1 -> 1)

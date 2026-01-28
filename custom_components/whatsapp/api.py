@@ -81,7 +81,14 @@ class WhatsAppApiClient:
         return False
 
     def ensure_jid(self, target: str | None) -> str | None:
-        """Ensure the target is a valid JID."""
+        """Ensure the target is a valid JID.
+
+        Handles:
+        - Full JIDs with @domain
+        - Old-style group IDs with hyphen (creator-timestamp)
+        - Modern numeric group IDs (16+ digits)
+        - Phone numbers
+        """
         if not target:
             return target
 
@@ -92,15 +99,21 @@ class WhatsAppApiClient:
             return target.replace("+", "") if target.startswith("+") else target
 
         # If it contains exactly one hyphen and both parts are numeric,
-        # it's likely a group ID
+        # it's likely an old-style group ID (creator-timestamp)
         if "-" in target:
             parts = target.split("-")
             if len(parts) == 2 and all(p.isdigit() for p in parts):
                 return f"{target}@g.us"
 
-        # Otherwise treat as phone number
-        # Remove any leading + and non-digit characters
+        # Clean all non-digit characters for further analysis
         clean_number = "".join(filter(str.isdigit, target))
+
+        # Modern group IDs are typically 16-20 digits (much longer than phone numbers)
+        # E.164 phone numbers are max 15 digits (including country code)
+        if len(clean_number) >= 16:
+            return f"{clean_number}@g.us"
+
+        # Default: treat as phone number
         return f"{clean_number}@s.whatsapp.net"
 
     def _mask(self, text: str) -> str:
@@ -1055,15 +1068,24 @@ class WhatsAppApiClient:
                 _LOGGER.error("Error fetching groups from addon: %s", e)
                 return []
 
-    async def mark_as_read(self, number: str, message_id: str) -> None:
-        """Mark a message as read."""
+    async def mark_as_read(self, number: str, message_id: str | None = None) -> None:
+        """Mark a message (or all messages) as read.
+
+        Args:
+            number: Target phone number or group ID
+            message_id: Optional specific message ID.
+                If None, marks all unread messages.
+        """
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         url = f"{self.host}/mark_as_read"
-        payload = {"number": target_jid, "messageId": message_id}
+        payload: dict[str, Any] = {"number": target_jid}
+        if message_id:
+            payload["messageId"] = message_id
+        # If no messageId, addon will mark all unread messages
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,

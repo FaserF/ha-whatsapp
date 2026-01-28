@@ -7,12 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-# Mock homeassistant modules before possible imports
-if "homeassistant" not in sys.modules:
-    sys.modules["homeassistant"] = MagicMock()
-if "homeassistant.core" not in sys.modules:
-    sys.modules["homeassistant.core"] = MagicMock()
-
 try:
     from custom_components.whatsapp.api import WhatsAppApiClient
 except ImportError:

@@ -1,373 +1,601 @@
+# =============================================================================
+# WhatsApp Integration - Home Assistant Services
+# =============================================================================
+# All services support phone numbers (with/without +), Group IDs, and full JIDs.
+# The integration automatically normalizes formats and adds @s.whatsapp.net/@g.us.
+# =============================================================================
+
 send_message:
   name: Send Message
-  description: Sends a text message to a WhatsApp number.
+  description: >
+    Sends a plain text message to a WhatsApp user or group.
+    This is the most basic messaging action. Use it for notifications,
+    alerts, or any text-based communication from your automations.
+    Supports emoji, line breaks (\n), and basic formatting (*bold*, _italic_).
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID (e.g., 49123456789 or 1234567-890). The '+' and suffixes (@s.whatsapp.net/@g.us) are added automatically.
-      example: "49123456789"
+      description: >
+        The recipient's phone number (with country code) or a Group ID.
+        Examples: "49123456789", "+1-555-123-4567", "120363123456789012@g.us".
+        The '+' prefix and WhatsApp suffixes are added automatically.
+      example: "49171234567"
       required: true
       selector:
         text:
     message:
       name: Message
-      description: The text message content.
-      example: "Hello from Home Assistant!"
+      description: >
+        The text content to send. Supports WhatsApp formatting:
+        *bold*, _italic_, ~strikethrough~, ```monospace```.
+        Use \n for line breaks.
+      example: "🏠 *Home Assistant Alert*\n\nThe front door was opened at {{ now().strftime('%H:%M') }}."
       required: true
       selector:
         text:
+          multiline: true
 
 send_poll:
   name: Send Poll
-  description: Sends a poll to a WhatsApp number.
+  description: >
+    Sends an interactive poll/survey to a WhatsApp user or group.
+    Recipients can vote on the options. Perfect for household decisions,
+    dinner choices, or gathering feedback from family members.
+    Note: Poll results are received via webhook events.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
+      description: The phone number or Group ID to send the poll to.
+      example: "49171234567"
       required: true
       selector:
         text:
     question:
       name: Question
-      description: The poll question.
+      description: The poll question that recipients will vote on.
+      example: "What should we have for dinner tonight?"
       required: true
       selector:
         text:
     options:
       name: Options
-      description: List of options for the poll.
+      description: >
+        List of voting options. Provide as a YAML list or JSON array.
+        Maximum 12 options allowed by WhatsApp.
+      example:
+        - "Pizza 🍕"
+        - "Sushi 🍣"
+        - "Pasta 🍝"
+        - "Order something else"
       required: true
       selector:
         object:
 
 send_image:
   name: Send Image
-  description: Sends an image to a WhatsApp number.
+  description: >
+    Sends an image with an optional caption to a WhatsApp user or group.
+    The image must be accessible via a public URL (HTTPS recommended).
+    Ideal for sending camera snapshots, graphs, or notifications with visuals.
+    Supported formats: JPEG, PNG, WebP. Max size: 16MB.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
+      description: The phone number or Group ID to send the image to.
+      example: "49171234567"
       required: true
       selector:
         text:
     url:
       name: Image URL
-      description: A publicly accessible URL to the image.
+      description: >
+        A publicly accessible HTTPS URL to the image file.
+        For local files, use a service like your Home Assistant external URL
+        with /local/ path or a camera snapshot URL.
+      example: "https://my-home.duckdns.org/local/camera_snapshots/front_door.jpg"
       required: true
       selector:
         text:
     caption:
       name: Caption
-      description: Optional text caption for the image.
+      description: Optional text caption displayed below the image. Supports formatting.
+      example: "📷 Front door camera snapshot at {{ now().strftime('%H:%M:%S') }}"
       selector:
         text:
+          multiline: true
 
 send_document:
   name: Send Document
-  description: Sends a document (PDF, Zip, Doc, etc.) to a WhatsApp number.
+  description: >
+    Sends a document/file to a WhatsApp user or group.
+    Supports PDF, Word, Excel, ZIP, and many other file types.
+    Perfect for sending reports, invoices, backups, or log files.
+    The file must be accessible via a public URL. Max size: 100MB.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
+      description: The phone number or Group ID to send the document to.
+      example: "49171234567"
       required: true
       selector:
         text:
     url:
-      name: URL
-      description: The URL of the document to send.
+      name: Document URL
+      description: >
+        A publicly accessible HTTPS URL to the document.
+        Must start with http:// or https://.
+      example: "https://my-home.duckdns.org/local/reports/energy_report.pdf"
       required: true
       selector:
         text:
     file_name:
       name: File Name
-      description: Optional override for the filename (e.g., invoice.pdf).
+      description: >
+        Override the filename shown to the recipient.
+        If not provided, the filename is extracted from the URL.
+      example: "Energy_Report_January_2024.pdf"
       selector:
         text:
     message:
       name: Caption
-      description: Optional text caption for the document.
+      description: Optional text caption displayed with the document.
+      example: "📊 Here's your monthly energy consumption report."
       selector:
         text:
 
 send_video:
   name: Send Video
-  description: Sends a video file to a WhatsApp number.
+  description: >
+    Sends a video file to a WhatsApp user or group.
+    Useful for sending security camera clips, doorbell recordings,
+    or any video content. Supported formats: MP4, 3GP, MOV.
+    Max size: 16MB for standard, 64MB for WhatsApp Web.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send the video to.
+      example: "49171234567"
       required: true
       selector:
         text:
     url:
-      name: URL
-      description: The URL of the video to send.
+      name: Video URL
+      description: A publicly accessible HTTPS URL to the video file.
+      example: "https://my-home.duckdns.org/local/clips/doorbell_motion.mp4"
       required: true
       selector:
         text:
     message:
       name: Caption
-      description: Optional text caption for the video.
+      description: Optional caption displayed with the video.
+      example: "🚪 Motion detected at front door - {{ now().strftime('%H:%M') }}"
       selector:
         text:
 
 send_audio:
   name: Send Audio
-  description: Sends an audio file or voice note.
+  description: >
+    Sends an audio file or voice note to a WhatsApp user or group.
+    Can send as a regular audio file (shows as playable file) or
+    as a voice note/PTT (shows with waveform, like a recorded message).
+    Supported formats: MP3, OGG, WAV, AAC. Max size: 16MB.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send the audio to.
+      example: "49171234567"
       required: true
       selector:
         text:
     url:
-      name: URL
-      description: The URL of the audio file.
+      name: Audio URL
+      description: A publicly accessible HTTPS URL to the audio file.
+      example: "https://my-home.duckdns.org/local/audio/doorbell_chime.mp3"
       required: true
       selector:
         text:
     ptt:
-      name: Voice Note (PTT)
-      description: Send as a voice note (waveform) instead of audio (file).
+      name: Voice Note (Push-to-Talk)
+      description: >
+        If enabled, sends as a voice note with waveform visualization
+        (like a recorded voice message). If disabled, sends as a regular
+        audio file attachment.
+      example: true
+      default: false
       selector:
         boolean:
 
-revoke_message:
-  name: Revoke Message
-  description: Deletes a sent message for everyone.
+send_location:
+  name: Send Location
+  description: >
+    Sends a location pin to a WhatsApp user or group.
+    The recipient sees an interactive map preview they can tap to open
+    in their maps app. Perfect for sharing addresses, meeting points,
+    or your home location for deliveries.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID the message was sent to.
+      description: The phone number or Group ID to send the location to.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: The latitude coordinate (decimal degrees). Use device_tracker or zone entities.
+      example: 48.137154
+      required: true
+      selector:
+        number:
+          mode: box
+          step: any
+          min: -90
+          max: 90
+    longitude:
+      name: Longitude
+      description: The longitude coordinate (decimal degrees).
+      example: 11.576124
+      required: true
+      selector:
+        number:
+          mode: box
+          step: any
+          min: -180
+          max: 180
+    name:
+      name: Location Name
+      description: A friendly name for the location (shown as title on the map).
+      example: "Home"
+      selector:
+        text:
+    address:
+      name: Address
+      description: The street address (shown below the name on the map preview).
+      example: "Marienplatz 1, 80331 München, Germany"
+      selector:
+        text:
+
+send_contact:
+  name: Send Contact (vCard)
+  description: >
+    Sends a contact card (vCard) to a WhatsApp user or group.
+    The recipient can save the contact directly to their phone.
+    Useful for sharing business contacts, emergency numbers,
+    or service provider details.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send the contact to.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    name:
+      name: Display Name
+      description: The full name of the contact as it should appear.
+      example: "Dr. Max Mustermann"
+      required: true
+      selector:
+        text:
+    contact_number:
+      name: Phone Number
+      description: The phone number for the contact card (with country code).
+      example: "+49 89 12345678"
+      required: true
+      selector:
+        text:
+
+send_reaction:
+  name: Send Reaction
+  description: >
+    Adds an emoji reaction to a specific message.
+    Just like tapping and holding a message in WhatsApp to react.
+    Requires the message_id which you receive from webhook events
+    or from the response of a send action.
+  fields:
+    target:
+      name: Target Chat
+      description: The phone number or Group ID where the message is located.
+      example: "49171234567"
       required: true
       selector:
         text:
     message_id:
       name: Message ID
-      description: The ID of the message to revoke.
+      description: >
+        The unique WhatsApp message ID to react to.
+        Format: 3EB0XXXXXXXXXXXXXXXXXX (received via webhook or action response).
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      required: true
+      selector:
+        text:
+    reaction:
+      name: Reaction Emoji
+      description: The emoji to react with. Use any single emoji.
+      example: "👍"
+      required: true
+      selector:
+        text:
+
+send_buttons:
+  name: Send Buttons
+  description: >
+    Sends a message with interactive buttons that the recipient can tap.
+    When tapped, the button ID is sent back via webhook.
+    Perfect for confirmation dialogs, quick replies, or menu selections.
+    Maximum 3 buttons per message. Also supports Telegram inline_keyboard format.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send to.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    message:
+      name: Message Body
+      description: The main text message displayed above the buttons.
+      example: "🚨 *Security Alert*\n\nMotion detected at the front door. What would you like to do?"
+      required: true
+      selector:
+        text:
+          multiline: true
+    buttons:
+      name: Buttons
+      description: >
+        List of buttons. Each button needs an 'id' and 'displayText'.
+        The ID is returned when the button is clicked (via webhook).
+        Max 3 buttons. Also supports Telegram inline_keyboard format.
+      example:
+        - id: "arm_alarm"
+          displayText: "🔒 Arm Alarm"
+        - id: "view_camera"
+          displayText: "📷 View Camera"
+        - id: "ignore"
+          displayText: "✓ Dismiss"
+      required: true
+      selector:
+        object:
+    footer:
+      name: Footer Text
+      description: Optional small text shown below the buttons.
+      example: "Tap a button to respond"
+      selector:
+        text:
+
+send_list:
+  name: Send List Message (Menu)
+  description: >
+    Sends an interactive list/menu that expands when the user taps a button.
+    Contains sections with selectable rows. When a row is selected,
+    its ID is sent back via webhook. Ideal for complex menus,
+    settings selection, or multi-option responses.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send to.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    title:
+      name: Header Title
+      description: The bold title shown at the top of the message.
+      example: "🏠 Smart Home Control"
+      selector:
+        text:
+    text:
+      name: Body Text
+      description: The main message text explaining the menu.
+      example: "Select an action from the menu below to control your home."
+      selector:
+        text:
+          multiline: true
+    button_text:
+      name: Menu Button Label
+      description: The text on the button that opens the list menu.
+      example: "Open Menu"
+      selector:
+        text:
+    sections:
+      name: Menu Sections
+      description: >
+        The sections and rows for the list menu. Each section has a title
+        and rows. Each row needs: id, title, and optional description.
+      example:
+        - title: "Lighting"
+          rows:
+            - id: "lights_on"
+              title: "💡 All Lights On"
+              description: "Turn on all lights in the house"
+            - id: "lights_off"
+              title: "🌙 All Lights Off"
+              description: "Turn off all lights"
+        - title: "Climate"
+          rows:
+            - id: "heating_boost"
+              title: "🔥 Heating Boost"
+              description: "Boost heating for 1 hour"
+            - id: "ac_on"
+              title: "❄️ AC On"
+              description: "Turn on air conditioning"
+      required: true
+      selector:
+        object:
+
+revoke_message:
+  name: Revoke (Delete) Message
+  description: >
+    Deletes a previously sent message for everyone in the chat.
+    Works like "Delete for Everyone" in WhatsApp. The message is replaced
+    with "This message was deleted". Must be called within the WhatsApp
+    time limit (usually ~1 hour for groups, longer for individual chats).
+  fields:
+    target:
+      name: Target Chat
+      description: The phone number or Group ID where the message was sent.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: >
+        The unique ID of the message to delete.
+        Obtained from the webhook event or send action response.
+      example: "3EB0B8A7C2E4F6789ABCDE"
       required: true
       selector:
         text:
 
 edit_message:
   name: Edit Message
-  description: Edits the text of a sent message.
+  description: >
+    Edits the text content of a previously sent message.
+    The message will show "(edited)" indicator. Useful for correcting
+    typos or updating information in a sent message.
+    Only works for text messages, not media.
   fields:
     target:
-      name: Target Number
-      description: The phone number or Group ID the message was sent to.
+      name: Target Chat
+      description: The phone number or Group ID where the message was sent.
+      example: "49171234567"
       required: true
       selector:
         text:
     message_id:
       name: Message ID
-      description: The ID of the message to edit.
+      description: The unique ID of the message to edit.
+      example: "3EB0B8A7C2E4F6789ABCDE"
       required: true
       selector:
         text:
     message:
-      name: New Text
-      description: The new text content for the message.
+      name: New Message Text
+      description: The new text content that will replace the original message.
+      example: "Updated: The meeting is now at 3 PM instead of 2 PM."
       required: true
       selector:
         text:
+          multiline: true
 
-send_list:
-  name: Send List Message (Menu)
-  description: Sends an interactive list menu.
+update_presence:
+  name: Update Presence
+  description: >
+    Updates your online presence status in a specific chat.
+    Shows typing indicator, recording indicator, or online/offline status.
+    Use "composing" before sending a message to show "typing...",
+    or "recording" to show "recording audio...".
   fields:
     target:
-      name: Target Number
-      description: The phone number or Group ID.
+      name: Target Chat
+      description: The phone number or Group ID to update presence for.
+      example: "49171234567"
       required: true
       selector:
         text:
-    title:
-      name: Title
-      description: The title of the menu.
-      selector:
-        text:
-    text:
-      name: Body Text
-      description: The main body text.
-      selector:
-        text:
-    button_text:
-      name: Button Label
-      description: Text for the menu button (e.g., "Menu").
-      selector:
-        text:
-    sections:
-      name: Sections (JSON/List)
-      description: The sections and rows for the list.
+    presence:
+      name: Presence Status
+      description: >
+        The presence state to broadcast:
+        • available: Show as online
+        • unavailable: Show as offline
+        • composing: Show "typing..." indicator
+        • recording: Show "recording audio..." indicator
+        • paused: Clear typing indicator
+      example: "composing"
       required: true
       selector:
-        object:
-
-send_contact:
-  name: Send Contact (VCard)
-  description: Sends a contact card.
-  fields:
-    target:
-      name: Target Number
-      description: The phone number or Group ID.
-      required: true
-      selector:
-        text:
-    name:
-      name: Display Name
-      description: The proper name of the contact.
-      required: true
-      selector:
-        text:
-    contact_number:
-      name: Phone Number
-      description: The phone number of the contact.
-      required: true
-      selector:
-        text:
+        select:
+          options:
+            - label: "Online"
+              value: "available"
+            - label: "Offline"
+              value: "unavailable"
+            - label: "Typing..."
+              value: "composing"
+            - label: "Recording Audio..."
+              value: "recording"
+            - label: "Clear Indicator"
+              value: "paused"
 
 configure_webhook:
   name: Configure Webhook
-  description: Sets the webhook URL for the Addon to push events to.
+  description: >
+    Configures the webhook URL where the WhatsApp Addon sends incoming
+    message events. This is how Home Assistant receives incoming messages,
+    button clicks, poll votes, and read receipts. Usually set during
+    initial configuration, but can be updated dynamically.
   fields:
     url:
       name: Webhook URL
-      description: The URL to push events to (e.g., Home Assistant webhook).
+      description: >
+        The full URL where events should be posted.
+        Typically your Home Assistant webhook URL.
+      example: "https://my-home.duckdns.org/api/webhook/whatsapp_incoming"
       required: true
       selector:
         text:
     enabled:
       name: Enabled
-      description: Enable or disable the webhook.
+      description: Enable or disable the webhook. Use to temporarily pause event forwarding.
+      example: true
       default: true
       selector:
         boolean:
     token:
-      name: Token
-      description: Optional security token (X-Webhook-Token header).
-      selector:
-        text:
-
-send_location:
-  name: Send Location
-  description: Sends a location (map pin) to a WhatsApp number.
-  fields:
-    target:
-      name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
-      required: true
-      selector:
-        text:
-    latitude:
-      name: Latitude
-      description: Latitude of the location.
-      required: true
-      selector:
-        number:
-          mode: box
-          step: any
-    longitude:
-      name: Longitude
-      description: Longitude of the location.
-      required: true
-      selector:
-        number:
-          mode: box
-          step: any
-    name:
-      name: Name
-      description: Name of the location.
-      selector:
-        text:
-    address:
-      name: Address
-      description: Address of the location.
-      selector:
-        text:
-
-send_reaction:
-  name: Send Reaction
-  description: Sends a reaction emoji to a message.
-  fields:
-    target:
-      name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
-      required: true
-      selector:
-        text:
-    reaction:
-      name: Reaction
-      description: The emoji to react with.
-      required: true
-      selector:
-        text:
-    message_id:
-      name: Message ID
-      description: The ID of the message to react to.
-      required: true
-      selector:
-        text:
-
-update_presence:
-  name: Update Presence
-  description: Updates your chat presence (e.g., "typing...").
-  fields:
-    target:
-      name: Target Number
-      description: The phone number to update presence for (e.g., 49123456789).
-      required: true
-      selector:
-        text:
-    presence:
-      name: Presence
-      description: The presence status.
-      required: true
-      selector:
-        select:
-          options:
-            - available
-            - unavailable
-            - composing
-            - recording
-            - paused
-
-send_buttons:
-  name: Send Buttons
-  description: Sends a message with interactive buttons.
-  fields:
-    target:
-      name: Target Number
-      description: The phone number or Group ID to send to (e.g., 49123456789).
-      required: true
-      selector:
-        text:
-    message:
-      name: Message
-      description: The main message text.
-      required: true
-      selector:
-        text:
-    buttons:
-      name: Buttons
-      description: 'List of buttons (e.g., [{"id": "1", "displayText": "Yes"}]). Also supports Telegram-style inline_keyboard format.'
-      required: true
-      selector:
-        object:
-    footer:
-      name: Footer
-      description: Optional footer text below the buttons.
+      name: Security Token
+      description: >
+        Optional security token sent as X-Webhook-Token header.
+        Use to verify that requests come from your WhatsApp Addon.
+      example: "my_secret_token_12345"
       selector:
         text:
 
 search_groups:
   name: Search Groups
-  description: Find Group IDs by searching for a name. Results are shown as a Persistent Notification.
+  description: >
+    Finds WhatsApp Group IDs by searching for group names.
+
+    ⚠️ IMPORTANT: Results appear as a PERSISTENT NOTIFICATION in Home Assistant!
+    After running this service, click the bell icon (🔔) in the sidebar to see results.
+
+    The notification shows a table with Group Name, Group ID, and participant count.
+    Copy the Group ID (format: 120363012345678901@g.us) to use in other services.
   fields:
     name_filter:
       name: Name Filter
-      description: Optional keyword to filter group names (case-insensitive).
+      description: >
+        Optional keyword to filter results (case-insensitive).
+        Leave empty to list ALL your groups.
       example: "Family"
+      selector:
+        text:
+
+mark_as_read:
+  name: Mark Messages as Read
+  description: >
+    Marks messages as read in a chat (blue double-check ✓✓).
+    Works for both individual chats AND group chats.
+
+    • With message_id: Marks that specific message as read
+    • Without message_id: Marks ALL unread messages in the chat as read
+  fields:
+    target:
+      name: Target Chat
+      description: >
+        The phone number (for direct chats) or Group ID (for groups).
+        Examples: "49171234567" or "120363012345678901@g.us"
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID (Optional)
+      description: >
+        The specific message ID to mark as read.
+        Leave empty to mark ALL unread messages in the chat.
+        Format: 3EB0XXXXXXXXXXXXXXXXXX (from incoming message webhook).
+      example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:

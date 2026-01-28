@@ -475,7 +475,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         search_groups_service,
         schema=vol.Schema(
             {
-                vol.Optional("name_filter"): cv.string,
+                vol.Optional("name_filter", default=""): cv.string,
+            }
+        ),
+    )
+
+    async def mark_as_read_service(call: ServiceCall) -> None:
+        """Handle the mark_as_read service."""
+        number = call.data.get("target")
+        message_id = call.data.get("message_id")  # Optional - if None, mark all
+        if number:
+            await client.mark_as_read(number, message_id)
+
+    hass.services.async_register(
+        DOMAIN,
+        "mark_as_read",
+        mark_as_read_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Optional("message_id"): cv.string,
             }
         ),
     )

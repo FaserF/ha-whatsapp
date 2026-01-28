@@ -285,12 +285,22 @@ If you want to send messages to a group, you need its **Group ID** (JID). Use th
 Finding the "JID" (Group ID) for a group can be tricky. This service helps you find it easily.
 
 **Parameters:**
-- `name_filter` (Optional): Filter groups by name (case-insensitive).
+- `name_filter` (Optional): Filter groups by name (case-insensitive). Leave empty to list ALL groups.
 
 **How it works:**
-1.  Call the service with a name filter.
-2.  Check your **Persistent Notifications** in Home Assistant.
-3.  A table will appear with all matching groups and their IDs.
+1.  Call the service: `action: whatsapp.search_groups` with optional `name_filter`
+2.  **Click the 🔔 bell icon** in the Home Assistant sidebar
+3.  A notification titled "WhatsApp Group Search" will show a table with:
+    - Group Name
+    - Group ID (the JID you need)
+    - Participant count
+
+> **💡 Example:**
+> ```yaml
+> action: whatsapp.search_groups
+> data:
+>   name_filter: "Family"
+> ```
 
 ---
 
