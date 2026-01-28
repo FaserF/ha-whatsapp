@@ -3,8 +3,18 @@ name: CI Orchestrator
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
   workflow_dispatch:
     inputs:
       resource_profile:

@@ -50,102 +50,101 @@
     "empty_template": "No significant changes in this release.",
     "label_extractor": [
         {
-            {
-                "pattern": "^([Ff]eat|[Ff]eature|[Aa]dd)(\\s*\\(.*?\\))?:",
-                "target": "feature",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Nn]ew ([Ff]eat|[Ff]eature).*",
-                "target": "feature",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Ff]ix(\\s*\\(.*?\\))?:",
-                "target": "fix",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Ff]ix(ed|es)? .*",
-                "target": "fix",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Dd]ocs(\\s*\\(.*?\\))?:",
-                "target": "docs",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Uu]pdate .*\\.md$",
-                "target": "docs",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Dd]ocs improvements.*",
-                "target": "docs",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Dd]eps(\\s*\\(.*?\\))?:",
-                "target": "dependency",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Tt]est(\\s*\\(.*?\\))?:",
-                "target": "test",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^([Cc]hore|[Cc]onfig|[Cc][Ii]|[Ww]orkflow|[Rr]uff)(\\s*\\(.*?\\))?:",
-                "target": "chore",
-                "on_property": "message"
-            },
-            {
-                "pattern": ".*\\[skip ci\\].*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^([Cc][Ii] fix|[Cc]hore: auto-fix|[Cc]hore: bump).*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Nn]ew test file.*",
-                "target": "test",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Cc]hore: release version.*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Rr]elease workflow fixes.*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Uu]pdate release\\.yml.*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^[Mm]erge (pull request|branch).*",
-                "target": "ignore",
-                "on_property": "message"
-            },
-            {
-                "pattern": "^([Uu]pdate|[Cc][Ii]|[Ii]mproved|[Ii]nstructions|[Nn]ew|[Aa]llow|[Nn]ew option) .*",
-                "target": "chore",
-                "on_property": "message"
-            }
-        ],
-        "duplicate_filter": {
-            "pattern": "^(v)?\\d+\\.\\d+\\.\\d+.*",
-            "on_property": "title"
+            "pattern": "^([Ff]eat|[Ff]eature|[Aa]dd)(\\s*\\(.*?\\))?:",
+            "target": "feature",
+            "on_property": "message"
         },
-        "base_branches": [
-            "main"
-        ]
-    }
+        {
+            "pattern": "^[Nn]ew ([Ff]eat|[Ff]eature).*",
+            "target": "feature",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Ff]ix(\\s*\\(.*?\\))?:",
+            "target": "fix",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Ff]ix(ed|es)? .*",
+            "target": "fix",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Dd]ocs(\\s*\\(.*?\\))?:",
+            "target": "docs",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Uu]pdate .*\\.md$",
+            "target": "docs",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Dd]ocs improvements.*",
+            "target": "docs",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Dd]eps(\\s*\\(.*?\\))?:",
+            "target": "dependency",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Tt]est(\\s*\\(.*?\\))?:",
+            "target": "test",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^([Cc]hore|[Cc]onfig|[Cc][Ii]|[Ww]orkflow|[Rr]uff)(\\s*\\(.*?\\))?:",
+            "target": "chore",
+            "on_property": "message"
+        },
+        {
+            "pattern": ".*\\[skip ci\\].*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^([Cc][Ii] fix|[Cc]hore: auto-fix|[Cc]hore: bump).*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Nn]ew test file.*",
+            "target": "test",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Cc]hore: release version.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Rr]elease workflow fixes.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Uu]pdate release\\.yml.*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^[Mm]erge (pull request|branch).*",
+            "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^([Uu]pdate|[Cc][Ii]|[Ii]mproved|[Ii]nstructions|[Nn]ew|[Aa]llow|[Nn]ew option) .*",
+            "target": "chore",
+            "on_property": "message"
+        }
+    ],
+    "duplicate_filter": {
+        "pattern": "^(v)?\\d+\\.\\d+\\.\\d+.*",
+        "on_property": "title"
+    },
+    "base_branches": [
+        "main"
+    ]
+}

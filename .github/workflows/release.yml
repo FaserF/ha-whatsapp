@@ -278,8 +278,8 @@ jobs:
           target_commitish: ${{ env.NEW_SHA }}
 
       - name: Bump to next dev version
-        # Only run bump if we did a release AND it was 'auto' OR 'stable' (standard flow).
-        if: steps.params.outputs.should_release == 'true' && (steps.params.outputs.release_type == 'auto' || steps.params.outputs.release_type == 'stable')
+        # Run dev bump for auto, stable, and beta to prevent re-release issues.
+        if: steps.params.outputs.should_release == 'true' && (steps.params.outputs.release_type == 'auto' || steps.params.outputs.release_type == 'stable' || steps.params.outputs.release_type == 'beta')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -295,7 +295,11 @@ jobs:
           # Parse major.minor.patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_VERSION"
 
-          if [[ "$BUMP_TYPE" == "major" ]]; then
+          # For beta releases, just increment patch (e.g., 1.1.0b0 -> 1.1.1-dev)
+          # For stable/auto releases, respect BUMP_TYPE.
+          if [[ "${{ steps.params.outputs.release_type }}" == "beta" ]]; then
+            NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+          elif [[ "$BUMP_TYPE" == "major" ]]; then
             NEXT_VERSION="$((MAJOR + 1)).0.0-dev"
           elif [[ "$BUMP_TYPE" == "minor" ]]; then
             NEXT_VERSION="${MAJOR}.$((MINOR + 1)).0-dev"
