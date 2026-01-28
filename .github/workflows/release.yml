@@ -49,8 +49,6 @@ jobs:
       - name: Determine Release Parameters
         id: params
         run: |
-          # Get version from manifest
-          RAW_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
           RELEASE_TYPE="${{ inputs.release_type || 'auto' }}"
           BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
 
@@ -60,11 +58,19 @@ jobs:
             echo "📅 Scheduled run: Forcing release type to nightly"
           fi
 
-          # Initialize variables
-          BASE_VERSION="${RAW_VERSION%%-*}"
-          # Extra cleaning: strip beta suffix (b0, b1, etc) and dev suffix
-          BASE_VERSION="${BASE_VERSION%%b*}"
-          BASE_VERSION="${BASE_VERSION%%.dev*}"
+          # Get BASE_VERSION from the latest stable git tag (not manifest!)
+          # This ensures consistent versioning regardless of manifest state
+          LATEST_STABLE_TAG=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
+
+          if [[ -z "$LATEST_STABLE_TAG" ]]; then
+            # No stable tags exist, start from 1.0.0
+            BASE_VERSION="1.0.0"
+            echo "ℹ️ No stable tags found, starting from $BASE_VERSION"
+          else
+            # Strip 'v' prefix and any suffixes
+            BASE_VERSION="${LATEST_STABLE_TAG#v}"
+            echo "ℹ️ Derived BASE_VERSION from latest stable tag: $LATEST_STABLE_TAG -> $BASE_VERSION"
+          fi
 
           # Handle manual bump override from workflow_dispatch
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -81,23 +87,27 @@ jobs:
              fi
           fi
 
-          VERSION="$RAW_VERSION"
+          VERSION="$BASE_VERSION"
           SHOULD_RELEASE="false"
           PRERELEASE="false"
 
-          echo "Raw Version: $RAW_VERSION"
-          echo "Base Version (Clean): $BASE_VERSION"
+          echo "Base Version (from git tags): $BASE_VERSION"
           echo "Release Type: $RELEASE_TYPE"
 
           if [[ "$RELEASE_TYPE" == "auto" ]]; then
-            if [[ "$RAW_VERSION" != *"-dev"* ]]; then
+            # Auto mode is triggered by manifest.json push - check if we should release
+            MANIFEST_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
+            if [[ "$MANIFEST_VERSION" != *"-dev"* ]] && [[ "$MANIFEST_VERSION" != *"b"* ]]; then
+              # Manifest has a stable version, release it
+              VERSION="$MANIFEST_VERSION"
               SHOULD_RELEASE="true"
-              # Auto-detect prerelease for auto mode
-              if [[ "$RAW_VERSION" == *"b"* ]]; then
-                 PRERELEASE="true"
-              fi
+              PRERELEASE="false"
+            elif [[ "$MANIFEST_VERSION" == *"b"* ]]; then
+              VERSION="$MANIFEST_VERSION"
+              SHOULD_RELEASE="true"
+              PRERELEASE="true"
             else
-              echo "Auto mode: Skipping release for dev version $RAW_VERSION"
+              echo "Auto mode: Skipping release for dev version $MANIFEST_VERSION"
             fi
 
           elif [[ "$RELEASE_TYPE" == "stable" ]]; then
