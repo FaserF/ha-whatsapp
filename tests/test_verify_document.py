@@ -1,9 +1,10 @@
 
 import logging
+import os
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # Mock homeassistant modules before possible imports
-import sys
 if "homeassistant" not in sys.modules:
     sys.modules["homeassistant"] = MagicMock()
 if "homeassistant.core" not in sys.modules:
@@ -12,8 +13,7 @@ if "homeassistant.core" not in sys.modules:
 try:
     from custom_components.whatsapp.api import WhatsAppApiClient
 except ImportError:
-    # Fallback if running directly without package context, though pytest usually handles this
-    import os
+    # Fallback if running directly without package context
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     from custom_components.whatsapp.api import WhatsAppApiClient
 

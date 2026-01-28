@@ -84,3 +84,35 @@ The payload is a JSON object containing the sender and the message content:
 
 Using this Webhook, you can easily connect to other platforms:
 - **[Rocket.Chat Bridge](rocketchat.md)**: Our official guide for Rocket.Chat integration.
+
+---
+
+## 🛠️ Generic Examples
+
+### 🐍 Python (Flask)
+A simple receiver to log incoming messages:
+
+```python
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/webhook', methods=['POST'])
+def whatsapp_webhook():
+    token = request.headers.get('X-Webhook-Token')
+    if token != "your_secret_token_here":
+        return "Unauthorized", 401
+
+    data = request.json
+    print(f"New message from {data['sender']}: {data['content']}")
+    return jsonify({"status": "received"})
+
+if __name__ == '__main__':
+    app.run(port=5000)
+```
+
+### 🤖 Node-RED
+1.  Add an **http in** node (Method: `POST`, URL: `/whatsapp`).
+2.  (Optional) Add a **switch** node to check `msg.headers['x-webhook-token']`.
+3.  Add a **debug** node to view the output (`msg.payload`).
+4.  Process the data as needed using Home Assistant nodes or generic logic.

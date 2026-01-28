@@ -48,21 +48,29 @@ class WhatsAppApiClient:
         # Normalize target for comparison
         target_jid = self.ensure_jid(target)
 
-        for allowed in self.whitelist:
-            allowed = allowed.strip()
+        for allowed_entry in self.whitelist:
+            allowed = allowed_entry.strip()
             if not allowed:
                 continue
-            # If allowed already has @, compare directly (after normalization)
+
+            # 1. Full JID comparison (contains @)
             if "@" in allowed:
                 if target_jid == self.ensure_jid(allowed):
                     return True
-            # If it's a numeric ID, compare the numeric part
-            elif allowed.isdigit():
-                if target_jid.split("@")[0] == allowed:
+
+            # 2. Group ID comparison (hyphenated, no @)
+            elif "-" in allowed:
+                # Remove spaces, but keep digits and hyphen
+                clean_group = "".join(c for c in allowed if c.isdigit() or c == "-")
+                if target_jid == f"{clean_group}@g.us":
                     return True
-            # If it contains a hyphen but no @, it's a group ID
-            elif "-" in allowed and target_jid == f"{allowed}@g.us":
-                return True
+
+            # 3. Numeric / Phone comparison
+            else:
+                # Clean entry: remove +, spaces, and other non-digits
+                clean_allowed = "".join(filter(str.isdigit, allowed))
+                if clean_allowed and target_jid.split("@")[0] == clean_allowed:
+                    return True
 
         _LOGGER.info("Blocking outgoing message to non-whitelisted target: %s", target)
         return False
@@ -846,9 +854,9 @@ class WhatsAppApiClient:
         contact_number: str,
     ) -> None:
         """Send a contact card (VCard)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_contact_internal, number, contact_name, contact_number
         )
@@ -885,9 +893,9 @@ class WhatsAppApiClient:
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         url = f"{self.host}/set_presence"
         payload = {"number": number, "presence": presence}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -912,9 +920,9 @@ class WhatsAppApiClient:
         footer: str | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
-        if not self._is_allowed(number):
+        if not self.is_allowed(number):
             return
-        number = self._ensure_jid(number)
+        number = self.ensure_jid(number)
         await self._send_with_retry(
             self._send_buttons_internal, number, text, buttons, footer
         )
@@ -982,7 +990,9 @@ class WhatsAppApiClient:
 
     async def mark_as_read(self, number: str, message_id: str) -> None:
         """Mark a message as read."""
-        number = self._ensure_jid(number)
+        if not self.is_allowed(number):
+            return
+        number = self.ensure_jid(number)
         url = f"{self.host}/mark_as_read"
         payload = {"number": number, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
