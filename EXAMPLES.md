@@ -130,6 +130,30 @@ action:
       target: "+49123456789"
       data:
         image: "https://your-domain.com/local/tmp/snapshot.jpg"
+
+---
+
+### 📧 Forward Emails (IMAP) to WhatsApp
+
+```yaml
+alias: "Forward IMAP to WhatsApp"
+trigger:
+  - platform: event
+    event_type: imap_content
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data['username'] | lower | trim == 'your-mail@gmail.com' }}"
+action:
+  - service: whatsapp.send_message
+    data:
+      target: "49171234567"
+      message: |
+        🏐 *Neue Trainingsanfrage*
+        👤 *Von:* {{ trigger.event.data['sender'] }}
+        📝 *Betreff:* {{ trigger.event.data['subject'] }}
+        ---
+        {{ trigger.event.data['text'] | default(trigger.event.data['body']) | truncate(500) }}
+```
 ```
 
 ---

@@ -131,5 +131,86 @@ action:
 ```
 {% endraw %}
 
+---
+
+## 📧 Useful Real-Life Examples
+
+### Forward Emails (IMAP) to WhatsApp
+Useful for urgent training inquiries or important work emails.
+
+{% raw %}
+```yaml
+id: "volleyball_new_training_inquiry_mail"
+alias: "Volleyball Training: Forward New Email to WhatsApp"
+description: "Sends a WhatsApp message on new training inquiry via IMAP."
+mode: single
+trigger:
+  - platform: event
+    event_type: imap_content
+condition:
+  # Filter for a specific mailbox user if needed
+  - condition: template
+    value_template: "{{ trigger.event.data['username'] | lower | trim == 'your-mail@gmail.com' }}"
+action:
+  - service: whatsapp.send_message
+    continue_on_error: true
+    data:
+      target: "49171234567"
+      message: |
+        🏐 *Neue Trainingsanfrage*
+
+        📅 *Datum:* {{ as_timestamp(trigger.event.data['date']) | timestamp_custom('%d.%m.%Y %H:%M') }}
+        👤 *Von:* {{ trigger.event.data['sender'] }}
+        📝 *Betreff:* {{ trigger.event.data['subject'] }}
+
+        --------------------------------
+
+        {{ trigger.event.data['text'] | default(trigger.event.data['body']) | default('No content') | truncate(800) }}
+```
+{% endraw %}
+
+### Appliances: Washer/Dryer Notifications
+Get a WhatsApp when your laundry is done.
+
+{% raw %}
+```yaml
+alias: "WhatsApp: Laundry Notification"
+trigger:
+  - platform: state
+    entity_id: binary_sensor.washer_running
+    from: "on"
+    to: "off"
+action:
+  - service: whatsapp.send_message
+    data:
+      target: "1203630234567@g.us" # Send to a family group
+      message: |
+        🧺 *Wäsche ist fertig!*
+        Bitte die Waschmaschine leeren und in den Trockner räumen.
+```
+{% endraw %}
+
+### System: Low Battery Alert
+Get a list of all devices with low battery.
+
+{% raw %}
+```yaml
+alias: "WhatsApp: Low Battery Alert"
+trigger:
+  - platform: numeric_state
+    entity_id:
+      - sensor.living_room_temp_battery
+      - sensor.kitchen_motion_battery
+    below: 20
+action:
+  - service: whatsapp.send_message
+    data:
+      target: "49171234567"
+      message: |
+        🪫 *Batterie schwach!*
+        Das Gerät *{{ friendly_name(trigger.entity_id) }}* hat nur noch {{ state(trigger.entity_id) }}%.
+```
+{% endraw %}
+
 > **Image Access**: The Addon needs to be able to download the image from the URL you provided. If using `localhost` URLs, ensure the Addon has network access to the Home Assistant instance.
 {: .important }
