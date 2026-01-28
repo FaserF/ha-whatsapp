@@ -12,48 +12,50 @@ The event payload contains the following fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `sender` | string | The phone number of the sender (e.g., `+49123...`). |
+| `sender` | string | The cleaned phone number (e.g., `49123456789`). Best for simple automation triggers. |
+| `raw_sender` | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `12345678-999...@g.us`). |
 | `content` | string | The text body of the message. |
 | `timestamp` | int | Unix timestamp of when the message was received. |
+| `raw` | object | The complete raw JSON payload from the WhatsApp engine (for advanced users). |
 
 ---
 
 ## 🤖 Automation Examples
 
-### 1. Simple "Ping-Pong" Bot
-If someone writes "Status", reply with "Online".
+### 1. Simple Command Trigger
+React to a specific word from any user.
 
 {% raw %}
 ```yaml
-alias: WhatsApp Status Bot
-description: "Replies to 'Status' with system health."
+alias: WhatsApp Bot: Ping
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: "Status"  # Exact match
+      content: "Ping"
 action:
   - service: whatsapp.send_message
     data:
       target: "{{ trigger.event.data.sender }}"
-      message: "✅ Home Assistant is Online!\nTime: {{ now().strftime('%H:%M') }}"
+      message: "Pong! 🏓"
 ```
 {% endraw %}
 
-### 2. Security Disarm via Code
-Allows disarming the alarm by sending a specific code from a specific number.
+### 2. Secure Admin Commands
+Only allow specific users (based on numeric ID) to control your home.
 
 {% raw %}
 ```yaml
-alias: Disarm Alarm via WhatsApp
+alias: WhatsApp Bot: Security Disarm
 trigger:
   - platform: event
     event_type: whatsapp_message_received
 condition:
   - condition: template
-    value_template: "{{ trigger.event.data.sender == '+4915112345678' }}"
+    # Use the clean numeric sender ID for easy comparison
+    value_template: "{{ trigger.event.data.sender == '4915112345678' }}"
   - condition: template
-    value_template: "{{ trigger.event.data.content == 'MySecretCode' }}"
+    value_template: "{{ trigger.event.data.content == 'Disarm Home' }}"
 action:
   - service: alarm_control_panel.alarm_disarm
     target:
@@ -61,6 +63,28 @@ action:
   - service: whatsapp.send_message
     data:
       target: "{{ trigger.event.data.sender }}"
-      message: "🔓 Alarm Disarmed."
+      message: "🔓 Alarm has been disarmed by Admin."
 ```
 {% endraw %}
+
+### 3. Handling Button Responses
+If you sent a message with buttons, you can catch the response by checking the `content` or the `raw` payload.
+
+{% raw %}
+```yaml
+alias: WhatsApp Bot: Button Response
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data.content == 'Yes, please' }}"
+action:
+  - service: light.turn_on
+    target:
+      entity_id: light.living_room
+```
+{% endraw %}
+
+> [!TIP]
+> For advanced logic, you can inspect `trigger.event.data.raw.message.buttonsResponseMessage` to get the specific `id` of the button that was clicked.

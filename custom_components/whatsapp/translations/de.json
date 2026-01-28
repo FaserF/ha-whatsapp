@@ -36,6 +36,7 @@
                     "mark_as_read": "Nachrichten als gelesen markieren (blaue Haken senden)",
                     "api_key": "API Schlüssel",
                     "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
+                    "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
                     "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
                 },
                 "description": "{warning}"
@@ -57,6 +58,158 @@
                 "target": {
                     "name": "Zielnummer",
                     "description": "Die Telefonnummer, an die gesendet werden soll."
+                }
+            }
+        },
+        "send_document": {
+            "name": "Dokument senden",
+            "description": "Sendet ein Dokument (PDF, Zip, Doc, etc.) an eine WhatsApp-Nummer.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+                },
+                "url": {
+                    "name": "URL",
+                    "description": "Die URL des zu sendenden Dokuments."
+                },
+                "file_name": {
+                    "name": "Dateiname",
+                    "description": "Optionaler Ersatz für den Dateinamen."
+                },
+                "message": {
+                    "name": "Bildunterschrift",
+                    "description": "Optionale Bildunterschrift für das Dokument."
+                }
+            }
+        },
+        "send_video": {
+            "name": "Video senden",
+            "description": "Sendet eine Videodatei an eine WhatsApp-Nummer.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+                },
+                "url": {
+                    "name": "URL",
+                    "description": "Die URL des zu sendenden Videos."
+                },
+                "message": {
+                    "name": "Bildunterschrift",
+                    "description": "Optionale Bildunterschrift für das Video."
+                }
+            }
+        },
+        "send_audio": {
+            "name": "Audio senden",
+            "description": "Sendet eine Audiodatei oder Sprachnachricht.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+                },
+                "url": {
+                    "name": "URL",
+                    "description": "Die URL der Audiodatei."
+                },
+                "ptt": {
+                    "name": "Sprachnachricht (PTT)",
+                    "description": "Als Sprachnachricht (Wellenform) anstatt als Audio (Datei) senden."
+                }
+            }
+        },
+        "revoke_message": {
+            "name": "Nachricht löschen",
+            "description": "Löscht eine gesendete Nachricht für alle.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+                },
+                "message_id": {
+                    "name": "Nachrichten-ID",
+                    "description": "Die ID der zu löschenden Nachricht."
+                }
+            }
+        },
+        "edit_message": {
+            "name": "Nachricht bearbeiten",
+            "description": "Bearbeitet den Text einer gesendeten Nachricht.",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+                },
+                "message_id": {
+                    "name": "Nachrichten-ID",
+                    "description": "Die ID der zu bearbeitenden Nachricht."
+                },
+                "message": {
+                    "name": "Neuer Text",
+                    "description": "Der neue Textinhalt für die Nachricht."
+                }
+            }
+        },
+        "send_list": {
+            "name": "Listen-Nachricht senden",
+            "description": "Sendet eine interaktive Liste (Aktionsmenü).",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID."
+                },
+                "title": {
+                    "name": "Titel",
+                    "description": "Der Titel des Menüs."
+                },
+                "text": {
+                    "name": "Text",
+                    "description": "Der Haupttext."
+                },
+                "button_text": {
+                    "name": "Button-Label",
+                    "description": "Text für den Menü-Button (z. B. Menü)."
+                },
+                "sections": {
+                    "name": "Sektionen (JSON)",
+                    "description": "Die Sektionen und Zeilen (JSON-Liste)."
+                }
+            }
+        },
+        "send_contact": {
+            "name": "Kontakt senden",
+            "description": "Sendet eine Kontaktkarte (VCard).",
+            "fields": {
+                "target": {
+                    "name": "Zielnummer",
+                    "description": "Die Telefonnummer oder Gruppen-ID."
+                },
+                "name": {
+                    "name": "Anzeigename",
+                    "description": "Der Name des Kontakts."
+                },
+                "contact_number": {
+                    "name": "Kontaktnummer",
+                    "description": "Die Telefonnummer des Kontakts."
+                }
+            }
+        },
+        "configure_webhook": {
+            "name": "Webhook konfigurieren",
+            "description": "Legt die Webhook-URL fest, an die das Addon Ereignisse sendet.",
+            "fields": {
+                "url": {
+                    "name": "Webhook-URL",
+                    "description": "Die URL, an die Ereignisse gesendet werden sollen."
+                },
+                "enabled": {
+                    "name": "Aktiviert",
+                    "description": "Webhook aktivieren oder deaktivieren."
+                },
+                "token": {
+                    "name": "Token",
+                    "description": "Optionales Sicherheitstoken."
                 }
             }
         },

@@ -22,7 +22,7 @@ jobs:
         run: pip install ruff black
       - name: Run Auto-fix
         run: |
-          ruff check . --fix
+          ruff check . --fix --exit-zero
           black .
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7

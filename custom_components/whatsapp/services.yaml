@@ -4,8 +4,8 @@ send_message:
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID (e.g., +49123456789 or 123456789-987654321@g.us).
-      example: "+49123456789"
+      description: The phone number or Group ID (e.g., 49123456789 or 1234567-890). The '+' and suffixes (@s.whatsapp.net/@g.us) are added automatically.
+      example: "49123456789"
       required: true
       selector:
         text:
@@ -23,7 +23,7 @@ send_poll:
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send to (e.g., 49123456789).
       required: true
       selector:
         text:
@@ -46,7 +46,7 @@ send_image:
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send to (e.g., 49123456789).
       required: true
       selector:
         text:
@@ -62,13 +62,201 @@ send_image:
       selector:
         text:
 
+send_document:
+  name: Send Document
+  description: Sends a document (PDF, Zip, Doc, etc.) to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send to (e.g., 49123456789).
+      required: true
+      selector:
+        text:
+    url:
+      name: URL
+      description: The URL of the document to send.
+      required: true
+      selector:
+        text:
+    file_name:
+      name: File Name
+      description: Optional override for the filename (e.g., invoice.pdf).
+      selector:
+        text:
+    message:
+      name: Caption
+      description: Optional text caption for the document.
+      selector:
+        text:
+
+send_video:
+  name: Send Video
+  description: Sends a video file to a WhatsApp number.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send to.
+      required: true
+      selector:
+        text:
+    url:
+      name: URL
+      description: The URL of the video to send.
+      required: true
+      selector:
+        text:
+    message:
+      name: Caption
+      description: Optional text caption for the video.
+      selector:
+        text:
+
+send_audio:
+  name: Send Audio
+  description: Sends an audio file or voice note.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID to send to.
+      required: true
+      selector:
+        text:
+    url:
+      name: URL
+      description: The URL of the audio file.
+      required: true
+      selector:
+        text:
+    ptt:
+      name: Voice Note (PTT)
+      description: Send as a voice note (waveform) instead of audio (file).
+      selector:
+        boolean:
+
+revoke_message:
+  name: Revoke Message
+  description: Deletes a sent message for everyone.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID the message was sent to.
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The ID of the message to revoke.
+      required: true
+      selector:
+        text:
+
+edit_message:
+  name: Edit Message
+  description: Edits the text of a sent message.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID the message was sent to.
+      required: true
+      selector:
+        text:
+    message_id:
+      name: Message ID
+      description: The ID of the message to edit.
+      required: true
+      selector:
+        text:
+    message:
+      name: New Text
+      description: The new text content for the message.
+      required: true
+      selector:
+        text:
+
+send_list:
+  name: Send List Message (Menu)
+  description: Sends an interactive list menu.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID.
+      required: true
+      selector:
+        text:
+    title:
+      name: Title
+      description: The title of the menu.
+      selector:
+        text:
+    text:
+      name: Body Text
+      description: The main body text.
+      selector:
+        text:
+    button_text:
+      name: Button Label
+      description: Text for the menu button (e.g., "Menu").
+      selector:
+        text:
+    sections:
+      name: Sections (JSON/List)
+      description: The sections and rows for the list.
+      required: true
+      selector:
+        object:
+
+send_contact:
+  name: Send Contact (VCard)
+  description: Sends a contact card.
+  fields:
+    target:
+      name: Target Number
+      description: The phone number or Group ID.
+      required: true
+      selector:
+        text:
+    name:
+      name: Display Name
+      description: The proper name of the contact.
+      required: true
+      selector:
+        text:
+    contact_number:
+      name: Phone Number
+      description: The phone number of the contact.
+      required: true
+      selector:
+        text:
+
+configure_webhook:
+  name: Configure Webhook
+  description: Sets the webhook URL for the Addon to push events to.
+  fields:
+    url:
+      name: Webhook URL
+      description: The URL to push events to (e.g., Home Assistant webhook).
+      required: true
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Enable or disable the webhook.
+      default: true
+      selector:
+        boolean:
+    token:
+      name: Token
+      description: Optional security token (X-Webhook-Token header).
+      selector:
+        text:
+
 send_location:
   name: Send Location
   description: Sends a location (map pin) to a WhatsApp number.
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send to (e.g., 49123456789).
       required: true
       selector:
         text:
@@ -105,7 +293,7 @@ send_reaction:
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send to (e.g., 49123456789).
       required: true
       selector:
         text:
@@ -128,7 +316,7 @@ update_presence:
   fields:
     target:
       name: Target Number
-      description: The phone number to update presence for.
+      description: The phone number to update presence for (e.g., 49123456789).
       required: true
       selector:
         text:
@@ -151,7 +339,7 @@ send_buttons:
   fields:
     target:
       name: Target Number
-      description: The phone number or Group ID to send to.
+      description: The phone number or Group ID to send to (e.g., 49123456789).
       required: true
       selector:
         text:

@@ -16,6 +16,7 @@ from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_WHITELIST,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
 )
@@ -32,8 +33,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     api_key = entry.data.get(CONF_API_KEY)
     mask_sensitive_data = entry.options.get("mask_sensitive_data", False)
+    whitelist_str = entry.options.get(CONF_WHITELIST, "")
+    whitelist = None
+    if whitelist_str:
+        whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
+
     client = WhatsAppApiClient(
-        host=addon_url, api_key=api_key, mask_sensitive_data=mask_sensitive_data
+        host=addon_url,
+        api_key=api_key,
+        mask_sensitive_data=mask_sensitive_data,
+        whitelist=whitelist,
     )
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
@@ -48,6 +57,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
+        # Normalize sender for the event
+        # If it's a standard user (@s.whatsapp.net or @lid), strip the suffix
+        # This makes it easier for users to use numeric strings in automations
+        full_sender = data.get("sender", "")
+        clean_sender = full_sender
+        if "@s.whatsapp.net" in full_sender or "@lid" in full_sender:
+            clean_sender = full_sender.split("@")[0]
+
+        data["sender"] = clean_sender
+        data["raw_sender"] = full_sender
+
+        # Whitelist filtering
+        if whitelist is not None:
+            # For groups, the raw data contains the group JID in remoteJid
+            raw_msg = data.get("raw", {})
+            remote_id = raw_msg.get("key", {}).get("remoteJid", "")
+            is_group = "@g.us" in remote_id
+            target = remote_id if is_group else full_sender
+
+            if not client.is_allowed(target):
+                _LOGGER.info(
+                    "Ignoring incoming message from non-whitelisted %s: %s",
+                    "group" if is_group else "sender",
+                    target,
+                )
+                return
+
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
         # Automatically mark as read if enabled
@@ -56,7 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # The addon sends full data in 'raw'
             raw_msg = data.get("raw", {})
             message_id = raw_msg.get("key", {}).get("id")
-            number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
+            number = data.get("raw_sender")  # Use full JID for API calls
 
             if message_id and number:
                 hass.async_create_task(client.mark_as_read(number, message_id))
@@ -112,6 +148,72 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         message_id = call.data.get("message_id")
         if number and reaction and message_id:
             await client.send_reaction(number, reaction, message_id)
+
+    async def send_document_service(call: ServiceCall) -> None:
+        """Handle the send_document service."""
+        number = call.data.get("target")
+        url = call.data.get("url")
+        file_name = call.data.get("file_name")
+        caption = call.data.get("message")  # Use 'message' for caption consistency
+        if number and url:
+            await client.send_document(number, url, file_name, caption)
+
+    async def send_video_service(call: ServiceCall) -> None:
+        """Handle the send_video service."""
+        number = call.data.get("target")
+        url = call.data.get("url")
+        caption = call.data.get("message")
+        if number and url:
+            await client.send_video(number, url, caption)
+
+    async def send_audio_service(call: ServiceCall) -> None:
+        """Handle the send_audio service."""
+        number = call.data.get("target")
+        url = call.data.get("url")
+        ptt = call.data.get("ptt", False)
+        if number and url:
+            await client.send_audio(number, url, ptt)
+
+    async def revoke_message_service(call: ServiceCall) -> None:
+        """Handle the revoke_message service."""
+        number = call.data.get("target")
+        message_id = call.data.get("message_id")
+        if number and message_id:
+            await client.revoke_message(number, message_id)
+
+    async def edit_message_service(call: ServiceCall) -> None:
+        """Handle the edit_message service."""
+        number = call.data.get("target")
+        message_id = call.data.get("message_id")
+        new_content = call.data.get("message")
+        if number and message_id and new_content:
+            await client.edit_message(number, message_id, new_content)
+
+    async def send_list_service(call: ServiceCall) -> None:
+        """Handle the send_list service."""
+        number = call.data.get("target")
+        title = call.data.get("title")
+        text = call.data.get("text")
+        button_text = call.data.get("button_text")
+        sections = call.data.get("sections")
+        if number and sections:
+            await client.send_list(number, title, text, button_text, sections)
+
+    async def send_contact_service(call: ServiceCall) -> None:
+        """Handle the send_contact service."""
+        number = call.data.get("target")
+        contact_name = call.data.get("name")
+        contact_number = call.data.get("contact_number")
+        if number and contact_name and contact_number:
+            await client.send_contact(number, contact_name, contact_number)
+
+    async def configure_webhook_service(call: ServiceCall) -> None:
+        """Handle the configure_webhook service."""
+        url = call.data.get("url")
+        enabled = call.data.get("enabled", True)
+        token = call.data.get("token")
+        if url:
+            await client.set_webhook(url, enabled, token)
 
     async def update_presence_service(call: ServiceCall) -> None:
         """Handle the update_presence service."""
@@ -206,6 +308,104 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("caption"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_document",
+        send_document_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("url"): cv.string,
+                vol.Optional("file_name"): cv.string,
+                vol.Optional("message"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_video",
+        send_video_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("url"): cv.string,
+                vol.Optional("message"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_audio",
+        send_audio_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("url"): cv.string,
+                vol.Optional("ptt", default=False): cv.boolean,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "revoke_message",
+        revoke_message_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message_id"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "edit_message",
+        edit_message_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("message_id"): cv.string,
+                vol.Required("message"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_list",
+        send_list_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("sections"): cv.match_all,
+                vol.Optional("title"): cv.string,
+                vol.Optional("text"): cv.string,
+                vol.Optional("button_text"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "send_contact",
+        send_contact_service,
+        schema=vol.Schema(
+            {
+                vol.Required("target"): cv.string,
+                vol.Required("name"): cv.string,
+                vol.Required("contact_number"): cv.string,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "configure_webhook",
+        configure_webhook_service,
+        schema=vol.Schema(
+            {
+                vol.Required("url"): cv.string,
+                vol.Optional("enabled", default=True): cv.boolean,
+                vol.Optional("token"): cv.string,
             }
         ),
     )

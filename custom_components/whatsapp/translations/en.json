@@ -36,6 +36,7 @@
           "mark_as_read": "Mark messages as read (send blue ticks)",
           "api_key": "API Key",
           "retry_attempts": "Retry Attempts (on failure)",
+          "whitelist": "Whitelisted Users/Groups (Comma-separated phone numbers or Group IDs. Leave empty for no whitelist)",
           "reset_session": "Reset Session (Logout & Clear Data)"
         },
         "description": "{warning}"
@@ -57,6 +58,158 @@
         "target": {
           "name": "Target Number",
           "description": "The phone number to send to."
+        }
+      }
+    },
+    "send_document": {
+      "name": "Send Document",
+      "description": "Sends a document (PDF, Zip, Doc, etc.) to a WhatsApp number.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the document to send."
+        },
+        "file_name": {
+          "name": "File Name",
+          "description": "Optional override for the filename."
+        },
+        "message": {
+          "name": "Caption",
+          "description": "Optional text caption for the document."
+        }
+      }
+    },
+    "send_video": {
+      "name": "Send Video",
+      "description": "Sends a video file to a WhatsApp number.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the video to send."
+        },
+        "message": {
+          "name": "Caption",
+          "description": "Optional text caption for the video."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Send Audio",
+      "description": "Sends an audio file or voice note.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "URL",
+          "description": "The URL of the audio file."
+        },
+        "ptt": {
+          "name": "Voice Note (PTT)",
+          "description": "Send as a voice note (waveform) instead of audio (file)."
+        }
+      }
+    },
+    "revoke_message": {
+      "name": "Revoke Message",
+      "description": "Deletes a sent message for everyone.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to revoke."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Edit Message",
+      "description": "Edits the text of a sent message.",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to edit."
+        },
+        "message": {
+          "name": "New Text",
+          "description": "The new text content for the message."
+        }
+      }
+    },
+    "send_list": {
+      "name": "Send List Message",
+      "description": "Sends an interactive list (action menu).",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID."
+        },
+        "title": {
+          "name": "Title",
+          "description": "The title of the menu."
+        },
+        "text": {
+          "name": "Body Text",
+          "description": "The main body text."
+        },
+        "button_text": {
+          "name": "Button Label",
+          "description": "Text for the menu button (e.g. Menu)."
+        },
+        "sections": {
+          "name": "Sections (JSON)",
+          "description": "The sections and rows (JSON list)."
+        }
+      }
+    },
+    "send_contact": {
+      "name": "Send Contact",
+      "description": "Sends a contact card (VCard).",
+      "fields": {
+        "target": {
+          "name": "Target Number",
+          "description": "The phone number or Group ID."
+        },
+        "name": {
+          "name": "Display Name",
+          "description": "The name of the contact."
+        },
+        "contact_number": {
+          "name": "Contact Number",
+          "description": "The phone number of the contact."
+        }
+      }
+    },
+    "configure_webhook": {
+      "name": "Configure Webhook",
+      "description": "Sets the webhook URL for the Addon to push events to.",
+      "fields": {
+        "url": {
+          "name": "Webhook URL",
+          "description": "The URL to push events to."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Enable or disable the webhook."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Optional security token."
         }
       }
     },

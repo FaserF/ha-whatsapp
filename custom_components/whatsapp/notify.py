@@ -124,11 +124,7 @@ class WhatsAppNotificationEntity(
                 question = poll_data.get("question", message)
                 options = poll_data.get("options", [])
                 await self.client.send_poll(target, question, options)
-            elif "buttons" in data:
-                # Send buttons: data: { buttons: [...], footer: "..." }
-                buttons = data.get("buttons", [])
-                footer = data.get("footer")
-                await self.client.send_buttons(target, message, buttons, footer)
+
             elif "location" in data:
                 # Send location: data: { location: { lat, lon, name, address } }
                 loc = data["location"]
@@ -174,6 +170,20 @@ class WhatsAppNotificationEntity(
                 footer = data.get("footer")
                 if buttons:
                     await self.client.send_buttons(target, message, buttons, footer)
+            elif "document" in data:
+                # Send document: data: { document: "http://..." }
+                url = data["document"]
+                file_name = data.get("file_name")
+                await self.client.send_document(target, url, file_name, message)
+            elif "video" in data:
+                # Send video: data: { video: "http://..." }
+                url = data["video"]
+                await self.client.send_video(target, url, message)
+            elif "audio" in data:
+                # Send audio: data: { audio: "http://..." }
+                url = data["audio"]
+                ptt = data.get("ptt", False)
+                await self.client.send_audio(target, url, ptt)
             else:
                 # Default text message
                 await self.client.send_message(target, message)
@@ -209,6 +219,28 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     question = poll_data.get("question", message)
                     options = poll_data.get("options", [])
                     await self.client.send_poll(target, question, options)
+                elif "location" in data:
+                    loc = data["location"]
+                    await self.client.send_location(
+                        target,
+                        loc.get("latitude"),
+                        loc.get("longitude"),
+                        loc.get("name"),
+                        loc.get("address"),
+                    )
+                elif "reaction" in data:
+                    react = data["reaction"]
+                    if isinstance(react, str):
+                        reaction = react
+                    else:
+                        reaction = react.get("reaction")
+                    msg_id = (
+                        react.get("message_id")
+                        if isinstance(react, dict)
+                        else data.get("message_id")
+                    )
+                    if reaction and msg_id:
+                        await self.client.send_reaction(target, reaction, msg_id)
                 elif "image" in data:
                     await self.client.send_image(target, data["image"], message)
                 elif "buttons" in data or "inline_keyboard" in data:
@@ -228,6 +260,19 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     footer = data.get("footer")
                     if buttons:
                         await self.client.send_buttons(target, message, buttons, footer)
+                elif "document" in data:
+                    url = data["document"]
+                    file_name = data.get("file_name")
+                    await self.client.send_document(target, url, file_name, message)
+                elif "video" in data:
+                    # Send video: data: { video: "http://..." }
+                    url = data["video"]
+                    await self.client.send_video(target, url, message)
+                elif "audio" in data:
+                    # Send audio: data: { audio: "http://..." }
+                    url = data["audio"]
+                    ptt = data.get("ptt", False)
+                    await self.client.send_audio(target, url, ptt)
                 else:
                     await self.client.send_message(target, message)
             except Exception as err:

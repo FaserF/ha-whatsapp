@@ -18,40 +18,201 @@ This integration provides three ways to send messages. Choosing the right one de
 | **Legacy Notify** | `notify.whatsapp` | Multi-target, Simple Alerts | **Very Reliable** ✅ |
 | **Entity Action** | `notify.send_message` | Visual Editor (UI), Dashboard | Use only in the UI 🛠️ |
 
+## 🎨 Rich Formatting
+
+You can use standard WhatsApp Markdown in any text field (message, caption, etc.):
+
+| Style | Syntax | Example | Result |
+| :--- | :--- | :--- | :--- |
+| **Bold** | `*text*` | `*Alert*` | **Alert** |
+| _Italic_ | `_text_` | `_Warning_` | _Warning_ |
+| ~Strikethrough~ | `~text~` | `~Old~` | ~~Old~~ |
+| `Monospace` | ` ```text``` ` | ` ```Code``` ` | `Code` |
+
 ---
 
 ## 1. `whatsapp.*` Services (Recommended)
 
-These services are custom-built for this integration. They are the most reliable way to use all features (Polls, Buttons, etc.) without running into Home Assistant's strict schema errors.
+These services are custom-built for this integration. They are the most reliable way to use all features without running into Home Assistant's strict schema errors.
 
-### Text Message
+### 💬 Text Message (`send_message`)
+The most common way to send alerts.
 
 ```yaml
 service: whatsapp.send_message
 data:
-  target: "+49123456789"
+  target: "+49123456789"  # '+' is optional, @s.whatsapp.net is added automatically
   message: "Hello from Home Assistant! 🚀"
 ```
 
-### Polls 📊
+### 📊 Polls (`send_poll`)
+Interactive polls with multiple options.
 
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: "+49123456789"
+  target: "49123456789"
   question: "Pizza tonight? 🍕"
   options: ["Yes!", "No", "Maybe"]
 ```
 
-### Reactions ❤️
-React to a message using its ID (from receiver events).
+### 📸 Images (`send_image`)
+Send images via a URL.
+
+```yaml
+service: whatsapp.send_image
+data:
+  target: "49123456789"
+  url: "https://your-domain.com/local/snapshot.jpg"
+  caption: "Front door movement! 📷"
+```
+
+### 📄 Documents (`send_document`)
+Send files like PDFs, Zip archives, or spreadsheets.
+
+```yaml
+service: whatsapp.send_document
+data:
+  target: "49123456789"
+  url: "https://example.com/invoice.pdf"
+  file_name: "Invoice_January.pdf"  # Optional: Rename the file
+  message: "Here is your monthly invoice." # Optional: Add a caption
+```
+
+### 🎥 Videos (`send_video`)
+Send video files (MP4, etc).
+
+```yaml
+service: whatsapp.send_video
+data:
+  target: "49123456789"
+  url: "https://example.com/video.mp4"
+  message: "Check this out! 🎥" # Optional: Add a caption
+```
+
+### 🎤 Audio (`send_audio`)
+Send audio files or voice notes.
+
+```yaml
+service: whatsapp.send_audio
+data:
+  target: "49123456789"
+  url: "https://example.com/audio.mp3"
+  ptt: true # Set to true to send as a voice note (waveform), false for audio file
+```
+
+### 🗑️ Delete/Revoke (`revoke_message`)
+Delete a message for everyone in the chat.
+
+```yaml
+service: whatsapp.revoke_message
+data:
+  target: "49123456789"
+  message_id: "BAE5CCF5A..." # ID from event or reaction
+```
+
+### ✏️ Edit (`edit_message`)
+Edit the text of a sent message.
+
+```yaml
+service: whatsapp.edit_message
+data:
+  target: "49123456789"
+  message_id: "BAE5CCF5A..."
+  message: "Corrected text"
+```
+
+### 🔗 Webhook (`configure_webhook`)
+Configure the Addon to push events (messages) to a specific URL.
+
+```yaml
+service: whatsapp.configure_webhook
+data:
+  url: "http://homeassistant:8123/api/webhook/YOUR_ID"
+  enabled: true
+```
+
+### 📋 List Message (`send_list`)
+Send an interactive menu with sections and rows. Preferred over buttons on iOS.
+
+```yaml
+service: whatsapp.send_list
+data:
+  target: "1234567890"
+  title: "Main Title"
+  text: "Body text description"
+  button_text: "View Menu"
+  sections:
+    - title: "Section 1"
+      rows:
+        - title: "Option A"
+          rowId: "opt_a"
+          description: "Description for A"
+    - title: "Section 2"
+      rows:
+        - title: "Option B"
+          rowId: "opt_b"
+```
+
+### 👤 Contact (`send_contact`)
+Send a VCard contact that users can easily save.
+
+```yaml
+service: whatsapp.send_contact
+data:
+  target: "1234567890"
+  name: "Home Assistant"
+  contact_number: "1234567890"
+```
+
+### 📍 Location (`send_location`)
+Send a map pin with an optional name and address.
+
+```yaml
+service: whatsapp.send_location
+data:
+  target: "49123456789"
+  latitude: 52.5200
+  longitude: 13.4050
+  name: "Brandenburg Gate"
+  address: "Pariser Platz, Berlin"
+```
+
+### ❤️ Reactions (`send_reaction`)
+React to an existing message using its context ID.
 
 ```yaml
 service: whatsapp.send_reaction
 data:
-  target: "+49123456789"
-  message_id: "ABC-123"
+  target: "49123456789"
+  message_id: "ABC-123"  # Get this from 'whatsapp_message_received' event
   reaction: "👍"
+```
+
+### 🔘 Buttons (`send_buttons`)
+Send interactive buttons. You can provide a custom ID for each button to react to it in automations.
+
+```yaml
+service: whatsapp.send_buttons
+data:
+  target: "49123456789"
+  message: "Do you want to turn off the lights?"
+  buttons:
+    - id: "light_on"
+      displayText: "Yes, please"
+    - id: "light_off"
+      displayText: "No, thanks"
+  footer: "Smart Home Assistant"
+```
+
+### ⌨️ Update Presence (`update_presence`)
+Simulate typing or recording status.
+
+```yaml
+service: whatsapp.update_presence
+data:
+  target: "49123456789"
+  presence: "composing" # Available: composing, recording, available, unavailable, paused
 ```
 
 ---
@@ -63,27 +224,29 @@ This is a classic Home Assistant notification service. It is very flexible and w
 > [!TIP]
 > Use this service if you want to send the same message to **multiple recipients** at once.
 
-
 ```yaml
 service: notify.whatsapp
 data:
-  message: |
-    🚨 Intruder detected!
-    Action: Police notified.
+  message: "🚨 Intruder detected!"
   target:
     - "+49111222333"
-    - "12345678@g.us" # Group
+    - "12345678-999999@g.us" # Group
 ```
 
-**Sending Images via Legacy Notify:**
+**Advanced Notify Data:**
+You can also use the `data` block to access advanced features via the legacy notify service.
 
 ```yaml
 service: notify.whatsapp
 data:
-  message: "Snapshot from Garden"
+  message: "Would you like some coffee?"
   target: "+49111222333"
   data:
-    image: "https://example.com/snapshot.jpg"
+    buttons:
+      - id: "coffee_yes"
+        displayText: "Yes ☕"
+      - id: "coffee_no"
+        displayText: "No"
 ```
 
 ---
@@ -92,17 +255,12 @@ data:
 
 This follows the modern **ADR-0010** standard. It is primarily designed for the **Visual Automation Editor** in the Home Assistant UI.
 
-> [!WARNING]
-> **Strict Schema**: If you use this service in **YAML**, Home Assistant may reject the `target` parameter inside the `data` block. If you see "extra keys not allowed", switch to `whatsapp.send_message` or `notify.whatsapp`.
-
-
 ```yaml
 action: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
   message: "Modern notification"
-  # Note: 'target' inside 'data' is NOT recommended here in YAML!
 ```
 
 ---
@@ -120,17 +278,9 @@ data:
 
 ## 🔍 Finding Group IDs
 
-If you want to send messages to a group, you need its **Group ID** (JID). The integration provides a helper service to find these IDs.
+If you want to send messages to a group, you need its **Group ID** (JID). Use the helper service below.
 
-To use these services, go to **Developer Tools** -> **Services** in Home Assistant.
-
-<div class="btn-myha-wrapper">
-  <a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Developer Tools</span></a>
-</div>
-
----
-
-## 🔍 `whatsapp.search_groups` (Helper)
+### 🔍 `whatsapp.search_groups` (Helper)
 
 Finding the "JID" (Group ID) for a group can be tricky. This service helps you find it easily.
 
@@ -139,16 +289,13 @@ Finding the "JID" (Group ID) for a group can be tricky. This service helps you f
 
 **How it works:**
 1.  Call the service with a name filter.
-2.  Check your **Persistent Notifications** in the bottom left of Home Assistant.
+2.  Check your **Persistent Notifications** in Home Assistant.
 3.  A table will appear with all matching groups and their IDs.
 
 ---
 
-## 💬 `whatsapp.send_message` (Base)
-
-> **Tip**
-> Group IDs look like `1234567890@g.us`. Copy the full ID including the `@g.us` part.
-{: .tip }
+> [!TIP]
+> Group IDs look like `1234567890-111111111@g.us`. However, you can also just use the ID part `1234567890-111111111` and the integration will automatically add `@g.us`.
 
 ---
 

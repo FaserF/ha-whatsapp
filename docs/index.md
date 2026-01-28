@@ -86,6 +86,16 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
   </div>
 </div>
 
+## 🔗 Webhook Integration
+
+Forward your WhatsApp messages to any HTTP endpoint in real-time. This project isn't just for Home Assistant; you can use the built-in Webhook to bridge WhatsApp to:
+- **Node-RED** for complex automation flows.
+- **Generic HTTP Servers** (Python, Node.js, PHP, etc.) for logging or custom bots.
+- **Unified Chat Platforms** like Rocket.Chat or Slack.
+
+[View the Webhook Guide](webhooks.html)
+{: .btn .btn-outline }
+
 > **Legal Disclaimer / Haftungsausschluss**
 >
 > Using automated messaging on WhatsApp may violate their **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)** and lead to a **permanent account ban**.

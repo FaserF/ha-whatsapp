@@ -10,12 +10,17 @@ _LOGGER = logging.getLogger(__name__)
 
 class WhatsAppApiClient:
     def __init__(
-        self, host: str, api_key: str | None = None, mask_sensitive_data: bool = False
+        self,
+        host: str,
+        api_key: str | None = None,
+        mask_sensitive_data: bool = False,
+        whitelist: list[str] | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
         self.mask_sensitive_data = mask_sensitive_data
+        self.whitelist = whitelist or []
         self.retry_attempts = 2
         self._connected = False
         self.stats: dict[str, Any] = {
@@ -34,6 +39,68 @@ class WhatsAppApiClient:
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
+
+    def is_allowed(self, target: str) -> bool:
+        """Check if a target JID is allowed by the whitelist."""
+        if not self.whitelist:
+            return True
+
+        # Normalize target for comparison
+        target_jid = self.ensure_jid(target)
+        if not target_jid:
+            _LOGGER.warning("Could not normalize target '%s' to a valid JID", target)
+            return False
+
+        for allowed_entry in self.whitelist:
+            allowed = allowed_entry.strip()
+            if not allowed:
+                continue
+
+            # 1. Full JID comparison (contains @)
+            if "@" in allowed:
+                entry_jid = self.ensure_jid(allowed)
+                if entry_jid and target_jid == entry_jid:
+                    return True
+
+            # 2. Group ID comparison (hyphenated, no @)
+            elif "-" in allowed:
+                # Remove spaces, but keep digits and hyphen
+                clean_group = "".join(c for c in allowed if c.isdigit() or c == "-")
+                if target_jid == f"{clean_group}@g.us":
+                    return True
+
+            # 3. Numeric / Phone comparison
+            else:
+                # Clean entry: remove +, spaces, and other non-digits
+                clean_allowed = "".join(filter(str.isdigit, allowed))
+                if clean_allowed and target_jid.split("@")[0] == clean_allowed:
+                    return True
+
+        _LOGGER.info("Blocking outgoing message to non-whitelisted target: %s", target)
+        return False
+
+    def ensure_jid(self, target: str | None) -> str | None:
+        """Ensure the target is a valid JID."""
+        if not target:
+            return target
+
+        target = target.strip()
+
+        # If it already has an @, assume it's a full JID (e.g. standard, group, or lid)
+        if "@" in target:
+            return target.replace("+", "") if target.startswith("+") else target
+
+        # If it contains exactly one hyphen and both parts are numeric,
+        # it's likely a group ID
+        if "-" in target:
+            parts = target.split("-")
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                return f"{target}@g.us"
+
+        # Otherwise treat as phone number
+        # Remove any leading + and non-digit characters
+        clean_number = "".join(filter(str.isdigit, target))
+        return f"{clean_number}@s.whatsapp.net"
 
     def _mask(self, text: str) -> str:
         """Mask sensitive data if enabled."""
@@ -237,7 +304,12 @@ class WhatsAppApiClient:
 
     async def send_message(self, number: str, message: str) -> None:
         """Send message via Addon (with retry)."""
-        await self._send_with_retry(self._send_message_internal, number, message)
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(self._send_message_internal, target_jid, message)
 
     async def _send_message_internal(self, number: str, message: str) -> None:
         """Internal send message logic."""
@@ -306,7 +378,14 @@ class WhatsAppApiClient:
 
     async def send_poll(self, number: str, question: str, options: list[str]) -> None:
         """Send a poll (with retry)."""
-        await self._send_with_retry(self._send_poll_internal, number, question, options)
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._send_poll_internal, target_jid, question, options
+        )
 
     async def _send_poll_internal(
         self, number: str, question: str, options: list[str]
@@ -343,8 +422,13 @@ class WhatsAppApiClient:
         self, number: str, image_url: str, caption: str | None = None
     ) -> None:
         """Send an image (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         await self._send_with_retry(
-            self._send_image_internal, number, image_url, caption
+            self._send_image_internal, target_jid, image_url, caption
         )
 
     async def _send_image_internal(
@@ -380,6 +464,246 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = "Image Sent"
             self.stats["last_sent_target"] = number
 
+    async def send_document(
+        self,
+        number: str,
+        url: str,
+        file_name: str | None = None,
+        caption: str | None = None,
+    ) -> None:
+        """Send a document (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._send_document_internal, target_jid, url, file_name, caption
+        )
+
+    async def _send_document_internal(
+        self,
+        number: str,
+        url: str,
+        file_name: str | None = None,
+        caption: str | None = None,
+    ) -> None:
+        """Internal send document logic."""
+        api_url = f"{self.host}/send_document"
+        payload = {
+            "number": number,
+            "url": url,
+            "fileName": file_name,
+            "caption": caption,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                label = file_name or "unnamed"
+                self.stats["last_failed_message"] = f"Document: {label}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send document: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
+            self.stats["last_sent_target"] = number
+
+    async def send_video(
+        self,
+        number: str,
+        url: str,
+        caption: str | None = None,
+    ) -> None:
+        """Send a video (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(self._send_video_internal, target_jid, url, caption)
+
+    async def _send_video_internal(
+        self,
+        number: str,
+        url: str,
+        caption: str | None = None,
+    ) -> None:
+        """Internal send video logic."""
+        api_url = f"{self.host}/send_video"
+        payload = {"number": number, "url": url, "caption": caption}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for video
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Video: {caption or 'unnamed'}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send video: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Video: {caption or 'unnamed'}"
+            self.stats["last_sent_target"] = number
+
+    async def send_audio(
+        self,
+        number: str,
+        url: str,
+        ptt: bool = False,
+    ) -> None:
+        """Send audio (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(self._send_audio_internal, target_jid, url, ptt)
+
+    async def _send_audio_internal(
+        self,
+        number: str,
+        url: str,
+        ptt: bool = False,
+    ) -> None:
+        """Internal send audio logic."""
+        api_url = f"{self.host}/send_audio"
+        payload = {"number": number, "url": url, "ptt": ptt}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for audio
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = "Voice Note" if ptt else "Audio"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = text
+                raise Exception(f"Failed to send audio: {text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
+            self.stats["last_sent_target"] = number
+
+    async def revoke_message(
+        self,
+        number: str,
+        message_id: str,
+    ) -> None:
+        """Revoke (delete) a message."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._revoke_message_internal, target_jid, message_id
+        )
+
+    async def _revoke_message_internal(
+        self,
+        number: str,
+        message_id: str,
+    ) -> None:
+        """Internal revoke message logic."""
+        api_url = f"{self.host}/revoke_message"
+        payload = {"number": number, "message_id": message_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to revoke message: {text}")
+
+    async def edit_message(
+        self,
+        number: str,
+        message_id: str,
+        new_content: str,
+    ) -> None:
+        """Edit a message."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._edit_message_internal, target_jid, message_id, new_content
+        )
+
+    async def _edit_message_internal(
+        self,
+        number: str,
+        message_id: str,
+        new_content: str,
+    ) -> None:
+        """Internal edit message logic."""
+        api_url = f"{self.host}/edit_message"
+        payload = {
+            "number": number,
+            "message_id": message_id,
+            "new_content": new_content,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to edit message: {text}")
+
     async def send_location(
         self,
         number: str,
@@ -389,8 +713,18 @@ class WhatsAppApiClient:
         address: str | None = None,
     ) -> None:
         """Send a location (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         await self._send_with_retry(
-            self._send_location_internal, number, latitude, longitude, name, address
+            self._send_location_internal,
+            target_jid,
+            latitude,
+            longitude,
+            name,
+            address,
         )
 
     async def _send_location_internal(
@@ -437,8 +771,13 @@ class WhatsAppApiClient:
 
     async def send_reaction(self, number: str, text: str, message_id: str) -> None:
         """Send a reaction to a specific message (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         await self._send_with_retry(
-            self._send_reaction_internal, number, text, message_id
+            self._send_reaction_internal, target_jid, text, message_id
         )
 
     async def _send_reaction_internal(
@@ -457,18 +796,168 @@ class WhatsAppApiClient:
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Reaction: {text}"
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text_content
+
                 raise Exception(f"Failed to send reaction: {text_content}")
+
+    async def set_webhook(
+        self,
+        url: str,
+        enabled: bool = True,
+        token: str | None = None,
+    ) -> None:
+        """Configure the webhook settings on the Addon."""
+        api_url = f"{self.host}/settings/webhook"
+        payload = {"url": url, "enabled": enabled}
+        if token:
+            payload["token"] = token
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                raise Exception(f"Failed to set webhook: {text}")
+
+    async def send_list(
+        self,
+        number: str,
+        title: str,
+        text: str,
+        button_text: str,
+        sections: list[dict[str, Any]],
+    ) -> None:
+        """Send a list message (interactive menu)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._send_list_internal, target_jid, title, text, button_text, sections
+        )
+
+    async def _send_list_internal(
+        self,
+        number: str,
+        title: str,
+        text: str,
+        button_text: str,
+        sections: list[dict[str, Any]],
+    ) -> None:
+        """Internal send list logic."""
+        api_url = f"{self.host}/send_list"
+        payload = {
+            "number": number,
+            "title": title,
+            "text": text,
+            "button_text": button_text,
+            "sections": sections,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                resp_text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"List: {title}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = resp_text
+                raise Exception(f"Failed to send list: {resp_text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"List: {title}"
+            self.stats["last_sent_target"] = number
+
+    async def send_contact(
+        self,
+        number: str,
+        contact_name: str,
+        contact_number: str,
+    ) -> None:
+        """Send a contact card (VCard)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
+        await self._send_with_retry(
+            self._send_contact_internal, target_jid, contact_name, contact_number
+        )
+
+    async def _send_contact_internal(
+        self,
+        number: str,
+        contact_name: str,
+        contact_number: str,
+    ) -> None:
+        """Internal send contact logic."""
+        api_url = f"{self.host}/send_contact"
+        payload = {
+            "number": number,
+            "contact_name": contact_name,
+            "contact_number": contact_number,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
+            if resp.status != 200:
+                resp_text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Contact: {contact_name}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = resp_text
+                raise Exception(f"Failed to send contact: {resp_text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Contact: {contact_name}"
+            self.stats["last_sent_target"] = number
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         url = f"{self.host}/set_presence"
-        payload = {"number": number, "presence": presence}
+        payload = {"number": target_jid, "presence": presence}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
@@ -479,6 +968,8 @@ class WhatsAppApiClient:
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 raise Exception(f"Failed to set presence: {text_content}")
@@ -491,8 +982,13 @@ class WhatsAppApiClient:
         footer: str | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         await self._send_with_retry(
-            self._send_buttons_internal, number, text, buttons, footer
+            self._send_buttons_internal, target_jid, text, buttons, footer
         )
 
     async def _send_buttons_internal(
@@ -558,8 +1054,13 @@ class WhatsAppApiClient:
 
     async def mark_as_read(self, number: str, message_id: str) -> None:
         """Mark a message as read."""
+        if not self.is_allowed(number):
+            return
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            return
         url = f"{self.host}/mark_as_read"
-        payload = {"number": number, "messageId": message_id}
+        payload = {"number": target_jid, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
@@ -574,4 +1075,4 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                _LOGGER.error("Failed to mark message as read: %s", text_content)
+                raise Exception(f"Failed to mark message as read: {text_content}")
