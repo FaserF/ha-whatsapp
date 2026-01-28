@@ -99,7 +99,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.async_create_task(client.mark_as_read(number, message_id))
             else:
                 _LOGGER.warning(
-                    "Auto-mark-as-read enabled but missing data. Message ID: %s, Number: %s",
+                    "Auto-mark-as-read enabled but missing data. "
+                    "Message ID: %s, Number: %s",
                     message_id,
                     number,
                 )

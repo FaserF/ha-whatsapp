@@ -55,7 +55,17 @@
             "on_property": "message"
         },
         {
+            "pattern": "^(?i)New (feat|feature).*",
+            "target": "feature",
+            "on_property": "message"
+        },
+        {
             "pattern": "^(?i)fix(\\s*\\(.*?\\))?:",
+            "target": "fix",
+            "on_property": "message"
+        },
+        {
+            "pattern": "^(?i)Fix(ed|es)? .*",
             "target": "fix",
             "on_property": "message"
         },
@@ -95,8 +105,13 @@
             "on_property": "message"
         },
         {
-            "pattern": "(?i)^chore: bump to dev version.*",
+            "pattern": "(?i)^(CI fix|chore: auto-fix|chore: bump).*",
             "target": "ignore",
+            "on_property": "message"
+        },
+        {
+            "pattern": "(?i)^new test file.*",
+            "target": "test",
             "on_property": "message"
         },
         {

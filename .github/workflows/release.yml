@@ -20,6 +20,7 @@ on:
         - beta
         - nightly
         - manual
+        - addon_sync
       bump_type:
         description: 'Auto-Bump Type'
         required: true
@@ -64,6 +65,18 @@ jobs:
           # Extra cleaning: strip beta suffix (b0, b1, etc) and dev suffix
           BASE_VERSION="${BASE_VERSION%%b*}"
           BASE_VERSION="${BASE_VERSION%%.dev*}"
+
+          # Handle manual bump override from workflow_dispatch
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+             IFS='.' read -r major minor patch <<< "$BASE_VERSION"
+             if [[ "$BUMP_TYPE" == "minor" ]]; then
+                 BASE_VERSION="${major}.$((minor + 1)).0"
+                 echo "ℹ️ Manual Minor Bump: Adjusted Base Version to $BASE_VERSION"
+             elif [[ "$BUMP_TYPE" == "major" ]]; then
+                 BASE_VERSION="$((major + 1)).0.0"
+                 echo "ℹ️ Manual Major Bump: Adjusted Base Version to $BASE_VERSION"
+             fi
+          fi
 
           VERSION="$RAW_VERSION"
           SHOULD_RELEASE="false"
@@ -150,6 +163,22 @@ jobs:
             if [[ "$VERSION" == *"b"* ]] || [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
               PRERELEASE="true"
             fi
+          elif [[ "$RELEASE_TYPE" == "addon_sync" ]]; then
+            echo "🔄 Syncing version from Addon repository..."
+            ADDON_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
+
+            # Fetch config and extract version
+            REMOTE_VERSION=$(curl -s "$ADDON_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
+
+            if [[ -z "$REMOTE_VERSION" ]]; then
+               echo "❌ Failed to fetch version from addon config!"
+               exit 1
+            fi
+
+            VERSION="$REMOTE_VERSION"
+            SHOULD_RELEASE="true"
+            PRERELEASE="false" # Sync implies stable release
+            echo "✅ Fetched version: $VERSION"
           fi
 
           echo "Final Version: $VERSION"
@@ -226,7 +255,7 @@ jobs:
         id: build_changelog
         uses: mikepenz/release-changelog-builder-action@v6
         with:
-          configuration: "whatsapp/integration/.github/release-changelog-config.json"
+          configuration: ".github/release-changelog-config.json"
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
           mode: "HYBRID"
