@@ -91,11 +91,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Extract ID and sender JID from the nested raw data
             # The addon sends full data in 'raw'
             raw_msg = data.get("raw", {})
-            message_id = raw_msg.get("key", {}).get("id")
-            number = data.get("raw_sender")  # Use full JID for API calls
+            # Try to get message_id from 'raw.key.id' or fallback to top-level 'id'
+            message_id = raw_msg.get("key", {}).get("id") or data.get("id")
+            number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
 
             if message_id and number:
                 hass.async_create_task(client.mark_as_read(number, message_id))
+            else:
+                _LOGGER.warning(
+                    "Auto-mark-as-read enabled but missing data. Message ID: %s, Number: %s",
+                    message_id,
+                    number,
+                )
 
     client.register_callback(handle_incoming_message)
     polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 5)
