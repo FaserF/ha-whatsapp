@@ -47,6 +47,9 @@ class WhatsAppApiClient:
 
         # Normalize target for comparison
         target_jid = self.ensure_jid(target)
+        if not target_jid:
+            _LOGGER.warning("Could not normalize target '%s' to a valid JID", target)
+            return False
 
         for allowed_entry in self.whitelist:
             allowed = allowed_entry.strip()
@@ -55,7 +58,8 @@ class WhatsAppApiClient:
 
             # 1. Full JID comparison (contains @)
             if "@" in allowed:
-                if target_jid == self.ensure_jid(allowed):
+                entry_jid = self.ensure_jid(allowed)
+                if entry_jid and target_jid == entry_jid:
                     return True
 
             # 2. Group ID comparison (hyphenated, no @)
@@ -86,9 +90,11 @@ class WhatsAppApiClient:
         if "@" in target:
             return target.replace("+", "") if target.startswith("+") else target
 
-        # If it contains a hyphen, it's likely a group ID (e.g. 123456789-987654321)
+        # If it contains exactly one hyphen and both parts are numeric, it's likely a group ID
         if "-" in target:
-            return f"{target}@g.us"
+            parts = target.split("-")
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                return f"{target}@g.us"
 
         # Otherwise treat as phone number
         # Remove any leading + and non-digit characters
@@ -760,6 +766,8 @@ class WhatsAppApiClient:
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 self.stats["failed"] += 1
@@ -845,7 +853,15 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"List: {title}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = resp_text
                 raise Exception(f"Failed to send list: {resp_text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"List: {title}"
+            self.stats["last_sent_target"] = number
 
     async def send_contact(
         self,
@@ -889,7 +905,15 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = f"Contact: {contact_name}"
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = resp_text
                 raise Exception(f"Failed to send contact: {resp_text}")
+
+            self.stats["sent"] += 1
+            self.stats["last_sent_message"] = f"Contact: {contact_name}"
+            self.stats["last_sent_target"] = number
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
@@ -908,6 +932,8 @@ class WhatsAppApiClient:
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
+            if resp.status == 401:
+                raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 raise Exception(f"Failed to set presence: {text_content}")
@@ -1009,4 +1035,4 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                _LOGGER.error("Failed to mark message as read: %s", text_content)
+                raise Exception(f"Failed to mark message as read: {text_content}")
