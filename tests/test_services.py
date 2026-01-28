@@ -21,6 +21,7 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         # Mock methods - Unified list
         mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.start_polling = AsyncMock()
         mock_instance.get_stats = AsyncMock(return_value={})
         mock_instance.send_message = AsyncMock()
         mock_instance.send_image = AsyncMock()

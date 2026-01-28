@@ -113,4 +113,5 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         "mask_sensitive_data": False,
         CONF_MARK_AS_READ: True,
         CONF_RETRY_ATTEMPTS: 2,
+        "whitelist": "",
     }
