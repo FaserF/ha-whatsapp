@@ -39,21 +39,21 @@ on:
         default: 'beta'
         type: choice
         options:
-        - beta
-        - stable
-        - nightly
-        - addon_sync
-        - manual
+          - beta
+          - stable
+          - nightly
+          - addon_sync
+          - manual
       bump_type:
         description: 'How should the version be incremented from the last tag?'
         required: true
         default: 'none'
         type: choice
         options:
-        - none
-        - patch
-        - minor
-        - major
+          - none
+          - patch
+          - minor
+          - major
       manual_version:
         description: 'Manual Version (only for Manual release type, e.g. 1.2.3b5)'
         required: false

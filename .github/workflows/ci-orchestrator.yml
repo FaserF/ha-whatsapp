@@ -2,7 +2,7 @@ name: CI Orchestrator
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
@@ -35,11 +35,16 @@ on:
 
 jobs:
   changes:
+    name: ${{ github.event_name }}
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@v6
+      - name: 🏷️ Sync Labels
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ github.token }}
       - uses: dorny/paths-filter@v3
         id: filter
         with:
