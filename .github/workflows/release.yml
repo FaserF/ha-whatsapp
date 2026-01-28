@@ -277,7 +277,7 @@ jobs:
         run: |
           RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
 
-          if [[ "$RELEASE_TYPE" == "stable" ]] || { [[ "$RELEASE_TYPE" == "auto" ]] && [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; }; then
+          if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
             LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "b[0-9]|\.dev[0-9]" | head -n 1)
             echo "base_tag=$LAST_STABLE" >> $GITHUB_OUTPUT
