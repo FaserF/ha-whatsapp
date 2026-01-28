@@ -1,4 +1,3 @@
-
 import logging
 import os
 import sys
@@ -19,22 +18,24 @@ except ImportError:
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class MockAsyncContextManager:
     def __init__(self, return_value):
         self.return_value = return_value
+
     async def __aenter__(self):
         return self.return_value
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
+
 
 async def test_verify_send_document():
     """Verify the send_document logic."""
     _LOGGER.info("Verifying send_document logic...")
 
     client = WhatsAppApiClient(
-        host="http://localhost:8066",
-        api_key="test_key",
-        whitelist=["49123456789"]
+        host="http://localhost:8066", api_key="test_key", whitelist=["49123456789"]
     )
 
     # 1. Test allowed target
@@ -54,10 +55,7 @@ async def test_verify_send_document():
 
     with patch("aiohttp.ClientSession", return_value=mock_session_cm):
         await client.send_document(
-            "49123456789",
-            "http://test.com/file.pdf",
-            "test.pdf",
-            "Here is a file"
+            "49123456789", "http://test.com/file.pdf", "test.pdf", "Here is a file"
         )
 
         # Verify call data

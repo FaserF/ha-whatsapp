@@ -1,4 +1,5 @@
 """Test the WhatsApp services."""
+
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.const import CONF_API_KEY, CONF_URL
@@ -16,9 +17,7 @@ async def test_services(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient"
-    ) as mock_client_cls:
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         # Mock methods - Unified list
         mock_instance.connect = AsyncMock(return_value=True)
@@ -64,9 +63,7 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_poll.assert_awaited_with(
-            "12345", "Q?", ["A", "B"]
-        )
+        mock_instance.send_poll.assert_awaited_with("12345", "Q?", ["A", "B"])
 
         # 3. Test send_image
         await hass.services.async_call(
@@ -93,9 +90,7 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_location.assert_awaited_with(
-            "12345", 1.0, 2.0, "Loc", None
-        )
+        mock_instance.send_location.assert_awaited_with("12345", 1.0, 2.0, "Loc", None)
 
         # 5. Test send_reaction
         await hass.services.async_call(
@@ -162,9 +157,7 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_contact.assert_awaited_with(
-            "12345", "Test User", "98765"
-        )
+        mock_instance.send_contact.assert_awaited_with("12345", "Test User", "98765")
 
         # 10. Test configure_webhook
         await hass.services.async_call(
@@ -177,9 +170,7 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.set_webhook.assert_awaited_with(
-            "http://ha/hook", True, "123"
-        )
+        mock_instance.set_webhook.assert_awaited_with("http://ha/hook", True, "123")
 
         # 11. Test revoke_message
         await hass.services.async_call(
@@ -241,6 +232,4 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_audio.assert_awaited_with(
-            "12345", "http://audio.mp3", True
-        )
+        mock_instance.send_audio.assert_awaited_with("12345", "http://audio.mp3", True)
