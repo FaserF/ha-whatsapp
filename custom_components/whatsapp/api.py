@@ -90,7 +90,8 @@ class WhatsAppApiClient:
         if "@" in target:
             return target.replace("+", "") if target.startswith("+") else target
 
-        # If it contains exactly one hyphen and both parts are numeric, it's likely a group ID
+        # If it contains exactly one hyphen and both parts are numeric,
+        # it's likely a group ID
         if "-" in target:
             parts = target.split("-")
             if len(parts) == 2 and all(p.isdigit() for p in parts):
