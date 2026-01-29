@@ -63,6 +63,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         full_sender = data.get("sender", "")
         sender_number = data.get("sender_number")
 
+        # The 'sender' field should be the full JID for direct use in replies/services
+        data["sender"] = full_sender
+        data["raw_sender"] = full_sender
+
         if sender_number:
             clean_sender = sender_number
         else:
@@ -71,8 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if "@s.whatsapp.net" in full_sender or "@lid" in full_sender:
                 clean_sender = full_sender.split("@")[0]
 
-        data["sender"] = clean_sender
-        data["raw_sender"] = full_sender
+        data["sender_number"] = clean_sender
 
         # Whitelist filtering
         if whitelist is not None:

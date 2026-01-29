@@ -12,9 +12,9 @@ The event payload contains the following fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `sender` | string | The cleaned sender (e.g., `49123456789` or `remoteJid`) or Group ID. |
-| `sender_number` | string | The numeric part of the sender (e.g., `49123456789`). |
-| `raw_sender` | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`). |
+| `sender` | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`), ideal for replies. |
+| `sender_number` | string | The cleaned numeric part of the sender (e.g., `49123456789`). |
+| `raw_sender` | string | The full WhatsApp JID (same as `sender`). |
 | `content` | string | The text body of the message. |
 | `media_url` | string | URL to download the received media (if any). |
 | `media_path` | string | Internal local path to the media file. |
@@ -58,7 +58,7 @@ trigger:
 condition:
   - condition: template
     # Use the clean numeric sender ID for easy comparison
-    value_template: "{{ trigger.event.data.sender == '4915112345678' }}"
+    value_template: "{{ trigger.event.data.sender_number == '4915112345678' }}"
   - condition: template
     value_template: "{{ trigger.event.data.content == 'Disarm Home' }}"
 action:

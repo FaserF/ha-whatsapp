@@ -159,6 +159,7 @@ action:
 ---
 
 ## 💡 Important Note
-1.  **Recipient**: The `target` field is **mandatory**. Use a phone number with country code (e.g., `+49...`) or a WhatsApp Group ID (e.g., `123456@g.us`).
-2.  **Multiple Targets**: You can also pass a list: `target: ["+49123", "+49456"]`.
+1.  **Recipient**: The `target` field is **mandatory**. Use a phone number with country code (e.g., `+49...`), a WhatsApp Group ID (e.g., `123456@g.us`), or the `sender` JID from an event.
+2.  **Sender Fields**: Use `trigger.event.data.sender` for replies (contains full JID) and `trigger.event.data.sender_number` if you need to compare against a plain phone number.
+3.  **Multiple Targets**: You can also pass a list: `target: ["+49123", "+49456"]`.
 3.  **Standard Alignment**: These examples follow the modern Home Assistant Notify standard.
