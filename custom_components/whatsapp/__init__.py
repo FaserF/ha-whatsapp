@@ -196,9 +196,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["target"], data["question"], data.get("options", [])
             )
         elif service == "send_image":
-            await client.send_image(
-                data["target"], data["url"], data.get("caption")
-            )
+            await client.send_image(data["target"], data["url"], data.get("caption"))
         elif service == "send_location":
             await client.send_location(
                 data["target"],
@@ -216,13 +214,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["target"], data["url"], data.get("file_name"), data.get("message")
             )
         elif service == "send_video":
-            await client.send_video(
-                data["target"], data["url"], data.get("message")
-            )
+            await client.send_video(data["target"], data["url"], data.get("message"))
         elif service == "send_audio":
-            await client.send_audio(
-                data["target"], data["url"], data.get("ptt", False)
-            )
+            await client.send_audio(data["target"], data["url"], data.get("ptt", False))
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
