@@ -37,6 +37,10 @@
             "labels": [
                 "test"
             ]
+        },
+        {
+            "title": "📦 Uncategorized",
+            "labels": []
         }
     ],
     "ignore_labels": [
@@ -85,7 +89,7 @@
             "on_property": "message"
         },
         {
-            "pattern": "^([Ff]eat|[Ff]eature|[Aa]dd)(\\s*\\(.*?\\))?:",
+            "pattern": "^([Ff]eat|[Ff]eature|[Aa]dd)(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "✨ Features",
             "on_property": "message"
         },
@@ -95,7 +99,7 @@
             "on_property": "message"
         },
         {
-            "pattern": "^[Ff]ix(\\s*\\(.*?\\))?:",
+            "pattern": "^[Ff]ix(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "🐛 Bug Fixes",
             "on_property": "message"
         },
@@ -105,7 +109,7 @@
             "on_property": "message"
         },
         {
-            "pattern": "^[Dd]ocs(\\s*\\(.*?\\))?:",
+            "pattern": "^[Dd]ocs(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "📝 Documentation",
             "on_property": "message"
         },
@@ -120,17 +124,17 @@
             "on_property": "message"
         },
         {
-            "pattern": "^[Dd]eps(\\s*\\(.*?\\))?:",
+            "pattern": "^[Dd]eps(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "📦 Dependencies",
             "on_property": "message"
         },
         {
-            "pattern": "^[Tt]est(\\s*\\(.*?\\))?:",
+            "pattern": "^[Tt]est(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "🧪 Tests",
             "on_property": "message"
         },
         {
-            "pattern": "^([Cc]hore|[Cc]onfig|[Cc][Ii]|[Ww]orkflow|[Rr]uff)(\\s*\\(.*?\\))?:",
+            "pattern": "^([Cc]hore|[Cc]onfig|[Cc][Ii]|[Ww]orkflow|[Rr]uff)(\\s*\\(.*?\\))?(:|\\s+)",
             "target": "🔧 Maintenance & CI",
             "on_property": "message"
         },
