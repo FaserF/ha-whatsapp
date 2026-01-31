@@ -165,7 +165,7 @@ graph TD
 ## 🏷️ Versions
 
 - **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.0.1`).
-- **Beta**: Feature-complete testing versions (e.g., `v1.0.1b0`).
+- **Beta**: Feature-complete testing versions (e.g., `v1.0.1b0`). [See Installation Guide](beta.html).
 - **Nightly/Dev**: Experimental builds from the latest code (e.g., `v1.0.2-dev`).
 
 ---
