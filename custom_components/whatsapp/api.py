@@ -1171,6 +1171,4 @@ class WhatsAppApiClient:
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)
-                raise HomeAssistantError(
-                    f"Failed to mark message as read: {error_msg}"
-                )
+                raise HomeAssistantError(f"Failed to mark message as read: {error_msg}")
