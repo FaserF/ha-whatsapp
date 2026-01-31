@@ -1,0 +1,29 @@
+# GitHub Labeler Configuration
+# https://github.com/actions/labeler
+
+code:
+  - changed-files:
+    - any-glob-to-any-file: 'custom_components/whatsapp/**/*'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**/*'
+      - 'README.md'
+      - 'EXAMPLES.md'
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**/*'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**/*'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'pyproject.toml'
+      - 'hacs.json'
+      - 'renovate.json'

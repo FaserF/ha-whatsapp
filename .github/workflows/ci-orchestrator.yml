@@ -45,6 +45,7 @@ jobs:
         uses: actions/labeler@v6
         with:
           repo-token: ${{ github.token }}
+          configuration-path: 'whatsapp/integration/.github/labeler.yml'
       - uses: dorny/paths-filter@v3
         id: filter
         with:
