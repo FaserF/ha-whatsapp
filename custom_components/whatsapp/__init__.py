@@ -156,7 +156,8 @@ def get_client_for_account(
         if len(clients) == 1:
             return list(clients.values())[0]
         raise vol.Invalid(
-            "Multiple WhatsApp accounts found. Please specify the 'account' (entry ID or unique ID)."
+            "Multiple WhatsApp accounts found. "
+            "Please specify the 'account' (entry ID or unique ID)."
         )
 
     # Try mapping by entry_id
@@ -195,7 +196,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["target"], data["question"], data.get("options", [])
             )
         elif service == "send_image":
-            await client.send_image(data["target"], data["url"], data.get("caption"))
+            await client.send_image(
+                data["target"], data["url"], data.get("caption")
+            )
         elif service == "send_location":
             await client.send_location(
                 data["target"],
@@ -213,9 +216,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["target"], data["url"], data.get("file_name"), data.get("message")
             )
         elif service == "send_video":
-            await client.send_video(data["target"], data["url"], data.get("message"))
+            await client.send_video(
+                data["target"], data["url"], data.get("message")
+            )
         elif service == "send_audio":
-            await client.send_audio(data["target"], data["url"], data.get("ptt", False))
+            await client.send_audio(
+                data["target"], data["url"], data.get("ptt", False)
+            )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
@@ -294,7 +301,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     # Define common schema with optional account
-    S_BASE = {vol.Optional("account"): cv.string}
+    s_base = {vol.Optional("account"): cv.string}
 
     hass.services.async_register(
         DOMAIN,
@@ -302,7 +309,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message"): cv.string,
             }
@@ -314,7 +321,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("question"): cv.string,
                 vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
@@ -327,7 +334,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("caption"): cv.string,
@@ -340,7 +347,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("file_name"): cv.string,
@@ -354,7 +361,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("message"): cv.string,
@@ -367,7 +374,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("ptt", default=False): cv.boolean,
@@ -380,7 +387,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message_id"): cv.string,
             }
@@ -392,7 +399,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message_id"): cv.string,
                 vol.Required("message"): cv.string,
@@ -405,7 +412,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("sections"): cv.match_all,
                 vol.Optional("title"): cv.string,
@@ -420,7 +427,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("name"): cv.string,
                 vol.Required("contact_number"): cv.string,
@@ -433,7 +440,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("url"): cv.string,
                 vol.Optional("enabled", default=True): cv.boolean,
                 vol.Optional("token"): cv.string,
@@ -446,7 +453,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("latitude"): vol.Coerce(float),
                 vol.Required("longitude"): vol.Coerce(float),
@@ -461,7 +468,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("reaction"): cv.string,
                 vol.Required("message_id"): cv.string,
@@ -474,7 +481,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("presence"): vol.In(
                     ["available", "unavailable", "composing", "recording", "paused"]
@@ -488,7 +495,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message"): cv.string,
                 vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
@@ -501,7 +508,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "search_groups",
         _handle_service,
         schema=vol.Schema(
-            {**S_BASE, vol.Optional("name_filter", default=""): cv.string}
+            {**s_base, vol.Optional("name_filter", default=""): cv.string}
         ),
     )
     hass.services.async_register(
