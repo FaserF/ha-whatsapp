@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import json
 import logging
 from typing import Any
 
@@ -41,7 +42,16 @@ class WhatsAppApiClient:
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
+        self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
+
+    def _extract_error(self, text: str) -> str:
+        """Extract a clean error message from a JSON response."""
+        try:
+            data = json.loads(text)
+            return data.get("detail") or data.get("error") or text
+        except (json.JSONDecodeError, AttributeError):
+            return text
 
     def is_allowed(self, target: str) -> bool:
         """Check if a target JID is allowed by the whitelist."""
@@ -373,12 +383,13 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = message
                 self.stats["last_failed_target"] = number
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send: {error_msg}")
 
             # Local fallback increment (stats will update on next poll)
             self.stats["sent"] += 1
@@ -453,11 +464,12 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Poll: {question}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send poll: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send poll: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Poll: {question}"
@@ -498,13 +510,14 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = (
                     "Image" if not caption else f"Image: {caption}"
                 )
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send image: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send image: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Image Sent"
@@ -558,12 +571,13 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 label = file_name or "unnamed"
                 self.stats["last_failed_message"] = f"Document: {label}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send document: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send document: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
@@ -608,11 +622,12 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Video: {caption or 'unnamed'}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send video: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send video: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Video: {caption or 'unnamed'}"
@@ -657,11 +672,12 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = "Voice Note" if ptt else "Audio"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send audio: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send audio: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
@@ -706,7 +722,8 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise HomeAssistantError(f"Failed to revoke message: {text}")
+                error_msg = self._extract_error(text)
+                raise HomeAssistantError(f"Failed to revoke message: {error_msg}")
 
     async def edit_message(
         self,
@@ -753,7 +770,8 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise HomeAssistantError(f"Failed to edit message: {text}")
+                error_msg = self._extract_error(text)
+                raise HomeAssistantError(f"Failed to edit message: {error_msg}")
 
     async def send_location(
         self,
@@ -811,11 +829,12 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
+                error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Location: {name or 'Pinned'}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text
-                raise HomeAssistantError(f"Failed to send location: {text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send location: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Location: {name or 'Pinned'}"
@@ -853,11 +872,12 @@ class WhatsAppApiClient:
                 raise Exception("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
+                error_msg = self._extract_error(text_content)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Reaction: {text}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text_content
-                raise HomeAssistantError(f"Failed to send reaction: {text_content}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send reaction: {error_msg}")
 
     async def set_webhook(
         self,
@@ -886,7 +906,8 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
-                raise HomeAssistantError(f"Failed to set webhook: {text}")
+                error_msg = self._extract_error(text)
+                raise HomeAssistantError(f"Failed to set webhook: {error_msg}")
 
     async def send_list(
         self,
@@ -939,11 +960,12 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
+                error_msg = self._extract_error(resp_text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"List: {title}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = resp_text
-                raise HomeAssistantError(f"Failed to send list: {resp_text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send list: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"List: {title}"
@@ -994,11 +1016,12 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
+                error_msg = self._extract_error(resp_text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Contact: {contact_name}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = resp_text
-                raise HomeAssistantError(f"Failed to send contact: {resp_text}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send contact: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Contact: {contact_name}"
@@ -1028,7 +1051,8 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
-                raise HomeAssistantError(f"Failed to set presence: {text_content}")
+                error_msg = self._extract_error(text_content)
+                raise HomeAssistantError(f"Failed to set presence: {error_msg}")
 
     async def send_buttons(
         self,
@@ -1077,11 +1101,12 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
+                error_msg = self._extract_error(text_content)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Buttons: {text}"
                 self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = text_content
-                raise HomeAssistantError(f"Failed to send buttons: {text_content}")
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send buttons: {error_msg}")
 
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Buttons: {text}"
@@ -1145,6 +1170,7 @@ class WhatsAppApiClient:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
+                error_msg = self._extract_error(text_content)
                 raise HomeAssistantError(
-                    f"Failed to mark message as read: {text_content}"
+                    f"Failed to mark message as read: {error_msg}"
                 )
