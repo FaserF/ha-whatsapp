@@ -138,7 +138,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def get_client_for_account(hass: HomeAssistant, account: str | None) -> WhatsAppApiClient:
+def get_client_for_account(
+    hass: HomeAssistant, account: str | None
+) -> WhatsAppApiClient:
     """Get the correct client based on the account (entry_id or unique ID)."""
     clients = {
         entry_id: data["client"]
@@ -189,7 +191,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         if service == "send_message":
             await client.send_message(data["target"], data["message"])
         elif service == "send_poll":
-            await client.send_poll(data["target"], data["question"], data.get("options", []))
+            await client.send_poll(
+                data["target"], data["question"], data.get("options", [])
+            )
         elif service == "send_image":
             await client.send_image(data["target"], data["url"], data.get("caption"))
         elif service == "send_location":
@@ -201,7 +205,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("address"),
             )
         elif service == "send_reaction":
-            await client.send_reaction(data["target"], data["reaction"], data["message_id"])
+            await client.send_reaction(
+                data["target"], data["reaction"], data["message_id"]
+            )
         elif service == "send_document":
             await client.send_document(
                 data["target"], data["url"], data.get("file_name"), data.get("message")
@@ -213,7 +219,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
-            await client.edit_message(data["target"], data["message_id"], data["message"])
+            await client.edit_message(
+                data["target"], data["message_id"], data["message"]
+            )
         elif service == "send_list":
             await client.send_list(
                 data["target"],
@@ -223,9 +231,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["sections"],
             )
         elif service == "send_contact":
-            await client.send_contact(data["target"], data["name"], data["contact_number"])
+            await client.send_contact(
+                data["target"], data["name"], data["contact_number"]
+            )
         elif service == "configure_webhook":
-            await client.set_webhook(data["url"], data.get("enabled", True), data.get("token"))
+            await client.set_webhook(
+                data["url"], data.get("enabled", True), data.get("token")
+            )
         elif service == "update_presence":
             await client.set_presence(data["target"], data["presence"])
         elif service == "send_buttons":
@@ -289,7 +301,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_message",
         _handle_service,
         schema=vol.Schema(
-            {**S_BASE, vol.Required("target"): cv.string, vol.Required("message"): cv.string}
+            {
+                **S_BASE,
+                vol.Required("target"): cv.string,
+                vol.Required("message"): cv.string,
+            }
         ),
     )
     hass.services.async_register(
@@ -363,7 +379,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "revoke_message",
         _handle_service,
         schema=vol.Schema(
-            {**S_BASE, vol.Required("target"): cv.string, vol.Required("message_id"): cv.string}
+            {
+                **S_BASE,
+                vol.Required("target"): cv.string,
+                vol.Required("message_id"): cv.string,
+            }
         ),
     )
     hass.services.async_register(
@@ -480,7 +500,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         DOMAIN,
         "search_groups",
         _handle_service,
-        schema=vol.Schema({**S_BASE, vol.Optional("name_filter", default=""): cv.string}),
+        schema=vol.Schema(
+            {**S_BASE, vol.Optional("name_filter", default=""): cv.string}
+        ),
     )
     hass.services.async_register(
         DOMAIN,
