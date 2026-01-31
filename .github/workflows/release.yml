@@ -302,6 +302,7 @@ jobs:
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
           mode: "HYBRID"
+          fail_on_empty: "false"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
