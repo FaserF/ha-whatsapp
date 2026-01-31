@@ -11,7 +11,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import WhatsAppApiClient
@@ -189,6 +189,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         CONF_API_KEY: self.discovery_info[CONF_API_KEY],
                     },
                 )
+        except AbortFlow:
+            raise
         except Exception as e:
             _LOGGER.debug("Connect check failed with exception: %s", e)
             pass  # Not connected, proceed with QR flow

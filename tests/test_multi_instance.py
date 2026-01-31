@@ -36,12 +36,11 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
             {"host": "http://localhost:8066", "api_key": "key1"},
         )
         # Scan step (already connected mock)
-        result3 = await hass.config_entries.flow.async_configure(result2["flow_id"], {})
-
-        assert result3["type"] == FlowResultType.CREATE_ENTRY
-        assert result3["title"] == "WhatsApp (49123456789)"
-        assert result3["result"].unique_id == "49123456789"
-        session_id_1 = result3["data"]["session_id"]
+        # result2 is already the result of the flow because connect()=True skipped the scan form
+        assert result2["type"] == FlowResultType.CREATE_ENTRY
+        assert result2["title"] == "WhatsApp (49123456789)"
+        assert result2["result"].unique_id == "49123456789"
+        session_id_1 = result2["data"]["session_id"]
 
     # 2. Setup second instance with different number
     with (
@@ -67,12 +66,10 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
             {"host": "http://localhost:8066", "api_key": "key2"},
         )
         # Scan step
-        result3 = await hass.config_entries.flow.async_configure(result2["flow_id"], {})
-
-        assert result3["type"] == FlowResultType.CREATE_ENTRY
-        assert result3["title"] == "WhatsApp (49987654321)"
-        assert result3["result"].unique_id == "49987654321"
-        session_id_2 = result3["data"]["session_id"]
+        assert result2["type"] == FlowResultType.CREATE_ENTRY
+        assert result2["title"] == "WhatsApp (49987654321)"
+        assert result2["result"].unique_id == "49987654321"
+        session_id_2 = result2["data"]["session_id"]
 
         # Ensure session IDs are different
         assert session_id_1 != session_id_2
@@ -116,7 +113,5 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
             {"host": "http://localhost:8066", "api_key": "key1"},
         )
         # Scan step
-        result3 = await hass.config_entries.flow.async_configure(result2["flow_id"], {})
-
-        assert result3["type"] == FlowResultType.ABORT
-        assert result3["reason"] == "already_configured"
+        assert result2["type"] == FlowResultType.ABORT
+        assert result2["reason"] == "already_configured"
