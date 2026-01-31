@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -144,7 +144,7 @@ def get_client_for_account(
     hass: HomeAssistant, account: str | None
 ) -> WhatsAppApiClient:
     """Get the correct client based on the account (entry_id or unique ID)."""
-    clients = {
+    clients: dict[str, WhatsAppApiClient] = {
         entry_id: data["client"]
         for entry_id, data in hass.data.get(DOMAIN, {}).items()
         if "client" in data
@@ -156,7 +156,7 @@ def get_client_for_account(
     # If only one client exists and no account specified, use it
     if account is None:
         if len(clients) == 1:
-            return cast(WhatsAppApiClient, list(clients.values())[0])
+            return list(clients.values())[0]
         raise ServiceValidationError(
             "Multiple WhatsApp accounts found. "
             "Please specify the 'account' (entry ID or unique ID)."
@@ -164,16 +164,16 @@ def get_client_for_account(
 
     # Try mapping by entry_id
     if account in clients:
-        return cast(WhatsAppApiClient, clients[account])
+        return clients[account]
 
     # Try mapping by unique_id (my_number)
     for entry_id, client in clients.items():
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry and entry.unique_id == account:
-            return cast(WhatsAppApiClient, client)
+            return client
         # Fallback to title
         if entry and entry.title == account:
-            return cast(WhatsAppApiClient, client)
+            return client
 
     raise ServiceValidationError(f"WhatsApp account '{account}' not found")
 
@@ -226,20 +226,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["target"], data["message_id"], data["message"]
             )
         elif service == "send_list":
-            title = data.get("title")
-            text = data.get("text")
-            button_text = data.get("button_text")
-
-            if not (title and text and button_text):
-                raise ServiceValidationError(
-                    "Services 'send_list' requires 'title', 'text', and 'button_text'."
-                )
-
             await client.send_list(
                 data["target"],
-                str(title),
-                str(text),
-                str(button_text),
+                data.get("title") or "",
+                data.get("text") or "",
+                data.get("button_text") or "",
                 data["sections"],
             )
         elif service == "send_contact":

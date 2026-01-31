@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.ref_name }}
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -28,4 +28,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "chore: auto-fix linting issues"
-          branch: ${{ github.head_ref }}
+          branch: ${{ github.ref_name }}

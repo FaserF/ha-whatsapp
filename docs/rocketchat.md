@@ -31,7 +31,7 @@ graph LR
 3.  Enable the Webhook and set a secure token:
     - **Webhook Enabled**: `true`
     - **Webhook URL**: `http://<YOUR_ROCKETCHAT_IP>:3000/api/apps/public/whatsapp-bridge-addon/webhook`
-    - **Webhook Token**: `YourSecretTokenGoesHere`
+    - **Webhook Token**: `YourSecretTokenGoesHere` (Define a strong random string!)
 4.  **Restart** the Add-on.
 5.  Check the Add-on **Web UI** and copy your **API Token** and **Port (8066)**.
 

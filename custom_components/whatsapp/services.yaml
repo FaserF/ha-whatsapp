@@ -54,7 +54,10 @@ send_poll:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -96,7 +99,10 @@ send_image:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -135,7 +141,10 @@ send_document:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -180,7 +189,10 @@ send_video:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -215,7 +227,10 @@ send_audio:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -254,7 +269,10 @@ send_location:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -310,7 +328,10 @@ send_contact:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -346,7 +367,10 @@ send_reaction:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -384,7 +408,10 @@ send_buttons:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -436,7 +463,10 @@ send_list:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -502,7 +532,10 @@ revoke_message:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -533,7 +566,10 @@ edit_message:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -570,7 +606,10 @@ update_presence:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -616,7 +655,10 @@ configure_webhook:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -658,7 +700,10 @@ search_groups:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
@@ -682,11 +727,20 @@ mark_as_read:
   fields:
     account:
       name: Account
-      description: The WhatsApp account to use.
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
       example: "49171234567"
       selector:
         text:
     target:
+      name: Target Phone ID
+      description: The phone number to make the message read.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
     message_id:
       name: Message ID (Optional)
       description: >
