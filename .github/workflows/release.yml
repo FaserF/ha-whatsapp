@@ -301,7 +301,7 @@ jobs:
           configuration: ".github/release-changelog-config.json"
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
-          mode: "HYBRID"
+          mode: "PR"
           fail_on_empty: "false"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}

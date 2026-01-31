@@ -15,12 +15,6 @@
             ]
         },
         {
-            "title": "📝 Documentation",
-            "labels": [
-                "docs"
-            ]
-        },
-        {
             "title": "📦 Dependencies",
             "labels": [
                 "dependency"
@@ -29,7 +23,14 @@
         {
             "title": "🔧 Maintenance & CI",
             "labels": [
-                "chore"
+                "chore",
+                "ci"
+            ]
+        },
+        {
+            "title": "📝 Documentation",
+            "labels": [
+                "docs"
             ]
         },
         {
@@ -37,130 +38,66 @@
             "labels": [
                 "test"
             ]
-        },
-        {
-            "title": "📦 Uncategorized",
-            "labels": []
         }
     ],
     "ignore_labels": [
         "ignore",
         "no-changelog"
     ],
-    "sort": "ASC",
-    "template": "# Changelog\n\n⚠️ **IMPORTANT**: This integration requires the corresponding Home Assistant Add-on to be updated. Please ensure you are running the latest version of the [WhatsApp Add-on](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n#{{CHANGELOG}}\n",
+    "sort": "DESC",
+    "template": "⚠️ **IMPORTANT**: This integration requires the corresponding Home Assistant Add-on to be updated. Please ensure you are running the latest version of the [WhatsApp Add-on](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n# Changelog\n\n#{{CHANGELOG}}\n",
     "pr_template": "- #{{TITLE}} (#{{NUMBER}})",
     "commit_template": "- #{{TITLE}}",
     "empty_template": "No significant changes in this release.",
     "label_extractor": [
         {
-            "pattern": ".*\\[skip ci\\].*",
+            "pattern": "(?i).*\\[skip ci\\].*",
             "target": "ignore",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^([Cc][Ii] fix|[Cc]hore: auto-fix|[Cc]hore: bump).*",
+            "pattern": "(?i)^(chore: release|chore: bump|chore: auto-fix|ci fix|update release).*\\b",
             "target": "ignore",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^[Cc]hore: release version.*",
+            "pattern": "(?i)^(merge pull request|merge branch).*\\b",
             "target": "ignore",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^[Rr]elease workflow fixes.*",
-            "target": "ignore",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^release changelog fixes.*",
-            "target": "ignore",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Uu]pdate release\\.yml.*",
-            "target": "ignore",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Mm]erge (pull request|branch).*",
-            "target": "ignore",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^([Ff]eat|[Ff]eature|[Aa]dd)(\\s*\\(.*?\\))?(:|\\s+)",
+            "pattern": "(?i)^(feat|feature|add)\\b.*",
             "target": "✨ Features",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^[Nn]ew ([Ff]eat|[Ff]eature).*",
-            "target": "✨ Features",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Ff]ix(\\s*\\(.*?\\))?(:|\\s+)",
+            "pattern": "(?i)^(fix|bug|patch|fixed|fixes)\\b.*",
             "target": "🐛 Bug Fixes",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^[Ff]ix(ed|es)? .*",
-            "target": "🐛 Bug Fixes",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Dd]ocs(\\s*\\(.*?\\))?(:|\\s+)",
-            "target": "📝 Documentation",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Uu]pdate .*\\.md$",
-            "target": "📝 Documentation",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Dd]ocs improvements.*",
-            "target": "📝 Documentation",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Dd]eps(\\s*\\(.*?\\))?(:|\\s+)",
+            "pattern": "(?i)^(deps|dependenc|update).*\\b",
             "target": "📦 Dependencies",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^[Tt]est(\\s*\\(.*?\\))?(:|\\s+)",
+            "pattern": "(?i)^(docs|documentation)\\b.*",
+            "target": "📝 Documentation",
+            "on_property": "title"
+        },
+        {
+            "pattern": "(?i)^(test|pytest)\\b.*",
             "target": "🧪 Tests",
-            "on_property": "message"
+            "on_property": "title"
         },
         {
-            "pattern": "^([Cc]hore|[Cc]onfig|[Cc][Ii]|[Ww]orkflow|[Rr]uff)(\\s*\\(.*?\\))?(:|\\s+)",
+            "pattern": "(?i)^(chore|config|ci|workflow|ruff)\\b.*",
             "target": "🔧 Maintenance & CI",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Uu]pdate release\\.yml.*",
-            "target": "🔧 Maintenance & CI",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^[Nn]ew test file.*",
-            "target": "🧪 Tests",
-            "on_property": "message"
-        },
-        {
-            "pattern": "^([Uu]pdate|[Cc][Ii]|[Ii]mproved|[Ii]nstructions|[Nn]ew|[Aa]llow|[Nn]ew option) .*",
-            "target": "🔧 Maintenance & CI",
-            "on_property": "message"
-        },
-        {
-            "pattern": ".*",
-            "target": "📦 Uncategorized",
-            "on_property": "message"
+            "on_property": "title"
         }
     ],
     "duplicate_filter": {
-        "pattern": "^(v)?\\d+\\.\\d+\\.\\d+.*",
+        "pattern": ".*",
         "on_property": "title"
     },
     "base_branches": [
