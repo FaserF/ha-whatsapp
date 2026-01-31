@@ -11,13 +11,13 @@
 
 ---
 
-| Component | Version | Status |
-| :--- | :--- | :--- |
-| **Addon (Stable)** | [![Addon Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) | engine |
-| **Addon (Edge)** | [![Addon Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
-| **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases) | interface |
-| **Integration (Beta)** | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases) | testing |
-| **Activity** | [![Last Release](https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/releases) | |
+| Component                | Version                                                                                                                                                                                                                                                                                 | Status     |
+| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------- |
+| **Addon (Stable)**       | [![Addon Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)                                                                                            | engine     |
+| **Addon (Edge)**         | [![Addon Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
+| **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                      | interface  |
+| **Integration (Beta)**   | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                         | testing    |
+| **Activity**             | [![Last Release](https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                  |            |
 
 ---
 
@@ -65,18 +65,20 @@
 
 The most up-to-date and detailed documentation is available at our **[Official Documentation Site](https://faserf.github.io/ha-whatsapp/)**.
 
-| Guide | Description |
-| :--- | :--- |
-| **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)** | Installation, Services, Automations, and Pro-Tips. |
-| **[📚 Whitelist Guide](docs/WHITELIST.md)** | Restrict interaction to specific users/groups. |
-| **[📖 Local Examples](EXAMPLES.md)** | Quick reference for YAML snippets inside this repository. |
+| Guide                                                      | Description                                               |
+| :--------------------------------------------------------- | :-------------------------------------------------------- |
+| **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)** | Installation, Services, Automations, and Pro-Tips.        |
+| **[📚 Whitelist Guide](docs/WHITELIST.md)**                | Restrict interaction to specific users/groups.            |
+| **[📖 Local Examples](EXAMPLES.md)**                       | Quick reference for YAML snippets inside this repository. |
 
 ---
 
 ## 💡 How to use
 
 ### The WhatsApp Sensor
+
 The integration provides a binary sensor (e.g., `binary_sensor.whatsapp`).
+
 - **State**: Indicates if the integration is successfully connected to the Addon.
 - **Attributes**:
   - `messages_sent`: Total number of messages sent since restart.
@@ -88,26 +90,31 @@ If the sensor is `disabled`, check your Home Assistant "Entities" settings and e
 ### Services
 
 #### 1. Native WhatsApp Services (Recommended)
+
 Use these for the most robust experience in YAML.
+
 ```yaml
 service: whatsapp.send_message
 data:
-  target: "+491234567890"
-  message: "Hello from HA!"
+  target: '+491234567890'
+  message: 'Hello from HA!'
 ```
 
 #### 2. Legacy Notify (`notify.whatsapp`)
+
 Great for sending to multiple numbers at once or for simple alerts.
+
 ```yaml
 service: notify.whatsapp
 data:
-  message: "Washing machine is done! 🧺"
+  message: 'Washing machine is done! 🧺'
   target:
-    - "+491234567890"
-    - "123456789@g.us"
+    - '+491234567890'
+    - '123456789@g.us'
 ```
 
 #### 3. Modern Notify Action (`notify.send_message`)
+
 > [!WARNING]
 > Only use this in the **Visual Editor (UI)**. In YAML, it often fails with `extra keys not allowed`.
 
@@ -116,176 +123,205 @@ action: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
-  message: "Hello World!"
+  message: 'Hello World!'
 ```
+
 #### 4. Send Polls 📊
+
 You can send interactive polls to groups or users.
+
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: "+491234567890"  # Or Group ID
-  question: "Who wants pizza? 🍕"
+  target: '+491234567890' # Or Group ID
+  question: 'Who wants pizza? 🍕'
   options:
-    - "Me! 🙋‍♂️"
-    - "No thanks 🙅‍♂️"
-    - "Only on Friday 📅"
+    - 'Me! 🙋‍♂️'
+    - 'No thanks 🙅‍♂️'
+    - 'Only on Friday 📅'
 ```
 
 ### Service Examples
 
 We've provided examples for **Personal (Direct)** chats and **Group** chats.
-*   **Direct ID**: `+491234567890` (Phone number with country code)
-*   **Group ID**: `123456789-123456@g.us` (Find this via Events, see below)
+
+- **Direct ID**: `+491234567890` (Phone number with country code)
+- **Group ID**: `123456789-123456@g.us` (Find this via Events, see below)
 
 #### 1. Send Text Message 📝
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **Direct Chat:**
+
 ```yaml
 service: whatsapp.send_message
 data:
-  target: "+491234567890"
-  message: "Hello!"
+  target: '+491234567890'
+  message: 'Hello!'
 ```
 
 **Group Chat:**
+
 ```yaml
 service: whatsapp.send_message
 data:
-  target: "123456789-123456@g.us"
-  message: "Hello Everyone! 👋"
+  target: '123456789-123456@g.us'
+  message: 'Hello Everyone! 👋'
 ```
+
 </details>
 
 #### 2. Send Polls 📊
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **Direct Chat:**
+
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: "+491234567890"
-  question: "Lunch?"
-  options: ["Pizza", "Sushi"]
+  target: '+491234567890'
+  question: 'Lunch?'
+  options: ['Pizza', 'Sushi']
 ```
 
 **Group Chat:**
+
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: "123456789-123456@g.us"
-  question: "Team Building Activity?"
+  target: '123456789-123456@g.us'
+  question: 'Team Building Activity?'
   options:
-    - "Bowling 🎳"
-    - "Cinema 🍿"
-    - "Hiking 🥾"
+    - 'Bowling 🎳'
+    - 'Cinema 🍿'
+    - 'Hiking 🥾'
 ```
+
 </details>
 
 #### 3. Send Image 🖼️
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **Direct Chat:**
+
 ```yaml
 service: whatsapp.send_image
 data:
-  target: "+491234567890"
-  url: "https://www.home-assistant.io/images/favicon.jpg"
-  caption: "Check this out!"
+  target: '+491234567890'
+  url: 'https://www.home-assistant.io/images/favicon.jpg'
+  caption: 'Check this out!'
 ```
 
 **Group Chat:**
+
 ```yaml
 service: whatsapp.send_image
 data:
-  target: "123456789-123456@g.us"
-  url: "https://www.home-assistant.io/images/favicon.jpg"
-  caption: "New Logo Proposal"
+  target: '123456789-123456@g.us'
+  url: 'https://www.home-assistant.io/images/favicon.jpg'
+  caption: 'New Logo Proposal'
 ```
+
 </details>
 
 #### 4. Send Location 📍
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **Direct Chat:**
+
 ```yaml
 service: whatsapp.send_location
 data:
-  target: "+491234567890"
+  target: '+491234567890'
   latitude: 52.5200
   longitude: 13.4050
-  name: "Meeting Point"
+  name: 'Meeting Point'
 ```
 
 **Group Chat:**
+
 ```yaml
 service: whatsapp.send_location
 data:
-  target: "123456789-123456@g.us"
+  target: '123456789-123456@g.us'
   latitude: 48.8566
   longitude: 2.3522
-  name: "Holiday Home"
-  address: "Paris, France"
+  name: 'Holiday Home'
+  address: 'Paris, France'
 ```
+
 </details>
 
 #### 5. Send Buttons 🔘
-*Note: Button support varies by WhatsApp version.*
+
+_Note: Button support varies by WhatsApp version._
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **Direct Chat:**
+
 ```yaml
 service: whatsapp.send_buttons
 data:
-  target: "+491234567890"
-  message: "Arm Alarm System?"
-  footer: "Security Automation"
+  target: '+491234567890'
+  message: 'Arm Alarm System?'
+  footer: 'Security Automation'
   buttons:
-    - id: "arm_home"
-      displayText: "Arm Home 🏠"
-    - id: "arm_away"
-      displayText: "Arm Away 🛡️"
+    - id: 'arm_home'
+      displayText: 'Arm Home 🏠'
+    - id: 'arm_away'
+      displayText: 'Arm Away 🛡️'
 ```
 
 **Group Chat:**
+
 ```yaml
 service: whatsapp.send_buttons
 data:
-  target: "123456789-123456@g.us"
-  message: "Who is coming?"
+  target: '123456789-123456@g.us'
+  message: 'Who is coming?'
   buttons:
-    - id: "yes"
+    - id: 'yes'
       displayText: "I'm in!"
-    - id: "no"
+    - id: 'no'
       displayText: "Can't make it"
 ```
+
 </details>
 
 #### 6. Reactions & Presence
+
 <details>
 <summary>Click to show YAML examples</summary>
 
 **React to a message** (Direct or Group):
+
 ```yaml
 service: whatsapp.send_reaction
 data:
-  target: "123456789-123456@g.us"
-  message_id: "BAE5F..."  # ID from event
-  reaction: "❤️"
+  target: '123456789-123456@g.us'
+  message_id: 'BAE5F...' # ID from event
+  reaction: '❤️'
 ```
 
 **Set Presence** (Direct or Group):
+
 ```yaml
 service: whatsapp.update_presence
 data:
-  target: "+491234567890"
-  presence: "composing"  # status: typing...
+  target: '+491234567890'
+  presence: 'composing' # status: typing...
 ```
+
 </details>
 
 ### 🤖 Automating Replies
@@ -293,6 +329,7 @@ data:
 You can use Home Assistant automations to react to **incoming messages**, **button clicks**, and **poll votes**.
 
 #### 1. React to a Button Click
+
 When a user clicks a button, a `whatsapp_message_received` event is fired with `type: button_reply` (depending on Addon version).
 The most important field is `buttonId` or `selectedId`.
 
@@ -302,19 +339,20 @@ trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      type: "button_reply" # Check your event listener for exact type
-      buttonId: "arm_away" # Matches the ID you sent
+      type: 'button_reply' # Check your event listener for exact type
+      buttonId: 'arm_away' # Matches the ID you sent
 action:
   - service: alarm_control_panel.alarm_arm_away
     target:
       entity_id: alarm_control_panel.home_alarm
   - service: whatsapp.send_message
     data:
-      target: "{{ trigger.event.data.from }}"
-      message: "Alarm Armed! 🛡️"
+      target: '{{ trigger.event.data.from }}'
+      message: 'Alarm Armed! 🛡️'
 ```
 
 #### 2. React to a Poll Vote
+
 Polls fire updates when votes change.
 
 ```yaml
@@ -323,30 +361,31 @@ trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      type: "poll_update"
+      type: 'poll_update'
 condition:
   - condition: template
     value_template: "{{ 'Pizza' in trigger.event.data.vote }}"
 action:
   - service: whatsapp.send_message
     data:
-      target: "{{ trigger.event.data.from }}"
-      message: "Great choice! 🍕"
+      target: '{{ trigger.event.data.from }}'
+      message: 'Great choice! 🍕'
 ```
 
 #### 3. General Message Handler
+
 ```yaml
 alias: WhatsApp Auto-Reply
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: "Status"
+      content: 'Status'
 condition: []
 action:
   - service: whatsapp.send_message
     data:
-      target: "{{ trigger.event.data.from }}"
+      target: '{{ trigger.event.data.from }}'
       message: "System is Online! 🟢\nBattery: {{ states('sensor.phone_battery_level') }}%"
 ```
 
@@ -357,10 +396,12 @@ action:
 To send messages, you need the correct Chat ID (`target`).
 
 ### For Private Chats
+
 The ID is usually the phone number in international format without `+` or `00`, followed by `@c.us`.
 Example: `491234567890@c.us` (often just the number work too: `+491234567890`).
 
 ### For Groups
+
 Group IDs are harder to guess (e.g., `123456789-123456@g.us`). The easiest way to find them is to **Listen for events**.
 
 1. Go to **Developer Tools** → **Events**.
@@ -376,6 +417,7 @@ data:
   content: "Hello Test"
   ...
 ```
+
 Copy that ID and use it as your `target`.
 
 ---
@@ -387,12 +429,13 @@ Copy that ID and use it as your `target`.
 > It is strictly a bridge to the **[HA WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)**.
 
 ### Why?
+
 WhatsApp Web protocols are complex and require a headless browser to maintain encryption and session state.
+
 - **The Addon**: Runs the browser (Puppeteer/Playwright), handles QR scanning, and encryption.
 - **The Integration**: Connects to the addon API to expose services and sensors to Home Assistant.
 
 You **Must** install the Addon from the repo above for this to work.
-
 
 ---
 

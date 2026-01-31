@@ -19,11 +19,13 @@ We use a strict DevOps pipeline:
 ### Commands
 
 **Run Linter:**
+
 ```bash
 ruff check .
 ```
 
 **Run Tests:**
+
 ```bash
 pytest tests/
 ```

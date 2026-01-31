@@ -1,303 +1,351 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "title": "WhatsApp verbinden",
-                "data": {
-                    "host": "Addon Host URL",
-                    "api_key": "API Token (aus Addon UI)"
-                },
-                "description": "Gib die URL deines WhatsApp-Addons ein.\n\nTypische URLs:\n- `http://localhost:8066` (Docker/Lokal)\n- `http://addon-slug:8066` (HA Addon)\n\n[Einrichtungsanleitung]({setup_url})"
-            },
-            "scan": {
-                "title": "QR-Code scannen",
-                "description": "Bitte scanne den untenstehenden QR-Code mit deiner WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicke nach erfolgreichem Scannen auf Absenden.**"
-            }
+  "config": {
+    "step": {
+      "user": {
+        "title": "WhatsApp verbinden",
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (aus Addon UI)"
         },
-        "error": {
-            "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stelle sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
-            "invalid_auth": "Ungültige Authentifizierung",
-            "connection_error": "Nicht mit WhatsApp verbunden. Bitte scanne zuerst den QR-Code.",
-            "unknown": "Unerwarteter Fehler"
-        },
-        "abort": {
-            "already_configured": "Gerät ist bereits konfiguriert",
-            "single_instance_allowed": "Es ist nur eine einzige Instanz dieser Integration erlaubt."
-        }
+        "description": "Gib die URL deines WhatsApp-Addons ein.\n\nTypische URLs:\n- `http://localhost:8066` (Docker/Lokal)\n- `http://addon-slug:8066` (HA Addon)\n\n[Einrichtungsanleitung]({setup_url})"
+      },
+      "scan": {
+        "title": "QR-Code scannen",
+        "description": "Bitte scanne den untenstehenden QR-Code mit deiner WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicke nach erfolgreichem Scannen auf Absenden.**"
+      }
     },
-    "options": {
-        "step": {
-            "init": {
-                "title": "WhatsApp Optionen",
-                "data": {
-                    "debug_payloads": "Debug Payloads (Eingehende Events im HA Log protokollieren)",
-                    "polling_interval": "Abfrageintervall (Sekunden)",
-                    "mask_sensitive_data": "Sensible Daten in Logs maskieren",
-                    "mark_as_read": "Nachrichten als gelesen markieren (blaue Haken senden)",
-                    "api_key": "API Schlüssel",
-                    "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
-                    "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
-                    "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
-                },
-                "description": "{warning}"
-            }
-        },
-        "error": {
-            "reset_failed": "Sitzung konnte nicht zurückgesetzt werden. Prüfe die Logs."
-        }
+    "error": {
+      "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stelle sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
+      "invalid_auth": "Ungültige Authentifizierung",
+      "connection_error": "Nicht mit WhatsApp verbunden. Bitte scanne zuerst den QR-Code.",
+      "unknown": "Unerwarteter Fehler"
     },
-    "services": {
-        "send_message": {
-            "name": "Nachricht senden",
-            "description": "Sendet eine Textnachricht an eine WhatsApp-Nummer.",
-            "fields": {
-                "message": {
-                    "name": "Nachricht",
-                    "description": "Der zu sendende Text."
-                },
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer, an die gesendet werden soll."
-                }
-            }
-        },
-        "send_document": {
-            "name": "Dokument senden",
-            "description": "Sendet ein Dokument (PDF, Zip, Doc, etc.) an eine WhatsApp-Nummer.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
-                },
-                "url": {
-                    "name": "URL",
-                    "description": "Die URL des zu sendenden Dokuments."
-                },
-                "file_name": {
-                    "name": "Dateiname",
-                    "description": "Optionaler Ersatz für den Dateinamen."
-                },
-                "message": {
-                    "name": "Bildunterschrift",
-                    "description": "Optionale Bildunterschrift für das Dokument."
-                }
-            }
-        },
-        "send_video": {
-            "name": "Video senden",
-            "description": "Sendet eine Videodatei an eine WhatsApp-Nummer.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
-                },
-                "url": {
-                    "name": "URL",
-                    "description": "Die URL des zu sendenden Videos."
-                },
-                "message": {
-                    "name": "Bildunterschrift",
-                    "description": "Optionale Bildunterschrift für das Video."
-                }
-            }
-        },
-        "send_audio": {
-            "name": "Audio senden",
-            "description": "Sendet eine Audiodatei oder Sprachnachricht.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
-                },
-                "url": {
-                    "name": "URL",
-                    "description": "Die URL der Audiodatei."
-                },
-                "ptt": {
-                    "name": "Sprachnachricht (PTT)",
-                    "description": "Als Sprachnachricht (Wellenform) anstatt als Audio (Datei) senden."
-                }
-            }
-        },
-        "revoke_message": {
-            "name": "Nachricht löschen",
-            "description": "Löscht eine gesendete Nachricht für alle.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
-                },
-                "message_id": {
-                    "name": "Nachrichten-ID",
-                    "description": "Die ID der zu löschenden Nachricht."
-                }
-            }
-        },
-        "edit_message": {
-            "name": "Nachricht bearbeiten",
-            "description": "Bearbeitet den Text einer gesendeten Nachricht.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
-                },
-                "message_id": {
-                    "name": "Nachrichten-ID",
-                    "description": "Die ID der zu bearbeitenden Nachricht."
-                },
-                "message": {
-                    "name": "Neuer Text",
-                    "description": "Der neue Textinhalt für die Nachricht."
-                }
-            }
-        },
-        "send_list": {
-            "name": "Listen-Nachricht senden",
-            "description": "Sendet eine interaktive Liste (Aktionsmenü).",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID."
-                },
-                "title": {
-                    "name": "Titel",
-                    "description": "Der Titel des Menüs."
-                },
-                "text": {
-                    "name": "Text",
-                    "description": "Der Haupttext."
-                },
-                "button_text": {
-                    "name": "Button-Label",
-                    "description": "Text für den Menü-Button (z. B. Menü)."
-                },
-                "sections": {
-                    "name": "Sektionen (JSON)",
-                    "description": "Die Sektionen und Zeilen (JSON-Liste)."
-                }
-            }
-        },
-        "send_contact": {
-            "name": "Kontakt senden",
-            "description": "Sendet eine Kontaktkarte (VCard).",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer oder Gruppen-ID."
-                },
-                "name": {
-                    "name": "Anzeigename",
-                    "description": "Der Name des Kontakts."
-                },
-                "contact_number": {
-                    "name": "Kontaktnummer",
-                    "description": "Die Telefonnummer des Kontakts."
-                }
-            }
-        },
-        "configure_webhook": {
-            "name": "Webhook konfigurieren",
-            "description": "Legt die Webhook-URL fest, an die das Addon Ereignisse sendet.",
-            "fields": {
-                "url": {
-                    "name": "Webhook-URL",
-                    "description": "Die URL, an die Ereignisse gesendet werden sollen."
-                },
-                "enabled": {
-                    "name": "Aktiviert",
-                    "description": "Webhook aktivieren oder deaktivieren."
-                },
-                "token": {
-                    "name": "Token",
-                    "description": "Optionales Sicherheitstoken."
-                }
-            }
-        },
-        "send_reaction": {
-            "name": "Reaktion senden",
-            "description": "Reagiert mit einem Emoji auf eine Nachricht.",
-            "fields": {
-                "reaction": {
-                    "name": "Reaktion",
-                    "description": "Das Emoji, mit dem reagiert werden soll."
-                },
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Die Telefonnummer des Chats."
-                },
-                "message_id": {
-                    "name": "Nachrichten-ID",
-                    "description": "Die ID der Nachricht, auf die reagiert werden soll."
-                }
-            }
-        },
-        "update_presence": {
-            "name": "Status aktualisieren",
-            "description": "Aktualisiert deinen Status (z. B. schreibt...).",
-            "fields": {
-                "presence": {
-                    "name": "Status",
-                    "description": "Einer von: available, unavailable, composing, recording, paused."
-                },
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Der Chat, für den der Status aktualisiert werden soll."
-                }
-            }
-        },
-        "send_buttons": {
-            "name": "Buttons senden",
-            "description": "Sendet eine Nachricht mit interaktiven Buttons.",
-            "fields": {
-                "target": {
-                    "name": "Zielnummer",
-                    "description": "Der Chat, an den gesendet werden soll."
-                },
-                "message": {
-                    "name": "Nachricht",
-                    "description": "Der Haupttext."
-                },
-                "buttons": {
-                    "name": "Buttons",
-                    "description": "Liste von Buttons als Objekte: {'id': '1', 'displayText': 'Ja'}."
-                },
-                "footer": {
-                    "name": "Fußzeile",
-                    "description": "Optionaler Text unten."
-                }
-            }
-        }
-    },
-    "entity": {
-        "sensor": {
-            "sent": {
-                "name": "Gesendete Nachrichten"
-            },
-            "received": {
-                "name": "Empfangene Nachrichten"
-            },
-            "failed": {
-                "name": "Fehlgeschlagene Nachrichten"
-            },
-            "uptime": {
-                "name": "Betriebszeit"
-            },
-            "version": {
-                "name": "WhatsApp Version"
-            },
-            "phone_number": {
-                "name": "Telefonnummer"
-            }
-        }
-    },
-    "issues": {
-        "connection_failed": {
-            "title": "Verbindung zum WhatsApp-Addon fehlgeschlagen",
-            "description": "Die Integration kann das WhatsApp-Addon unter der konfigurierten URL nicht erreichen. Bitte stelle sicher, dass das Addon läuft und die URL korrekt ist.\n\nFehler: {error}"
-        },
-        "session_expired": {
-            "title": "WhatsApp-Sitzung abgelaufen",
-            "description": "Deine WhatsApp-Sitzung ist nicht mehr aktiv oder wurde auf dem Telefon beendet. Bitte kopple dein Gerät erneut über das Addon-Webinterface."
-        }
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert",
+      "single_instance_allowed": "Es ist nur eine einzige Instanz dieser Integration erlaubt."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WhatsApp Optionen",
+        "data": {
+          "debug_payloads": "Debug Payloads (Eingehende Events im HA Log protokollieren)",
+          "polling_interval": "Abfrageintervall (Sekunden)",
+          "mask_sensitive_data": "Sensible Daten in Logs maskieren",
+          "mark_as_read": "Nachrichten als gelesen markieren (blaue Haken senden)",
+          "api_key": "API Schlüssel",
+          "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
+          "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
+          "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
+        },
+        "description": "{warning}"
+      }
+    },
+    "error": {
+      "reset_failed": "Sitzung konnte nicht zurückgesetzt werden. Prüfe die Logs."
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Nachricht senden",
+      "description": "Sendet eine Textnachricht an eine WhatsApp-Nummer.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "message": {
+          "name": "Nachricht",
+          "description": "Der zu sendende Text."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer, an die gesendet werden soll."
+        }
+      }
+    },
+    "send_document": {
+      "name": "Dokument senden",
+      "description": "Sendet ein Dokument (PDF, Zip, Doc, etc.) an eine WhatsApp-Nummer.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL des zu sendenden Dokuments."
+        },
+        "file_name": {
+          "name": "Dateiname",
+          "description": "Optionaler Ersatz für den Dateinamen."
+        },
+        "message": {
+          "name": "Bildunterschrift",
+          "description": "Optionale Bildunterschrift für das Dokument."
+        }
+      }
+    },
+    "send_video": {
+      "name": "Video senden",
+      "description": "Sendet eine Videodatei an eine WhatsApp-Nummer.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL des zu sendenden Videos."
+        },
+        "message": {
+          "name": "Bildunterschrift",
+          "description": "Optionale Bildunterschrift für das Video."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Audio senden",
+      "description": "Sendet eine Audiodatei oder Sprachnachricht.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL der Audiodatei."
+        },
+        "ptt": {
+          "name": "Sprachnachricht (PTT)",
+          "description": "Als Sprachnachricht (Wellenform) anstatt als Audio (Datei) senden."
+        }
+      }
+    },
+    "revoke_message": {
+      "name": "Nachricht löschen",
+      "description": "Löscht eine gesendete Nachricht für alle.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der zu löschenden Nachricht."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Nachricht bearbeiten",
+      "description": "Bearbeitet den Text einer gesendeten Nachricht.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der zu bearbeitenden Nachricht."
+        },
+        "message": {
+          "name": "Neuer Text",
+          "description": "Der neue Textinhalt für die Nachricht."
+        }
+      }
+    },
+    "send_list": {
+      "name": "Listen-Nachricht senden",
+      "description": "Sendet eine interaktive Liste (Aktionsmenü).",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Der Titel des Menüs."
+        },
+        "text": {
+          "name": "Text",
+          "description": "Der Haupttext."
+        },
+        "button_text": {
+          "name": "Button-Label",
+          "description": "Text für den Menü-Button (z. B. Menü)."
+        },
+        "sections": {
+          "name": "Sektionen (JSON)",
+          "description": "Die Sektionen und Zeilen (JSON-Liste)."
+        }
+      }
+    },
+    "send_contact": {
+      "name": "Kontakt senden",
+      "description": "Sendet eine Kontaktkarte (VCard).",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "name": {
+          "name": "Anzeigename",
+          "description": "Der Name des Kontakts."
+        },
+        "contact_number": {
+          "name": "Kontaktnummer",
+          "description": "Die Telefonnummer des Kontakts."
+        }
+      }
+    },
+    "configure_webhook": {
+      "name": "Webhook konfigurieren",
+      "description": "Legt die Webhook-URL fest, an die das Addon Ereignisse sendet.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "url": {
+          "name": "Webhook-URL",
+          "description": "Die URL, an die Ereignisse gesendet werden sollen."
+        },
+        "enabled": {
+          "name": "Aktiviert",
+          "description": "Webhook aktivieren oder deaktivieren."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Optionales Sicherheitstoken."
+        }
+      }
+    },
+    "send_reaction": {
+      "name": "Reaktion senden",
+      "description": "Reagiert mit einem Emoji auf eine Nachricht.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "reaction": {
+          "name": "Reaktion",
+          "description": "Das Emoji, mit dem reagiert werden soll."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer des Chats."
+        },
+        "message_id": {
+          "name": "Nachrichten-ID",
+          "description": "Die ID der Nachricht, auf die reagiert werden soll."
+        }
+      }
+    },
+    "update_presence": {
+      "name": "Status aktualisieren",
+      "description": "Aktualisiert deinen Status (z. B. schreibt...).",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "presence": {
+          "name": "Status",
+          "description": "Einer von: available, unavailable, composing, recording, paused."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Der Chat, für den der Status aktualisiert werden soll."
+        }
+      }
+    },
+    "send_buttons": {
+      "name": "Buttons senden",
+      "description": "Sendet eine Nachricht mit interaktiven Buttons.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Der Chat, an den gesendet werden soll."
+        },
+        "message": {
+          "name": "Nachricht",
+          "description": "Der Haupttext."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "Liste von Buttons als Objekte: {'id': '1', 'displayText': 'Ja'}."
+        },
+        "footer": {
+          "name": "Fußzeile",
+          "description": "Optionaler Text unten."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sent": {
+        "name": "Gesendete Nachrichten"
+      },
+      "received": {
+        "name": "Empfangene Nachrichten"
+      },
+      "failed": {
+        "name": "Fehlgeschlagene Nachrichten"
+      },
+      "uptime": {
+        "name": "Betriebszeit"
+      },
+      "version": {
+        "name": "WhatsApp Version"
+      },
+      "phone_number": {
+        "name": "Telefonnummer"
+      }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Verbindung zum WhatsApp-Addon fehlgeschlagen",
+      "description": "Die Integration kann das WhatsApp-Addon unter der konfigurierten URL nicht erreichen. Bitte stelle sicher, dass das Addon läuft und die URL korrekt ist.\n\nFehler: {error}"
+    },
+    "session_expired": {
+      "title": "WhatsApp-Sitzung abgelaufen",
+      "description": "Deine WhatsApp-Sitzung ist nicht mehr aktiv oder wurde auf dem Telefon beendet. Bitte kopple dein Gerät erneut über das Addon-Webinterface."
+    }
+  }
 }

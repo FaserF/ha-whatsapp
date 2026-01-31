@@ -13,6 +13,15 @@ send_message:
     alerts, or any text-based communication from your automations.
     Supports emoji, line breaks (\n), and basic formatting (*bold*, _italic_).
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: >
@@ -43,6 +52,15 @@ send_poll:
     dinner choices, or gathering feedback from family members.
     Note: Poll results are received via webhook events.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the poll to.
@@ -79,6 +97,15 @@ send_image:
     Ideal for sending camera snapshots, graphs, or notifications with visuals.
     Supported formats: JPEG, PNG, WebP. Max size: 16MB.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the image to.
@@ -112,6 +139,15 @@ send_document:
     Perfect for sending reports, invoices, backups, or log files.
     The file must be accessible via a public URL. Max size: 100MB.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the document to.
@@ -151,6 +187,15 @@ send_video:
     or any video content. Supported formats: MP4, 3GP, MOV.
     Max size: 16MB for standard, 64MB for WhatsApp Web.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the video to.
@@ -180,6 +225,15 @@ send_audio:
     as a voice note/PTT (shows with waveform, like a recorded message).
     Supported formats: MP3, OGG, WAV, AAC. Max size: 16MB.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the audio to.
@@ -213,6 +267,15 @@ send_location:
     in their maps app. Perfect for sharing addresses, meeting points,
     or your home location for deliveries.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the location to.
@@ -263,6 +326,15 @@ send_contact:
     Useful for sharing business contacts, emergency numbers,
     or service provider details.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send the contact to.
@@ -293,6 +365,15 @@ send_reaction:
     Requires the message_id which you receive from webhook events
     or from the response of a send action.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Chat
       description: The phone number or Group ID where the message is located.
@@ -325,6 +406,15 @@ send_buttons:
     Perfect for confirmation dialogs, quick replies, or menu selections.
     Maximum 3 buttons per message. Also supports Telegram inline_keyboard format.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send to.
@@ -371,6 +461,15 @@ send_list:
     its ID is sent back via webhook. Ideal for complex menus,
     settings selection, or multi-option responses.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: The phone number or Group ID to send to.
@@ -431,6 +530,15 @@ revoke_message:
     with "This message was deleted". Must be called within the WhatsApp
     time limit (usually ~1 hour for groups, longer for individual chats).
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Chat
       description: The phone number or Group ID where the message was sent.
@@ -456,6 +564,15 @@ edit_message:
     typos or updating information in a sent message.
     Only works for text messages, not media.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Chat
       description: The phone number or Group ID where the message was sent.
@@ -487,6 +604,15 @@ update_presence:
     Use "composing" before sending a message to show "typing...",
     or "recording" to show "recording audio...".
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Chat
       description: The phone number or Group ID to update presence for.
@@ -527,6 +653,15 @@ configure_webhook:
     button clicks, poll votes, and read receipts. Usually set during
     initial configuration, but can be updated dynamically.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     url:
       name: Webhook URL
       description: >
@@ -563,6 +698,15 @@ search_groups:
     The notification shows a table with Group Name, Group ID, and participant count.
     Copy the Group ID (format: 120363012345678901@g.us) to use in other services.
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     name_filter:
       name: Name Filter
       description: >
@@ -581,11 +725,18 @@ mark_as_read:
     • With message_id: Marks that specific message as read
     • Without message_id: Marks ALL unread messages in the chat as read
   fields:
-    target:
-      name: Target Chat
+    account:
+      name: Account
       description: >
-        The phone number (for direct chats) or Group ID (for groups).
-        Examples: "49171234567" or "120363012345678901@g.us"
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
+    target:
+      name: Target Phone ID
+      description: The phone number to make the message read.
       example: "49171234567"
       required: true
       selector:

@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from .api import WhatsAppApiClient
 from .const import (
@@ -38,9 +39,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if whitelist_str:
         whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
 
+    session_id = entry.data.get("session_id", "default")
     client = WhatsAppApiClient(
         host=addon_url,
         api_key=api_key,
+        session_id=session_id,
         mask_sensitive_data=mask_sensitive_data,
         whitelist=whitelist,
     )
@@ -93,6 +96,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
                 return
 
+        # Add session identifiers to let users distinguish between multiple bots
+        data["entry_id"] = entry.entry_id
+        data["session_id"] = session_id
+
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
         # Automatically mark as read if enabled
@@ -122,139 +129,136 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This ensures that the addon starts working without manual intervention
     hass.async_create_task(client.start_session())
 
-    # Register Services
-    async def send_message_service(call: ServiceCall) -> None:
-        """Handle the send_message service."""
-        number = call.data.get("target")
-        message = call.data.get("message")
-        if number and message:
-            await client.send_message(number, message)
+    # Register services globally
+    await async_setup_services(hass)
 
-    async def send_poll_service(call: ServiceCall) -> None:
-        """Handle the send_poll service."""
-        number = call.data.get("target")
-        question = call.data.get("question")
-        options = call.data.get("options", [])
-        if number and question and options:
-            await client.send_poll(number, question, options)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    async def send_image_service(call: ServiceCall) -> None:
-        """Handle the send_image service."""
-        number = call.data.get("target")
-        image_url = call.data.get("url")
-        caption = call.data.get("caption")
-        if number and image_url:
-            await client.send_image(number, image_url, caption)
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
 
-    async def send_location_service(call: ServiceCall) -> None:
-        """Handle the send_location service."""
-        number = call.data.get("target")
-        latitude = call.data.get("latitude")
-        longitude = call.data.get("longitude")
-        name = call.data.get("name")
-        address = call.data.get("address")
-        if number and latitude is not None and longitude is not None:
-            await client.send_location(
-                number, float(latitude), float(longitude), name, address
+    return True
+
+
+# checking lines 141-176 replacement
+def get_client_for_account(
+    hass: HomeAssistant, account: str | None
+) -> WhatsAppApiClient:
+    """Get the correct client based on the account (entry_id or unique ID)."""
+    clients: dict[str, WhatsAppApiClient] = {
+        entry_id: data["client"]
+        for entry_id, data in hass.data.get(DOMAIN, {}).items()
+        if "client" in data
+    }
+
+    if not clients:
+        raise ServiceValidationError("No WhatsApp accounts configured")
+
+    # If only one client exists and no account specified, use it
+    if account is None:
+        if len(clients) == 1:
+            return list(clients.values())[0]
+        raise ServiceValidationError(
+            "Multiple WhatsApp accounts found. "
+            "Please specify the 'account' (entry ID or unique ID)."
+        )
+
+    # Try mapping by entry_id
+    if account in clients:
+        return clients[account]
+
+    # Try mapping by unique_id (my_number)
+    for entry_id, client in clients.items():
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry and entry.unique_id == account:
+            return client
+        # Fallback to title
+        if entry and entry.title == account:
+            return client
+
+    raise ServiceValidationError(f"WhatsApp account '{account}' not found")
+
+
+async def async_setup_services(hass: HomeAssistant) -> None:
+    """Set up global WhatsApp services."""
+    if hass.services.has_service(DOMAIN, "send_message"):
+        return
+
+    async def _handle_service(call: ServiceCall) -> None:
+        """General service handler for routing."""
+        account = call.data.get("account")
+        client = get_client_for_account(hass, account)
+
+        service = call.service
+        data = {k: v for k, v in call.data.items() if k != "account"}
+
+        if service == "send_message":
+            await client.send_message(data["target"], data["message"])
+        elif service == "send_poll":
+            await client.send_poll(
+                data["target"], data["question"], data.get("options", [])
             )
+        elif service == "send_image":
+            await client.send_image(data["target"], data["url"], data.get("caption"))
+        elif service == "send_location":
+            await client.send_location(
+                data["target"],
+                float(data["latitude"]),
+                float(data["longitude"]),
+                data.get("name"),
+                data.get("address"),
+            )
+        elif service == "send_reaction":
+            await client.send_reaction(
+                data["target"], data["reaction"], data["message_id"]
+            )
+        elif service == "send_document":
+            await client.send_document(
+                data["target"], data["url"], data.get("file_name"), data.get("message")
+            )
+        elif service == "send_video":
+            await client.send_video(data["target"], data["url"], data.get("message"))
+        elif service == "send_audio":
+            await client.send_audio(data["target"], data["url"], data.get("ptt", False))
+        elif service == "revoke_message":
+            await client.revoke_message(data["target"], data["message_id"])
+        elif service == "edit_message":
+            await client.edit_message(
+                data["target"], data["message_id"], data["message"]
+            )
+        elif service == "send_list":
+            await client.send_list(
+                data["target"],
+                data.get("title") or "",
+                data.get("text") or "",
+                data.get("button_text") or "",
+                data["sections"],
+            )
+        elif service == "send_contact":
+            await client.send_contact(
+                data["target"], data["name"], data["contact_number"]
+            )
+        elif service == "configure_webhook":
+            await client.set_webhook(
+                data["url"], data.get("enabled", True), data.get("token")
+            )
+        elif service == "update_presence":
+            await client.set_presence(data["target"], data["presence"])
+        elif service == "send_buttons":
+            await client.send_buttons(
+                data["target"], data["message"], data["buttons"], data.get("footer")
+            )
+        elif service == "mark_as_read":
+            await client.mark_as_read(data["target"], data.get("message_id"))
+        elif service == "search_groups":
+            await _handle_search_groups(hass, client, data.get("name_filter", ""))
 
-    async def send_reaction_service(call: ServiceCall) -> None:
-        """Handle the send_reaction service."""
-        number = call.data.get("target")
-        reaction = call.data.get("reaction")
-        message_id = call.data.get("message_id")
-        if number and reaction and message_id:
-            await client.send_reaction(number, reaction, message_id)
-
-    async def send_document_service(call: ServiceCall) -> None:
-        """Handle the send_document service."""
-        number = call.data.get("target")
-        url = call.data.get("url")
-        file_name = call.data.get("file_name")
-        caption = call.data.get("message")  # Use 'message' for caption consistency
-        if number and url:
-            await client.send_document(number, url, file_name, caption)
-
-    async def send_video_service(call: ServiceCall) -> None:
-        """Handle the send_video service."""
-        number = call.data.get("target")
-        url = call.data.get("url")
-        caption = call.data.get("message")
-        if number and url:
-            await client.send_video(number, url, caption)
-
-    async def send_audio_service(call: ServiceCall) -> None:
-        """Handle the send_audio service."""
-        number = call.data.get("target")
-        url = call.data.get("url")
-        ptt = call.data.get("ptt", False)
-        if number and url:
-            await client.send_audio(number, url, ptt)
-
-    async def revoke_message_service(call: ServiceCall) -> None:
-        """Handle the revoke_message service."""
-        number = call.data.get("target")
-        message_id = call.data.get("message_id")
-        if number and message_id:
-            await client.revoke_message(number, message_id)
-
-    async def edit_message_service(call: ServiceCall) -> None:
-        """Handle the edit_message service."""
-        number = call.data.get("target")
-        message_id = call.data.get("message_id")
-        new_content = call.data.get("message")
-        if number and message_id and new_content:
-            await client.edit_message(number, message_id, new_content)
-
-    async def send_list_service(call: ServiceCall) -> None:
-        """Handle the send_list service."""
-        number = call.data.get("target")
-        title = call.data.get("title")
-        text = call.data.get("text")
-        button_text = call.data.get("button_text")
-        sections = call.data.get("sections")
-        if number and sections:
-            await client.send_list(number, title, text, button_text, sections)
-
-    async def send_contact_service(call: ServiceCall) -> None:
-        """Handle the send_contact service."""
-        number = call.data.get("target")
-        contact_name = call.data.get("name")
-        contact_number = call.data.get("contact_number")
-        if number and contact_name and contact_number:
-            await client.send_contact(number, contact_name, contact_number)
-
-    async def configure_webhook_service(call: ServiceCall) -> None:
-        """Handle the configure_webhook service."""
-        url = call.data.get("url")
-        enabled = call.data.get("enabled", True)
-        token = call.data.get("token")
-        if url:
-            await client.set_webhook(url, enabled, token)
-
-    async def update_presence_service(call: ServiceCall) -> None:
-        """Handle the update_presence service."""
-        number = call.data.get("target")
-        presence = call.data.get("presence")
-        if number and presence:
-            await client.set_presence(number, presence)
-
-    async def send_buttons_service(call: ServiceCall) -> None:
-        """Handle the send_buttons service."""
-        number = call.data.get("target")
-        text = call.data.get("message")
-        buttons = call.data.get("buttons") or []
-        footer = call.data.get("footer")
-        if number and text and buttons:
-            await client.send_buttons(number, text, buttons, footer)
-
-    async def search_groups_service(call: ServiceCall) -> None:
-        """Handle the search_groups service."""
-        name_filter = call.data.get("name_filter", "").lower()
-
+    async def _handle_search_groups(
+        hass: HomeAssistant, client: WhatsAppApiClient, name_filter: str
+    ) -> None:
+        """Handle search_groups separately to keep generic router cleaner."""
+        name_filter = name_filter.lower()
         try:
             groups = await client.get_groups()
-
             if name_filter:
                 groups = [g for g in groups if name_filter in g["name"].lower()]
 
@@ -280,7 +284,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "notification_id": "whatsapp_group_search",
                 },
             )
-
         except Exception as e:
             _LOGGER.error("Failed to search groups: %s", e)
             await hass.services.async_call(
@@ -293,12 +296,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 },
             )
 
+    # Define common schema with optional account
+    s_base = {vol.Optional("account"): cv.string}
+
     hass.services.async_register(
         DOMAIN,
         "send_message",
-        send_message_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message"): cv.string,
             }
@@ -307,9 +314,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_poll",
-        send_poll_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("question"): cv.string,
                 vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
@@ -319,9 +327,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_image",
-        send_image_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("caption"): cv.string,
@@ -331,9 +340,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_document",
-        send_document_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("file_name"): cv.string,
@@ -344,9 +354,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_video",
-        send_video_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("message"): cv.string,
@@ -356,9 +367,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_audio",
-        send_audio_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("url"): cv.string,
                 vol.Optional("ptt", default=False): cv.boolean,
@@ -368,9 +380,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "revoke_message",
-        revoke_message_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message_id"): cv.string,
             }
@@ -379,9 +392,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "edit_message",
-        edit_message_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message_id"): cv.string,
                 vol.Required("message"): cv.string,
@@ -391,9 +405,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_list",
-        send_list_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("sections"): cv.match_all,
                 vol.Optional("title"): cv.string,
@@ -405,9 +420,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_contact",
-        send_contact_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("name"): cv.string,
                 vol.Required("contact_number"): cv.string,
@@ -417,9 +433,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "configure_webhook",
-        configure_webhook_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("url"): cv.string,
                 vol.Optional("enabled", default=True): cv.boolean,
                 vol.Optional("token"): cv.string,
@@ -429,9 +446,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_location",
-        send_location_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("latitude"): vol.Coerce(float),
                 vol.Required("longitude"): vol.Coerce(float),
@@ -443,9 +461,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_reaction",
-        send_reaction_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("reaction"): cv.string,
                 vol.Required("message_id"): cv.string,
@@ -455,9 +474,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "update_presence",
-        update_presence_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("presence"): vol.In(
                     ["available", "unavailable", "composing", "recording", "paused"]
@@ -468,9 +488,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "send_buttons",
-        send_buttons_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Required("message"): cv.string,
                 vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
@@ -481,38 +502,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         DOMAIN,
         "search_groups",
-        search_groups_service,
+        _handle_service,
         schema=vol.Schema(
-            {
-                vol.Optional("name_filter", default=""): cv.string,
-            }
+            {**s_base, vol.Optional("name_filter", default=""): cv.string}
         ),
     )
-
-    async def mark_as_read_service(call: ServiceCall) -> None:
-        """Handle the mark_as_read service."""
-        number = call.data.get("target")
-        message_id = call.data.get("message_id")  # Optional - if None, mark all
-        if number:
-            await client.mark_as_read(number, message_id)
-
     hass.services.async_register(
         DOMAIN,
         "mark_as_read",
-        mark_as_read_service,
+        _handle_service,
         schema=vol.Schema(
             {
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Optional("message_id"): cv.string,
             }
         ),
     )
-
-    entry.async_on_unload(entry.add_update_listener(async_update_options))
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-    return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

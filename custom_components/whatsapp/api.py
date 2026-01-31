@@ -14,12 +14,14 @@ class WhatsAppApiClient:
         self,
         host: str,
         api_key: str | None = None,
+        session_id: str = "default",
         mask_sensitive_data: bool = False,
         whitelist: list[str] | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.api_key = api_key
+        self.session_id = session_id
         self.mask_sensitive_data = mask_sensitive_data
         self.whitelist = whitelist or []
         self.retry_attempts = 2
@@ -149,6 +151,7 @@ class WhatsAppApiClient:
     async def _poll_loop(self, interval: int) -> None:
         """Poll for new events."""
         url = f"{self.host}/events"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         while True:
@@ -157,7 +160,10 @@ class WhatsAppApiClient:
                     self._session = aiohttp.ClientSession()
 
                 async with self._session.get(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 200:
                         events = await resp.json()
@@ -184,12 +190,16 @@ class WhatsAppApiClient:
     async def start_session(self) -> None:
         """Start (or restart) the session negotiation."""
         url = f"{self.host}/session/start"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
                 # We just fire and forget, or wait for 200 OK
                 async with session.post(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -206,11 +216,15 @@ class WhatsAppApiClient:
     async def delete_session(self) -> None:
         """Delete the session (Logout/Reset)."""
         url = f"{self.host}/session"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.delete(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -224,11 +238,15 @@ class WhatsAppApiClient:
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""
         url = f"{self.host}/qr"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -265,11 +283,15 @@ class WhatsAppApiClient:
     async def connect(self) -> bool:
         """Check connection and validate Auth."""
         url = f"{self.host}/status"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -299,11 +321,15 @@ class WhatsAppApiClient:
     async def get_stats(self) -> dict[str, Any]:
         """Fetch stats from the Addon."""
         url = f"{self.host}/stats"
+        params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json()
@@ -329,6 +355,7 @@ class WhatsAppApiClient:
     async def _send_message_internal(self, number: str, message: str) -> None:
         """Internal send message logic."""
         url = f"{self.host}/send_message"
+        params = {"session_id": self.session_id}
         payload = {"number": number, "message": message}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
@@ -338,6 +365,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params=params,
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -417,6 +445,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -426,7 +455,6 @@ class WhatsAppApiClient:
                 text = await resp.text()
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = f"Poll: {question}"
-                self.stats["last_failed_target"] = number
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = text
                 raise HomeAssistantError(f"Failed to send poll: {text}")
@@ -462,6 +490,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -521,6 +550,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -570,6 +600,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for video
             ) as resp,
         ):
@@ -618,6 +649,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=60),  # Longer timeout for audio
             ) as resp,
         ):
@@ -666,6 +698,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -712,6 +745,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -769,6 +803,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -810,6 +845,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -842,6 +878,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=10),
             ) as resp,
         ):
@@ -894,6 +931,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -948,6 +986,7 @@ class WhatsAppApiClient:
                 api_url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -981,6 +1020,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -1029,6 +1069,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
@@ -1053,7 +1094,10 @@ class WhatsAppApiClient:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(
-                    url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                    url,
+                    headers=headers,
+                    params={"session_id": self.session_id},
+                    timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -1093,6 +1137,7 @@ class WhatsAppApiClient:
                 url,
                 json=payload,
                 headers=headers,
+                params={"session_id": self.session_id},
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):

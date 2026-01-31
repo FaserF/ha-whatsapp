@@ -31,9 +31,12 @@ graph LR
 3.  Enable the Webhook and set a secure token:
     - **Webhook Enabled**: `true`
     - **Webhook URL**: `http://<YOUR_ROCKETCHAT_IP>:3000/api/apps/public/whatsapp-bridge-addon/webhook`
-    - **Webhook Token**: `YourSecretTokenGoesHere` (Define a strong random string)
+    - **Webhook Token**: `YourSecretTokenGoesHere` (Define a strong random string!)
 4.  **Restart** the Add-on.
 5.  Check the Add-on **Web UI** and copy your **API Token** and **Port (8066)**.
+
+> [!TIP]
+> **Multi-Instance Rocket.Chat**: If you have multiple WhatsApp accounts, you can either share the same Rocket.Chat webhook (and use automation logic to route) or set up separate Rocket.Chat App instances if supported.
 
 ---
 
@@ -62,11 +65,15 @@ Once installed, click on the **WhatsApp Bridge** app to open its settings:
 ## 💬 How to Use
 
 ### Receiving Messages
+
 Any incoming WhatsApp message will automatically appear in your configured Rocket.Chat channel:
+
 > **[WA] 49123456789**: Hello from WhatsApp!
 
 ### Sending Messages
+
 To send a message back to WhatsApp, prefix your message with the recipient's phone number in brackets:
+
 > `[49123456789] Hello from Rocket.Chat!`
 
 > **Tip:**
@@ -74,8 +81,17 @@ To send a message back to WhatsApp, prefix your message with the recipient's pho
 
 ---
 
+## 🤖 Multi-Instance Support
+
+If you are running multiple WhatsApp accounts via the same Addon:
+
+1.  **Incoming Messages**: The Addon sends all events to the same Webhook URL. The event payload now includes `session_id` and `entry_id`, which can be used by advanced Rocket.Chat apps to route messages to different rooms.
+2.  **Outgoing Messages**: In the Rocket.Chat Bridge settings, you can append `?session_id=YOUR_ID` to the **WhatsApp Addon URL** (e.g., `http://192.168.1.50:8066?session_id=MyBot`) to specify which account should be used for replies.
+
+---
+
 ## 🔐 Security Information
 
-- **Double-Token Protection**: We use a unique token system to ensure only your specific Addon can post to your Rocket.Chat instance.
-- **Internal Traffic**: If both services are on the same local network, no data ever leaves your home.
-- **Privacy**: No external servers (except WhatsApp's own) are involved in processing your messages.
+-   **Double-Token Protection**: We use a unique token system to ensure only your specific Addon can post to your Rocket.Chat instance.
+-   **Internal Traffic**: If both services are on the same local network, no data ever leaves your home.
+-   **Privacy**: No external servers (except WhatsApp's own) are involved in processing your messages.

@@ -24,17 +24,21 @@ All API requests (except `/health`) **MUST** include the `X-Auth-Token` header.
 ### 1️⃣ Connection Management
 
 #### `POST /session/start`
+
 Initiates a new session. If not connected, it starts the QR code generation process.
 
 **Response:**
+
 ```json
 { "status": "starting", "message": "Session init started" }
 ```
 
 #### `GET /status`
+
 Returns the current connection status and library version.
 
 **Response:**
+
 ```json
 {
   "connected": true,
@@ -43,9 +47,11 @@ Returns the current connection status and library version.
 ```
 
 #### `GET /qr`
+
 Returns the current QR code as a Data URL image string if scanning is required.
 
 **Response:**
+
 ```json
 {
   "status": "scanning",
@@ -54,9 +60,11 @@ Returns the current QR code as a Data URL image string if scanning is required.
 ```
 
 #### `DELETE /session`
+
 Logs out and deletes the current session data. Useful for resetting connection errors.
 
 **Response:**
+
 ```json
 { "status": "success", "message": "Session deleted and logged out" }
 ```
@@ -66,9 +74,11 @@ Logs out and deletes the current session data. Useful for resetting connection e
 ### 2️⃣ Messaging
 
 #### `POST /send_message`
+
 Sends a basic text message.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
@@ -77,9 +87,11 @@ Sends a basic text message.
 ```
 
 #### `POST /send_image`
+
 Sends an image from a public URL.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
@@ -89,9 +101,11 @@ Sends an image from a public URL.
 ```
 
 #### `POST /send_poll`
+
 Sends an interactive poll.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
@@ -101,23 +115,27 @@ Sends an interactive poll.
 ```
 
 #### `POST /send_location`
+
 Sends a location pin.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
-  "latitude": 52.5200,
-  "longitude": 13.4050,
+  "latitude": 52.52,
+  "longitude": 13.405,
   "name": "Berlin",
   "address": "Alexanderplatz"
 }
 ```
 
 #### `POST /send_reaction`
+
 Reacts to a specific message using an emoji.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
@@ -131,15 +149,18 @@ Reacts to a specific message using an emoji.
 ### 3️⃣ Interaction
 
 #### `POST /set_presence`
+
 Sets the chat presence/status for a specific contact.
 
 **Payload:**
+
 ```json
 {
   "number": "491234567890",
   "presence": "composing"
 }
 ```
+
 **Allowed Values:** `composing` (typing...), `recording` (recording audio...), `paused`, `available`.
 
 ---
@@ -147,14 +168,17 @@ Sets the chat presence/status for a specific contact.
 ### 4️⃣ System & Health
 
 #### `GET /health`
+
 Healthcheck endpoint for Docker/Supervisor. **No authentication required.**
 
 **Response:**
+
 ```json
 { "status": "ok", "service": "whatsapp-addon" }
 ```
 
 #### `GET /logs`
+
 Returns the recent internal connection logs (same as shown in the Dashboard).
 
 ---

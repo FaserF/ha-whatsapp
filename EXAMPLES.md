@@ -3,7 +3,7 @@
 This documentation provides detailed examples for using the WhatsApp integration in Home Assistant, following the **modern Notify Standard (ADR-0010)**.
 
 > **Tip**: View this guide with more detailed documentations at [faserf.github.io/ha-whatsapp](https://faserf.github.io/ha-whatsapp/)
-{: .note }
+> {: .note }
 
 ---
 
@@ -18,8 +18,8 @@ service: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
-  message: "Hello from Home Assistant! 🚀"
-  target: "+49123456789" # Phone number or Group JID
+  message: 'Hello from Home Assistant! 🚀'
+  target: '+49123456789' # Phone number or Group JID
 ```
 
 ### 🔘 Message with Interactive Buttons
@@ -29,16 +29,16 @@ service: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
-  message: "The garage door is still open. Close it?"
-  target: "+49123456789"
+  message: 'The garage door is still open. Close it?'
+  target: '+49123456789'
   data:
-    footer: "Security Alert"
+    footer: 'Security Alert'
     buttons:
-      - buttonId: "garage_close"
-        buttonText: { displayText: "Close now 🏠" }
+      - buttonId: 'garage_close'
+        buttonText: { displayText: 'Close now 🏠' }
         type: 1
-      - buttonId: "garage_ignore"
-        buttonText: { displayText: "Ignore ❌" }
+      - buttonId: 'garage_ignore'
+        buttonText: { displayText: 'Ignore ❌' }
         type: 1
 ```
 
@@ -49,14 +49,14 @@ service: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
-  message: "Poll"
-  target: "+49123456789"
+  message: 'Poll'
+  target: '+49123456789'
   data:
     poll:
       question: "What's for dinner?"
       options:
-        - "Pizza"
-        - "Sushi"
+        - 'Pizza'
+        - 'Sushi'
 ```
 
 ### 📍 Location
@@ -66,14 +66,14 @@ service: notify.send_message
 target:
   entity_id: notify.whatsapp
 data:
-  message: "Check this out!"
-  target: "+49123456789"
+  message: 'Check this out!'
+  target: '+49123456789'
   data:
     location:
       latitude: 52.5200
       longitude: 13.4050
-      name: "Berlin"
-      address: "Alexanderplatz"
+      name: 'Berlin'
+      address: 'Alexanderplatz'
 ```
 
 ---
@@ -85,7 +85,7 @@ When building automations, the "target" is dynamic.
 ### 📨 Reacting to Bot Commands
 
 ```yaml
-alias: "WhatsApp Bot: Status Request"
+alias: 'WhatsApp Bot: Status Request'
 trigger:
   - platform: event
     event_type: whatsapp_message_received
@@ -100,14 +100,14 @@ action:
       message: |
         Home Status: {{ states('alarm_control_panel.home') }}
         Time: {{ now().strftime('%H:%M:%S') }}
-      target: "{{ trigger.event.data.sender }}" # Sends reply back to origin (User or Group)
+      target: '{{ trigger.event.data.sender }}' # Sends reply back to origin (User or Group)
 ```
 
 ---
 
 ### 📸 Camera Snapshot on Alarm
 
-```yaml
+````yaml
 alias: "WhatsApp: Camera Alarm"
 trigger:
   - platform: state
@@ -153,7 +153,8 @@ action:
         📝 *Betreff:* {{ trigger.event.data['subject'] }}
         ---
         {{ trigger.event.data['text'] | default(trigger.event.data['body']) | truncate(500) }}
-```
+````
+
 ```
 
 ---
@@ -163,3 +164,4 @@ action:
 2.  **Sender Fields**: Use `trigger.event.data.sender` for replies (contains full JID) and `trigger.event.data.sender_number` if you need to compare against a plain phone number.
 3.  **Multiple Targets**: You can also pass a list: `target: ["+49123", "+49456"]`.
 3.  **Standard Alignment**: These examples follow the modern Home Assistant Notify standard.
+```

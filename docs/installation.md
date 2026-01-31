@@ -16,20 +16,15 @@ The Addon handles the heavy lifting of connecting to WhatsApp.
 
 1.  **Add the Repository**: Click the button below to add the addon repository to your Home Assistant.
 
-
-
 <div class="btn-myha-wrapper">
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Repository</span></a>
 </div>
 
-
 2.  **Install the Add-on**: Navigate to the store, search for **WhatsApp**, and click **Install**.
-
 
 <div class="btn-myha-wrapper">
   <a href="https://my.home-assistant.io/redirect/supervisor_addons/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add-on Dashboard</span></a>
 </div>
-
 
 3.  **Start & Get Token**:
     - Ensure `log_level` is set to `info` in the **Configuration** tab.
@@ -38,11 +33,10 @@ The Addon handles the heavy lifting of connecting to WhatsApp.
 
 > **Tip**
 > **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the addon configuration.
-{: .tip }
-
+>
 > **Note**
 > The QR Code might not appear immediately in the Addon Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
-{: .note }
+> {: .tip }
 
 ---
 
@@ -54,11 +48,9 @@ The Integration connects Home Assistant's core to the Addon and provides the ent
 
 1.  **Install Repository**: Add the custom repository in HACS.
 
-
 <div class="btn-myha-wrapper">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Open HACS</span></a>
 </div>
-
 
 2.  **Restart**: Once installed via HACS, **Restart Home Assistant**.
 
@@ -80,11 +72,9 @@ Now we connect the components and link your device.
 
 1.  Click the button below to start the setup:
 
-
 <div class="btn-myha-wrapper">
   <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Integration</span></a>
 </div>
-
 
 2.  **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the addon), you will see a notification in Home Assistant. Click **Configure**.
 3.  **Connection Details**:
@@ -103,5 +93,6 @@ Now we connect the components and link your device.
 ---
 
 ### ⚠️ Common Prerequisites
+
 - **Supervisor**: This addon requires a Home Assistant Supervised or Home Assistant OS installation.
 - **Network**: Ensure the Addon port (`8066`) is not blocked by a firewall if HA and the Addon are on different machines.

@@ -26,11 +26,11 @@ graph LR
 2.  Go to the **Configuration** tab.
 3.  Fill in the following fields:
 
-| Option | Type | Description |
-| :--- | :--- | :--- |
-| **Webhook Enabled** | `bool` | Set to `true` to activate forwarding. |
-| **Webhook URL** | `string` | The full URL (including `http://` and port) of your destination. |
-| **Webhook Token** | `string` | A secret string that will be sent in the `X-Webhook-Token` header. |
+| Option              | Type     | Description                                                        |
+| :------------------ | :------- | :----------------------------------------------------------------- |
+| **Webhook Enabled** | `bool`   | Set to `true` to activate forwarding.                              |
+| **Webhook URL**     | `string` | The full URL (including `http://` and port) of your destination.   |
+| **Webhook Token**   | `string` | A secret string that will be sent in the `X-Webhook-Token` header. |
 
 ### 🔄 Dynamic Configuration
 
@@ -39,9 +39,9 @@ You can also change these settings dynamically using the **Start > Services** ta
 ```yaml
 service: whatsapp.configure_webhook
 data:
-  url: "https://my-new-url.com/api/webhook"
+  url: 'https://my-new-url.com/api/webhook'
   enabled: true
-  token: "my-secret-token"
+  token: 'my-secret-token'
 ```
 
 This is useful if your external URL changes (e.g., Nabu Casa URL) or you want to toggle the webhook based on conditions.
@@ -83,6 +83,7 @@ The payload is a JSON object containing the sender and the message content:
 ## 🛋️ Built-in Bridges
 
 Using this Webhook, you can easily connect to other platforms:
+
 - **[Rocket.Chat Bridge](rocketchat.md)**: Our official guide for Rocket.Chat integration.
 
 ---
@@ -90,6 +91,7 @@ Using this Webhook, you can easily connect to other platforms:
 ## 🛠️ Generic Examples
 
 ### 🐍 Python (Flask)
+
 A simple receiver to log incoming messages:
 
 ```python
@@ -112,6 +114,7 @@ if __name__ == '__main__':
 ```
 
 ### 🤖 Node-RED
+
 1.  Add an **http in** node (Method: `POST`, URL: `/whatsapp`).
 2.  (Optional) Add a **switch** node to check `msg.headers['x-webhook-token']`.
 3.  Add a **debug** node to view the output (`msg.payload`).
