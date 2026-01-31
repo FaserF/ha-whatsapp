@@ -36,7 +36,8 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
             {"host": "http://localhost:8066", "api_key": "key1"},
         )
         # Scan step (already connected mock)
-        # result2 is already the result of the flow because connect()=True skipped the scan form
+        # result2 is already the result of the flow because connect()=True
+        # skipped the scan form
         assert result2["type"] == FlowResultType.CREATE_ENTRY
         assert result2["title"] == "WhatsApp (49123456789)"
         assert result2["result"].unique_id == "49123456789"
