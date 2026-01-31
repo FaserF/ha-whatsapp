@@ -14,6 +14,8 @@ The event payload contains the following fields:
 | ---------------- | ------ | -------------------------------------------------------------------------------------------- |
 | `sender`         | string | The full WhatsApp JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`), ideal for replies. |
 | `sender_number`  | string | The cleaned numeric part of the sender (e.g., `49123456789`).                                |
+| `entry_id`       | string | Unique identifier of the Home Assistant config entry that received the message.              |
+| `session_id`     | string | The unique session ID used by the WhatsApp addon for this instance.                          |
 | `raw_sender`     | string | The full WhatsApp JID (same as `sender`).                                                    |
 | `content`        | string | The text body of the message.                                                                |
 | `media_url`      | string | URL to download the received media (if any).                                                 |

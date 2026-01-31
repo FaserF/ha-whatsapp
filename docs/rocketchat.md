@@ -31,9 +31,12 @@ graph LR
 3.  Enable the Webhook and set a secure token:
     - **Webhook Enabled**: `true`
     - **Webhook URL**: `http://<YOUR_ROCKETCHAT_IP>:3000/api/apps/public/whatsapp-bridge-addon/webhook`
-    - **Webhook Token**: `YourSecretTokenGoesHere` (Define a strong random string)
+    - **Webhook Token**: `YourSecretTokenGoesHere`
 4.  **Restart** the Add-on.
 5.  Check the Add-on **Web UI** and copy your **API Token** and **Port (8066)**.
+
+> [!TIP]
+> **Multi-Instance Rocket.Chat**: If you have multiple WhatsApp accounts, you can either share the same Rocket.Chat webhook (and use automation logic to route) or set up separate Rocket.Chat App instances if supported.
 
 ---
 

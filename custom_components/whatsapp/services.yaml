@@ -13,6 +13,15 @@ send_message:
     alerts, or any text-based communication from your automations.
     Supports emoji, line breaks (\n), and basic formatting (*bold*, _italic_).
   fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
     target:
       name: Target Number
       description: >
@@ -671,15 +680,13 @@ mark_as_read:
     • With message_id: Marks that specific message as read
     • Without message_id: Marks ALL unread messages in the chat as read
   fields:
-    target:
-      name: Target Chat
-      description: >
-        The phone number (for direct chats) or Group ID (for groups).
-        Examples: "49171234567" or "120363012345678901@g.us"
+    account:
+      name: Account
+      description: The WhatsApp account to use.
       example: "49171234567"
-      required: true
       selector:
         text:
+    target:
     message_id:
       name: Message ID (Optional)
       description: >

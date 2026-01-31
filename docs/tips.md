@@ -75,7 +75,7 @@ If you see 401 errors in the addon logs:
 ## ❓ FAQ
 
 **Q: Can I use multiple WhatsApp accounts?**
-A: Currently, one addon instance supports one WhatsApp session. To use multiple, you would need to install the addon multiple times with different names (supported in future versions).
+A: Yes! You can add the WhatsApp integration multiple times. Each instance manages its own session on the addon. Use the `account` parameter in service calls to specify which bot should send the message.
 
 **Q: Do buttons work on all devices?**
 A: Native buttons are part of the latest WhatsApp MD (Multi-Device) protocol. While most modern mobile apps support them, some older versions or the WhatsApp Desktop app might show them as text links.

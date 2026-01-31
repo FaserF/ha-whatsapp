@@ -49,8 +49,8 @@ The integration is secured with a token. The easiest way to get it is via the sp
 
 > **🛑 Error Handling**:
 >
-> - If you get "Invalid API Key", double check what you copied.
-> - If you get "Cannot Connect", checking the Host URL.
+> - If you get "Invalid API Key", double-check what you copied.
+> - If you get "Cannot Connect", check the Host URL.
 
 ### 3. Link Device 📱
 

@@ -42,6 +42,7 @@ The most common way to send alerts.
 ```yaml
 service: whatsapp.send_message
 data:
+  account: '49123456789' # Optional: Specify phone number or Entry ID for multi-instance
   target: '+49123456789' # '+' is optional, @s.whatsapp.net is added automatically
   message: 'Hello from Home Assistant! 🚀'
 ```
@@ -137,9 +138,21 @@ Configure the Addon to push events (messages) to a specific URL.
 ```yaml
 service: whatsapp.configure_webhook
 data:
+  account: '49123456789'
   url: 'http://homeassistant:8123/api/webhook/YOUR_ID'
   enabled: true
 ```
+
+### 🤖 Multi-Instance Routing
+
+If you have multiple WhatsApp accounts configured, you can use the `account` parameter to specify which bot should handle the service call.
+
+**You can provide:**
+- The **Phone Number** (e.g., `49123456789`)
+- The **Entry ID** (found in integration details)
+- The **Title** of the integration instance
+
+If `account` is omitted, the integration will attempt to use the only available account. If multiple accounts are found, the service call will fail with a validation error.
 
 ### 📋 List Message (`send_list`)
 

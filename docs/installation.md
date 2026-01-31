@@ -33,11 +33,10 @@ The Addon handles the heavy lifting of connecting to WhatsApp.
 
 > **Tip**
 > **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the addon configuration.
-> {: .tip }
-
+>
 > **Note**
 > The QR Code might not appear immediately in the Addon Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
-> {: .note }
+> {: .tip }
 
 ---
 

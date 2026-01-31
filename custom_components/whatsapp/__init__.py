@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from .api import WhatsAppApiClient
 from .const import (
@@ -138,6 +139,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+# checking lines 141-176 replacement
 def get_client_for_account(
     hass: HomeAssistant, account: str | None
 ) -> WhatsAppApiClient:
@@ -149,13 +151,13 @@ def get_client_for_account(
     }
 
     if not clients:
-        raise vol.Invalid("No WhatsApp accounts configured")
+        raise ServiceValidationError("No WhatsApp accounts configured")
 
     # If only one client exists and no account specified, use it
     if account is None:
         if len(clients) == 1:
             return list(clients.values())[0]
-        raise vol.Invalid(
+        raise ServiceValidationError(
             "Multiple WhatsApp accounts found. "
             "Please specify the 'account' (entry ID or unique ID)."
         )
@@ -173,7 +175,7 @@ def get_client_for_account(
         if entry and entry.title == account:
             return client
 
-    raise vol.Invalid(f"WhatsApp account '{account}' not found")
+    raise ServiceValidationError(f"WhatsApp account '{account}' not found")
 
 
 async def async_setup_services(hass: HomeAssistant) -> None:
@@ -511,7 +513,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(
             {
-                **S_BASE,
+                **s_base,
                 vol.Required("target"): cv.string,
                 vol.Optional("message_id"): cv.string,
             }
