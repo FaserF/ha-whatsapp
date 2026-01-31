@@ -62,11 +62,15 @@ Once installed, click on the **WhatsApp Bridge** app to open its settings:
 ## 💬 How to Use
 
 ### Receiving Messages
+
 Any incoming WhatsApp message will automatically appear in your configured Rocket.Chat channel:
+
 > **[WA] 49123456789**: Hello from WhatsApp!
 
 ### Sending Messages
+
 To send a message back to WhatsApp, prefix your message with the recipient's phone number in brackets:
+
 > `[49123456789] Hello from Rocket.Chat!`
 
 > **Tip:**

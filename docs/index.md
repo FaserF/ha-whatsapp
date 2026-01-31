@@ -3,7 +3,7 @@ layout: default
 title: Home
 nav_order: 1
 mermaid: true
-description: "A professional WhatsApp bridge for Home Assistant using Baileys and Node.js."
+description: 'A professional WhatsApp bridge for Home Assistant using Baileys and Node.js.'
 ---
 
 <div class="hero-section">
@@ -74,11 +74,9 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
     <a href="installation.html" class="btn btn-green" style="padding: 12px 24px; font-weight: bold;">🚀 Get Started</a>
   </div>
 
-
   <div class="btn-myha-wrapper">
     <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Integration</span></a>
   </div>
-
 
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0.9;">
     <a href="https://github.com/FaserF/ha-whatsapp" class="btn btn-outline">Integration Repo</a>
@@ -89,6 +87,7 @@ description: "A professional WhatsApp bridge for Home Assistant using Baileys an
 ## 🔗 Webhook Integration
 
 Forward your WhatsApp messages to any HTTP endpoint in real-time. This project isn't just for Home Assistant; you can use the built-in Webhook to bridge WhatsApp to:
+
 - **Node-RED** for complex automation flows.
 - **Generic HTTP Servers** (Python, Node.js, PHP, etc.) for logging or custom bots.
 - **Unified Chat Platforms** like Rocket.Chat or Slack.
@@ -102,7 +101,7 @@ Forward your WhatsApp messages to any HTTP endpoint in real-time. This project i
 > The developers of this project assume no liability for any blocked or banned accounts. Use at your own risk.
 >
 > Official Policy: **[WhatsApp Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**
-{: .important }
+> {: .important }
 
 ## 🏗️ Technical Architecture
 
@@ -158,7 +157,7 @@ graph TD
 ```
 
 > **Privacy First**: Your WhatsApp connection is local. No external servers (other than WhatsApp's official ones) ever see your message content.
-{: .important }
+> {: .important }
 
 > **Tip:**
 > **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
@@ -184,7 +183,7 @@ graph TD
 
 ---
 
-*Maintained by [FaserF](https://github.com/FaserF)*.
+_Maintained by [FaserF](https://github.com/FaserF)_.
 
 > This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp Inc. or any of its subsidiaries or its affiliates.
-{: .note }
+> {: .note }
