@@ -38,9 +38,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if whitelist_str:
         whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
 
+    session_id = entry.data.get("session_id", "default")
     client = WhatsAppApiClient(
         host=addon_url,
         api_key=api_key,
+        session_id=session_id,
         mask_sensitive_data=mask_sensitive_data,
         whitelist=whitelist,
     )

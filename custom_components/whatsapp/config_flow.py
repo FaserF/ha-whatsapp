@@ -45,8 +45,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
+        # Support multiple instances
 
         errors: dict[str, str] = {}
 
@@ -110,7 +109,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.discovery_info[CONF_API_KEY] = user_input[CONF_API_KEY]
 
         self.client = WhatsAppApiClient(
-            host=str(user_input["host"]), api_key=str(user_input[CONF_API_KEY])
+            host=str(user_input["host"]),
+            api_key=str(user_input[CONF_API_KEY]),
+            session_id=self.session_id,
         )
 
         # Validate connection and Key BEFORE proceeding
@@ -173,9 +174,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             _LOGGER.debug("Connect check result: %s", is_connected)
             if is_connected:
                 _LOGGER.info("Already connected to WhatsApp, skipping QR scan")
+                stats = await self.client.get_stats()
+                my_number = stats.get("my_number")
+                if my_number:
+                    await self.async_set_unique_id(my_number)
+                    self._abort_if_unique_id_configured()
+
                 await self.client.close()
                 return self.async_create_entry(
-                    title="WhatsApp",
+                    title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
                     data={
                         "session_id": self.session_id,
                         CONF_URL: self.discovery_info[CONF_URL],
@@ -210,9 +217,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 connected = await self.client.connect()
                 if connected:
+                    stats = await self.client.get_stats()
+                    my_number = stats.get("my_number")
+                    if my_number:
+                        await self.async_set_unique_id(my_number)
+                        self._abort_if_unique_id_configured()
+
                     await self.client.close()
                     return self.async_create_entry(
-                        title="WhatsApp",
+                        title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
                         data={
                             "session_id": self.session_id,
                             CONF_URL: self.discovery_info[CONF_URL],
@@ -249,9 +262,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     # If no QR code, check if we actually connected in the background
                     if await self.client.connect():
                         _LOGGER.debug("Connected in background during QR scan")
+                        stats = await self.client.get_stats()
+                        my_number = stats.get("my_number")
+                        if my_number:
+                            await self.async_set_unique_id(my_number)
+                            self._abort_if_unique_id_configured()
+
                         await self.client.close()
                         return self.async_create_entry(
-                            title="WhatsApp",
+                            title=(
+                                f"WhatsApp ({my_number})" if my_number else "WhatsApp"
+                            ),
                             data={
                                 "session_id": self.session_id,
                                 CONF_URL: self.discovery_info[CONF_URL],
