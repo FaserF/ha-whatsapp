@@ -34,7 +34,9 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         state = hass.states.get("binary_sensor.whatsapp")
         assert state
         assert state.state == "on"
-        assert state.attributes["messages_sent"] == 10
+        assert state.attributes["total_sent"] == 10
+        assert state.attributes["total_failed"] == 2
+        assert state.attributes["version"] == "Unknown"
 
         # Simulate disconnect
         mock_instance.connect = AsyncMock(return_value=False)

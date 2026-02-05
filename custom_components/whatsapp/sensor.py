@@ -10,6 +10,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
@@ -67,19 +68,28 @@ class WhatsAppStatSensor(
             return {
                 "last_message": stats.get("last_sent_message"),
                 "last_target": stats.get("last_sent_target"),
+                "last_time": self._format_time(stats.get("last_sent_time")),
             }
         if self._stat_key == "received":
             return {
                 "last_message": stats.get("last_received_message"),
                 "last_sender": stats.get("last_received_sender"),
+                "last_time": self._format_time(stats.get("last_received_time")),
             }
         if self._stat_key == "failed":
             return {
                 "last_message": stats.get("last_failed_message"),
                 "last_target": stats.get("last_failed_target"),
                 "error_reason": stats.get("last_error_reason"),
+                "last_time": self._format_time(stats.get("last_failed_time")),
             }
         return {}
+
+    def _format_time(self, timestamp: int | None) -> str | None:
+        """Format the timestamp into a readable string."""
+        if timestamp is None:
+            return None
+        return dt_util.as_local(dt_util.utc_from_timestamp(timestamp / 1000)).isoformat()
 
     @property
     def native_value(self) -> int:

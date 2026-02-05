@@ -60,9 +60,13 @@ class WhatsAppConnectionSensor(
         """Return the state attributes."""
         stats = self.coordinator.data.get("stats", {})
         return {
-            "messages_sent": stats.get("sent", 0),
-            "messages_failed": stats.get("failed", 0),
-            "last_message_content": stats.get("last_sent_message"),
+            "version": stats.get("version", "Unknown"),
+            "phone_number": stats.get("my_number", "Unknown"),
+            "uptime_seconds": stats.get("uptime", 0),
+            "total_sent": stats.get("sent", 0),
+            "total_received": stats.get("received", 0),
+            "total_failed": stats.get("failed", 0),
+            "last_message_sent": stats.get("last_sent_message"),
             "last_message_target": stats.get("last_sent_target"),
         }
 
