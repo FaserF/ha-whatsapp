@@ -9,7 +9,7 @@ on:
       - '**/*.md'
       - 'LICENSE'
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
@@ -23,8 +23,8 @@ on:
         default: 'Economy'
         type: choice
         options:
-        - Economy
-        - Full
+          - Economy
+          - Full
   workflow_call:
     inputs:
       resource_profile:
