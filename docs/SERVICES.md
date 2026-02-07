@@ -133,7 +133,7 @@ data:
 
 ### 🔗 Webhook (`configure_webhook`)
 
-Configure the Addon to push events (messages) to a specific URL.
+Configure the App to push events (messages) to a specific URL.
 
 ```yaml
 service: whatsapp.configure_webhook

@@ -30,7 +30,7 @@ footer_content: "Maintained by <b>FaserF</b>. This project is not affiliated wit
 # Aux links
 aux_links:
   "Integration GitHub": "https://github.com/FaserF/ha-whatsapp"
-  "Addon GitHub": "https://github.com/FaserF/hassio-addons"
+  "App GitHub": "https://github.com/FaserF/hassio-addons"
 
 # Theme customization
 brand_color: "#25D366" # WhatsApp Green

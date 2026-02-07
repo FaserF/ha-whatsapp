@@ -14,9 +14,9 @@ nav_order: 3
 > **For most users, the Stable version is sufficient and recommended.** Only proceed if you want to test new features early or if you have been asked to verify a fix.
 > {: .warning }
 
-This guide describes how to install the **Beta version** of the Home Assistant Integration and the **Edge version** of the WhatsApp Add-on.
+This guide describes how to install the **Beta version** of the Home Assistant Integration and the **Edge version** of the WhatsApp Home Assistant App.
 
-You can mix and match (e.g., Stable Add-on with Beta Integration), but for testing new features, it is often necessary to update both.
+You can mix and match (e.g., Stable App with Beta Integration), but for testing new features, it is often necessary to update both.
 
 ## Terminology
 
@@ -24,7 +24,7 @@ Before we begin, let's clarify the terms:
 
 - **Stable**: Tested and verified versions. Recommended for daily use.
 - **Beta / Pre-release**: A version of the **Integration** that is ready for testing but not yet promoted to stable.
-- **Edge**: A version of the **Add-on** that is built directly from the latest source code. It is the absolute latest version but requires your Home Assistant to build the Docker image locally (which takes time).
+- **Edge**: A version of the **App** that is built directly from the latest source code. It is the absolute latest version but requires your Home Assistant to build the Docker image locally (which takes time).
 
 ---
 
@@ -49,44 +49,44 @@ The integration communicates with Home Assistant. To get the latest changes (e.g
 
 ---
 
-## 2. Installing the Edge Add-on
+## 2. Installing the Edge App
 
-The Add-on runs the actual WhatsApp Web client (Baileys) in the background. To get updates to the underlying engine or new API features, you need the Edge version of the Add-on.
+The App runs the actual WhatsApp Web client (Baileys) in the background. To get updates to the underlying engine or new API features, you need the Edge version of the App.
 
-**Note:** The Edge Add-on is a *separate* add-on from the Stable one. You will likely want to stop the Stable add-on before starting the Edge one to avoid conflicts (they use the same port).
+**Note:** The Edge App is a *separate* App from the Stable one. You will likely want to stop the Stable App before starting the Edge one to avoid conflicts (they use the same port).
 
 1.  **Add the Edge Repository**:
 
     The easiest way is to click the button below:
 
     <div class="btn-myha-wrapper">
-      <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons%23edge" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Edge Repository</span></a>
+      <a href="https://my.home-assistant.io/redirect/supervisor_add_App_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons%23edge" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Edge Repository</span></a>
     </div>
 
     **Manual Instructions:**
-    1.  Open **Home Assistant** and go to **Settings** -> **Add-ons**.
-    2.  Click the **Add-on Store** button (bottom right).
+    1.  Open **Home Assistant** and go to **Settings** -> **Apps**.
+    2.  Click the **App Store** button (bottom right).
     3.  Click the **three dots** (⋮) in the top right corner -> **Repositories**.
     4.  Add the **Edge Repository** URL:
         ```text
         https://github.com/FaserF/hassio-addons#edge
         ```
     5.  Click **Add**.
-    6.  Refresh the page (or close and reopen the Add-on Store).
-    7.  Scroll down to the new **"FaserF's Home Assistant Add-ons (Edge)"** section.
+    6.  Refresh the page (or close and reopen the App Store).
+    7.  Scroll down to the new **"FaserF's Home Assistant Apps (Edge)"** section.
     8.  Click on **WhatsApp (Edge)**.
 
 2.  Click **Install**.
     - **Important:** Since this is an "Edge" build, Home Assistant will build the Docker image on your device. **This can take 5-15 minutes** depending on your hardware (Raspberry Pi takes longer than a NUC). Do not interrupt the process.
 
-3.  Once installed, configure it exactly like the Stable add-on (Port 8066 etc.).
+3.  Once installed, configure it exactly like the Stable App (Port 8066 etc.).
 
-4.  **Stop** your existing Stable WhatsApp Add-on.
+4.  **Stop** your existing Stable WhatsApp Home Assistant App.
 
-5.  **Start** the new WhatsApp (Edge) Add-on.
+5.  **Start** the new WhatsApp (Edge) App.
 
 > [!TIP]
-> You can switch back to the Stable Add-on at any time by stopping the Edge version and starting the Stable version.
+> You can switch back to the Stable App at any time by stopping the Edge version and starting the Stable version.
 
 ---
 
@@ -95,6 +95,6 @@ The Add-on runs the actual WhatsApp Web client (Baileys) in the background. To g
 | Component | How to get Beta/Edge |
 | :--- | :--- |
 | **Integration** | HACS -> Redownload -> Show beta versions |
-| **Add-on** | Add-on Store -> Add Repository `...#edge` -> Install WhatsApp (Edge) |
+| **App** | App Store -> Add Repository `...#edge` -> Install WhatsApp (Edge) |
 
 Happy Testing! 🧪

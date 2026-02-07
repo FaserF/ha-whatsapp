@@ -648,7 +648,7 @@ update_presence:
 configure_webhook:
   name: Configure Webhook
   description: >
-    Configures the webhook URL where the WhatsApp Addon sends incoming
+    Configures the webhook URL where the WhatsApp Home Assistant App sends incoming
     message events. This is how Home Assistant receives incoming messages,
     button clicks, poll votes, and read receipts. Usually set during
     initial configuration, but can be updated dynamically.
@@ -682,7 +682,7 @@ configure_webhook:
       name: Security Token
       description: >
         Optional security token sent as X-Webhook-Token header.
-        Use to verify that requests come from your WhatsApp Addon.
+        Use to verify that requests come from your WhatsApp Home Assistant App.
       example: "my_secret_token_12345"
       selector:
         text:

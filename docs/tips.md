@@ -39,26 +39,26 @@ Use the **Developer Tools** -> **Services** tab to verify your configuration bef
 
 ### Message not sending?
 
-- **Check Logs**: Go to the WhatsApp Addon logs. Search for "Connection closed" or "Unauthorized".
-- **External URL**: If sending images, ensure the URL is correct and the addon can download the file.
-- **Pairing**: Does the Addon Web UI show `Connected`? If not, re-scan the QR code.
+- **Check Logs**: Go to the WhatsApp Home Assistant App logs. Search for "Connection closed" or "Unauthorized".
+- **External URL**: If sending images, ensure the URL is correct and the App can download the file.
+- **Pairing**: Does the App Web UI show `Connected`? If not, re-scan the QR code.
 
 ### "Reset Session" - When to use it?
 
 If you have persistent connection issues or want to pair with a different phone number:
 
-1.  Go to the Addon **Configuration**.
+1.  Go to the App **Configuration**.
 2.  Set `reset_session` to `true`.
-3.  **Save** and **Restart** the addon.
-4.  The addon will delete all old session data and present a fresh QR code.
+3.  **Save** and **Restart** the App.
+4.  The App will delete all old session data and present a fresh QR code.
 5.  The `reset_session` flag will automatically be set back to `false` once used.
 
 ### Unauthorized API Access
 
-If you see 401 errors in the addon logs:
+If you see 401 errors in the App logs:
 
-1.  Check the `api_token.txt` in your HA `/data` folder (internal to addon).
-2.  Integration and Addon must use the same token. Usually, the integration handles this automatically via the Config Flow, but a re-installation of the integration might be needed if things are out of sync.
+1.  Check the `api_token.txt` in your HA `/data` folder (internal to App).
+2.  Integration and App must use the same token. Usually, the integration handles this automatically via the Config Flow, but a re-installation of the integration might be needed if things are out of sync.
 
 ---
 
@@ -75,7 +75,7 @@ If you see 401 errors in the addon logs:
 ## ❓ FAQ
 
 **Q: Can I use multiple WhatsApp accounts?**
-A: Yes! You can add the WhatsApp integration multiple times. Each instance manages its own session on the addon. Use the `account` parameter in service calls to specify which bot should send the message.
+A: Yes! You can add the WhatsApp integration multiple times. Each instance manages its own session on the App. Use the `account` parameter in service calls to specify which bot should send the message.
 
 **Q: Do buttons work on all devices?**
 A: Native buttons are part of the latest WhatsApp MD (Multi-Device) protocol. While most modern mobile apps support them, some older versions or the WhatsApp Desktop app might show them as text links.

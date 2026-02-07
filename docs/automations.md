@@ -6,7 +6,7 @@ nav_order: 4
 
 # 🤖 Advanced Automations
 
-The real power of the WhatsApp integration lies in the events. Every message received by the Addon is fired into Home Assistant as a `whatsapp_message_received` event.
+The real power of the WhatsApp integration lies in the events. Every message received by the App is fired into Home Assistant as a `whatsapp_message_received` event.
 
 ---
 
@@ -228,5 +228,5 @@ action:
 
 {% endraw %}
 
-> **Image Access**: The Addon needs to be able to download the image from the URL you provided. If using `localhost` URLs, ensure the Addon has network access to the Home Assistant instance.
+> **Image Access**: The App needs to be able to download the image from the URL you provided. If using `localhost` URLs, ensure the App has network access to the Home Assistant instance.
 > {: .important }

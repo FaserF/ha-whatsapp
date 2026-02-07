@@ -22,19 +22,19 @@ description: 'A professional WhatsApp bridge for Home Assistant using Baileys an
       </thead>
       <tbody>
         <tr>
-          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Addon (Stable)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>App (Stable)</strong></td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
             <a href="https://github.com/FaserF/hassio-addons/tree/master/whatsapp">
-              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fmaster%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Addon&style=flat-square&color=blue" alt="Addon Stable">
+              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fmaster%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=App&style=flat-square&color=blue" alt="App Stable">
             </a>
           </td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">engine</td>
         </tr>
         <tr>
-          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>Addon (Edge)</strong></td>
+          <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);"><strong>App (Edge)</strong></td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">
             <a href="https://github.com/FaserF/hassio-addons/tree/edge/whatsapp">
-              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange" alt="Addon Edge">
+              <img src="https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange" alt="App Edge">
             </a>
           </td>
           <td style="padding: 12px; border-bottom: 1px solid var(--wa-border);">engine-dev</td>
@@ -80,7 +80,7 @@ description: 'A professional WhatsApp bridge for Home Assistant using Baileys an
 
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; opacity: 0.9;">
     <a href="https://github.com/FaserF/ha-whatsapp" class="btn btn-outline">Integration Repo</a>
-    <a href="https://github.com/FaserF/hassio-addons" class="btn btn-outline">Addon Repo</a>
+    <a href="https://github.com/FaserF/hassio-addons" class="btn btn-outline">App Repo</a>
   </div>
 </div>
 
@@ -127,7 +127,7 @@ graph TD
         Notify[Notify Service]
     end
 
-    subgraph AddonBridge ["Add-on Architecture (Local)"]
+    subgraph AppBridge ["App Architecture (Local)"]
         direction TB
         API[Express API Server]
         BL[Baileys Node.js Engine]

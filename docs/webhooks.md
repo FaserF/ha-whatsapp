@@ -6,23 +6,23 @@ nav_order: 9
 
 # 🔗 Webhook Support
 
-The WhatsApp Addon includes a built-in Webhook feature that allows you to forward incoming messages to any external service in real-time. This is perfect for custom integrations, logging, or bridging to other chat platforms.
+The WhatsApp Home Assistant App includes a built-in Webhook feature that allows you to forward incoming messages to any external service in real-time. This is perfect for custom integrations, logging, or bridging to other chat platforms.
 
 ## 🚀 How it works
 
-When the Webhook is enabled, the Addon sends a `POST` request to your configured URL for every incoming message.
+When the Webhook is enabled, the App sends a `POST` request to your configured URL for every incoming message.
 
 ```mermaid
 graph LR
-    User[WhatsApp User] -- Message --> Addon[WhatsApp Addon]
-    Addon -- HTTP POST --> Target[External Service]
+    User[WhatsApp User] -- Message --> App[WhatsApp Home Assistant App]
+    App -- HTTP POST --> Target[External Service]
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-1.  Navigate to **Settings** > **Add-ons** > **WhatsApp** in Home Assistant.
+1.  Navigate to **Settings** > **Apps** > **WhatsApp** in Home Assistant.
 2.  Go to the **Configuration** tab.
 3.  Fill in the following fields:
 
@@ -50,7 +50,7 @@ This is useful if your external URL changes (e.g., Nabu Casa URL) or you want to
 
 ## 🔐 Security
 
-To ensure that only your Addon can send data to your target service, we send the `X-Webhook-Token` header with every request. Your service should validate this token before processing the data.
+To ensure that only your App can send data to your target service, we send the `X-Webhook-Token` header with every request. Your service should validate this token before processing the data.
 
 ```http
 POST /your-endpoint HTTP/1.1

@@ -30,7 +30,7 @@ The integration is secured with a token. The easiest way to get it is via the sp
 
 ### 1. Get Token & Check Status
 
-1.  Start the **WhatsApp Addon**.
+1.  Start the **WhatsApp Home Assistant App**.
 2.  Click **"Open Web UI"** (Ingress).
     - _Tip: If you see "Checking Status...", just give it a second!_
 3.  You will see a Status Badge and (eventually) a QR Code.
@@ -43,7 +43,7 @@ The integration is secured with a token. The easiest way to get it is via the sp
 2.  Search for **WhatsApp** (Custom).
 3.  **Host**:
     - Usually `http://localhost:8066` works.
-    - If not, use the addon hostname e.g. `http://7da084a7-whatsapp:8066`.
+    - If not, use the App hostname e.g. `http://7da084a7-whatsapp:8066`.
 4.  **API Key**: Paste the token you copied from the Web UI.
 5.  Click **Submit**.
 
@@ -54,7 +54,7 @@ The integration is secured with a token. The easiest way to get it is via the sp
 
 ### 3. Link Device 📱
 
-1.  If the API Key is valid, the integration will ask the Addon to start a session.
+1.  If the API Key is valid, the integration will ask the App to start a session.
 2.  Go back to the **Ingress Web UI**. You should see a **QR Code**.
 3.  Open WhatsApp on your phone -> **Linked Devices** -> **Link a Device**.
 4.  **Scan the QR Code**.
@@ -79,6 +79,6 @@ If you need to change phones or fix a stuck session:
 4.  Click **Next**.
     - This will:
       - Log out the session on WhatsApp.
-      - Delete the session files in the Addon.
-      - Reset the Addon state to "Disconnected".
+      - Delete the session files in the App.
+      - Reset the App state to "Disconnected".
 5.  You can now re-configure a new session.

@@ -6,7 +6,7 @@ nav_order: 10
 
 # 📜 REST API Documentation
 
-The WhatsApp Addon exposes a REST API that acts as a bridge between Home Assistant and the WhatsApp network. While the integration handles most things automatically, advanced users can interact with the API directly.
+The WhatsApp Home Assistant App exposes a REST API that acts as a bridge between Home Assistant and the WhatsApp network. While the integration handles most things automatically, advanced users can interact with the API directly.
 
 ---
 
@@ -15,7 +15,7 @@ The WhatsApp Addon exposes a REST API that acts as a bridge between Home Assista
 All API requests (except `/health`) **MUST** include the `X-Auth-Token` header.
 
 - The token is automatically generated on first run.
-- You can view and copy the token from the **Addon Dashboard** (Web UI).
+- You can view and copy the token from the **App Dashboard** (Web UI).
 
 ---
 
@@ -174,7 +174,7 @@ Healthcheck endpoint for Docker/Supervisor. **No authentication required.**
 **Response:**
 
 ```json
-{ "status": "ok", "service": "whatsapp-addon" }
+{ "status": "ok", "service": "whatsapp-App" }
 ```
 
 #### `GET /logs`

@@ -3,6 +3,6 @@ contact_links:
   - name: Documentation
     url: https://faserf.github.io/ha-whatsapp/
     about: Read the documentation before opening an issue.
-  - name: Addon Issues
+  - name: App Issues
     url: https://github.com/FaserF/hassio-addons/issues
-    about: Please report issues with the Addon (not the Integration) here.
+    about: Please report issues with the App (not the Integration) here.

@@ -42,7 +42,7 @@ on:
           - beta
           - stable
           - nightly
-          - addon_sync
+          - App_sync
           - manual
       bump_type:
         description: 'How should the version be incremented from the last tag?'
@@ -202,15 +202,15 @@ jobs:
             if [[ "$VERSION" == *"b"* ]] || [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
               PRERELEASE="true"
             fi
-          elif [[ "$RELEASE_TYPE" == "addon_sync" ]]; then
-            echo "🔄 Syncing version from Addon repository..."
-            ADDON_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
+          elif [[ "$RELEASE_TYPE" == "App_sync" ]]; then
+            echo "🔄 Syncing version from App repository..."
+            App_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
 
             # Fetch config and extract version
-            REMOTE_VERSION=$(curl -s "$ADDON_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
+            REMOTE_VERSION=$(curl -s "$App_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
 
             if [[ -z "$REMOTE_VERSION" ]]; then
-               echo "❌ Failed to fetch version from addon config!"
+               echo "❌ Failed to fetch version from App config!"
                exit 1
             fi
 

@@ -7,14 +7,14 @@
 
 > Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required. 🚀
 >
-> **Requires the [Home Assistant Addon](https://github.com/FaserF/hassio-addons) to function.** This integration communicates with the addon to send and receive messages.
+> **Requires the [Home Assistant App](https://github.com/FaserF/hassio-addons) to function.** This integration communicates with the App to send and receive messages.
 
 ---
 
 | Component                | Version                                                                                                                                                                                                                                                                                 | Status     |
 | :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------- |
-| **Addon (Stable)**       | [![Addon Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=Addon&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)                                                                                            | engine     |
-| **Addon (Edge)**         | [![Addon Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
+| **App (Stable)**       | [![App Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=App&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)                                                                                            | engine     |
+| **App (Edge)**         | [![App Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
 | **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                      | interface  |
 | **Integration (Beta)**   | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                         | testing    |
 | **Activity**             | [![Last Release](https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                  |            |
@@ -79,13 +79,13 @@ The most up-to-date and detailed documentation is available at our **[Official D
 
 The integration provides a binary sensor (e.g., `binary_sensor.whatsapp`).
 
-- **State**: Indicates if the integration is successfully connected to the Addon.
+- **State**: Indicates if the integration is successfully connected to the App.
 - **Attributes**:
   - `messages_sent`: Total number of messages sent since restart.
   - `last_message_content`: Content of the last sent message.
   - `last_message_target`: Phone number of the last recipient.
 
-If the sensor is `disabled`, check your Home Assistant "Entities" settings and enable it. It tracks the connection health to the WhatsApp addon.
+If the sensor is `disabled`, check your Home Assistant "Entities" settings and enable it. It tracks the connection health to the WhatsApp Home Assistant App.
 
 ### Services
 
@@ -330,7 +330,7 @@ You can use Home Assistant automations to react to **incoming messages**, **butt
 
 #### 1. React to a Button Click
 
-When a user clicks a button, a `whatsapp_message_received` event is fired with `type: button_reply` (depending on Addon version).
+When a user clicks a button, a `whatsapp_message_received` event is fired with `type: button_reply` (depending on App version).
 The most important field is `buttonId` or `selectedId`.
 
 ```yaml
@@ -422,20 +422,20 @@ Copy that ID and use it as your `target`.
 
 ---
 
-## 🛠️ Requirements & Addon
+## 🛠️ Requirements & App
 
 > [!IMPORTANT]
 > **This integration DOES NOT work alone.**
-> It is strictly a bridge to the **[HA WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)**.
+> It is strictly a bridge to the **[HA WhatsApp Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)**.
 
 ### Why?
 
 WhatsApp Web protocols are complex and require a headless browser to maintain encryption and session state.
 
-- **The Addon**: Runs the browser (Puppeteer/Playwright), handles QR scanning, and encryption.
-- **The Integration**: Connects to the addon API to expose services and sensors to Home Assistant.
+- **The App**: Runs the browser (Puppeteer/Playwright), handles QR scanning, and encryption.
+- **The Integration**: Connects to the App API to expose services and sensors to Home Assistant.
 
-You **Must** install the Addon from the repo above for this to work.
+You **Must** install the App from the repo above for this to work.
 
 ---
 

@@ -29,13 +29,13 @@ This project uses **Baileys**, which simulates a **WhatsApp Web** client. It doe
 
 ## 📦 Technical Limitations
 
-### 1. One Session per Addon
+### 1. One Session per App
 
-Currently, one instance of the WhatsApp Addon can only be paired with **one** phone number at a time. If you need to manage multiple numbers, you would need to run multiple addon instances (if supported by your environment).
+Currently, one instance of the WhatsApp Home Assistant App can only be paired with **one** phone number at a time. If you need to manage multiple numbers, you would need to run multiple App instances (if supported by your environment).
 
 ### 2. Media Uploads
 
-The addon supports sending images, but it requires a **publicly accessible URL** or a URL that the addon container can reach (e.g., your local HA instance). It currently does not support "uploading" local files directly from your PC through the HA frontend into WhatsApp.
+The App supports sending images, but it requires a **publicly accessible URL** or a URL that the App container can reach (e.g., your local HA instance). It currently does not support "uploading" local files directly from your PC through the HA frontend into WhatsApp.
 
 ### 3. Buttons & Polls (Client Support)
 
@@ -56,11 +56,11 @@ Home Assistant doesn't (yet) have a way to list your WhatsApp groups. You must m
 
 ## 🔄 Interaction with other Clients
 
-Since this addon acts as a "Linked Device":
+Since this App acts as a "Linked Device":
 
 - You can still use WhatsApp on your phone as usual.
-- Messages sent by the Addon will appear in your chat history on your phone.
-- If you log out "All Devices" from your phone, the Addon will also be disconnected.
+- Messages sent by the App will appear in your chat history on your phone.
+- If you log out "All Devices" from your phone, the App will also be disconnected.
 
 ---
 

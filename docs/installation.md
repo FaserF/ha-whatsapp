@@ -6,43 +6,43 @@ nav_order: 2
 
 # ⚙️ Installation Guide
 
-Setting up the WhatsApp integration is a two-step process: installing the **Addon** (the engine) and then the **Integration** (the interface).
+Setting up the WhatsApp integration is a two-step process: installing the **App** (the engine) and then the **Integration** (the interface).
 
 ---
 
-## 1️⃣ Addon Installation
+## 1️⃣ App Installation
 
-The Addon handles the heavy lifting of connecting to WhatsApp.
+The App handles the heavy lifting of connecting to WhatsApp.
 
-1.  **Add the Repository**: Click the button below to add the addon repository to your Home Assistant.
+1.  **Add the Repository**: Click the button below to add the App repository to your Home Assistant.
 
 <div class="btn-myha-wrapper">
-  <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Repository</span></a>
+  <a href="https://my.home-assistant.io/redirect/supervisor_add_App_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Repository</span></a>
 </div>
 
-2.  **Install the Add-on**: Navigate to the store, search for **WhatsApp**, and click **Install**.
+2.  **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
 <div class="btn-myha-wrapper">
-  <a href="https://my.home-assistant.io/redirect/supervisor_addons/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add-on Dashboard</span></a>
+  <a href="https://my.home-assistant.io/redirect/supervisor_Apps/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">App Dashboard</span></a>
 </div>
 
 3.  **Start & Get Token**:
     - Ensure `log_level` is set to `info` in the **Configuration** tab.
-    - **Start** the addon.
+    - **Start** the App.
     - Open the **Web UI** and look for the **API Token** (hidden behind "Show API Key"). **Copy this token** for the next step.
 
 > **Tip**
-> **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the addon configuration.
+> **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the App configuration.
 >
 > **Note**
-> The QR Code might not appear immediately in the Addon Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
+> The QR Code might not appear immediately in the App Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
 > {: .tip }
 
 ---
 
 ## 2️⃣ Integration Installation
 
-The Integration connects Home Assistant's core to the Addon and provides the entities.
+The Integration connects Home Assistant's core to the App and provides the entities.
 
 ### Option A: HACS (Recommended)
 
@@ -76,10 +76,10 @@ Now we connect the components and link your device.
   <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Integration</span></a>
 </div>
 
-2.  **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the addon), you will see a notification in Home Assistant. Click **Configure**.
+2.  **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the App), you will see a notification in Home Assistant. Click **Configure**.
 3.  **Connection Details**:
-    - **Host**: Enter the URL of your Addon. (Default: `http://localhost:8066`).
-    - **API Key**: Paste the **API Token** you copied from the Addon Web UI.
+    - **Host**: Enter the URL of your App. (Default: `http://localhost:8066`).
+    - **API Key**: Paste the **API Token** you copied from the App Web UI.
 4.  Click **Submit**.
 
 ### 📱 Pairing with WhatsApp
@@ -94,5 +94,5 @@ Now we connect the components and link your device.
 
 ### ⚠️ Common Prerequisites
 
-- **Supervisor**: This addon requires a Home Assistant Supervised or Home Assistant OS installation.
-- **Network**: Ensure the Addon port (`8066`) is not blocked by a firewall if HA and the Addon are on different machines.
+- **Supervisor**: This App requires a Home Assistant Supervised or Home Assistant OS installation.
+- **Network**: Ensure the App port (`8066`) is not blocked by a firewall if HA and the App are on different machines.
