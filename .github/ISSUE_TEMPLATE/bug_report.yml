@@ -1,10 +1,27 @@
 name: Bug Report
 description: Create a report to help us improve
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Core Version
+      description: What version of Home Assistant Core are you running?
+      placeholder: 202X.X.X
+    validations:
+      required: true
+  - type: input
+    id: integration-version
+    attributes:
+      label: Integration Version
+      description: What version of the integration are you running?
+      placeholder: X.X.X
+    validations:
+      required: true
   - type: textarea
     id: what-happened
     attributes:
@@ -13,3 +30,31 @@ body:
       placeholder: Tell us what you see!
     validations:
       required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostic Information
+      description: Please provide the diagnostic information for the integration. You can download this from the integration page in Home Assistant.
+      render: yaml
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Please copy and paste any relevant logs here.
+      render: shell
+    validations:
+      required: false
