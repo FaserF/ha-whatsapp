@@ -20,10 +20,10 @@ This table provides a quick overview of what is currently supported by the Whats
 | Video                 |   ✅    | Supports MP4 and other common formats                       |
 | Documents             |   ✅    | Send PDFs, CSVs, etc. with custom filenames                 |
 | **Media (Receive)**   |         |                                                             |
-| Images                |   ✅    | Received as URL (stored locally in addon)                   |
-| Audio                 |   ✅    | Received as URL (stored locally in addon)                   |
-| Video                 |   ✅    | Received as URL (stored locally in addon)                   |
-| Documents             |   ✅    | Received as URL (stored locally in addon)                   |
+| Images                |   ✅    | Received as URL (stored locally or in `media_folder`)       |
+| Audio                 |   ✅    | Received as URL (stored locally or in `media_folder`)       |
+| Video                 |   ✅    | Received as URL (stored locally or in `media_folder`)       |
+| Documents             |   ✅    | Received as URL (stored locally or in `media_folder`)       |
 | Stickers              |   ✅    | Received as URL (webp)                                      |
 | **Interactive**       |         |                                                             |
 | Polls                 |   ✅    | Create polls with multiple options                          |
