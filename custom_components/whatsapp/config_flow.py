@@ -332,9 +332,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Return the addon manager."""
         return AddonManager(self.hass, slug, ADDON_NAME)
 
-    async def async_step_hassio(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_hassio(self) -> FlowResult:
         """Handle Hass.io discovery."""
         # Check if either stable or edge is installed
         for slug in [ADDON_STABLE_SLUG, ADDON_EDGE_SLUG]:
