@@ -32,6 +32,7 @@ ADDON_STABLE_SLUG = "7da084a7_whatsapp"
 ADDON_EDGE_SLUG = "7da084a7_whatsapp_edge"
 ADDON_NAME = "WhatsApp"
 
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
     """Handle a config flow for HA WhatsApp."""
 
