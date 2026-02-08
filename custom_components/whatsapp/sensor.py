@@ -35,9 +35,7 @@ async def async_setup_entry(
     )
 
 
-class WhatsAppStatSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity  # type: ignore[misc]
-):
+class WhatsAppStatSensor(CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity):
     """Representation of a WhatsApp statistic sensor."""
 
     _attr_has_entity_name = True
@@ -100,9 +98,7 @@ class WhatsAppStatSensor(
         return int(stats.get(self._stat_key, 0))
 
 
-class WhatsAppUptimeSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity  # type: ignore[misc]
-):
+class WhatsAppUptimeSensor(CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity):
     """Representation of the WhatsApp uptime sensor."""
 
     _attr_has_entity_name = True

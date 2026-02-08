@@ -34,7 +34,7 @@ ADDON_EDGE_SLUG = "7da084a7_whatsapp_edge"
 ADDON_NAME = "WhatsApp"
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HA WhatsApp."""
 
     VERSION = 1
@@ -109,7 +109,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                             ),
                             vol.Required(
                                 CONF_API_KEY,
-                                default=self.discovery_info.get("api_key", ""),
+                                default=self.discovery_info.get(CONF_API_KEY, ""),
                             ): vol.All(str, vol.Length(min=1)),
                         }
                     ),
@@ -332,7 +332,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Return the addon manager."""
         return AddonManager(self.hass, slug, ADDON_NAME)
 
-    async def async_step_hassio(self) -> FlowResult:
+    async def async_step_hassio(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle Hass.io discovery."""
         # Check if either stable or edge is installed
         for slug in [ADDON_STABLE_SLUG, ADDON_EDGE_SLUG]:
@@ -365,8 +367,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             self.discovery_info["host"] = f"http://{host}:{port}"
 
             # Also check for api_key in options
-            if addon_info.options and (api_key := addon_info.options.get("api_key")):
-                self.discovery_info["api_key"] = api_key
+            if addon_info.options and (api_key := addon_info.options.get(CONF_API_KEY)):
+                self.discovery_info[CONF_API_KEY] = api_key
 
             _LOGGER.debug("Pre-filled addon info: %s", self.discovery_info)
         except Exception as e:
@@ -437,7 +439,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         return await self.async_step_user()
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
+class OptionsFlowHandler(config_entries.OptionsFlow):
     """WhatsApp Options Flow Handler."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
