@@ -32,7 +32,6 @@ ADDON_STABLE_SLUG = "7da084a7_whatsapp"
 ADDON_EDGE_SLUG = "7da084a7_whatsapp_edge"
 ADDON_NAME = "WhatsApp"
 
-
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
     """Handle a config flow for HA WhatsApp."""
 
@@ -49,11 +48,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
-        from homeassistant.components.hassio import is_hassio
+        # Check if we are running in Hass.io
+        is_hassio_env = False
+        try:
+            from homeassistant.components.hassio import is_hassio
+
+            is_hassio_env = is_hassio(self.hass)
+        except (ImportError, AttributeError):
+            _LOGGER.debug("Hass.io component not found or is_hassio missing")
 
         if (
             user_input is None
-            and is_hassio(self.hass)
+            and is_hassio_env
             and not self.context.get("hassio_checked")
         ):
             self.context["hassio_checked"] = True
@@ -331,19 +337,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def _async_get_addon_manager(self, slug: str) -> Any:
         """Return the addon manager."""
-        from homeassistant.components.hassio import AddonManager
+        try:
+            from homeassistant.components.hassio import AddonManager
 
-        return AddonManager(self.hass, slug, ADDON_NAME)
+            return AddonManager(self.hass, slug, ADDON_NAME)
+        except (ImportError, AttributeError):
+            return None
 
     async def async_step_hassio(
         self, _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle Hass.io discovery."""
-        from homeassistant.components.hassio import AddonState
+        try:
+            from homeassistant.components.hassio import AddonState
+        except (ImportError, AttributeError):
+            return await self.async_step_user()
 
         # Check if either stable or edge is installed
         for slug in [ADDON_STABLE_SLUG, ADDON_EDGE_SLUG]:
             addon_manager = await self._async_get_addon_manager(slug)
+            if addon_manager is None:
+                continue
             addon_info = await addon_manager.async_get_addon_info()
             if addon_info.state != AddonState.NOT_INSTALLED:
                 # Already installed, pre-fill info and go to user step
