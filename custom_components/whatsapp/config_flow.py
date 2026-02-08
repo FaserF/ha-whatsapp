@@ -33,7 +33,7 @@ ADDON_EDGE_SLUG = "7da084a7_whatsapp_edge"
 ADDON_NAME = "WhatsApp"
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
     """Handle a config flow for HA WhatsApp."""
 
     VERSION = 1
@@ -444,7 +444,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user()
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
     """WhatsApp Options Flow Handler."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
