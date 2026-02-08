@@ -10,7 +10,6 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.components.hassio import AddonManager, AddonState, is_hassio
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -50,6 +49,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        from homeassistant.components.hassio import is_hassio
+
         if (
             user_input is None
             and is_hassio(self.hass)
@@ -328,14 +329,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
 
-    async def _async_get_addon_manager(self, slug: str) -> AddonManager:
+    async def _async_get_addon_manager(self, slug: str) -> Any:
         """Return the addon manager."""
+        from homeassistant.components.hassio import AddonManager
+
         return AddonManager(self.hass, slug, ADDON_NAME)
 
     async def async_step_hassio(
-        self, user_input: dict[str, Any] | None = None
+        self, _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle Hass.io discovery."""
+        from homeassistant.components.hassio import AddonState
+
         # Check if either stable or edge is installed
         for slug in [ADDON_STABLE_SLUG, ADDON_EDGE_SLUG]:
             addon_manager = await self._async_get_addon_manager(slug)

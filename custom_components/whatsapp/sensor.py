@@ -36,7 +36,8 @@ async def async_setup_entry(
 
 
 class WhatsAppStatSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
+    SensorEntity,
 ):
     """Representation of a WhatsApp statistic sensor."""
 
@@ -101,7 +102,8 @@ class WhatsAppStatSensor(
 
 
 class WhatsAppUptimeSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
+    SensorEntity,
 ):
     """Representation of the WhatsApp uptime sensor."""
 
