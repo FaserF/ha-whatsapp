@@ -10,7 +10,8 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
+from homeassistant.components.hassio import AddonManager, AddonState, is_hassio
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
@@ -27,6 +28,10 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+ADDON_STABLE_SLUG = "7da084a7_whatsapp"
+ADDON_EDGE_SLUG = "7da084a7_whatsapp_edge"
+ADDON_NAME = "WhatsApp"
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg, misc]
@@ -45,6 +50,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        if (
+            user_input is None
+            and is_hassio(self.hass)
+            and not self.context.get("hassio_checked")
+        ):
+            self.context["hassio_checked"] = True
+            return await self.async_step_hassio()
+
         # Support multiple instances
 
         errors: dict[str, str] = {}
@@ -311,6 +324,69 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
+
+    async def _async_get_addon_manager(self, slug: str) -> AddonManager:
+        """Return the addon manager."""
+        return AddonManager(self.hass, slug, ADDON_NAME)
+
+    async def async_step_hassio(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle Hass.io discovery."""
+        # Check if either stable or edge is installed
+        for slug in [ADDON_STABLE_SLUG, ADDON_EDGE_SLUG]:
+            addon_manager = await self._async_get_addon_manager(slug)
+            addon_info = await addon_manager.async_get_addon_info()
+            if addon_info.state != AddonState.NOT_INSTALLED:
+                # Already installed, skip confirm and go to user step
+                return await self.async_step_user()
+
+        # Neither installed, ask user
+        return await self.async_step_hassio_confirm()
+
+    async def async_step_hassio_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Confirm installation of the official addon."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            # Install selected addon
+            slug = (
+                ADDON_EDGE_SLUG
+                if user_input.get("version") == "edge"
+                else ADDON_STABLE_SLUG
+            )
+            addon_manager = await self._async_get_addon_manager(slug)
+            try:
+                await addon_manager.async_install_addon()
+                await addon_manager.async_start_addon()
+            except Exception as e:
+                _LOGGER.error("Failed to install WhatsApp addon (%s): %s", slug, e)
+                errors["base"] = "addon_install_error"
+                return self.async_show_form(
+                    step_id="hassio_confirm",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("version", default="stable"): vol.In(
+                                {"stable": "Stable", "edge": "Edge (Development)"}
+                            )
+                        }
+                    ),
+                    errors=errors,
+                )
+            return await self.async_step_user()
+
+        return self.async_show_form(
+            step_id="hassio_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("version", default="stable"): vol.In(
+                        {"stable": "Stable", "edge": "Edge (Development)"}
+                    )
+                }
+            ),
+            description_placeholders={"addon_name": ADDON_NAME},
+        )
 
     async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
         """Handle zeroconf discovery."""

@@ -16,6 +16,9 @@ _Coming soon to HACS Default Repository._
 4.  Click **Install**.
 5.  **Restart Home Assistant**. 🔄
 
+> [!TIP]
+> **Using Home Assistant OS / Supervisor?** You can skip manual addon installation! The integration will offer to install the official Addon (Stable or Edge) automatically during the setup flow.
+
 ### B. Manual Installation
 
 1.  Download the latest release `ha-whatsapp.zip`.
@@ -41,7 +44,8 @@ The integration is secured with a token. The easiest way to get it is via the sp
 
 1.  Go to **Settings** > **Devices & Services** > **Add Integration**.
 2.  Search for **WhatsApp** (Custom).
-3.  **Host**:
+3.  **Hass.io Users**: If the Addon is not installed, you will be asked if you want to install it automatically. Choose between **Stable** and **Edge** and click **Submit**.
+4.  **Host**:
     - Usually `http://localhost:8066` works.
     - If not, use the App hostname e.g. `http://7da084a7-whatsapp:8066`.
 4.  **API Key**: Paste the token you copied from the Web UI.

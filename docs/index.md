@@ -179,6 +179,7 @@ graph TD
 - **Real-time**: Near-zero latency for incoming and outgoing messages.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
 - **Rich Content**: Interactive Buttons, Polls, Reactions, and Media support.
+- **Easy Setup**: Automatic Add-on installation and configuration for Home Assistant OS users.
 - **Localized**: Deep German (DE) and English (EN) support.
 
 ---

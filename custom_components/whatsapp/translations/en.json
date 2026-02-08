@@ -12,12 +12,20 @@
       "scan": {
         "title": "Scan QR Code",
         "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\n\n![QR Code]({qr_image})\n\n**Please click Submit after successfully scanning the code.**"
+      },
+      "hassio_confirm": {
+        "title": "Install official Add-on",
+        "data": {
+          "version": "Add-on Version"
+        },
+        "description": "Do you want to install the official WhatsApp Add-on? This is the recommended way to use this integration on Home Assistant OS."
       }
     },
     "error": {
       "cannot_connect": "Failed to connect to the WhatsApp Addon. Please ensure the [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) is installed and running.",
       "invalid_auth": "Invalid authentication",
       "connection_error": "Not connected to WhatsApp. Please scan the QR code first.",
+      "addon_install_error": "Failed to install the WhatsApp Add-on. Please check the Supervisor logs.",
       "unknown": "Unexpected error"
     },
     "abort": {
