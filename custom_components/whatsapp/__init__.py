@@ -297,7 +297,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     # Define common schema with optional account
-    s_base = {vol.Optional("account"): cv.string}
+    s_base: dict[Any, Any] = {vol.Optional("account"): cv.string}
 
     hass.services.async_register(
         DOMAIN,

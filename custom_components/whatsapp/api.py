@@ -42,7 +42,6 @@ class WhatsAppApiClient:
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
-        self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = None
 
     def _extract_error(self, text: str) -> str:

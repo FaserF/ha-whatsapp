@@ -89,9 +89,9 @@ class WhatsAppStatSensor(
         """Format the timestamp into a readable string."""
         if timestamp is None:
             return None
-        return dt_util.as_local(
-            dt_util.utc_from_timestamp(timestamp / 1000)
-        ).isoformat()
+        return str(
+            dt_util.as_local(dt_util.utc_from_timestamp(timestamp / 1000)).isoformat()
+        )
 
     @property
     def native_value(self) -> int:
