@@ -107,7 +107,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                             vol.Required("host", default=suggested_url): vol.All(
                                 str, vol.Length(min=1)
                             ),
-                            vol.Required(CONF_API_KEY): vol.All(str, vol.Length(min=1)),
+                            vol.Required(
+                                CONF_API_KEY,
+                                default=self.discovery_info.get("api_key", ""),
+                            ): vol.All(str, vol.Length(min=1)),
                         }
                     ),
                     description_placeholders={
@@ -338,11 +341,38 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             addon_manager = await self._async_get_addon_manager(slug)
             addon_info = await addon_manager.async_get_addon_info()
             if addon_info.state != AddonState.NOT_INSTALLED:
-                # Already installed, skip confirm and go to user step
+                # Already installed, pre-fill info and go to user step
+                await self._async_prefill_addon_info(slug)
                 return await self.async_step_user()
 
         # Neither installed, ask user
         return await self.async_step_hassio_confirm()
+
+    async def _async_prefill_addon_info(self, slug: str) -> None:
+        """Pre-fill addon info from Supervisor."""
+        addon_manager = await self._async_get_addon_manager(slug)
+        try:
+            addon_info = await addon_manager.async_get_addon_info()
+            # Supervisor hostnames use hyphens, slugs might use underscores
+            host = slug.replace("_", "-")
+            port = DEFAULT_PORT
+
+            if addon_info.network:
+                # Find port for 8066 (internal)
+                for internal, external in addon_info.network.items():
+                    if internal.startswith(f"{DEFAULT_PORT}/"):
+                        port = external
+                        break
+
+            self.discovery_info["host"] = f"http://{host}:{port}"
+
+            # Also check for api_key in options
+            if addon_info.options and (api_key := addon_info.options.get("api_key")):
+                self.discovery_info["api_key"] = api_key
+
+            _LOGGER.debug("Pre-filled addon info: %s", self.discovery_info)
+        except Exception as e:
+            _LOGGER.warning("Could not pre-fill addon info: %s", e)
 
     async def async_step_hassio_confirm(
         self, user_input: dict[str, Any] | None = None
@@ -374,6 +404,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     ),
                     errors=errors,
                 )
+            # After installation, pre-fill info
+            await self._async_prefill_addon_info(slug)
             return await self.async_step_user()
 
         return self.async_show_form(
