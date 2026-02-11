@@ -1,7 +1,9 @@
 {
   "domain": "whatsapp",
   "name": "WhatsApp",
-  "codeowners": ["@FaserF"],
+  "codeowners": [
+    "@FaserF"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/FaserF/ha-whatsapp",
   "iot_class": "local_push",
@@ -13,5 +15,5 @@
       "name": "WhatsApp Addon*"
     }
   ],
-  "version": "1.3.0.dev20260207"
+  "version": "1.3.1-dev"
 }
