@@ -148,6 +148,7 @@ data:
 If you have multiple WhatsApp accounts configured, you can use the `account` parameter to specify which bot should handle the service call.
 
 **You can provide:**
+
 - The **Phone Number** (e.g., `49123456789`)
 - The **Entry ID** (found in integration details)
 - The **Title** of the integration instance
@@ -318,12 +319,12 @@ Finding the "JID" (Group ID) for a group can be tricky. This service helps you f
 
 **How it works:**
 
-1.  Call the service: `action: whatsapp.search_groups` with optional `name_filter`
-2.  **Click the 🔔 bell icon** in the Home Assistant sidebar
-3.  A notification titled "WhatsApp Group Search" will show a table with:
-    - Group Name
-    - Group ID (the JID you need)
-    - Participant count
+1. Call the service: `action: whatsapp.search_groups` with optional `name_filter`
+2. **Click the 🔔 bell icon** in the Home Assistant sidebar
+3. A notification titled "WhatsApp Group Search" will show a table with:
+   - Group Name
+   - Group ID (the JID you need)
+   - Participant count
 
 > **💡 Example:**
 >

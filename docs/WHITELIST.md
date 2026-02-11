@@ -6,8 +6,8 @@ The WhatsApp integration supports a **Whitelist** feature, allowing you to restr
 
 When a whitelist is configured:
 
-1.  **Incoming Messages**: Only messages from whitelisted senders or groups will fire the `whatsapp_message_received` event. All other messages are ignored and logged as `INFO` in the Home Assistant logs.
-2.  **Outgoing Messages**: All outgoing services (message, poll, image, etc.) will check the recipient. If the recipient is not whitelisted, the message will not be sent, and an `INFO` log entry will be created.
+1. **Incoming Messages**: Only messages from whitelisted senders or groups will fire the `whatsapp_message_received` event. All other messages are ignored and logged as `INFO` in the Home Assistant logs.
+2. **Outgoing Messages**: All outgoing services (message, poll, image, etc.) will check the recipient. If the recipient is not whitelisted, the message will not be sent, and an `INFO` log entry will be created.
 
 ## Configuration
 

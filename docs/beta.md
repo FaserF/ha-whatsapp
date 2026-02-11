@@ -37,18 +37,18 @@ The integration communicates with Home Assistant. To get the latest changes (e.g
 
 **Prerequisites:** You must have HACS installed.
 
-1.  Open **Home Assistant** and go to **HACS**.
-2.  Click on **Integrations**.
-3.  Find the **Home Assistant WhatsApp** integration in your list.
-    - If you haven't installed it yet, search for "Home Assistant WhatsApp" and install it.
-4.  Click on the **three dots** (⋮) in the top right corner of the integration card (or the detail page).
-5.  Select **Redownload**.
-6.  Look for the version selection. You might see a link or dropdown that says **"Need a different version?"** (or similar, depending on text layout).
-7.  Select the latest version from the list.
-    - Beta/Pre-release versions are typically marked with a **"b"** in the version number (e.g., `v0.1.2b4`).
-    - HACS may explicitly label them as **"Pre-release"**.
-8.  Click **Download**.
-9.  After the download finishes, you **must restart Home Assistant** for the changes to take effect.
+1. Open **Home Assistant** and go to **HACS**.
+2. Click on **Integrations**.
+3. Find the **Home Assistant WhatsApp** integration in your list.
+   - If you haven't installed it yet, search for "Home Assistant WhatsApp" and install it.
+4. Click on the **three dots** (⋮) in the top right corner of the integration card (or the detail page).
+5. Select **Redownload**.
+6. Look for the version selection. You might see a link or dropdown that says **"Need a different version?"** (or similar, depending on text layout).
+7. Select the latest version from the list.
+   - Beta/Pre-release versions are typically marked with a **"b"** in the version number (e.g., `v0.1.2b4`).
+   - HACS may explicitly label them as **"Pre-release"**.
+8. Click **Download**.
+9. After the download finishes, you **must restart Home Assistant** for the changes to take effect.
 
 ---
 
@@ -56,37 +56,39 @@ The integration communicates with Home Assistant. To get the latest changes (e.g
 
 The App runs the actual WhatsApp Web client (Baileys) in the background. To get updates to the underlying engine or new API features, you need the Edge version of the App.
 
-**Note:** The Edge App is a *separate* App from the Stable one. You will likely want to stop the Stable App before starting the Edge one to avoid conflicts (they use the same port).
+**Note:** The Edge App is a _separate_ App from the Stable one. You will likely want to stop the Stable App before starting the Edge one to avoid conflicts (they use the same port).
 
-1.  **Add the Edge Repository**:
+1. **Add the Edge Repository**:
 
-    The easiest way is to click the button below:
+   The easiest way is to click the button below:
 
-    <div class="btn-myha-wrapper">
-      <a href="https://my.home-assistant.io/redirect/supervisor_add_App_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons%23edge" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Edge Repository</span></a>
-    </div>
+   <div class="btn-myha-wrapper">
+     <a href="https://my.home-assistant.io/redirect/supervisor_add_App_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons%23edge" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Edge Repository</span></a>
+   </div>
 
-    **Manual Instructions:**
-    1.  Open **Home Assistant** and go to **Settings** -> **Apps**.
-    2.  Click the **App Store** button (bottom right).
-    3.  Click the **three dots** (⋮) in the top right corner -> **Repositories**.
-    4.  Add the **Edge Repository** URL:
-        ```text
-        https://github.com/FaserF/hassio-addons#edge
-        ```
-    5.  Click **Add**.
-    6.  Refresh the page (or close and reopen the App Store).
-    7.  Scroll down to the new **"FaserF's Home Assistant Apps (Edge)"** section.
-    8.  Click on **WhatsApp (Edge)**.
+   **Manual Instructions:**
+   1. Open **Home Assistant** and go to **Settings** -> **Apps**.
+   2. Click the **App Store** button (bottom right).
+   3. Click the **three dots** (⋮) in the top right corner -> **Repositories**.
+   4. Add the **Edge Repository** URL:
 
-2.  Click **Install**.
-    - **Important:** Since this is an "Edge" build, Home Assistant will build the Docker image on your device. **This can take 5-15 minutes** depending on your hardware (Raspberry Pi takes longer than a NUC). Do not interrupt the process.
+      ```text
+      https://github.com/FaserF/hassio-addons#edge
+      ```
 
-3.  Once installed, configure it exactly like the Stable App (Port 8066 etc.).
+   5. Click **Add**.
+   6. Refresh the page (or close and reopen the App Store).
+   7. Scroll down to the new **"FaserF's Home Assistant Apps (Edge)"** section.
+   8. Click on **WhatsApp (Edge)**.
 
-4.  **Stop** your existing Stable WhatsApp Home Assistant App.
+2. Click **Install**.
+   - **Important:** Since this is an "Edge" build, Home Assistant will build the Docker image on your device. **This can take 5-15 minutes** depending on your hardware (Raspberry Pi takes longer than a NUC). Do not interrupt the process.
 
-5.  **Start** the new WhatsApp (Edge) App.
+3. Once installed, configure it exactly like the Stable App (Port 8066 etc.).
+
+4. **Stop** your existing Stable WhatsApp Home Assistant App.
+
+5. **Start** the new WhatsApp (Edge) App.
 
 > [!TIP]
 > You can switch back to the Stable App at any time by stopping the Edge version and starting the Stable version.
@@ -95,9 +97,9 @@ The App runs the actual WhatsApp Web client (Baileys) in the background. To get 
 
 ## Summary
 
-| Component | How to get Beta/Edge |
-| :--- | :--- |
-| **Integration** | HACS -> Redownload -> Show beta versions |
-| **App** | App Store -> Add Repository `...#edge` -> Install WhatsApp (Edge) |
+| Component       | How to get Beta/Edge                                              |
+| :-------------- | :---------------------------------------------------------------- |
+| **Integration** | HACS -> Redownload -> Show beta versions                          |
+| **App**         | App Store -> Add Repository `...#edge` -> Install WhatsApp (Edge) |
 
 Happy Testing! 🧪

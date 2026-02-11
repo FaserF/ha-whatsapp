@@ -22,9 +22,9 @@ graph LR
 
 ## ⚙️ Configuration
 
-1.  Navigate to **Settings** > **Apps** > **WhatsApp** in Home Assistant.
-2.  Go to the **Configuration** tab.
-3.  Fill in the following fields:
+1. Navigate to **Settings** > **Apps** > **WhatsApp** in Home Assistant.
+2. Go to the **Configuration** tab.
+3. Fill in the following fields:
 
 | Option              | Type     | Description                                                        |
 | :------------------ | :------- | :----------------------------------------------------------------- |
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
 ### 🤖 Node-RED
 
-1.  Add an **http in** node (Method: `POST`, URL: `/whatsapp`).
-2.  (Optional) Add a **switch** node to check `msg.headers['x-webhook-token']`.
-3.  Add a **debug** node to view the output (`msg.payload`).
-4.  Process the data as needed using Home Assistant nodes or generic logic.
+1. Add an **http in** node (Method: `POST`, URL: `/whatsapp`).
+2. (Optional) Add a **switch** node to check `msg.headers['x-webhook-token']`.
+3. Add a **debug** node to view the output (`msg.payload`).
+4. Process the data as needed using Home Assistant nodes or generic logic.

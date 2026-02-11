@@ -66,6 +66,6 @@ Since this App acts as a "Linked Device":
 
 ## 🛡️ Best Practices
 
-1.  **Keep it Human**: Don't send hundreds of messages per minute.
-2.  **Avoid Spam**: Only send messages to people who expect them (family, self-notifications).
-3.  **Monitor Logs**: If you see frequent disconnects, check your internet stability or try a "Reset Session".
+1. **Keep it Human**: Don't send hundreds of messages per minute.
+2. **Avoid Spam**: Only send messages to people who expect them (family, self-notifications).
+3. **Monitor Logs**: If you see frequent disconnects, check your internet stability or try a "Reset Session".

@@ -17,12 +17,12 @@ Manage your integration like a pro and resolve common issues.
 
 Home Assistant doesn't list WhatsApp Group IDs in the UI. To find them:
 
-1.  Open **Developer Tools** -> **Events**.
-2.  In "Listen to events", type: `whatsapp_message_received`.
-3.  Click **Start Listening**.
-4.  Send a message into the WhatsApp group you want to identify.
-5.  Check the event output. The `target` (or `raw.key.remoteJid`) will look like `123456789@g.us`.
-6.  Use this ID (the suffix `@g.us` is optional in service calls) as your `target`.
+1. Open **Developer Tools** -> **Events**.
+2. In "Listen to events", type: `whatsapp_message_received`.
+3. Click **Start Listening**.
+4. Send a message into the WhatsApp group you want to identify.
+5. Check the event output. The `target` (or `raw.key.remoteJid`) will look like `123456789@g.us`.
+6. Use this ID (the suffix `@g.us` is optional in service calls) as your `target`.
 
 ---
 
@@ -30,10 +30,10 @@ Home Assistant doesn't list WhatsApp Group IDs in the UI. To find them:
 
 Use the **Developer Tools** -> **Services** tab to verify your configuration before building automations.
 
-1.  Select `whatsapp.send_message` (or `notify.whatsapp`).
-2.  Switch to **YAML Mode**.
-3.  Paste one of the examples from the **[Service Docs](services.md)** (Ensure you use the correct recipient number).
-4.  Click **Call Service**.
+1. Select `whatsapp.send_message` (or `notify.whatsapp`).
+2. Switch to **YAML Mode**.
+3. Paste one of the examples from the **[Service Docs](services.md)** (Ensure you use the correct recipient number).
+4. Click **Call Service**.
 
 ## 🛠️ Troubleshooting
 
@@ -47,18 +47,18 @@ Use the **Developer Tools** -> **Services** tab to verify your configuration bef
 
 If you have persistent connection issues or want to pair with a different phone number:
 
-1.  Go to the App **Configuration**.
-2.  Set `reset_session` to `true`.
-3.  **Save** and **Restart** the App.
-4.  The App will delete all old session data and present a fresh QR code.
-5.  The `reset_session` flag will automatically be set back to `false` once used.
+1. Go to the App **Configuration**.
+2. Set `reset_session` to `true`.
+3. **Save** and **Restart** the App.
+4. The App will delete all old session data and present a fresh QR code.
+5. The `reset_session` flag will automatically be set back to `false` once used.
 
 ### Unauthorized API Access
 
 If you see 401 errors in the App logs:
 
-1.  Check the `api_token.txt` in your HA `/data` folder (internal to App).
-2.  Integration and App must use the same token. Usually, the integration handles this automatically via the Config Flow, but a re-installation of the integration might be needed if things are out of sync.
+1. Check the `api_token.txt` in your HA `/data` folder (internal to App).
+2. Integration and App must use the same token. Usually, the integration handles this automatically via the Config Flow, but a re-installation of the integration might be needed if things are out of sync.
 
 ---
 
