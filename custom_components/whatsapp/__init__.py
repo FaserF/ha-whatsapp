@@ -1,4 +1,23 @@
-"""The HA WhatsApp integration."""
+"""HA WhatsApp integration entry point.
+
+This module is the heart of the Home Assistant WhatsApp integration. It
+is responsible for:
+
+1. **Setup** (:func:`async_setup_entry`) – Reads the config entry, creates
+   a :class:`~.api.WhatsAppApiClient`, starts the WebSocket/polling loop,
+   registers HA services (``send_message``, ``send_image``, …), and spins
+   up the :class:`~.coordinator.WhatsAppDataUpdateCoordinator`.
+2. **Tear-down** (:func:`async_unload_entry`) – Cancels all background
+   tasks, closes the HTTP session, and unloads all platform entities.
+3. **Incoming-message handling** – Fires
+   :attr:`~.const.EVENT_MESSAGE_RECEIVED` Home Assistant events for every
+   message received from the addon, optionally marks them as read, and
+   applies whitelist filtering.
+4. **Service registration** – Binds ``whatsapp.send_message``,
+   ``whatsapp.send_image``, ``whatsapp.send_document``, … services to
+   the :class:`~.api.WhatsAppApiClient` methods so that automations can
+   call them directly.
+"""
 
 from __future__ import annotations
 
@@ -29,7 +48,30 @@ PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.S
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up HA WhatsApp from a config entry."""
+    """Set up the WhatsApp integration from a config entry.
+
+    Called by Home Assistant when the integration is first loaded or when
+    the user completes the config flow. This function:
+
+    * Creates the :class:`~.api.WhatsAppApiClient` and starts the addon
+      polling loop.
+    * Creates and refreshes the
+      :class:`~.coordinator.WhatsAppDataUpdateCoordinator`.
+    * Forwards platform setup to ``binary_sensor``, ``sensor``, and
+      ``notify`` platforms.
+    * Registers all ``whatsapp.*`` services in the HA service registry.
+    * Sets up the incoming-message callback that fires HA events.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being loaded. Contains all configuration
+            values entered by the user (URL, API key, options …).
+
+    Returns:
+        ``True`` on success. Raises
+        :class:`~homeassistant.exceptions.ConfigEntryNotReady` if the
+        initial coordinator refresh fails.
+    """
 
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     api_key = entry.data.get(CONF_API_KEY)
@@ -522,7 +564,23 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload the WhatsApp integration config entry.
+
+    Called by Home Assistant when the user removes the integration or
+    when HA shuts down.  This function:
+
+    * Cancels the polling task and closes the HTTP session.
+    * Unloads all platform entities (binary sensor, sensor, notify).
+    * Removes all ``whatsapp.*`` services from the service registry.
+    * Cleans up ``hass.data`` entries for the removed config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being unloaded.
+
+    Returns:
+        ``True`` if unloading succeeded, ``False`` otherwise.
+    """
     data = hass.data[DOMAIN][entry.entry_id]
     client: WhatsAppApiClient = data["client"]
     await client.close()

@@ -1,3 +1,27 @@
+"""HTTP client for the HA WhatsApp addon REST API.
+
+This module provides :class:`WhatsAppApiClient`, an ``aiohttp``-based client
+that communicates with the WhatsApp addon over its HTTP REST API.  Every
+public method maps to one (or more) addon endpoints and follows the same
+pattern:
+
+1. Validate whether the target is on the whitelist.
+2. Normalise the target to a valid WhatsApp JID via :meth:`ensure_jid`.
+3. Delegate to a private ``*_internal`` helper that performs the actual
+   HTTP request.
+4. Retry on transient failures via :meth:`_send_with_retry`.
+
+The client also manages an event-polling loop that calls a registered
+callback whenever new messages arrive from the addon.
+
+Example usage::
+
+    client = WhatsAppApiClient(host="http://localhost:8066", api_key="secret")
+    await client.start_polling(interval=5)
+    await client.send_message("491234567890", "Hello from HA!")
+    await client.close()
+"""
+
 import asyncio
 import contextlib
 import json
@@ -10,7 +34,30 @@ from homeassistant.exceptions import HomeAssistantError
 _LOGGER = logging.getLogger(__name__)
 
 
-class WhatsAppApiClient:
+class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intentional
+    """Async HTTP client for the HA WhatsApp addon.
+
+    This client wraps every HTTP endpoint exposed by the WhatsApp addon
+    and provides a Pythonic interface for Home Assistant integrations.
+
+    Attributes:
+        host (str): Base URL of the addon, e.g. ``http://localhost:8066``.
+        api_key (str | None): Optional API key sent in the
+            ``X-Auth-Token`` header.
+        session_id (str): Identifier of the WhatsApp session managed by the
+            addon.  Defaults to ``"default"``.
+        mask_sensitive_data (bool): When ``True``, phone numbers and message
+            contents are partially masked in log output.
+        whitelist (list[str]): Phone numbers / JIDs that are allowed to
+            receive messages.  An empty list disables filtering.
+        retry_attempts (int): Number of *extra* attempts after the first
+            failure (0 = no retry).
+        stats (dict[str, Any]): Running statistics updated after every
+            send/receive operation.  Keys: ``sent``, ``received``,
+            ``failed``, ``last_sent_message``, ``last_sent_target``,
+            ``last_failed_message``, ``last_failed_target``,
+            ``last_error_reason``, ``uptime``, ``version``, ``my_number``.
+    """
     def __init__(
         self,
         host: str,
@@ -352,20 +399,30 @@ class WhatsAppApiClient:
         """Register a callback."""
         self._callback = callback
 
-    async def send_message(self, number: str, message: str) -> None:
+    async def send_message(
+        self, number: str, message: str, quoted_message_id: str | None = None
+    ) -> None:
         """Send message via Addon (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(self._send_message_internal, target_jid, message)
+        await self._send_with_retry(
+            self._send_message_internal, target_jid, message, quoted_message_id
+        )
 
-    async def _send_message_internal(self, number: str, message: str) -> None:
+    async def _send_message_internal(
+        self, number: str, message: str, quoted_message_id: str | None = None
+    ) -> None:
         """Internal send message logic."""
         url = f"{self.host}/send_message"
         params = {"session_id": self.session_id}
-        payload = {"number": number, "message": message}
+        payload = {
+            "number": number,
+            "message": message,
+            "quotedMessageId": quoted_message_id,
+        }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (

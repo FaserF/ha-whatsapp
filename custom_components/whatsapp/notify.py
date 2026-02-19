@@ -1,4 +1,24 @@
-"""Notify platform for WhatsApp."""
+"""Notification platform for HA WhatsApp.
+
+This module implements the HA *notify* platform for the WhatsApp
+integration.  It registers two complementary notification services:
+
+* :class:`WhatsAppNotificationEntity` – Entity-based notification service
+  (the modern HA approach).  Each integration instance registers one
+  ``notify`` entity that shows up in the *Notifications* helper.
+* :class:`WhatsAppNotificationService` – Legacy
+  :class:`~homeassistant.components.notify.BaseNotificationService` kept
+  for backwards compatibility with automations that still use
+  ``service: notify.whatsapp_<entry_id>``.
+
+Both services support the same message features:
+
+* Sending a plain text message to one or more targets.
+* Sending a media file (image, document, video, audio) via the
+  ``attachment`` or ``attachments`` keys in ``data``.
+* Quoting / replying to an existing message via the ``quote`` or
+  ``reply_to`` keys in ``data``.
+"""
 
 from __future__ import annotations
 
@@ -73,7 +93,18 @@ async def async_setup_entry(
 class WhatsAppNotificationEntity(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator], NotifyEntity  # type: ignore[misc]
 ):  # type: ignore[misc]
-    """Implement the notification entity for WhatsApp."""
+    """Entity-based notification service for Home Assistant WhatsApp integration.
+
+    This entity is registered by the integration's main
+    :func:`~.async_setup_entry` function and allows automations to send
+    WhatsApp messages using the modern ``notify`` entity platform.
+
+    Supported ``data`` keys:
+        ``attachment`` (str): URL of a single file to attach.
+        ``attachments`` (list[str]): URLs of multiple files to attach.
+        ``quote`` (str): ID of a message to quote / reply to.
+        ``reply_to`` (str): Alias for ``quote``.
+    """
 
     _attr_name = None
     _attr_has_entity_name = True
@@ -85,7 +116,14 @@ class WhatsAppNotificationEntity(
         entry: ConfigEntry,
         coordinator: WhatsAppDataUpdateCoordinator,
     ) -> None:
-        """Initialize the entity."""
+        """Initialise the notification entity.
+
+        Args:
+            client: An initialised :class:`~.api.WhatsAppApiClient`
+                for sending messages.
+            entry: The config entry this entity belongs to.
+            coordinator: Used to check connection state before sending.
+        """
         super().__init__(coordinator)
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_notify"
@@ -100,14 +138,30 @@ class WhatsAppNotificationEntity(
         connected = bool(self.coordinator.data.get("connected", False))
         return "online" if connected else "offline"
 
-    async def async_send_message(
-        self, message: str, _title: str | None = None, **kwargs: Any
+    async def async_send_message(  # type: ignore[override]
+        self,
+        message: str = "",
+        target: list[str] | None = None,
+        **kwargs: Any,
     ) -> None:
-        """Send a message."""
+        """Send a WhatsApp message to one or more targets.
+
+        Accepts an optional ``data`` dict via ``kwargs`` which may contain:
+
+        * ``attachment`` / ``attachments`` – Media URL(s) to attach.
+        * ``quote`` / ``reply_to`` – Message ID to quote / reply to.
+
+        Args:
+            message: The text body of the message.
+            target: List of destination phone numbers or JIDs.  If ``None``,
+                the method returns without sending.
+            **kwargs: Any additional keyword arguments.  The ``data`` key
+                is inspected for attachment and quoting information.
+        """
         data = kwargs.get(ATTR_DATA) or {}
         # Support target as kwarg OR inside data
         # (if schema allows, though HA core might reject it in data)
-        target_list = kwargs.get(ATTR_TARGET) or data.get(ATTR_TARGET)
+        target_list = target or kwargs.get(ATTR_TARGET) or data.get(ATTR_TARGET)
 
         if not target_list:
             raise HomeAssistantError(
@@ -186,18 +240,45 @@ class WhatsAppNotificationEntity(
                 await self.client.send_audio(target, url, ptt)
             else:
                 # Default text message
-                await self.client.send_message(target, message)
+                quoted = data.get("quote") or data.get("reply_to")
+                await self.client.send_message(
+                    target, message, quoted_message_id=quoted
+                )
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
-    """Implement the legacy notification service for WhatsApp."""
+    """Legacy notification service for Home Assistant WhatsApp integration.
+
+    This service is registered by the integration's main
+    :func:`~.async_setup_entry` function and allows automations to send
+    WhatsApp messages using the legacy ``notify.whatsapp`` service.
+
+    Supported ``data`` keys:
+        ``attachment`` (str): URL of a single file to attach.
+        ``attachments`` (list[str]): URLs of multiple files to attach.
+        ``quote`` (str): ID of a message to quote / reply to.
+        ``reply_to`` (str): Alias for ``quote``.
+    """
 
     def __init__(self, client: WhatsAppApiClient) -> None:
         """Initialize the service."""
         self.client = client
 
     async def async_send_message(self, message: str = "", **kwargs: Any) -> None:
-        """Send a message."""
+        """Send a WhatsApp message via the legacy notify platform.
+
+        Target phone numbers / JIDs are taken from the ``target`` key inside
+        ``kwargs``.
+
+        Supports the same ``data`` keys as
+        :meth:`WhatsAppNotificationEntity.async_send_message`:
+        attachments, ``quote`` / ``reply_to``.
+
+        Args:
+            message: The text body of the message.
+            **kwargs: Must include a ``target`` list.  The optional ``data``
+                dict is inspected for attachment and quoting information.
+        """
         targets = kwargs.get(ATTR_TARGET)
         data = kwargs.get(ATTR_DATA) or {}
 
@@ -274,7 +355,10 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                     ptt = data.get("ptt", False)
                     await self.client.send_audio(target, url, ptt)
                 else:
-                    await self.client.send_message(target, message)
+                    quoted = data.get("quote") or data.get("reply_to")
+                    await self.client.send_message(
+                        target, message, quoted_message_id=quoted
+                    )
             except HomeAssistantError as err:
                 raise err
             except Exception as err:

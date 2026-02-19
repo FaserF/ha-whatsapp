@@ -1,4 +1,13 @@
-"""Binary sensor for HA WhatsApp."""
+"""Binary sensor platform for HA WhatsApp.
+
+Provides a single binary sensor entity – :class:`WhatsAppConnectionSensor` –
+that represents the current WhatsApp session connectivity state.
+
+The sensor state is ``on`` (connected) or ``off`` (disconnected) and is
+updated by the :class:`~.coordinator.WhatsAppDataUpdateCoordinator` polling
+loop.  Additional diagnostic attributes (version, phone number, message
+counts) are exposed via :attrs:``extra_state_attributes``.
+"""
 
 from __future__ import annotations
 
@@ -22,7 +31,18 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the WhatsApp binary sensors."""
+    """Set up the WhatsApp binary sensor platform from a config entry.
+
+    Creates a single :class:`WhatsAppConnectionSensor` entity backed by
+    the coordinator that was set up by the integration's main
+    :func:`~.async_setup_entry` function.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry whose data is used to locate the already-
+            created coordinator in ``hass.data``.
+        async_add_entities: Callback to register new entities with HA.
+    """
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
     async_add_entities([WhatsAppConnectionSensor(coordinator, entry)])
@@ -31,7 +51,24 @@ async def async_setup_entry(
 class WhatsAppConnectionSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator], BinarySensorEntity  # type: ignore[misc]
 ):
-    """Representation of a WhatsApp connection status."""
+    """Binary sensor that indicates whether the WhatsApp session is connected.
+
+    Device class: :attr:`~homeassistant.components.binary_sensor.BinarySensorDeviceClass.CONNECTIVITY`.
+
+    State:
+        ``on``:  The WhatsApp session is active and authenticated.
+        ``off``: The session has been disconnected or the addon is unreachable.
+
+    Extra state attributes:
+        * ``version`` – Addon version string.
+        * ``phone_number`` – Registered WhatsApp phone number.
+        * ``uptime_seconds`` – Addon uptime in seconds.
+        * ``total_sent`` – Total messages sent since last restart.
+        * ``total_received`` – Total messages received since last restart.
+        * ``total_failed`` – Total failed send attempts since last restart.
+        * ``last_message_sent`` – Content of the last successfully sent message.
+        * ``last_message_target`` – Recipient of the last sent message.
+    """
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_has_entity_name = True
@@ -40,7 +77,13 @@ class WhatsAppConnectionSensor(
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
     ) -> None:
-        """Initialize."""
+        """Initialise the binary sensor entity.
+
+        Args:
+            coordinator: The data coordinator for this config entry.
+            entry: Config entry used to derive the unique entity ID and
+                device-info identifiers.
+        """
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_connection"
         self._attr_device_info = {
