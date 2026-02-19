@@ -34,7 +34,8 @@ _LOGGER = logging.getLogger(__name__)
 class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # type: ignore[misc]
     """Coordinator that periodically polls the WhatsApp addon for status and stats.
 
-    Inherits from :class:`homeassistant.helpers.update_coordinator.DataUpdateCoordinator`
+    Inherits from
+    :class:`homeassistant.helpers.update_coordinator.DataUpdateCoordinator`
     and wraps a :class:`~.api.WhatsAppApiClient`.  All platform entities
     (binary sensor, sensors) subscribe to this coordinator and are updated
     automatically whenever new data is fetched.

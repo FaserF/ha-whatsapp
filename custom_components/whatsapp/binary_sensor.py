@@ -53,7 +53,8 @@ class WhatsAppConnectionSensor(
 ):
     """Binary sensor that indicates whether the WhatsApp session is connected.
 
-    Device class: :attr:`~homeassistant.components.binary_sensor.BinarySensorDeviceClass.CONNECTIVITY`.
+    Device class:
+    :attr:`~homeassistant.components.binary_sensor.BinarySensorDeviceClass.CONNECTIVITY`.
 
     State:
         ``on``:  The WhatsApp session is active and authenticated.

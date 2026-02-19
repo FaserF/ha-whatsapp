@@ -168,22 +168,27 @@ class WhatsAppNotificationEntity(
                 "Recipient number is required. Provide it as 'target'."
             )
 
-        if not isinstance(target_list, list):
+        if isinstance(target_list, str):
             target_list = [target_list]
+        elif target_list is None:
+            target_list = []
 
-        for target in target_list:
+        # Cast to list[str] to satisfy mypy
+        recipients: list[str] = target_list
+
+        for recipient in recipients:
             if "poll" in data:
                 # Send poll: data: { poll: { question: "...", options: [...] } }
                 poll_data = data["poll"]
                 question = poll_data.get("question", message)
                 options = poll_data.get("options", [])
-                await self.client.send_poll(target, question, options)
+                await self.client.send_poll(recipient, question, options)
 
             elif "location" in data:
                 # Send location: data: { location: { lat, lon, name, address } }
                 loc = data["location"]
                 await self.client.send_location(
-                    target,
+                    recipient,
                     loc.get("latitude"),
                     loc.get("longitude"),
                     loc.get("name"),
@@ -193,18 +198,22 @@ class WhatsAppNotificationEntity(
                 # Send reaction: data: { reaction: "...", message_id: "..." }
                 react = data["reaction"]
                 # If reaction is provided as a simple string, use it
-                reaction = react if isinstance(react, str) else react.get("reaction")
+                reaction = (
+                    react if isinstance(react, str) else react.get("reaction")
+                )
                 msg_id = (
                     react.get("message_id")
                     if isinstance(react, dict)
                     else data.get("message_id")
                 )
                 if reaction and msg_id:
-                    await self.client.send_reaction(target, reaction, msg_id)
+                    await self.client.send_reaction(
+                        recipient, reaction, msg_id
+                    )
             elif "image" in data:
                 # Send image: data: { image: "..." }
                 image_url = data["image"]
-                await self.client.send_image(target, image_url, message)
+                await self.client.send_image(recipient, image_url, message)
             elif "buttons" in data or "inline_keyboard" in data:
                 # Send buttons: data: { buttons: [...], footer: "..." }
                 # OR Telegram-style:
@@ -217,32 +226,38 @@ class WhatsAppNotificationEntity(
                         for btn in row:
                             buttons.append(
                                 {
-                                    "id": btn.get("callback_data", btn.get("url", "")),
+                                    "id": btn.get(
+                                        "callback_data", btn.get("url", "")
+                                    ),
                                     "displayText": btn.get("text", ""),
                                 }
                             )
                 footer = data.get("footer")
                 if buttons:
-                    await self.client.send_buttons(target, message, buttons, footer)
+                    await self.client.send_buttons(
+                        recipient, message, buttons, footer
+                    )
             elif "document" in data:
                 # Send document: data: { document: "http://..." }
                 url = data["document"]
                 file_name = data.get("file_name")
-                await self.client.send_document(target, url, file_name, message)
+                await self.client.send_document(
+                    recipient, url, file_name, message
+                )
             elif "video" in data:
                 # Send video: data: { video: "http://..." }
                 url = data["video"]
-                await self.client.send_video(target, url, message)
+                await self.client.send_video(recipient, url, message)
             elif "audio" in data:
                 # Send audio: data: { audio: "http://..." }
                 url = data["audio"]
                 ptt = data.get("ptt", False)
-                await self.client.send_audio(target, url, ptt)
+                await self.client.send_audio(recipient, url, ptt)
             else:
                 # Default text message
                 quoted = data.get("quote") or data.get("reply_to")
                 await self.client.send_message(
-                    target, message, quoted_message_id=quoted
+                    recipient, message, quoted_message_id=quoted
                 )
 
 
