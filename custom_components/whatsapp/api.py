@@ -632,7 +632,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_document_internal, target_jid, url, file_name, caption, quoted_message_id
+            self._send_document_internal,
+            target_jid,
+            url,
+            file_name,
+            caption,
+            quoted_message_id,
         )
 
     async def _send_document_internal(
@@ -1193,7 +1198,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_buttons_internal, target_jid, text, buttons, footer, quoted_message_id
+            self._send_buttons_internal,
+            target_jid,
+            text,
+            buttons,
+            footer,
+            quoted_message_id,
         )
 
     async def _send_buttons_internal(

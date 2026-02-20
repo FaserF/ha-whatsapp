@@ -50,7 +50,9 @@ async def test_services(hass: HomeAssistant) -> None:
             {"target": "12345", "message": "Hello"},
             blocking=True,
         )
-        mock_instance.send_message.assert_awaited_with("12345", "Hello", quoted_message_id=None)
+        mock_instance.send_message.assert_awaited_with(
+            "12345", "Hello", quoted_message_id=None
+        )
 
         # 2. Test send_poll
         await hass.services.async_call(
@@ -119,7 +121,11 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_buttons.assert_awaited_with(
-            "12345", "Msg", [{"id": "1", "displayText": "Btn"}], None, quoted_message_id=None
+            "12345",
+            "Msg",
+            [{"id": "1", "displayText": "Btn"}],
+            None,
+            quoted_message_id=None,
         )
 
         # 7. Test update_presence
