@@ -14,13 +14,12 @@ trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      text: "ping"
+      content: "ping"
 action:
-  - service: notify.whatsapp_contact_name
+  - action: notify.whatsapp_contact_name
     data:
       message: "pong"
-      data:
-        quote: "{{ trigger.event.data.id }}"
+      quote: "{{ trigger.event.data.raw.key.id }}"
 ```
 
 ### Script Example
@@ -28,7 +27,7 @@ action:
 ```yaml
 alias: "Reply to specific message"
 sequence:
-  - service: notify.whatsapp_contact_name
+  - action: notify.whatsapp_contact_name
     data:
       message: "This is a reply!"
       data:

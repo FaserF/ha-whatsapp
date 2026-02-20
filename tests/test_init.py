@@ -5,13 +5,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.whatsapp.const import DOMAIN
+from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL, DOMAIN
 
 
 async def test_setup_entry(hass: HomeAssistant) -> None:
     """Test setting up the entry."""
     entry = MockConfigEntry(
-        domain=DOMAIN, data={"url": "test", "api_key": "abc"}, entry_id="test_entry"
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry",
     )
     entry.add_to_hass(hass)
 

@@ -46,7 +46,7 @@ async def test_connection_lost_notification(hass: HomeAssistant) -> None:
         # We need to force one successful update
         # The coordinator only clears the issue if the update method runs successfully
         data = hass.data[DOMAIN][entry.entry_id]
-        await data["coordinator"]._async_update_data()
+        await data["coordinator"].async_refresh()
         await hass.async_block_till_done()
 
         # Notification (issue) should be removed

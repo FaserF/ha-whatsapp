@@ -30,7 +30,6 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.send_reaction = AsyncMock()
         mock_instance.send_buttons = AsyncMock()
         mock_instance.set_presence = AsyncMock()
-        mock_instance.send_media = AsyncMock()
         mock_instance.send_list = AsyncMock()
         mock_instance.send_contact = AsyncMock()
         mock_instance.edit_message = AsyncMock()
@@ -51,7 +50,7 @@ async def test_services(hass: HomeAssistant) -> None:
             {"target": "12345", "message": "Hello"},
             blocking=True,
         )
-        mock_instance.send_message.assert_awaited_with("12345", "Hello")
+        mock_instance.send_message.assert_awaited_with("12345", "Hello", quoted_message_id=None)
 
         # 2. Test send_poll
         await hass.services.async_call(
@@ -64,7 +63,9 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_poll.assert_awaited_with("12345", "Q?", ["A", "B"])
+        mock_instance.send_poll.assert_awaited_with(
+            "12345", "Q?", ["A", "B"], quoted_message_id=None
+        )
 
         # 3. Test send_image
         await hass.services.async_call(
@@ -77,7 +78,9 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_image.assert_awaited_with("12345", "http://img.jpg", "Cap")
+        mock_instance.send_image.assert_awaited_with(
+            "12345", "http://img.jpg", "Cap", quoted_message_id=None
+        )
 
         # 4. Test send_location
         await hass.services.async_call(
@@ -91,7 +94,9 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_location.assert_awaited_with("12345", 1.0, 2.0, "Loc", None)
+        mock_instance.send_location.assert_awaited_with(
+            "12345", 1.0, 2.0, "Loc", None, quoted_message_id=None
+        )
 
         # 5. Test send_reaction
         await hass.services.async_call(
@@ -114,7 +119,7 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_buttons.assert_awaited_with(
-            "12345", "Msg", [{"id": "1", "displayText": "Btn"}], None
+            "12345", "Msg", [{"id": "1", "displayText": "Btn"}], None, quoted_message_id=None
         )
 
         # 7. Test update_presence
@@ -204,7 +209,7 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_document.assert_awaited_with(
-            "12345", "http://doc.pdf", "My Doc.pdf", "Caption"
+            "12345", "http://doc.pdf", "My Doc.pdf", "Caption", quoted_message_id=None
         )
 
         # 14. Test send_video
@@ -219,7 +224,7 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_video.assert_awaited_with(
-            "12345", "http://vid.mp4", "Caption"
+            "12345", "http://vid.mp4", "Caption", quoted_message_id=None
         )
 
         # 15. Test send_audio
@@ -233,4 +238,6 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_audio.assert_awaited_with("12345", "http://audio.mp3", True)
+        mock_instance.send_audio.assert_awaited_with(
+            "12345", "http://audio.mp3", True, quoted_message_id=None
+        )

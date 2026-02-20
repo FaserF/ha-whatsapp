@@ -23,7 +23,6 @@ Constants:
         new WhatsApp message is received.
 """
 
-
 DOMAIN = "whatsapp"
 CONF_API_KEY = "api_key"
 CONF_POLLING_INTERVAL = "polling_interval"
@@ -33,4 +32,7 @@ CONF_MARK_AS_READ = "mark_as_read"
 CONF_RETRY_ATTEMPTS = "retry_attempts"
 
 CONF_WHITELIST = "whitelist"
+CONF_SESSION_ID = "session_id"
+CONF_MASK_SENSITIVE_DATA = "mask_sensitive_data"
+CONF_DEBUG_PAYLOADS = "debug_payloads"
 EVENT_MESSAGE_RECEIVED = "whatsapp_message_received"

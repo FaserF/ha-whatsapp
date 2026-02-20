@@ -95,5 +95,5 @@ async def async_setup_repair_flow(
         for unknown issues.
     """
     if issue_id == "session_expired":
-        return ConfirmRepairFlow()
+        return WhatsAppRepairFlow(issue_id)
     return ConfirmRepairFlow()

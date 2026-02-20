@@ -20,6 +20,7 @@ import pytest
 # time by the integration source files.
 # ---------------------------------------------------------------------------
 
+
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
 
@@ -80,17 +81,13 @@ def _build_ha_stub_modules() -> None:
 
     coordinator_mod.DataUpdateCoordinator = DataUpdateCoordinator  # type: ignore[attr-defined]
     coordinator_mod.UpdateFailed = Exception  # type: ignore[attr-defined]
-    sys.modules.setdefault(
-        "homeassistant.helpers.update_coordinator", coordinator_mod
-    )
+    sys.modules.setdefault("homeassistant.helpers.update_coordinator", coordinator_mod)
 
     # homeassistant.helpers.config_validation (cv)
     cv_mod = types.ModuleType("homeassistant.helpers.config_validation")
     cv_mod.string = str  # type: ignore[attr-defined]
     cv_mod.ensure_list = list  # type: ignore[attr-defined]
-    sys.modules.setdefault(
-        "homeassistant.helpers.config_validation", cv_mod
-    )
+    sys.modules.setdefault("homeassistant.helpers.config_validation", cv_mod)
 
     # homeassistant.helpers (namespace)
     helpers_mod = sys.modules.setdefault(

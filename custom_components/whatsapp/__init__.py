@@ -131,10 +131,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             target = remote_id if is_group else full_sender
 
             if not client.is_allowed(target):
-                _LOGGER.info(
+                _LOGGER.debug(
                     "Ignoring incoming message from non-whitelisted %s: %s",
                     "group" if is_group else "sender",
-                    target,
+                    client._mask(target),
                 )
                 return
 
@@ -181,7 +181,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-# checking lines 141-176 replacement
 def get_client_for_account(
     hass: HomeAssistant, account: str | None
 ) -> WhatsAppApiClient:
@@ -233,14 +232,26 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         service = call.service
         data = {k: v for k, v in call.data.items() if k != "account"}
 
+        quoted = data.get("quote") or data.get("reply_to")
+
         if service == "send_message":
-            await client.send_message(data["target"], data["message"])
+            await client.send_message(
+                data["target"], data["message"], quoted_message_id=quoted
+            )
         elif service == "send_poll":
             await client.send_poll(
-                data["target"], data["question"], data.get("options", [])
+                data["target"],
+                data["question"],
+                data.get("options", []),
+                quoted_message_id=quoted,
             )
         elif service == "send_image":
-            await client.send_image(data["target"], data["url"], data.get("caption"))
+            await client.send_image(
+                data["target"],
+                data["url"],
+                data.get("caption"),
+                quoted_message_id=quoted,
+            )
         elif service == "send_location":
             await client.send_location(
                 data["target"],
@@ -248,6 +259,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 float(data["longitude"]),
                 data.get("name"),
                 data.get("address"),
+                quoted_message_id=quoted,
             )
         elif service == "send_reaction":
             await client.send_reaction(
@@ -255,12 +267,26 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_document":
             await client.send_document(
-                data["target"], data["url"], data.get("file_name"), data.get("message")
+                data["target"],
+                data["url"],
+                data.get("file_name"),
+                data.get("message"),
+                quoted_message_id=quoted,
             )
         elif service == "send_video":
-            await client.send_video(data["target"], data["url"], data.get("message"))
+            await client.send_video(
+                data["target"],
+                data["url"],
+                data.get("message"),
+                quoted_message_id=quoted,
+            )
         elif service == "send_audio":
-            await client.send_audio(data["target"], data["url"], data.get("ptt", False))
+            await client.send_audio(
+                data["target"],
+                data["url"],
+                data.get("ptt", False),
+                quoted_message_id=quoted,
+            )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
@@ -287,7 +313,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             await client.set_presence(data["target"], data["presence"])
         elif service == "send_buttons":
             await client.send_buttons(
-                data["target"], data["message"], data["buttons"], data.get("footer")
+                data["target"],
+                data["message"],
+                data["buttons"],
+                data.get("footer"),
+                quoted_message_id=quoted,
             )
         elif service == "mark_as_read":
             await client.mark_as_read(data["target"], data.get("message_id"))
@@ -338,8 +368,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 },
             )
 
-    # Define common schema with optional account
-    s_base: dict[Any, Any] = {vol.Optional("account"): cv.string}
+    # Define common schema with optional account and quoting
+    s_base: dict[Any, Any] = {
+        vol.Optional("account"): cv.string,
+        vol.Optional("quote"): cv.string,
+        vol.Optional("reply_to"): cv.string,
+    }
 
     hass.services.async_register(
         DOMAIN,
@@ -587,6 +621,31 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
+
+    # If this was the last entry, remove global services
+    if not hass.data[DOMAIN]:
+        for service in [
+            "send_message",
+            "send_poll",
+            "send_image",
+            "send_document",
+            "send_video",
+            "send_audio",
+            "revoke_message",
+            "edit_message",
+            "send_list",
+            "send_contact",
+            "configure_webhook",
+            "send_location",
+            "send_reaction",
+            "update_presence",
+            "send_buttons",
+            "search_groups",
+            "mark_as_read",
+        ]:
+            if hass.services.has_service(DOMAIN, service):
+                hass.services.async_remove(DOMAIN, service)
+        hass.data.pop(DOMAIN)
 
     return bool(unload_ok)
 

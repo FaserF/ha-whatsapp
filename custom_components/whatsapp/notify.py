@@ -91,7 +91,8 @@ async def async_setup_entry(
 
 
 class WhatsAppNotificationEntity(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], NotifyEntity  # type: ignore[misc]
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
+    NotifyEntity,  # type: ignore[misc]
 ):  # type: ignore[misc]
     """Entity-based notification service for Home Assistant WhatsApp integration.
 
@@ -170,55 +171,71 @@ class WhatsAppNotificationEntity(
 
         if isinstance(target_list, str):
             target_list = [target_list]
-        elif target_list is None:
-            target_list = []
 
-        # Cast to list[str] to satisfy mypy
-        recipients: list[str] = target_list
+        # Ensure we have a list of strings
+        recipients: list[str] = list(target_list) if target_list else []
 
         for recipient in recipients:
+            await self._async_send_message_static(self.client, recipient, message, data)
+
+    @staticmethod
+    async def _async_send_message_static(
+        client: WhatsAppApiClient,
+        recipient: str,
+        message: str,
+        data: dict[str, Any],
+    ) -> None:
+        """Internal static helper to dispatch different message types.
+
+        This is used by both the NotifyEntity and the legacy NotificationService.
+        """
+        # Common quoted_message_id for text and media
+        quoted = data.get("quote") or data.get("reply_to")
+
+        try:
             if "poll" in data:
                 # Send poll: data: { poll: { question: "...", options: [...] } }
-                poll_data = data["poll"]
+                poll_data: dict[str, Any] = data["poll"]
                 question = poll_data.get("question", message)
                 options = poll_data.get("options", [])
-                await self.client.send_poll(recipient, question, options)
+                await client.send_poll(
+                    recipient, question, options, quoted_message_id=quoted
+                )
 
             elif "location" in data:
                 # Send location: data: { location: { lat, lon, name, address } }
-                loc = data["location"]
-                await self.client.send_location(
+                loc: dict[str, Any] = data["location"]
+                await client.send_location(
                     recipient,
                     loc.get("latitude"),
                     loc.get("longitude"),
                     loc.get("name"),
                     loc.get("address"),
+                    quoted_message_id=quoted,
                 )
             elif "reaction" in data:
                 # Send reaction: data: { reaction: "...", message_id: "..." }
                 react = data["reaction"]
                 # If reaction is provided as a simple string, use it
-                reaction = (
-                    react if isinstance(react, str) else react.get("reaction")
-                )
+                reaction = react if isinstance(react, str) else react.get("reaction")
                 msg_id = (
                     react.get("message_id")
                     if isinstance(react, dict)
                     else data.get("message_id")
                 )
                 if reaction and msg_id:
-                    await self.client.send_reaction(
-                        recipient, reaction, msg_id
-                    )
+                    await client.send_reaction(recipient, reaction, msg_id)
             elif "image" in data:
                 # Send image: data: { image: "..." }
                 image_url = data["image"]
-                await self.client.send_image(recipient, image_url, message)
+                await client.send_image(
+                    recipient, image_url, message, quoted_message_id=quoted
+                )
             elif "buttons" in data or "inline_keyboard" in data:
                 # Send buttons: data: { buttons: [...], footer: "..." }
                 # OR Telegram-style:
                 # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
-                buttons = data.get("buttons")
+                buttons: list[dict[str, str]] | None = data.get("buttons")
                 if not buttons and "inline_keyboard" in data:
                     # Map Telegram-style to WhatsApp style
                     buttons = []
@@ -226,39 +243,38 @@ class WhatsAppNotificationEntity(
                         for btn in row:
                             buttons.append(
                                 {
-                                    "id": btn.get(
-                                        "callback_data", btn.get("url", "")
-                                    ),
+                                    "id": btn.get("callback_data", btn.get("url", "")),
                                     "displayText": btn.get("text", ""),
                                 }
                             )
                 footer = data.get("footer")
                 if buttons:
-                    await self.client.send_buttons(
-                        recipient, message, buttons, footer
+                    await client.send_buttons(
+                        recipient, message, buttons, footer, quoted_message_id=quoted
                     )
             elif "document" in data:
                 # Send document: data: { document: "http://..." }
                 url = data["document"]
                 file_name = data.get("file_name")
-                await self.client.send_document(
-                    recipient, url, file_name, message
+                await client.send_document(
+                    recipient, url, file_name, message, quoted_message_id=quoted
                 )
             elif "video" in data:
                 # Send video: data: { video: "http://..." }
                 url = data["video"]
-                await self.client.send_video(recipient, url, message)
+                await client.send_video(
+                    recipient, url, message, quoted_message_id=quoted
+                )
             elif "audio" in data:
                 # Send audio: data: { audio: "http://..." }
                 url = data["audio"]
                 ptt = data.get("ptt", False)
-                await self.client.send_audio(recipient, url, ptt)
+                await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
             else:
                 # Default text message
-                quoted = data.get("quote") or data.get("reply_to")
-                await self.client.send_message(
-                    recipient, message, quoted_message_id=quoted
-                )
+                await client.send_message(recipient, message, quoted_message_id=quoted)
+        except Exception as err:
+            _LOGGER.error("Error sending WhatsApp message to %s: %s", recipient, err)
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
@@ -309,75 +325,9 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
             targets = [targets]
 
         for target in targets:
-            try:
-                if "poll" in data:
-                    poll_data = data["poll"]
-                    question = poll_data.get("question", message)
-                    options = poll_data.get("options", [])
-                    await self.client.send_poll(target, question, options)
-                elif "location" in data:
-                    loc = data["location"]
-                    await self.client.send_location(
-                        target,
-                        loc.get("latitude"),
-                        loc.get("longitude"),
-                        loc.get("name"),
-                        loc.get("address"),
-                    )
-                elif "reaction" in data:
-                    react = data["reaction"]
-                    if isinstance(react, str):
-                        reaction = react
-                    else:
-                        reaction = react.get("reaction")
-                    msg_id = (
-                        react.get("message_id")
-                        if isinstance(react, dict)
-                        else data.get("message_id")
-                    )
-                    if reaction and msg_id:
-                        await self.client.send_reaction(target, reaction, msg_id)
-                elif "image" in data:
-                    await self.client.send_image(target, data["image"], message)
-                elif "buttons" in data or "inline_keyboard" in data:
-                    buttons = data.get("buttons")
-                    if not buttons and "inline_keyboard" in data:
-                        buttons = []
-                        for row in data["inline_keyboard"]:
-                            for btn in row:
-                                buttons.append(
-                                    {
-                                        "id": btn.get(
-                                            "callback_data", btn.get("url", "")
-                                        ),
-                                        "displayText": btn.get("text", ""),
-                                    }
-                                )
-                    footer = data.get("footer")
-                    if buttons:
-                        await self.client.send_buttons(target, message, buttons, footer)
-                elif "document" in data:
-                    url = data["document"]
-                    file_name = data.get("file_name")
-                    await self.client.send_document(target, url, file_name, message)
-                elif "video" in data:
-                    # Send video: data: { video: "http://..." }
-                    url = data["video"]
-                    await self.client.send_video(target, url, message)
-                elif "audio" in data:
-                    # Send audio: data: { audio: "http://..." }
-                    url = data["audio"]
-                    ptt = data.get("ptt", False)
-                    await self.client.send_audio(target, url, ptt)
-                else:
-                    quoted = data.get("quote") or data.get("reply_to")
-                    await self.client.send_message(
-                        target, message, quoted_message_id=quoted
-                    )
-            except HomeAssistantError as err:
-                raise err
-            except Exception as err:
-                _LOGGER.error("Error sending WhatsApp message to %s: %s", target, err)
+            await WhatsAppNotificationEntity._async_send_message_static(
+                self.client, target, message, data
+            )
 
 
 async def async_get_service(

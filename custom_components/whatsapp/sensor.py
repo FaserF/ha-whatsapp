@@ -16,7 +16,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -159,7 +163,7 @@ class WhatsAppUptimeSensor(
 
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_device_class = "duration"
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = "s"
 
     def __init__(
