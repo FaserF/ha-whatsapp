@@ -21,7 +21,7 @@ is responsible for:
 
 from __future__ import annotations
 
-import logging
+from logging import getLogger
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -31,7 +31,8 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from .api import WhatsAppApiClient
+from custom_components.whatsapp.api import WhatsAppApiClient
+
 from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
@@ -42,7 +43,7 @@ from .const import (
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.SENSOR]
 
@@ -249,7 +250,8 @@ def get_client_for_account(
     if len(title_matches) == 1:
         _LOGGER.warning(
             "Using title-based fallback for WhatsApp account '%s'. "
-            "Please update your automation to use the entry ID or unique ID to avoid future collisions.",
+            "Please update your automation to use the entry ID or unique ID "
+            "to avoid future collisions.",
             account,
         )
         return title_matches[0][1]
@@ -268,7 +270,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         client = get_client_for_account(hass, account)
 
         service = call.service
-        data = {k: v for k, v in call.data.items() if k != "account"}
+        data: dict[str, Any] = {k: v for k, v in call.data.items() if k != "account"}
 
         quoted = data.get("quote") or data.get("reply_to")
 
@@ -407,232 +409,219 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     # Define common schemas
-    s_account = {vol.Optional("account"): cv.string}
-    s_quotable = {
+    s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}
+    s_quotable: dict[vol.Marker, Any] = {
         **s_account,
         vol.Optional("quote"): cv.string,
         vol.Optional("reply_to"): cv.string,
     }
 
+    msg_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(msg_schema),
     )
+
+    poll_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("question"): cv.string,
+        vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
+    }
     hass.services.async_register(
         DOMAIN,
         "send_poll",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("question"): cv.string,
-                vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
-            }
-        ),
+        schema=vol.Schema(poll_schema),
     )
+    image_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("caption"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_image",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("caption"): cv.string,
-            }
-        ),
+        schema=vol.Schema(image_schema),
     )
+    doc_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("file_name"): cv.string,
+        vol.Optional("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_document",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("file_name"): cv.string,
-                vol.Optional("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(doc_schema),
     )
+    video_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_video",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(video_schema),
     )
+    audio_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("ptt", default=False): cv.boolean,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_audio",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("ptt", default=False): cv.boolean,
-            }
-        ),
+        schema=vol.Schema(audio_schema),
     )
+    revoke_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "revoke_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(revoke_schema),
     )
+    edit_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("message_id"): cv.string,
+        vol.Required("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "edit_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("message_id"): cv.string,
-                vol.Required("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(edit_schema),
     )
+    list_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("sections"): cv.match_all,
+        vol.Optional("title"): cv.string,
+        vol.Optional("text"): cv.string,
+        vol.Optional("button_text"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_list",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("sections"): cv.match_all,
-                vol.Optional("title"): cv.string,
-                vol.Optional("text"): cv.string,
-                vol.Optional("button_text"): cv.string,
-            }
-        ),
+        schema=vol.Schema(list_schema),
     )
+    contact_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("name"): cv.string,
+        vol.Required("contact_number"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_contact",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("name"): cv.string,
-                vol.Required("contact_number"): cv.string,
-            }
-        ),
+        schema=vol.Schema(contact_schema),
     )
+    webhook_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("url"): cv.string,
+        vol.Optional("enabled", default=True): cv.boolean,
+        vol.Optional("token"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "configure_webhook",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("url"): cv.string,
-                vol.Optional("enabled", default=True): cv.boolean,
-                vol.Optional("token"): cv.string,
-            }
-        ),
+        schema=vol.Schema(webhook_schema),
     )
+    loc_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("latitude"): vol.Coerce(float),
+        vol.Required("longitude"): vol.Coerce(float),
+        vol.Optional("name"): cv.string,
+        vol.Optional("address"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_location",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("latitude"): vol.Coerce(float),
-                vol.Required("longitude"): vol.Coerce(float),
-                vol.Optional("name"): cv.string,
-                vol.Optional("address"): cv.string,
-            }
-        ),
+        schema=vol.Schema(loc_schema),
     )
+    react_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("reaction"): cv.string,
+        vol.Required("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_reaction",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("reaction"): cv.string,
-                vol.Required("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(react_schema),
     )
+    presence_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("presence"): vol.In(
+            ["available", "unavailable", "composing", "recording", "paused"]
+        ),
+    }
     hass.services.async_register(
         DOMAIN,
         "update_presence",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Required("presence"): vol.In(
-                    ["available", "unavailable", "composing", "recording", "paused"]
-                ),
-            }
-        ),
+        schema=vol.Schema(presence_schema),
     )
+    buttons_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("message"): cv.string,
+        vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
+        vol.Optional("footer"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_buttons",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_quotable,
-                vol.Required("target"): cv.string,
-                vol.Required("message"): cv.string,
-                vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
-                vol.Optional("footer"): cv.string,
-            }
-        ),
+        schema=vol.Schema(buttons_schema),
     )
+    search_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Optional("name_filter", default=""): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "search_groups",
         _handle_service,
-        schema=vol.Schema(
-            {**s_account, vol.Optional("name_filter", default=""): cv.string}
-        ),
+        schema=vol.Schema(search_schema),
     )
+    mark_as_read_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Optional("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "mark_as_read",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_account,
-                vol.Required("target"): cv.string,
-                vol.Optional("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(mark_as_read_schema),
     )
 
 

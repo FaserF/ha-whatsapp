@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import sys
 import types
-from unittest.mock import AsyncMock, MagicMock
+from collections.abc import Generator
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -107,6 +108,17 @@ def _build_ha_stub_modules() -> None:
     ht_mod.ConfigType = dict  # type: ignore[attr-defined]
     ht_mod.DiscoveryInfoType = dict  # type: ignore[attr-defined]
     sys.modules.setdefault("homeassistant.helpers.typing", ht_mod)
+
+    # homeassistant.config_entries
+    class ConfigEntry:
+        """Stub for homeassistant.config_entries.ConfigEntry."""
+
+        entry_id: str
+
+    ce_mod = types.ModuleType("homeassistant.config_entries")
+    ce_mod.ConfigEntry = ConfigEntry  # type: ignore[attr-defined]
+    sys.modules.setdefault("homeassistant.config_entries", ce_mod)
+    ha_pkg.config_entries = ce_mod  # type: ignore[attr-defined]
     helpers_mod.typing = ht_mod  # type: ignore[attr-defined]
 
     # homeassistant.config_entries
@@ -174,7 +186,6 @@ def _build_ha_stub_modules() -> None:
 _build_ha_stub_modules()
 
 # Now it is safe to import the integration modules.
-from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -182,8 +193,9 @@ from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa
 # ---------------------------------------------------------------------------
 
 
+
 @pytest.fixture
-def mock_client() -> AsyncMock:
+def mock_client() -> Generator[AsyncMock, None, None]:
     """Fixture to mock WhatsAppApiClient."""
     with patch(
         "custom_components.whatsapp.notify.WhatsAppApiClient", autospec=True
@@ -197,7 +209,9 @@ def mock_client() -> AsyncMock:
 def notify_entity(mock_client: AsyncMock) -> WhatsAppNotificationEntity:
     """Fixture to create WhatsAppNotificationEntity instance."""
     coordinator = MagicMock()
-    return WhatsAppNotificationEntity(coordinator, mock_client, "Test Entry")
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+    return WhatsAppNotificationEntity(mock_client, entry, coordinator)
 
 
 # ---------------------------------------------------------------------------

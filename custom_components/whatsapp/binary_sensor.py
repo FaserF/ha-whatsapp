@@ -49,7 +49,7 @@ async def async_setup_entry(
 
 
 class WhatsAppConnectionSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     BinarySensorEntity,  # type: ignore[misc]
 ):
     """Binary sensor that indicates whether the WhatsApp session is connected.

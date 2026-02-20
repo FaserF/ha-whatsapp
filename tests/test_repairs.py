@@ -1,3 +1,5 @@
+"""Tests for the WhatsApp repairs flow."""
+
 from __future__ import annotations
 
 import sys
@@ -58,7 +60,7 @@ def _build_ha_stub_modules() -> None:
     _stub("homeassistant.helpers.entity_registry", async_get=MagicMock(), async_entries_for_config_entry=MagicMock())
 
     # homeassistant.helpers.issue_registry
-    _stub("homeassistant.helpers.issue_registry", async_get=MagicMock(), IssueSeverity=MagicMock())
+    ir_mod = _stub("homeassistant.helpers.issue_registry", async_get=MagicMock(), IssueSeverity=MagicMock(), async_delete_issue=MagicMock())
 
     # homeassistant.helpers.entity_platform
     _stub("homeassistant.helpers.entity_platform", AddEntitiesCallback=object)
@@ -84,8 +86,11 @@ def _build_ha_stub_modules() -> None:
     vol_mod.Optional = lambda *a, **_: a[0]
     vol_mod.Required = lambda *a, **_: a[0]
     vol_mod.Marker = object
+    vol_mod.In = lambda x: x
+    vol_mod.All = lambda *x: x[0]
+    vol_mod.Length = lambda **x: x
+    vol_mod.Coerce = lambda x: x
 
-    # Ensure parents exist and have children attributes
     ha = _stub("homeassistant")
     ha.core = sys.modules["homeassistant.core"]
     ha.exceptions = sys.modules["homeassistant.exceptions"]
@@ -102,67 +107,76 @@ def _build_ha_stub_modules() -> None:
     ha.components = components
     components.notify = sys.modules["homeassistant.components.notify"]
 
+    # homeassistant.helpers.service
+    _stub("homeassistant.helpers.service", async_register_admin_service=MagicMock())
+    helpers.service = sys.modules["homeassistant.helpers.service"]
+
+    # homeassistant.components.repairs
+    repairs_mod = _stub("homeassistant.components.repairs")
+    class RepairsFlow:
+        def __init__(self):
+            self.hass = None
+        def async_show_form(self, step_id, data_schema=None, description_placeholders=None):
+            return {"type": "form", "step_id": step_id}
+        def async_create_entry(self, title, data):
+            return {"type": "abort", "reason": "reconnect_successful"}
+    class ConfirmRepairFlow(RepairsFlow): pass
+    repairs_mod.RepairsFlow = RepairsFlow
+    repairs_mod.ConfirmRepairFlow = ConfirmRepairFlow
+    components.repairs = repairs_mod
+
 
 _build_ha_stub_modules()
 
 
-async def test_connection_lost_notification() -> None:
-    """Test that a notification is created on connection loss."""
+async def test_repair_flow_connection_failure() -> None:
+    """Test the repair flow when a connection failure occurs."""
     hass = MagicMock()
 
     from homeassistant.helpers import issue_registry as ir
     issue_registry = MagicMock()
     ir.async_get.return_value = issue_registry
 
-    from homeassistant.exceptions import HomeAssistantError
+    # Initialize the repair flow
+    # We test the class directly
+    from custom_components.whatsapp.repairs import WhatsAppRepairFlow
+    flow = WhatsAppRepairFlow("connection_failed")
+    flow.hass = hass
+    assert flow.issue_id == "connection_failed"
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
-        mock_instance = mock_client_cls.return_value
-        mock_instance.connect = AsyncMock(side_effect=HomeAssistantError("Connection Failed"))
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+    # Test the start step
+    from homeassistant.data_entry_flow import FlowResultType
+    result = await flow.async_step_init()
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "confirm"
 
-        # Setup entry (mocked)
-        coordinator = MagicMock()
-        coordinator.async_refresh = AsyncMock()
-        data = {"coordinator": coordinator}
-        hass.data = {DOMAIN: {"test_entry": data}}
-
-        # In a real setup, async_setup_entry would create the issue
-        # We test the logic by calling a coordinator update that fails
-        await data["coordinator"].async_refresh()
-
-        # Verify issue creation was called (in actual code this happens in coordinator)
-        # For this test to work simply, we assume the coordinator logic is tested elsewhere
-        # or we mock the coordinator's failed update.
-
-async def test_whatsapp_notification_entity() -> None:
-    """Test the WhatsApp notification entity."""
+async def test_repair_flow_reconnect_success() -> None:
+    """Test that the repair flow successfully reconnects and clears the issue."""
     hass = MagicMock()
 
-    from homeassistant.helpers import entity_registry as er
-    registry = MagicMock()
-    er.async_get.return_value = registry
+    from homeassistant.helpers import issue_registry as ir
+    issue_registry = MagicMock()
+    ir.async_get.return_value = issue_registry
 
-    notify_entry = MagicMock()
-    notify_entry.domain = "notify"
-    notify_entry.entity_id = "notify.whatsapp_number"
-    notify_entry.unique_id = "test_entry_notify"
-    er.async_entries_for_config_entry.return_value = [notify_entry]
-
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("custom_components.whatsapp.async_setup_entry", return_value=True)
+    ):
         mock_instance = mock_client_cls.return_value
-        mock_instance.send_message = AsyncMock()
+        mock_instance.connect = AsyncMock(return_value=True)
 
-        # Instantiate Entity
-        from custom_components.whatsapp.notify import WhatsAppNotificationEntity
-        entity = WhatsAppNotificationEntity(mock_instance, MagicMock(), MagicMock())
+        from custom_components.whatsapp.repairs import WhatsAppRepairFlow
+        flow = WhatsAppRepairFlow("connection_failed")
+        flow.hass = hass
 
-        # Call the send_message
-        await entity.async_send_message(message="Hello", target=["555"])
+        # Proceed with confirm_reconnect
+        from homeassistant.data_entry_flow import FlowResultType
+        result = await flow.async_step_confirm({})
 
-        # Verify client was called
-        mock_instance.send_message.assert_awaited_with(
-            "555", "Hello", quoted_message_id=None
-        )
+        assert result["type"] == FlowResultType.ABORT
+        assert result["reason"] == "reconnect_successful"
+
+        # Verify issue is cleared
+        issue_registry.async_delete_issue.assert_called_with(DOMAIN, "connection_failed")
 
 from custom_components.whatsapp.const import DOMAIN

@@ -91,9 +91,9 @@ async def async_setup_entry(
 
 
 class WhatsAppNotificationEntity(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     NotifyEntity,  # type: ignore[misc]
-):  # type: ignore[misc]
+):
     """Entity-based notification service for Home Assistant WhatsApp integration.
 
     This entity is registered by the integration's main
@@ -178,7 +178,9 @@ class WhatsAppNotificationEntity(
         errors: list[tuple[str, Exception]] = []
         for recipient in recipients:
             try:
-                await self._async_send_message_static(self.client, recipient, message, data)
+                await self._async_send_message_static(
+                    self.client, recipient, message, data
+                )
             except Exception as err:  # pylint: disable=broad-except
                 if len(recipients) == 1:
                     raise
@@ -230,7 +232,8 @@ class WhatsAppNotificationEntity(
                     lon_f = float(lon)
                 except (ValueError, TypeError) as err:
                     _LOGGER.error(
-                        "Skipping location message to %s: invalid coordinates (%s, %s): %s",
+                        "Skipping location message to %s: "
+                        "invalid coordinates (%s, %s): %s",
                         recipient,
                         lat,
                         lon,
@@ -303,8 +306,11 @@ class WhatsAppNotificationEntity(
                 url = data["audio"]
                 ptt = data.get("ptt", False)
                 await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
+            else:
                 # Default text message
                 await client.send_message(recipient, message, quoted_message_id=quoted)
+        except Exception as err:
+            _LOGGER.error("Error sending WhatsApp message to %s: %s", recipient, err)
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]

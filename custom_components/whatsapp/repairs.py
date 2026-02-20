@@ -20,6 +20,7 @@ import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.core import HomeAssistant
+from .const import DOMAIN
 
 
 class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
@@ -29,10 +30,10 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
     to add more sophisticated multi-step flows for specific issue types.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, issue_id: str | None = None) -> None:
         """Initialize."""
         super().__init__()
-        self.issue_id: str | None = None
+        self.issue_id = issue_id
 
     async def async_step_init(
         self, _user_input: dict[str, str] | None = None
@@ -62,6 +63,10 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
             shows the form or creates a completed-entry to close the issue.
         """
         if user_input is not None:
+            # Clear the issue
+            from homeassistant.helpers import issue_registry as ir
+            issue_reg = ir.async_get(self.hass)
+            issue_reg.async_delete_issue(DOMAIN, self.issue_id)
             return self.async_create_entry(title="", data={})
 
         return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}))
