@@ -11,10 +11,9 @@ from __future__ import annotations
 
 import sys
 import types
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Minimal stubs for Home Assistant modules that are imported at module load
@@ -55,7 +54,10 @@ def _build_ha_stub_modules() -> None:
     coordinator_mod = types.ModuleType("homeassistant.helpers.update_coordinator")
 
     class _GenericBase:
-        """Stub base that supports generic subscript (e.g., DataUpdateCoordinator[int])."""
+        """Stub base that supports generic subscript.
+
+        Example: DataUpdateCoordinator[int].
+        """
 
         def __class_getitem__(cls, item: object) -> type:
             """Return the class itself so subscript doesn't fail."""
@@ -165,10 +167,10 @@ def _build_ha_stub_modules() -> None:
 
     # voluptuous
     vol_mod = types.ModuleType("voluptuous")
-    vol_mod.Schema = lambda s, **kw: s  # type: ignore[attr-defined]
-    vol_mod.Optional = lambda *a, **kw: a[0]  # type: ignore[attr-defined]
-    vol_mod.Required = lambda *a, **kw: a[0]  # type: ignore[attr-defined]
-    vol_mod.All = lambda *a, **kw: a[0]  # type: ignore[attr-defined]
+    vol_mod.Schema = lambda s, **_: s  # type: ignore[attr-defined]
+    vol_mod.Optional = lambda *a, **_: a[0]  # type: ignore[attr-defined]
+    vol_mod.Required = lambda *a, **_: a[0]  # type: ignore[attr-defined]
+    vol_mod.All = lambda *a, **_: a[0]  # type: ignore[attr-defined]
     sys.modules.setdefault("voluptuous", vol_mod)
 
 
@@ -177,7 +179,6 @@ _build_ha_stub_modules()
 # Now it is safe to import the integration modules.
 from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

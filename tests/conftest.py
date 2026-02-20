@@ -1,7 +1,6 @@
 """Global fixtures for ha-whatsapp integration tests."""
 
 from collections.abc import Generator
-from typing import Any
 
 import pytest
 
