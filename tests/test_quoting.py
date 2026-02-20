@@ -184,21 +184,20 @@ from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa
 
 @pytest.fixture
 def mock_client() -> AsyncMock:
-    """Return a mock :class:`WhatsAppApiClient`."""
-    client = AsyncMock(spec=WhatsAppApiClient)
-    client.is_allowed.return_value = True
-    client.ensure_jid.return_value = "1234567890@s.whatsapp.net"
-    return client
+    """Fixture to mock WhatsAppApiClient."""
+    with patch(
+        "custom_components.whatsapp.notify.WhatsAppApiClient", autospec=True
+    ) as mock:
+        mock.is_allowed.return_value = True
+        mock.ensure_jid.return_value = "1234567890@s.whatsapp.net"
+        yield mock
 
 
 @pytest.fixture
 def notify_entity(mock_client: AsyncMock) -> WhatsAppNotificationEntity:
-    """Return a :class:`WhatsAppNotificationEntity` backed by *mock_client*."""
-    mock_entry = MagicMock()
-    mock_entry.entry_id = "test_entry"
-    mock_coordinator = MagicMock()
-    mock_coordinator.data = {"connected": True}
-    return WhatsAppNotificationEntity(mock_client, mock_entry, mock_coordinator)
+    """Fixture to create WhatsAppNotificationEntity instance."""
+    coordinator = MagicMock()
+    return WhatsAppNotificationEntity(coordinator, mock_client, "Test Entry")
 
 
 # ---------------------------------------------------------------------------

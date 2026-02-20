@@ -29,14 +29,10 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
     to add more sophisticated multi-step flows for specific issue types.
     """
 
-    def __init__(self, issue_id: str) -> None:
-        """Initialise the repair flow.
-
-        Args:
-            issue_id: The identifier of the issue being fixed, e.g.
-                ``"session_expired"``.
-        """
-        self.issue_id = issue_id
+    def __init__(self) -> None:
+        """Initialize."""
+        super().__init__()
+        self.issue_id: str | None = None
 
     async def async_step_init(
         self, _user_input: dict[str, str] | None = None

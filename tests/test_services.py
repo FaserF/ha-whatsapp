@@ -2,11 +2,13 @@
 
 from unittest.mock import AsyncMock, patch
 
-from homeassistant.const import CONF_API_KEY, CONF_URL
+from custom_components.whatsapp.const import (
+    CONF_API_KEY,
+    CONF_URL,
+    DOMAIN,
+)
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.whatsapp.const import DOMAIN
 
 
 async def test_services(hass: HomeAssistant) -> None:

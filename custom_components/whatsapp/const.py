@@ -7,8 +7,10 @@ multiple places.
 Constants:
     DOMAIN: Unique integration domain used in ``hass.data`` and service
         registrations.
-    CONF_API_KEY: Config-entry key for the addon API key
-        (``X-Auth-Token`` header).
+    CONF_API_KEY: Config-entry key for the addon API key.
+    CONF_SESSION_ID: The unique session identifier for the WhatsApp instance.
+    CONF_MASK_SENSITIVE_DATA: Whether to mask phone numbers in logs.
+    CONF_DEBUG_PAYLOADS: Whether to log raw outgoing payloads for debugging.
     CONF_POLLING_INTERVAL: Options-entry key for the event-poll interval
         in seconds.
     DEFAULT_PORT: Default port on which the WhatsApp addon listens.

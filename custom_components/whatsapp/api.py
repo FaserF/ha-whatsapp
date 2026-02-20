@@ -34,7 +34,7 @@ from homeassistant.exceptions import HomeAssistantError
 _LOGGER = logging.getLogger(__name__)
 
 
-class WhatsAppAuthError(HomeAssistantError):
+class WhatsAppAuthError(HomeAssistantError):  # type: ignore[misc]
     """Raised when the API key is invalid."""
 
 
@@ -142,7 +142,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
         _LOGGER.info(
             "Blocking outgoing message to non-whitelisted target: %s",
-            self._mask(target),
+            self.mask(target),
         )
         return False
 
@@ -182,13 +182,17 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         # Default: treat as phone number
         return f"{clean_number}@s.whatsapp.net"
 
-    def _mask(self, text: str) -> str:
+    def mask(self, text: str) -> str:
         """Mask sensitive data if enabled."""
         if not self.mask_sensitive_data or not text:
             return text
         if len(text) <= 4:
             return "****"
         return f"{text[:3]}****{text[-2:]}"
+
+    def _mask(self, text: str) -> str:
+        """Deprecated: use mask()."""
+        return self.mask(text)
 
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
@@ -527,8 +531,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "question": question,
             "options": options,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -586,8 +591,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "url": image_url,
             "caption": caption,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -655,8 +661,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "url": url,
             "fileName": file_name,
             "caption": caption,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -715,8 +722,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "url": url,
             "caption": caption,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -774,8 +782,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "url": url,
             "ptt": ptt,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -935,8 +944,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "longitude": longitude,
             "title": name,
             "description": address,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -1086,7 +1096,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 error_msg = self._extract_error(resp_text)
@@ -1142,7 +1152,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 error_msg = self._extract_error(resp_text)
@@ -1221,8 +1231,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "message": text,
             "buttons": buttons,
             "footer": footer,
-            "quotedMessageId": quoted_message_id,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
@@ -1235,7 +1246,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)

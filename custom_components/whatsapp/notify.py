@@ -175,8 +175,20 @@ class WhatsAppNotificationEntity(
         # Ensure we have a list of strings
         recipients: list[str] = list(target_list) if target_list else []
 
+        errors: list[tuple[str, Exception]] = []
         for recipient in recipients:
-            await self._async_send_message_static(self.client, recipient, message, data)
+            try:
+                await self._async_send_message_static(self.client, recipient, message, data)
+            except Exception as err:  # pylint: disable=broad-except
+                if len(recipients) == 1:
+                    raise
+                errors.append((recipient, err))
+
+        if errors:
+            raise Exception(
+                f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
+                f"{', '.join(r for r, _ in errors)}"
+            )
 
     @staticmethod
     async def _async_send_message_static(
@@ -205,10 +217,31 @@ class WhatsAppNotificationEntity(
             elif "location" in data:
                 # Send location: data: { location: { lat, lon, name, address } }
                 loc: dict[str, Any] = data["location"]
+                lat = loc.get("latitude")
+                lon = loc.get("longitude")
+                if lat is None or lon is None:
+                    _LOGGER.error(
+                        "Skipping location message to %s: latitude/longitude missing",
+                        recipient,
+                    )
+                    return
+                try:
+                    lat_f = float(lat)
+                    lon_f = float(lon)
+                except (ValueError, TypeError) as err:
+                    _LOGGER.error(
+                        "Skipping location message to %s: invalid coordinates (%s, %s): %s",
+                        recipient,
+                        lat,
+                        lon,
+                        err,
+                    )
+                    return
+
                 await client.send_location(
                     recipient,
-                    loc.get("latitude"),
-                    loc.get("longitude"),
+                    lat_f,
+                    lon_f,
                     loc.get("name"),
                     loc.get("address"),
                     quoted_message_id=quoted,
@@ -270,11 +303,8 @@ class WhatsAppNotificationEntity(
                 url = data["audio"]
                 ptt = data.get("ptt", False)
                 await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
-            else:
                 # Default text message
                 await client.send_message(recipient, message, quoted_message_id=quoted)
-        except Exception as err:
-            _LOGGER.error("Error sending WhatsApp message to %s: %s", recipient, err)
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
@@ -324,9 +354,21 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
         if not isinstance(targets, list):
             targets = [targets]
 
+        errors: list[tuple[str, Exception]] = []
         for target in targets:
-            await WhatsAppNotificationEntity._async_send_message_static(
-                self.client, target, message, data
+            try:
+                await WhatsAppNotificationEntity._async_send_message_static(
+                    self.client, target, message, data
+                )
+            except Exception as err:  # pylint: disable=broad-except
+                if len(targets) == 1:
+                    raise
+                errors.append((target, err))
+
+        if errors:
+            raise Exception(
+                f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
+                f"{', '.join(r for r, _ in errors)}"
             )
 
 
