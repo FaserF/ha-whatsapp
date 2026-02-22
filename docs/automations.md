@@ -131,9 +131,10 @@ action:
   - delay: '00:00:02'
   - service: whatsapp.send_image
     data:
-      target: '49123456789' # Suffix added automatically
+      target: '49123456789'
       message: 'Movement at the door! 📷'
       url: 'https://your-domain.com/local/tmp/snapshot.jpg'
+      expiration: 86400 # Auto-delete camera snapshot from chat after 24h
 ```
 
 {% endraw %}

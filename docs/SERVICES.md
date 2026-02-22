@@ -6,340 +6,179 @@ nav_order: 3
 
 # 🚀 Services & Messaging
 
-This integration provides three ways to send messages. Choosing the right one depends on your use case (YAML vs. UI) and whether you need WhatsApp-specific features like polls or buttons.
+This integration provides multiple ways to interact with WhatsApp. This guide explains every service, every parameter, and provides "Pro-Tips" for the best experience.
 
 ---
 
 ## 🏗️ Which service should I use?
 
-| Service Type       | Service Name            | Best for...                   | Recommendation            |
-| :----------------- | :---------------------- | :---------------------------- | :------------------------ |
-| **Domain Service** | `whatsapp.send_message` | YAML Automations, Scripts     | **Highly Recommended** 🌟 |
-| **Legacy Notify**  | `notify.whatsapp`       | Multi-target, Simple Alerts   | **Very Reliable** ✅      |
-| **Entity Action**  | `notify.send_message`   | Visual Editor (UI), Dashboard | Use only in the UI 🛠️     |
-
-## 🎨 Rich Formatting
-
-You can use standard WhatsApp Markdown in any text field (message, caption, etc.):
-
-| Style           | Syntax         | Example        | Result    |
-| :-------------- | :------------- | :------------- | :-------- |
-| **Bold**        | `*text*`       | `*Alert*`      | **Alert** |
-| _Italic_        | `_text_`       | `_Warning_`    | _Warning_ |
-| ~Strikethrough~ | `~text~`       | `~Old~`        | ~~Old~~   |
-| `Monospace`     | ` ```text``` ` | ` ```Code``` ` | `Code`    |
+| Service Type | Service Name | Best for... | Recommendation |
+| :--- | :--- | :--- | :--- |
+| **Native Service** | `whatsapp.send_message` | YAML Automations, Scripts, Buttons, Polls | **Recommended** 🌟 |
+| **Legacy Notify** | `notify.whatsapp` | Multi-target alerts, Simple text/images | **Reliable** ✅ |
+| **Modern Action** | `notify.send_message` | Visual Editor (UI), Dashboard | UI Only 🛠️ |
 
 ---
 
-## 1. `whatsapp.*` Services (Recommended)
+## 🎨 Rich Formatting
+Use these in any text field (message, caption, question):
+- **Bold**: `*text*` -> **text**
+- *Italic*: `_text_` -> *text*
+- ~~Strikethrough~~: `~text~` -> ~~text~~
+- `Monospace`: ` ```text``` ` -> `text`
 
-These services are custom-built for this integration. They are the most reliable way to use all features without running into Home Assistant's strict schema errors.
+---
 
-### 💬 Text Message (`send_message`)
+## 💬 1. Messaging & Text
 
-The most common way to send alerts.
+### `whatsapp.send_message`
+Sends a plain text message. Supports quoting and disappearing messages.
 
+#### Examples
 ```yaml
 service: whatsapp.send_message
 data:
-  account: '49123456789' # Optional: Specify phone number or Entry ID for multi-instance
-  target: '+49123456789' # '+' is optional, @s.whatsapp.net is added automatically
+  target: '+491234567890'
   message: 'Hello from Home Assistant! 🚀'
+  expiration: 86400 # Disappears in 24 hours
 ```
 
-### 📊 Polls (`send_poll`)
+#### Parameters
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `target` | string | **Yes** | Phone number (`+49...`) or Group JID (`...@g.us`). |
+| `message` | string | **Yes** | The text to send. Supports line breaks (`\n`) and formatting. |
+| `quote` | string | No | The ID of a message to reply to. |
+| `expiration` | number | No | Seconds until message disappears (`0`, `86400`, `604800`, `7776000`). |
+| `account` | string | No | Phone number or Entry ID if you have multiple accounts. |
 
-Interactive polls with multiple options.
+> [!TIP]
+> Use `\n` in YAML for line breaks, or use the `|` symbol for multi-line strings.
+
+---
+
+### `whatsapp.edit_message`
+Update the content of a message you already sent.
+
+#### Examples
+```yaml
+service: whatsapp.edit_message
+data:
+  target: '491234567890'
+  message_id: 'BAE5CCF5A...'
+  message: 'Oops, I meant 4 PM! 🕓'
+```
+
+#### Parameters
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `target` | string | **Yes** | The chat where the message exists. |
+| `message_id` | string | **Yes** | The ID of the message to edit. |
+| `message` | string | **Yes** | The new text content. |
+
+---
+
+### `whatsapp.revoke_message`
+Deletes a message for everyone (like "Delete for Everyone").
+
+#### Examples
+```yaml
+service: whatsapp.revoke_message
+data:
+  target: '491234567890'
+  message_id: 'BAE5CCF5A...'
+```
+
+---
+
+## 🖼️ 2. Media & Files
+
+### `whatsapp.send_image` / `video` / `audio` / `document`
+Send media files via a public URL.
+
+#### Example (Image)
+```yaml
+service: whatsapp.send_image
+data:
+  target: '+491234567890'
+  url: 'https://example.com/camera.jpg'
+  caption: 'Front Door! 📷'
+```
+
+#### Shared Parameters
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `url` | string | **Yes** | Publicly accessible HTTPS URL to the file. |
+| `caption` | string | No | Text shown with the media (not for audio). |
+| `ptt` | boolean | No | **(Audio only)** Set `true` for voice-note waveform style. |
+| `file_name` | string | No | **(Document only)** Override the displayed filename. |
+
+---
+
+## 📊 3. Interactive Content
+
+### `whatsapp.send_poll`
+Interactive voting for groups or individuals.
 
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: '49123456789'
-  question: 'Pizza tonight? 🍕'
-  options: ['Yes!', 'No', 'Maybe']
+  target: '491234567890'
+  question: 'What is for dinner?'
+  options: ['Pizza 🍕', 'Pasta 🍝', 'Salad 🥗']
 ```
 
-### 📸 Images (`send_image`)
-
-Send images via a URL.
-
-```yaml
-service: whatsapp.send_image
-data:
-  target: '49123456789'
-  url: 'https://your-domain.com/local/snapshot.jpg'
-  caption: 'Front door movement! 📷'
-```
-
-### 📄 Documents (`send_document`)
-
-Send files like PDFs, Zip archives, or spreadsheets.
-
-```yaml
-service: whatsapp.send_document
-data:
-  target: '49123456789'
-  url: 'https://example.com/invoice.pdf'
-  file_name: 'Invoice_January.pdf' # Optional: Rename the file
-  message: 'Here is your monthly invoice.' # Optional: Add a caption
-```
-
-### 🎥 Videos (`send_video`)
-
-Send video files (MP4, etc).
-
-```yaml
-service: whatsapp.send_video
-data:
-  target: '49123456789'
-  url: 'https://example.com/video.mp4'
-  message: 'Check this out! 🎥' # Optional: Add a caption
-```
-
-### 🎤 Audio (`send_audio`)
-
-Send audio files or voice notes.
-
-```yaml
-service: whatsapp.send_audio
-data:
-  target: '49123456789'
-  url: 'https://example.com/audio.mp3'
-  ptt: true # Set to true to send as a voice note (waveform), false for audio file
-```
-
-### 🗑️ Delete/Revoke (`revoke_message`)
-
-Delete a message for everyone in the chat.
-
-```yaml
-service: whatsapp.revoke_message
-data:
-  target: '49123456789'
-  message_id: 'BAE5CCF5A...' # ID from event or reaction
-```
-
-### ✏️ Edit (`edit_message`)
-
-Edit the text of a sent message.
-
-```yaml
-service: whatsapp.edit_message
-data:
-  target: '49123456789'
-  message_id: 'BAE5CCF5A...'
-  message: 'Corrected text'
-```
-
-### 🔗 Webhook (`configure_webhook`)
-
-Configure the App to push events (messages) to a specific URL.
-
-```yaml
-service: whatsapp.configure_webhook
-data:
-  account: '49123456789'
-  url: 'http://homeassistant:8123/api/webhook/YOUR_ID'
-  enabled: true
-```
-
-### 🤖 Multi-Instance Routing
-
-If you have multiple WhatsApp accounts configured, you can use the `account` parameter to specify which bot should handle the service call.
-
-**You can provide:**
-
-- The **Phone Number** (e.g., `49123456789`)
-- The **Entry ID** (found in integration details)
-- The **Title** of the integration instance
-
-If `account` is omitted, the integration will attempt to use the only available account. If multiple accounts are found, the service call will fail with a validation error.
-
-### 📋 List Message (`send_list`)
-
-Send an interactive menu with sections and rows. Preferred over buttons on iOS.
-
-```yaml
-service: whatsapp.send_list
-data:
-  target: '1234567890'
-  title: 'Main Title'
-  text: 'Body text description'
-  button_text: 'View Menu'
-  sections:
-    - title: 'Section 1'
-      rows:
-        - title: 'Option A'
-          rowId: 'opt_a'
-          description: 'Description for A'
-    - title: 'Section 2'
-      rows:
-        - title: 'Option B'
-          rowId: 'opt_b'
-```
-
-### 👤 Contact (`send_contact`)
-
-Send a VCard contact that users can easily save.
-
-```yaml
-service: whatsapp.send_contact
-data:
-  target: '1234567890'
-  name: 'Home Assistant'
-  contact_number: '1234567890'
-```
-
-### 📍 Location (`send_location`)
-
-Send a map pin with an optional name and address.
-
-```yaml
-service: whatsapp.send_location
-data:
-  target: '49123456789'
-  latitude: 52.5200
-  longitude: 13.4050
-  name: 'Brandenburg Gate'
-  address: 'Pariser Platz, Berlin'
-```
-
-### ❤️ Reactions (`send_reaction`)
-
-React to an existing message using its context ID.
-
-```yaml
-service: whatsapp.send_reaction
-data:
-  target: '49123456789'
-  message_id: 'ABC-123' # Get this from 'whatsapp_message_received' event
-  reaction: '👍'
-```
-
-### 🔘 Buttons (`send_buttons`)
-
-Send interactive buttons. You can provide a custom ID for each button to react to it in automations.
+### `whatsapp.send_buttons`
+Quick reply buttons (max 3).
 
 ```yaml
 service: whatsapp.send_buttons
 data:
-  target: '49123456789'
-  message: 'Do you want to turn off the lights?'
+  target: '491234567890'
+  message: 'Doorbell is ringing!'
   buttons:
-    - id: 'light_on'
-      displayText: 'Yes, please'
-    - id: 'light_off'
-      displayText: 'No, thanks'
-  footer: 'Smart Home Assistant'
+    - id: 'open'
+      displayText: 'Open Door 🔓'
+    - id: 'ignore'
+      displayText: 'Ignore 🔇'
 ```
 
-### ⌨️ Update Presence (`update_presence`)
-
-Simulate typing or recording status.
+### `whatsapp.send_list`
+A popup menu for more complex choices.
 
 ```yaml
-service: whatsapp.update_presence
+service: whatsapp.send_list
 data:
-  target: '49123456789'
-  presence: 'composing' # Available: composing, recording, available, unavailable, paused
+  target: '491234567890'
+  title: 'Home Control'
+  text: 'Select action'
+  button_text: 'Open Menu'
+  sections:
+    - title: 'Climate'
+      rows:
+        - id: 'heat'
+          title: 'Heating On'
+        - id: 'cool'
+          title: 'AC On'
 ```
 
 ---
 
-## 2. `notify.whatsapp` (Legacy Service)
+## ⚙️ 4. Advanced & Utility
 
-This is a classic Home Assistant notification service. It is very flexible and works great for simple text or media alerts.
+### `whatsapp.search_groups`
+Find all your Group IDs instantly.
 
-> **Tip:**
-> Use this service if you want to send the same message to **multiple recipients** at once.
+1. Call the service.
+2. Check your HA Notifications (Bell icon).
 
-```yaml
-service: notify.whatsapp
-data:
-  message: '🚨 Intruder detected!'
-  target:
-    - '+49111222333'
-    - '12345678-999999@g.us' # Group
-```
+### `whatsapp.update_presence`
+Simulate "typing..." or "recording..." status.
 
-**Advanced Notify Data:**
-You can also use the `data` block to access advanced features via the legacy notify service.
-
-```yaml
-service: notify.whatsapp
-data:
-  message: 'Would you like some coffee?'
-  target: '+49111222333'
-  data:
-    buttons:
-      - id: 'coffee_yes'
-        displayText: 'Yes ☕'
-      - id: 'coffee_no'
-        displayText: 'No'
-```
+### `whatsapp.mark_as_read`
+Blue double-checks (✓✓) for messages or whole chats.
 
 ---
 
-## 3. `notify.send_message` (Entity Action)
-
-This follows the modern **ADR-0010** standard. It is primarily designed for the **Visual Automation Editor** in the Home Assistant UI.
-
-```yaml
-action: notify.send_message
-target:
-  entity_id: notify.whatsapp
-data:
-  message: 'Modern notification'
-```
-
----
-
-## 📊 Available Entities
-
-| Entity                             | Type          | Description                                        |
-| :--------------------------------- | :------------ | :------------------------------------------------- |
-| `notify.whatsapp`                  | Notify        | Main notification channel.                         |
-| `binary_sensor.whatsapp_connected` | Binary Sensor | Status of the connection.                          |
-| `sensor.whatsapp_uptime`           | Sensor        | **Diagnostic**: Uptime, Version, and Phone Number. |
-| `sensor.whatsapp_messages_sent`    | Sensor        | Stats for sent messages.                           |
-
----
-
-## 🔍 Finding Group IDs
-
-If you want to send messages to a group, you need its **Group ID** (JID). Use the helper service below.
-
-### 🔍 `whatsapp.search_groups` (Helper)
-
-Finding the "JID" (Group ID) for a group can be tricky. This service helps you find it easily.
-
-**Parameters:**
-
-- `name_filter` (Optional): Filter groups by name (case-insensitive). Leave empty to list ALL groups.
-
-**How it works:**
-
-1. Call the service: `action: whatsapp.search_groups` with optional `name_filter`
-2. **Click the 🔔 bell icon** in the Home Assistant sidebar
-3. A notification titled "WhatsApp Group Search" will show a table with:
-   - Group Name
-   - Group ID (the JID you need)
-   - Participant count
-
-> **💡 Example:**
->
-> ```yaml
-> action: whatsapp.search_groups
-> data:
->   name_filter: 'Family'
-> ```
-
----
-
-> **Tip:**
-> Group IDs look like `1234567890-111111111@g.us`. However, you can also just use the ID part `1234567890-111111111` and the integration will automatically add `@g.us`.
-
----
-
-> **Tip:**
-> Check the **Attributes** of the `uptime` sensor to see the version and paired phone number!
+> [!IMPORTANT]
+> Always verify your recipient's number in international format. The integration automatically converts numbers like `0171...` to the correct format if your country code is configured correctly.

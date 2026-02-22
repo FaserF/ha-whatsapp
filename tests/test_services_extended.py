@@ -199,7 +199,7 @@ async def test_service_routing(
 
             mock_get_client.assert_called_with(hass, "MyAccount")
             mock_client.send_message.assert_called_once_with(
-                "999", "Hi", quoted_message_id=None
+                "999", "Hi", quoted_message_id=None, expiration=None
             )
 
 
@@ -264,5 +264,5 @@ async def test_send_buttons_normalization(
             await send_btn_service(call)
 
             mock_client.send_buttons.assert_awaited_with(
-                "123", "Hello", buttons, None, quoted_message_id=None
+                "123", "Hello", buttons, None, quoted_message_id=None, expiration=None
             )

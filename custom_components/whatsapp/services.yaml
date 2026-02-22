@@ -58,6 +58,18 @@ send_message:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_poll:
   name: Send Poll
@@ -118,6 +130,18 @@ send_poll:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_image:
   name: Send Image
@@ -175,6 +199,18 @@ send_image:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_document:
   name: Send Document
@@ -238,6 +274,18 @@ send_document:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_video:
   name: Send Video
@@ -291,6 +339,18 @@ send_video:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_audio:
   name: Send Audio
@@ -348,6 +408,18 @@ send_audio:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_location:
   name: Send Location
@@ -422,6 +494,18 @@ send_location:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_contact:
   name: Send Contact (vCard)
@@ -572,6 +656,18 @@ send_buttons:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+        Helps resolve the "old version" warning in disappearing chats.
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
 
 send_list:
   name: Send List Message (Menu)

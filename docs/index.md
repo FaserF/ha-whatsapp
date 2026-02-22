@@ -162,21 +162,13 @@ graph TD
 > > **Tip:**
 > **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
 
-## 🏷️ Versions
-
-- **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.0.1`).
-- **Beta**: Feature-complete testing versions (e.g., `v1.0.1b0`). [See Installation Guide](beta.html).
-- **Nightly/Dev**: Experimental builds from the latest code (e.g., `v1.0.2-dev`).
+- **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.x.x`).
+- **Beta**: Feature-complete testing versions. Recommended for testing new features.
+- **Edge/Dev**: Experimental builds from the latest code.
 
 ---
 
-## 🔥 Why choose this integration?
-
-- **💡 [Tips & Tricks](tips.md)**: Optimize your experience.
-- **💬 [Rocket.Chat Bridge](rocketchat.md)**: Connect WhatsApp to your team chat.
-- **🔗 [Webhook Support](webhooks.md)**: Forward messages to any external service.
-- **📜 [API Documentation](api.html)**: For developers and advanced users.
-- **Real-time**: Near-zero latency for incoming and outgoing messages.
+- **🕵️ Discovery**: Find Group IDs instantly with the `search_groups` service.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
 - **Rich Content**: Interactive Buttons, Polls, Reactions, and Media support.
 - **Easy Setup**: Automatic Add-on installation and configuration for Home Assistant OS users.

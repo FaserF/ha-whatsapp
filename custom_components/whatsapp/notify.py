@@ -202,15 +202,18 @@ async def async_send_whatsapp_message(
     This shared logic is extracted here so that both the NotifyEntity and
     the legacy NotificationService can use it without coupling to each other.
     """
-    # Common quoted_message_id for text and media
-    quoted = data["quote"] if "quote" in data else data.get("reply_to")
+    # Common parameters for all message types
+    quoted = data.get("quote") or data.get("reply_to")
+    expiration = data.get("expiration")
 
     if "poll" in data:
         # Send poll: data: { poll: { question: "...", options: [...] } }
         poll_data: dict[str, Any] = data["poll"]
         question = poll_data.get("question", message)
         options = poll_data.get("options", [])
-        await client.send_poll(recipient, question, options, quoted_message_id=quoted)
+        await client.send_poll(
+            recipient, question, options, quoted_message_id=quoted, expiration=expiration
+        )
 
     elif "location" in data:
         # Send location: data: { location: { lat, lon, name, address } }
@@ -249,6 +252,7 @@ async def async_send_whatsapp_message(
             loc.get("name"),
             loc.get("address"),
             quoted_message_id=quoted,
+            expiration=expiration,
         )
     elif "reaction" in data:
         # Send reaction: data: { reaction: "...", message_id: "..." }
@@ -277,7 +281,9 @@ async def async_send_whatsapp_message(
     elif "image" in data:
         # Send image: data: { image: "..." }
         image_url = data["image"]
-        await client.send_image(recipient, image_url, message, quoted_message_id=quoted)
+        await client.send_image(
+            recipient, image_url, message, quoted_message_id=quoted, expiration=expiration
+        )
     elif "buttons" in data or "inline_keyboard" in data:
         # Send buttons: data: { buttons: [...], footer: "..." }
         # OR Telegram-style:
@@ -297,7 +303,12 @@ async def async_send_whatsapp_message(
         footer = data.get("footer")
         if buttons:
             await client.send_buttons(
-                recipient, message, buttons, footer, quoted_message_id=quoted
+                recipient,
+                message,
+                buttons,
+                footer,
+                quoted_message_id=quoted,
+                expiration=expiration,
             )
         else:
             _LOGGER.warning(
@@ -312,20 +323,31 @@ async def async_send_whatsapp_message(
         url = data["document"]
         file_name = data.get("file_name")
         await client.send_document(
-            recipient, url, file_name, message, quoted_message_id=quoted
+            recipient,
+            url,
+            file_name,
+            message,
+            quoted_message_id=quoted,
+            expiration=expiration,
         )
     elif "video" in data:
         # Send video: data: { video: "http://..." }
         url = data["video"]
-        await client.send_video(recipient, url, message, quoted_message_id=quoted)
+        await client.send_video(
+            recipient, url, message, quoted_message_id=quoted, expiration=expiration
+        )
     elif "audio" in data:
         # Send audio: data: { audio: "http://..." }
         url = data["audio"]
         ptt = data.get("ptt", False)
-        await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
+        await client.send_audio(
+            recipient, url, ptt, quoted_message_id=quoted, expiration=expiration
+        )
     else:
         # Default text message
-        await client.send_message(recipient, message, quoted_message_id=quoted)
+        await client.send_message(
+            recipient, message, quoted_message_id=quoted, expiration=expiration
+        )
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]

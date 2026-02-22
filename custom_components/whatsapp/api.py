@@ -412,7 +412,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self._callback = callback
 
     async def send_message(
-        self, number: str, message: str, quoted_message_id: str | None = None
+        self,
+        number: str,
+        message: str,
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send message via Addon (with retry)."""
         if not self.is_allowed(number):
@@ -421,11 +425,19 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_message_internal, target_jid, message, quoted_message_id
+            self._send_message_internal,
+            target_jid,
+            message,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_message_internal(
-        self, number: str, message: str, quoted_message_id: str | None = None
+        self,
+        number: str,
+        message: str,
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send message logic."""
         url = f"{self.host}/send_message"
@@ -436,6 +448,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -507,6 +521,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         question: str,
         options: list[str],
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a poll (with retry)."""
         if not self.is_allowed(number):
@@ -515,7 +530,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_poll_internal, target_jid, question, options, quoted_message_id
+            self._send_poll_internal,
+            target_jid,
+            question,
+            options,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_poll_internal(
@@ -524,6 +544,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         question: str,
         options: list[str],
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
@@ -534,6 +555,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -567,6 +590,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         image_url: str,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send an image (with retry)."""
         if not self.is_allowed(number):
@@ -575,7 +599,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_image_internal, target_jid, image_url, caption, quoted_message_id
+            self._send_image_internal,
+            target_jid,
+            image_url,
+            caption,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_image_internal(
@@ -584,6 +613,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         image_url: str,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send image logic."""
         url = f"{self.host}/send_image"
@@ -594,6 +624,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -630,6 +662,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         file_name: str | None = None,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a document (with retry)."""
         if not self.is_allowed(number):
@@ -644,6 +677,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             file_name,
             caption,
             quoted_message_id,
+            expiration,
         )
 
     async def _send_document_internal(
@@ -653,6 +687,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         file_name: str | None = None,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send document logic."""
         api_url = f"{self.host}/send_document"
@@ -664,6 +699,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -698,6 +735,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url: str,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a video (with retry)."""
         if not self.is_allowed(number):
@@ -706,7 +744,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_video_internal, target_jid, url, caption, quoted_message_id
+            self._send_video_internal,
+            target_jid,
+            url,
+            caption,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_video_internal(
@@ -715,6 +758,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url: str,
         caption: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send video logic."""
         api_url = f"{self.host}/send_video"
@@ -725,6 +769,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -758,6 +804,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url: str,
         ptt: bool = False,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send audio (with retry)."""
         if not self.is_allowed(number):
@@ -766,7 +813,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_audio_internal, target_jid, url, ptt, quoted_message_id
+            self._send_audio_internal,
+            target_jid,
+            url,
+            ptt,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_audio_internal(
@@ -775,6 +827,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url: str,
         ptt: bool = False,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send audio logic."""
         api_url = f"{self.host}/send_audio"
@@ -785,6 +838,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -834,7 +889,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal revoke message logic."""
         api_url = f"{self.host}/revoke_message"
-        payload = {"number": number, "message_id": message_id}
+        payload: dict[str, Any] = {"number": number, "message_id": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -878,7 +933,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal edit message logic."""
         api_url = f"{self.host}/edit_message"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "message_id": message_id,
             "new_content": new_content,
@@ -910,6 +965,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         name: str | None = None,
         address: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a location (with retry)."""
         if not self.is_allowed(number):
@@ -925,6 +981,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             name,
             address,
             quoted_message_id,
+            expiration,
         )
 
     async def _send_location_internal(
@@ -935,10 +992,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         name: str | None = None,
         address: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send location logic."""
         url = f"{self.host}/send_location"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "latitude": latitude,
             "longitude": longitude,
@@ -947,6 +1005,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -995,7 +1055,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
-        payload = {"number": number, "reaction": text, "messageId": message_id}
+        payload: dict[str, Any] = {"number": number, "reaction": text, "messageId": message_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
@@ -1026,7 +1086,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Configure the webhook settings on the Addon."""
         api_url = f"{self.host}/settings/webhook"
-        payload = {"url": url, "enabled": enabled}
+        payload: dict[str, Any] = {"url": url, "enabled": enabled}
         if token:
             payload["token"] = token
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -1076,7 +1136,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send list logic."""
         api_url = f"{self.host}/send_list"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "title": title,
             "text": text,
@@ -1200,6 +1260,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         buttons: list[dict[str, str]],
         footer: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
         if not self.is_allowed(number):
@@ -1214,6 +1275,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             buttons,
             footer,
             quoted_message_id,
+            expiration,
         )
 
     async def _send_buttons_internal(
@@ -1223,10 +1285,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         buttons: list[dict[str, str]],
         footer: str | None = None,
         quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send buttons logic."""
         url = f"{self.host}/send_buttons"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "message": text,
             "buttons": buttons,
@@ -1234,6 +1297,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
+        if expiration is not None:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,

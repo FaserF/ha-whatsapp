@@ -287,7 +287,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
         if service == "send_message":
             await client.send_message(
-                data["target"], data["message"], quoted_message_id=_get_quoted()
+                data["target"],
+                data["message"],
+                quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_poll":
             await client.send_poll(
@@ -295,6 +298,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["question"],
                 data.get("options", []),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_image":
             await client.send_image(
@@ -302,6 +306,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["url"],
                 data.get("caption"),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_location":
             await client.send_location(
@@ -311,6 +316,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("name"),
                 data.get("address"),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_reaction":
             await client.send_reaction(
@@ -323,6 +329,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("file_name"),
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_video":
             await client.send_video(
@@ -330,6 +337,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["url"],
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_audio":
             await client.send_audio(
@@ -337,6 +345,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["url"],
                 data.get("ptt", False),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
@@ -351,6 +360,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("text") or "",
                 data.get("button_text") or "",
                 data["sections"],
+                quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "send_contact":
             await client.send_contact(
@@ -369,6 +380,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["buttons"],
                 data.get("footer"),
                 quoted_message_id=_get_quoted(),
+                expiration=data.get("expiration"),
             )
         elif service == "mark_as_read":
             await client.mark_as_read(data["target"], data.get("message_id"))

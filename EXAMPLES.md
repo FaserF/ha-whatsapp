@@ -1,164 +1,234 @@
 # 📖 WhatsApp Integration Examples & Automations
 
-This documentation provides detailed examples for using the WhatsApp integration in Home Assistant, following the **modern Notify Standard (ADR-0010)**.
-
-> **Tip**: View this guide with more detailed documentations at [faserf.github.io/ha-whatsapp](https://faserf.github.io/ha-whatsapp/)
-> {: .note }
+This guide provides comprehensive, beginner-friendly examples for all services available in the WhatsApp integration. Whether you are using the modern Home Assistant Notify standard or the native WhatsApp services, you'll find everything here.
 
 ---
 
-## 🚀 Modern Notify Service (Recipient Handling)
+## ⚡ Native WhatsApp Services (Recommended)
 
-In the new `notify.send_message` standard, the recipient phone number is passed via the `target` parameter within the `data` block.
+Native services offer the most control and are the most robust way to use the integration in YAML automations.
 
-### 🏠 Simple Text Message
+### 📝 1. Messaging & Text
 
+#### Simple Message
 ```yaml
-service: notify.send_message
-target:
-  entity_id: notify.whatsapp
+service: whatsapp.send_message
 data:
-  message: 'Hello from Home Assistant! 🚀'
-  target: '+49123456789' # Phone number or Group JID
+  target: '+491234567890'
+  message: 'Hello! This is a simple text message. 🚀'
 ```
 
-### 🔘 Message with Interactive Buttons
-
+#### Message with Expiration (Disappearing Messages)
+*Note: The expiration must match your chat settings (e.g., 86400 for 24h).*
 ```yaml
-service: notify.send_message
-target:
-  entity_id: notify.whatsapp
+service: whatsapp.send_message
 data:
-  message: 'The garage door is still open. Close it?'
-  target: '+49123456789'
-  data:
-    footer: 'Security Alert'
-    buttons:
-      - buttonId: 'garage_close'
-        buttonText: { displayText: 'Close now 🏠' }
-        type: 1
-      - buttonId: 'garage_ignore'
-        buttonText: { displayText: 'Ignore ❌' }
-        type: 1
+  target: '+491234567890'
+  message: 'This message will self-destruct. 🕵️'
+  expiration: 86400
 ```
 
-### 📊 Polls
-
+#### Edit a Sent Message
+*You need a `message_id` (from events or service response).*
 ```yaml
-service: notify.send_message
-target:
-  entity_id: notify.whatsapp
+service: whatsapp.edit_message
 data:
-  message: 'Poll'
-  target: '+49123456789'
-  data:
-    poll:
-      question: "What's for dinner?"
-      options:
-        - 'Pizza'
-        - 'Sushi'
+  target: '+491234567890'
+  message_id: 'BAE5F...'
+  message: 'Actually, the meeting is at 3 PM! 🕒'
 ```
 
-### 📍 Location
-
+#### Revoke (Delete) a Message
 ```yaml
-service: notify.send_message
-target:
-  entity_id: notify.whatsapp
+service: whatsapp.revoke_message
 data:
-  message: 'Check this out!'
-  target: '+49123456789'
-  data:
-    location:
-      latitude: 52.5200
-      longitude: 13.4050
-      name: 'Berlin'
-      address: 'Alexanderplatz'
+  target: '+491234567890'
+  message_id: 'BAE5F...'
 ```
 
 ---
 
-## 🤖 Automations (Using the 'target' from Event)
+### 🖼️ 2. Media & Files
 
-When building automations, the "target" is dynamic.
+#### Send Image
+```yaml
+service: whatsapp.send_image
+data:
+  target: '+491234567890'
+  url: 'https://www.home-assistant.io/images/favicon.jpg'
+  caption: 'Check out the HA logo! 🏠'
+```
 
-### 📨 Reacting to Bot Commands
+#### Send Video
+```yaml
+service: whatsapp.send_video
+data:
+  target: '+491234567890'
+  url: 'https://example.com/security_clip.mp4'
+  message: '🎥 Motion detected at the front door!'
+```
+
+#### Send Audio / Voice Note (PTT)
+*Setting `ptt: true` makes it look like a recorded voice message.*
+```yaml
+service: whatsapp.send_audio
+data:
+  target: '+491234567890'
+  url: 'https://example.com/alarm_chime.mp3'
+  ptt: true
+```
+
+#### Send Document
+```yaml
+service: whatsapp.send_document
+data:
+  target: '+491234567890'
+  url: 'https://example.com/energy_report.pdf'
+  file_name: 'Monthly_Report.pdf'
+  message: 'Here is your report. 📊'
+```
+
+---
+
+### 📊 3. Interactive Content
+
+#### Send Poll
+```yaml
+service: whatsapp.send_poll
+data:
+  target: '+491234567890'
+  question: 'What do you want for dinner?'
+  options:
+    - 'Pizza 🍕'
+    - 'Sushi 🍣'
+    - 'Burgers 🍔'
+```
+
+#### Send Buttons (Quick Response)
+*Max 3 buttons. Tapping a button sends an event back to HA.*
+```yaml
+service: whatsapp.send_buttons
+data:
+  target: '+491234567890'
+  message: 'Is someone at home?'
+  buttons:
+    - id: 'yes'
+      displayText: 'Yes, I am! 🙋‍♀️'
+    - id: 'no'
+      displayText: 'No, empty house 🏠'
+  footer: 'Smart Home Security'
+```
+
+#### Send List Menu
+*Ideal for many choices. Opens a popup menu on the phone.*
+```yaml
+service: whatsapp.send_list
+data:
+  target: '+491234567890'
+  title: '🏠 Home Control'
+  text: 'Select an action:'
+  button_text: 'Open Menu'
+  sections:
+    - title: 'Lights'
+      rows:
+        - id: 'lights_on'
+          title: 'Turn On All'
+        - id: 'lights_off'
+          title: 'Turn Off All'
+```
+
+---
+
+### ⚙️ 4. Administration & Utilities
+
+#### Search for Group IDs
+*Results appear in your Home Assistant Notifications area!*
+```yaml
+service: whatsapp.search_groups
+data:
+  name_filter: 'Family' # Optional
+```
+
+#### Set Presence Status
+```yaml
+service: whatsapp.update_presence
+data:
+  target: '+491234567890'
+  presence: 'composing' # Shows "typing..."
+```
+
+#### Mark Messages as Read
+```yaml
+service: whatsapp.mark_as_read
+data:
+  target: '+491234567890'
+  # Omit message_id to mark ALL unread messages in this chat as read.
+```
+
+---
+
+## 🚀 Modern Notify Service (`notify.send_message`)
+
+If you prefer the standard Home Assistant notification action, use this format.
 
 ```yaml
-alias: 'WhatsApp Bot: Status Request'
+action: notify.send_message
+target:
+  entity_id: notify.whatsapp
+data:
+  message: 'System Online 🟢'
+  target: '+491234567890'
+  data:
+    # Most native parameters can be passed under this 'data' block
+    expiration: 3600 # disappears in 1 hour
+```
+
+---
+
+## 🤖 Advanced Automation Examples
+
+### 🚗 Automatic Reply with Location
+*Reply with the current car location when someone asks "Where is the car?"*
+
+```yaml
+alias: "Reply with Car Location"
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+    event_data:
+      content: "Where is the car?"
+action:
+  - service: whatsapp.send_location
+    data:
+      target: "{{ trigger.event.data.sender }}"
+      latitude: "{{ state_attr('device_tracker.car', 'latitude') }}"
+      longitude: "{{ state_attr('device_tracker.car', 'longitude') }}"
+      name: "Tesla Model 3"
+```
+
+### 🚨 Handle Button Clicks
+*Turn on the light when the "Yes" button is clicked.*
+
+```yaml
+alias: "Handle 'Light On' Button"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
 condition:
+  # Check if it was a button click and if the ID matches
   - condition: template
-    value_template: "{{ trigger.event.data.content | lower == '/status' }}"
+    value_template: "{{ trigger.event.data.content == 'Yes' }}"
 action:
-  - service: notify.send_message
+  - service: light.turn_on
     target:
-      entity_id: notify.whatsapp
-    data:
-      message: |
-        Home Status: {{ states('alarm_control_panel.home') }}
-        Time: {{ now().strftime('%H:%M:%S') }}
-      target: '{{ trigger.event.data.sender }}' # Sends reply back to origin (User or Group)
+      entity_id: light.hallway
 ```
 
 ---
 
-### 📸 Camera Snapshot on Alarm
+## 💡 Best Practices for Beginners
 
-````yaml
-alias: "WhatsApp: Camera Alarm"
-trigger:
-  - platform: state
-    entity_id: binary_sensor.doorbell_motion
-    to: "on"
-action:
-  - service: camera.snapshot
-    data:
-      filename: "/config/www/tmp/snapshot.jpg"
-    target:
-      entity_id: camera.doorbell
-  - delay: "00:00:01"
-  - service: notify.send_message
-    target:
-      entity_id: notify.whatsapp
-    data:
-      message: |
-        🚨 Motion detected at the door!
-        Time: {{ now().strftime('%H:%M:%S') }}
-      target: "+49123456789"
-      data:
-        image: "https://your-domain.com/local/tmp/snapshot.jpg"
-
----
-
-### 📧 Forward Emails (IMAP) to WhatsApp
-
-```yaml
-alias: "Forward IMAP to WhatsApp"
-trigger:
-  - platform: event
-    event_type: imap_content
-condition:
-  - condition: template
-    value_template: "{{ trigger.event.data['username'] | lower | trim == 'your-mail@gmail.com' }}"
-action:
-  - service: whatsapp.send_message
-    data:
-      target: "49171234567"
-      message: |
-        🏐 *Neue Trainingsanfrage*
-        👤 *Von:* {{ trigger.event.data['sender'] }}
-        📝 *Betreff:* {{ trigger.event.data['subject'] }}
-        ---
-        {{ trigger.event.data['text'] | default(trigger.event.data['body']) | truncate(500) }}
-```
-
----
-
-## 💡 Important Note
-1.  **Recipient**: The `target` field is **mandatory**. Use a phone number with country code (e.g., `+49...`), a WhatsApp Group ID (e.g., `123456@g.us`), or the `sender` JID from an event.
-2.  **Sender Fields**: Use `trigger.event.data.sender` for replies (contains full JID) and `trigger.event.data.sender_number` if you need to compare against a plain phone number.
-3.  **Multiple Targets**: You can also pass a list: `target: ["+49123", "+49456"]`.
-4.  **Standard Alignment**: These examples follow the modern Home Assistant Notify standard.
+1.  **Format your numbers**: Always use the international format like `+49123...` or `49123...`. The integration handles the REST.
+2.  **Groups**: Use `whatsapp.search_groups` to find your Group IDs. They look like `123456789@g.us`.
+3.  **Security**: Use the `sender_number` field in automation conditions to ensure only authorized people can trigger your home actions.
+4.  **Logging**: Enable `mask_sensitive_data` in the integration configuration if you share logs and want to hide phone numbers.

@@ -69,11 +69,15 @@
 
 ## 🌟 Features
 
-- **📲 Local & Private**: Acts as a "Linked Device" (like WhatsApp Web). No cloud bridge required.
-- **💬 Rich Messaging**: Send Text, Images, and Interactive Polls.
-- **🤖 Automation Triggers**: Real-time events for incoming messages.
-- **🌍 Localization**: Native support for English and German (DE/EN).
-- **🛡️ Secure**: Built with strict typing, secret management, and extensive testing.
+- **📲 Local & Private**: Acts as a "Linked Device" (like WhatsApp Web). No cloud bridge, no external servers.
+- **💬 Rich Messaging**: Send Text, Images, Videos, Audio (PTT), Documents, and Locations.
+- **📊 Interactive Content**: Send Polls, Buttons, and List Menus to interact with users.
+- **🔄 Two-Way Communication**: React to incoming messages, button clicks, and poll votes.
+- **🛡️ Modern Standards**: Fully compatible with the Home Assistant `notify` standard (ADR-0010).
+- **📝 Message Management**: Edit or Revoke (delete) messages after sending.
+- **🕵️ Discovery Tools**: Built-in service to find Group IDs without checking logs.
+- **🤖 Automation Triggers**: Real-time events for everything happening on WhatsApp.
+- **🌍 Localization**: Full native support for English and German (DE/EN).
 
 ---
 
@@ -142,19 +146,31 @@ data:
   message: 'Hello World!'
 ```
 
-#### 4. Send Polls 📊
+#### 4. Interactive Polls 📊
 
-You can send interactive polls to groups or users.
+Gather feedback or make decisions with family/groups.
 
 ```yaml
 service: whatsapp.send_poll
 data:
-  target: '+491234567890' # Or Group ID
-  question: 'Who wants pizza? 🍕'
+  target: '+491234567890'
+  question: 'What should we have for dinner? 🍕'
   options:
-    - 'Me! 🙋‍♂️'
-    - 'No thanks 🙅‍♂️'
-    - 'Only on Friday 📅'
+    - 'Pizza'
+    - 'Sushi'
+    - 'Cooking myself'
+```
+
+#### 5. Disappearing Messages ⏳
+
+Ensure privacy by setting an expiration time (matching chat settings).
+
+```yaml
+service: whatsapp.send_message
+data:
+  target: '+491234567890'
+  message: 'This message will disappear according to chat rules.'
+  expiration: 86400 # 24 hours
 ```
 
 ### Service Examples
@@ -409,32 +425,26 @@ action:
 
 ## 🆔 Finding Chat IDs & Group IDs
 
-To send messages, you need the correct Chat ID (`target`).
+To send messages, you need a `target` ID. The integration makes finding these very easy.
 
-### For Private Chats
+### 1. Private Chats (Phone Numbers)
+Use the phone number in international format. The integration automatically adds the required suffix.
+- **Example**: `+491234567890` or `491234567890`
 
-The ID is usually the phone number in international format without `+` or `00`, followed by `@c.us`.
-Example: `491234567890@c.us` (often just the number work too: `+491234567890`).
+### 2. Group IDs (The Easy Way) 🏆
+Group IDs look like `120363012345678901@g.us`. Instead of searching through logs or listening to events, use the built-in **Search Service**:
 
-### For Groups
+1. Go to **Developer Tools** → **Services**.
+2. Select `whatsapp.search_groups`.
+3. (Optional) Enter a `name_filter`.
+4. Click **Call Service**.
+5. **Check your Notifications (Bell icon 🔔 in the sidebar)!** A table with all your groups and their IDs will appear instantly.
 
-Group IDs are harder to guess (e.g., `123456789-123456@g.us`). The easiest way to find them is to **Listen for events**.
-
+### 3. Listening to Events (Advanced)
+If you need the ID of a specific incoming message or a dynamic sender:
 1. Go to **Developer Tools** → **Events**.
-2. In "Listen to events", type: `whatsapp_message_received`.
-3. Click "Start Listening".
-4. Send a message to the group you want to find.
-5. The event will appear! Look for the `from` or `chatId` field.
-
-```json
-event_type: whatsapp_message_received
-data:
-  from: "491234567890-16123456@g.us"
-  content: "Hello Test"
-  ...
-```
-
-Copy that ID and use it as your `target`.
+2. Listen to `whatsapp_message_received`.
+3. Send a message to the bot. The ID is in the `from` field.
 
 ---
 
@@ -457,8 +467,11 @@ You **Must** install the App from the repo above for this to work.
 
 ## 🏷️ Versioning & Releases
 
-- **Pre-release (< 1.0.0)**: Development versions. May contain breaking changes.
-- **Stable (>= 1.0.0)**: Production-ready. Follows semantic versioning.
+We use a structured release cycle to ensure stability while providing new features:
+
+- **Stable (v1.x.x)**: Recommended for all users. Tested and verified for production use.
+- **Beta (v1.x.xbX)**: Public testing of new features. Recommended if you want the latest tech and can provide feedback. Available via HACS "Redownload" -> "Show beta versions".
+- **Edge/Dev (v1.x.x-dev)**: Bleeding edge from the master branch. May be unstable. Only for developers.
 
 Releases are automatically created when the version in `manifest.json` is updated.
 

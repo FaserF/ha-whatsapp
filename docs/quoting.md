@@ -1,12 +1,22 @@
-# Quoting Messages
+# 💬 Quoting & Replying
 
-The WhatsApp integration supports quoting (replying to) specific messages. This is particularly useful in group chats to maintain context.
+The WhatsApp integration supports quoting (replying to) specific messages. This is particularly useful in group chats to maintain context or for providing direct answers to user queries.
 
-## Usage
+---
 
-To quote a message, you need the `message_id` of the message you want to reply to. You can obtain this ID from the `whatsapp_message_received` event.
+## 🔍 Obtaining Message IDs
 
-### Example Automation
+To quote a message, you need its unique `message_id`. You can find this ID in:
+- The **Attributes** of the `whatsapp_message_received` event.
+- The **Return Value** of a successfully sent message (if calling the service via script).
+
+---
+
+## 🛠️ Usage Examples
+
+### A. Using the `whatsapp.send_message` Service (Recommended)
+
+In custom services, the `quote` parameter is used at the **top level** of the data block.
 
 ```yaml
 alias: "Auto-Reply with Quote"
@@ -16,27 +26,40 @@ trigger:
     event_data:
       content: "ping"
 action:
-  - action: notify.whatsapp_contact_name
+  - service: whatsapp.send_message
     data:
-      message: "pong"
-      quote: "{{ trigger.event.data.raw.key.id }}"
+      target: "{{ trigger.event.data.sender }}"
+      message: "pong 🏓"
+      quote: "{{ trigger.event.data.msg_id }}"
 ```
 
-### Script Example
+### B. Using the `notify.whatsapp` Service (Legacy)
+
+In the classic notify service, quoting must be placed inside the `data` dictionary.
 
 ```yaml
-alias: "Reply to specific message"
+alias: "Legacy Notify Reply"
 sequence:
-  - action: notify.whatsapp_contact_name
+  - service: notify.whatsapp
     data:
-      message: "This is a reply!"
+      message: "This is a reply via legacy notify!"
+      target: '49123456789'
       data:
-        reply_to: "MESSAGE_ID_HERE"
+        quote: "3EB0B8A7C2E4F6789ABCDE"
 ```
 
-## Parameters
+---
 
-You can use either `quote` or `reply_to` in the `data` dictionary. Both accept the `message_id` string.
+## 📋 Parameters
 
-- `quote`: The ID of the message to quote.
-- `reply_to`: The ID of the message to quote (alias for `quote`).
+Both parameters are supported for compatibility. If both are provided, `quote` takes precedence.
+
+| Parameter  | Description                                                         |
+| :--------- | :------------------------------------------------------------------ |
+| `quote`    | The unique ID of the message to reply to.                           |
+| `reply_to` | Alias for `quote`. Used by many existing integrations and chatbots. |
+
+---
+
+> [!TIP]
+> You can quote messages in almost all sending services, including `send_image`, `send_poll`, `send_buttons`, and `send_list`!

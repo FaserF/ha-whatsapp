@@ -60,7 +60,7 @@ async def test_send_message_with_quote(
     )
 
     mock_client.send_message.assert_called_once_with(
-        "1234567890", "Hello", quoted_message_id="msg_id_123"
+        "1234567890", "Hello", quoted_message_id="msg_id_123", expiration=None
     )
 
 
@@ -76,7 +76,7 @@ async def test_send_message_with_reply_to(
     )
 
     mock_client.send_message.assert_called_once_with(
-        "1234567890", "World", quoted_message_id="msg_id_456"
+        "1234567890", "World", quoted_message_id="msg_id_456", expiration=None
     )
 
 
@@ -92,7 +92,7 @@ async def test_send_message_without_quote(
     )
 
     mock_client.send_message.assert_called_once_with(
-        "1234567890", "Plain message", quoted_message_id=None
+        "1234567890", "Plain message", quoted_message_id=None, expiration=None
     )
 
 
@@ -110,6 +110,6 @@ async def test_send_message_to_multiple_targets(
     assert mock_client.send_message.call_count == 2
     calls = mock_client.send_message.call_args_list
     assert calls[0].args == ("111", "Hi all")
-    assert calls[0].kwargs == {"quoted_message_id": "q_id"}
+    assert calls[0].kwargs == {"quoted_message_id": "q_id", "expiration": None}
     assert calls[1].args == ("222", "Hi all")
-    assert calls[1].kwargs == {"quoted_message_id": "q_id"}
+    assert calls[1].kwargs == {"quoted_message_id": "q_id", "expiration": None}
