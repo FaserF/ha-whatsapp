@@ -13,7 +13,7 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     ha_stubs._build_ha_stub_modules()
 
 
-@pytest.fixture(autouse=True)  # type: ignore[misc]
+@pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
 def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
     """Clear sys.modules between tests to ensure fresh global variables."""
     import sys
@@ -27,7 +27,7 @@ def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
         sys.modules.pop(m, None)
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def mock_client() -> MagicMock:
     """Fixture for mocking WhatsAppApiClient."""
     from custom_components.whatsapp.api import WhatsAppApiClient
@@ -45,7 +45,7 @@ def mock_client() -> MagicMock:
     return client
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def hass(mock_client: MagicMock) -> MagicMock:
     """Fixture to mock Home Assistant object."""
     hass = MagicMock()
@@ -288,7 +288,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
     return hass
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def data(hass: MagicMock, mock_client: MagicMock) -> dict[str, Any]:
     """Fixture for common test data (coordinator)."""
     # homeassistant.util
