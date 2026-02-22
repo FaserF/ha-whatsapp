@@ -9,6 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from ha_stubs import _build_ha_stub_modules
 
+from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL
+
 _build_ha_stub_modules()
 
 
@@ -27,11 +29,15 @@ def service_handlers():
 @pytest.fixture(autouse=True)
 def cleanup_modules():
     """Clear sys.modules between tests to ensure fresh patches."""
-    # Force reload of custom_components to ensure patches are applied fresh
-    to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
-    for m in to_del:
-        sys.modules.pop(m, None)
+
+    def _clear():
+        to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
+        for m in to_del:
+            sys.modules.pop(m, None)
+
+    _clear()
     yield
+    _clear()
 
 
 def get_patches(stack: ExitStack):
@@ -95,7 +101,7 @@ async def test_search_groups_service(service_handlers) -> None:
             )
 
             mock_entry = MagicMock()
-            mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
+            mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
             mock_entry.options = {}
             mock_entry.entry_id = "test_entry"
             hass.data = {DOMAIN: {}}
@@ -162,7 +168,7 @@ async def test_service_routing(service_handlers) -> None:
             mock_coord.async_config_entry_first_refresh = AsyncMock()
 
             mock_entry = MagicMock()
-            mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
+            mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
             mock_entry.options = {}
             mock_entry.entry_id = "test_entry"
 
@@ -186,7 +192,9 @@ async def test_service_routing(service_handlers) -> None:
             await send_msg_service(call)
 
             mock_get_client.assert_called_with(hass, "MyAccount")
-            mock_client.send_message.assert_called_once()
+            mock_client.send_message.assert_called_once_with(
+                "999", "Hi", quoted_message_id=None
+            )
 
 
 async def test_send_buttons_normalization(service_handlers) -> None:

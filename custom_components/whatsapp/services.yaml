@@ -43,6 +43,21 @@ send_message:
       selector:
         text:
           multiline: true
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
 
 send_poll:
   name: Send Poll

@@ -15,17 +15,16 @@ async def test_connection_lost_notification(
 
     from homeassistant.helpers import issue_registry as ir
 
+    # Reset mock since it is shared across tests and might have been triggered before
+    ir.async_create_issue.reset_mock()
+
     issue_registry = MagicMock()
     ir.async_get.return_value = issue_registry
 
     from homeassistant.exceptions import HomeAssistantError
 
-    mock_client.connect = AsyncMock(
-        side_effect=HomeAssistantError("Connection Failed")
-    )
-    mock_client.get_stats = AsyncMock(
-        return_value={"sent": 0, "failed": 0}
-    )
+    mock_client.connect = AsyncMock(side_effect=HomeAssistantError("Connection Failed"))
+    mock_client.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
 
     import pytest
     from homeassistant.helpers.update_coordinator import UpdateFailed

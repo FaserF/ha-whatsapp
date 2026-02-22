@@ -16,6 +16,7 @@ from custom_components.whatsapp.const import (  # noqa: E402
     CONF_MASK_SENSITIVE_DATA,
     CONF_POLLING_INTERVAL,
     CONF_RETRY_ATTEMPTS,
+    CONF_SELF_MESSAGES,
     CONF_SESSION_ID,
     CONF_URL,
     CONF_WHITELIST,
@@ -122,4 +123,5 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         CONF_MARK_AS_READ: True,
         CONF_RETRY_ATTEMPTS: 2,
         CONF_WHITELIST: "",
+        CONF_SELF_MESSAGES: False,
     }

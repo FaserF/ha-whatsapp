@@ -30,11 +30,11 @@ Donations are completely **voluntary** — this integration will always be free 
 
 <div align="center" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 2rem 0;">
 
-  <a href="https://github.com/sponsors/FaserF" target="_blank">
+  <a href="https://github.com/sponsors/FaserF" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Sponsor%20on-GitHub%20Sponsors-%23EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white" alt="GitHub Sponsors" style="height: 50px;">
   </a>
 
-  <a href="https://paypal.me/FaserF" target="_blank">
+  <a href="https://paypal.me/FaserF" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Donate%20via-PayPal-%2300457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal" style="height: 50px;">
   </a>
 

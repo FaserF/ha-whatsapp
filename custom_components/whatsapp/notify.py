@@ -225,7 +225,12 @@ class WhatsAppNotificationEntity(
                     "Skipping location message to %s: latitude/longitude missing",
                     recipient,
                 )
-                return
+                from homeassistant.exceptions import HomeAssistantError
+
+                raise HomeAssistantError(
+                    f"Skipping location message to {recipient}: "
+                    "latitude/longitude missing"
+                )
             try:
                 lat_f = float(lat)
                 lon_f = float(lon)
@@ -237,7 +242,12 @@ class WhatsAppNotificationEntity(
                     lon,
                     err,
                 )
-                return
+                from homeassistant.exceptions import HomeAssistantError
+
+                raise HomeAssistantError(
+                    f"Skipping location message to {recipient}: "
+                    f"invalid coordinates ({lat}, {lon})"
+                ) from err
 
             await client.send_location(
                 recipient,
@@ -297,6 +307,14 @@ class WhatsAppNotificationEntity(
                 await client.send_buttons(
                     recipient, message, buttons, footer, quoted_message_id=quoted
                 )
+            else:
+                _LOGGER.warning(
+                    "Skipping buttons message to %s: empty buttons list "
+                    "(original data: %s)",
+                    recipient,
+                    data,
+                )
+                return
         elif "document" in data:
             # Send document: data: { document: "http://..." }
             url = data["document"]

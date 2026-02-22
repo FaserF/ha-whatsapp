@@ -27,8 +27,9 @@ class ServiceCall:
 
 class Bus:
     """Stub."""
-    # Must be on class for patch() to work
-    async_fire = MagicMock()
+
+    def __init__(self):
+        self.async_fire = MagicMock()
 
 
 # homeassistant.const
@@ -71,9 +72,7 @@ class CoordinatorEntity(_GenericBase):
                 state = "on" if self.is_on else "off"
 
             self.hass.states.async_set_state(
-                self.entity_id,
-                state,
-                getattr(self, "extra_state_attributes", {})
+                self.entity_id, state, getattr(self, "extra_state_attributes", {})
             )
 
 
@@ -85,27 +84,23 @@ class DataUpdateCoordinator(_GenericBase):
         if "config_entry" in kwargs:
             self.config_entry = kwargs["config_entry"]
 
-    async def async_config_entry_first_refresh(self):
+    async def _fetch_update_data(self):
+        """Shared update helper."""
         if hasattr(self, "_async_update_data"):
-             try:
-                 res = self._async_update_data()
-                 if hasattr(res, "__await__"):
-                     self.data = await res
-                 else:
-                     self.data = res
-             except Exception as e:
-                 logging.getLogger(__name__).debug("Refresh failed: %s", e)
+            try:
+                res = self._async_update_data()
+                if hasattr(res, "__await__"):
+                    self.data = await res
+                else:
+                    self.data = res
+            except Exception as e:
+                logging.getLogger(__name__).debug("Refresh failed: %s", e)
+
+    async def async_config_entry_first_refresh(self):
+        await self._fetch_update_data()
 
     async def async_refresh(self):
-        if hasattr(self, "_async_update_data"):
-             try:
-                 res = self._async_update_data()
-                 if hasattr(res, "__await__"):
-                     self.data = await res
-                 else:
-                     self.data = res
-             except Exception as e:
-                 logging.getLogger(__name__).debug("Refresh failed: %s", e)
+        await self._fetch_update_data()
         for listener in self._listeners:
             if callable(listener):
                 listener()
@@ -137,7 +132,7 @@ class RepairsFlow:
     def __init__(self):
         self.hass = None
 
-    def async_show_form(self, step_id, data_schema=None, description_placeholders=None):  # noqa: ARG002
+    def async_show_form(self, step_id, **_kwargs):
         return {"type": "form", "step_id": step_id}
 
     def async_create_entry(self, title, data):  # noqa: ARG002
@@ -152,8 +147,7 @@ class ConfirmRepairFlow(RepairsFlow):
 def redact(data, keys):
     if isinstance(data, dict):
         return {
-            k: "**REDACTED**" if k in keys else redact(v, keys)
-            for k, v in data.items()
+            k: "**REDACTED**" if k in keys else redact(v, keys) for k, v in data.items()
         }
     if isinstance(data, list):
         return [redact(item, keys) for item in data]
@@ -172,6 +166,7 @@ def _stub(name, **kwargs):
         setattr(mod, k, v)
     mod._is_stub = True
     return mod
+
 
 stub = _stub
 
@@ -203,32 +198,56 @@ def mock_add_entities(hass, entities, update_before_add=False):  # noqa: ARG001
 
         entity.async_write_ha_state()
 
+
 def _dt_utcnow():
     import datetime
+
     return datetime.datetime.now(datetime.UTC)
+
 
 def _dt_now():
     import datetime
+
     return datetime.datetime.now()
+
 
 class _MockDT:
     @staticmethod
-    def utcnow(): return _dt_utcnow()
+    def utcnow():
+        return _dt_utcnow()
+
     @staticmethod
-    def now(): return _dt_now()
+    def now():
+        return _dt_now()
+
     @staticmethod
-    def as_local(dt): return dt
+    def as_local(dt):
+        return dt
+
     @staticmethod
     def utc_from_timestamp(ts):
         import datetime
+
         return datetime.datetime.fromtimestamp(ts, datetime.UTC)
 
 
 class MockConfigEntry:
-    def __init__(self, domain="whatsapp", data=None, entry_id=None, options=None, title="WhatsApp", **kwargs):  # noqa: E501
+    def __init__(
+        self,
+        domain="whatsapp",
+        data=None,
+        entry_id=None,
+        options=None,
+        title="WhatsApp",
+        **kwargs,
+    ):  # noqa: E501
         self.domain = domain
         self.data = data or {}
-        self.entry_id = entry_id or "test_entry"
+        if entry_id is None:
+            import uuid
+
+            entry_id = uuid.uuid4().hex
+        self.entry_id = entry_id
         self.options = options or {}
         self.title = title
         self.unique_id = kwargs.get("unique_id")
@@ -261,7 +280,9 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if "homeassistant" in sys.modules and getattr(sys.modules["homeassistant"], "_is_stub", False):  # noqa: E501
+    if "homeassistant" in sys.modules and getattr(
+        sys.modules["homeassistant"], "_is_stub", False
+    ):  # noqa: E501
         return
 
     # homeassistant.exceptions
@@ -286,7 +307,7 @@ def _build_ha_stub_modules() -> None:
         CONF_URL="url",
         CONF_API_KEY="api_key",
         Platform=Platform,
-        EntityCategory=EntityCategory
+        EntityCategory=EntityCategory,
     )
 
     helpers = _stub("homeassistant.helpers")
@@ -391,9 +412,18 @@ def _build_ha_stub_modules() -> None:
     components.notify = sys.modules["homeassistant.components.notify"]
 
     # homeassistant.components.binary_sensor
-    _stub("homeassistant.components.binary_sensor", BinarySensorDeviceClass=MagicMock(), BinarySensorEntity=object)  # noqa: E501
+    _stub(
+        "homeassistant.components.binary_sensor",
+        BinarySensorDeviceClass=MagicMock(),
+        BinarySensorEntity=object,
+    )  # noqa: E501
     # homeassistant.components.sensor
-    _stub("homeassistant.components.sensor", SensorDeviceClass=MagicMock(), SensorEntity=object, SensorStateClass=MagicMock())  # noqa: E501
+    _stub(
+        "homeassistant.components.sensor",
+        SensorDeviceClass=MagicMock(),
+        SensorEntity=object,
+        SensorStateClass=MagicMock(),
+    )  # noqa: E501
 
     # homeassistant.components.diagnostics
     diag_mod = _stub("homeassistant.components.diagnostics", async_redact_data=redact)
@@ -410,7 +440,9 @@ def _build_ha_stub_modules() -> None:
     components.repairs = repairs_mod
 
     # homeassistant.util
-    util_mod = _stub("homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_"))  # noqa: E501
+    util_mod = _stub(
+        "homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_")
+    )  # noqa: E501
     dt_mod = _stub("homeassistant.util.dt", utcnow=lambda: None, now=lambda: None)
     util_mod.dt = dt_mod
     sw_mod = _stub("homeassistant.util.search_web", is_safe_url=lambda _: True)

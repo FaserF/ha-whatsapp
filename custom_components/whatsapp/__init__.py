@@ -282,7 +282,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         service = call.service
         data: dict[str, Any] = {k: v for k, v in call.data.items() if k != "account"}
 
-        quoted = data.get("quote") or data.get("reply_to")
+        quoted = data["quote"] if "quote" in data else data.get("reply_to")
 
         if service == "send_message":
             await client.send_message(
@@ -420,6 +420,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     # Define common schemas
     s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}
+    # Note: Both 'quote' and 'reply_to' are accepted for backwards compatibility.
+    # If both are provided, 'quote' takes precedence over 'reply_to'.
     s_quotable: dict[vol.Marker, Any] = {
         **s_account,
         vol.Optional("quote"): cv.string,
