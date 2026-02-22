@@ -179,7 +179,7 @@ def _stub(name: str, **kwargs: Any) -> Any:
     else:
         mod = types.ModuleType(name)
         sys.modules[name] = mod
-    setattr(mod, "__path__", [])
+    mod.__path__ = []  # type: ignore[attr-defined]
     for k, v in kwargs.items():
         setattr(mod, k, v)
     mod._is_stub = True  # type: ignore[attr-defined]
