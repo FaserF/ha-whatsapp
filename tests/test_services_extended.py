@@ -16,7 +16,7 @@ from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL
 _build_ha_stub_modules()
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def service_handlers() -> tuple[dict[str, Any], Callable[..., Any]]:
     """Fixture to capture service registrations."""
     handlers: dict[str, Any] = {}
@@ -28,7 +28,7 @@ def service_handlers() -> tuple[dict[str, Any], Callable[..., Any]]:
     return handlers, mock_register
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # type: ignore[misc]
 def cleanup_modules() -> Any:
     """Clear sys.modules between tests to ensure fresh patches."""
 
