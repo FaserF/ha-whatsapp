@@ -158,9 +158,10 @@ trigger:
   - platform: event
     event_type: imap_content
 condition:
-  # Filter for a specific mailbox user if needed
+  # Filter for a specific mailbox user
   - condition: template
-    value_template: "{{ trigger.event.data['username'] | lower | trim == 'your-mail@gmail.com' }}"
+    value_template: >
+      {{ trigger.event.data['username'] | lower | trim == 'your-mail@gmail.com' }}
 action:
   - service: whatsapp.send_message
     continue_on_error: true
@@ -169,13 +170,17 @@ action:
       message: |
         🏐 *Neue Trainingsanfrage*
 
-        📅 *Datum:* {{ as_timestamp(trigger.event.data['date']) | timestamp_custom('%d.%m.%Y %H:%M') }}
+        📅 *Datum:* {{ as_timestamp(trigger.event.data['date'])
+                         | timestamp_custom('%d.%m.%Y %H:%M') }}
         👤 *Von:* {{ trigger.event.data['sender'] }}
         📝 *Betreff:* {{ trigger.event.data['subject'] }}
 
         --------------------------------
 
-        {{ trigger.event.data['text'] | default(trigger.event.data['body']) | default('No content') | truncate(800) }}
+        {{ trigger.event.data['text']
+             | default(trigger.event.data['body'])
+             | default('No content')
+             | truncate(800) }}
 ```
 
 {% endraw %}
@@ -224,7 +229,8 @@ action:
       target: '49171234567'
       message: |
         🪫 *Batterie schwach!*
-        Das Gerät *{{ friendly_name(trigger.entity_id) }}* hat nur noch {{ state(trigger.entity_id) }}%.
+        Das Gerät *{{ friendly_name(trigger.entity_id) }}*
+        hat nur noch {{ state(trigger.entity_id) }}%.
 ```
 
 {% endraw %}
