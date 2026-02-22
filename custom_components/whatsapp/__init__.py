@@ -143,6 +143,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         data["sender_number"] = clean_sender
 
+        # Self-message filtering (fromMe)
+        # Default: Don't monitor 'fromMe' messages unless explicitly enabled in options
+        raw_msg = data.get("raw", {})
+        from_me = raw_msg.get("key", {}).get("fromMe", False)
+        if from_me and not entry.options.get(CONF_SELF_MESSAGES, False):
+            _LOGGER.debug(
+                "Ignoring self-message (fromMe) as it's disabled in configuration"
+            )
+            return
+
         # Whitelist filtering
         if whitelist is not None:
             # For groups, the raw data contains the group JID in remoteJid

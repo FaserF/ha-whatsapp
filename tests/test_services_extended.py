@@ -113,7 +113,7 @@ def cleanup_handlers():
     """Clear handlers and sys.modules between tests."""
     handlers.clear()
 
-    # Force reload of custom_components to ensure patches are applied fresh
+    # Force reload of custom_components    # Force reload of custom_components to ensure patches are applied fresh
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
     for m in to_del:
         del sys.modules[m]
