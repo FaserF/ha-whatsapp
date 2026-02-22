@@ -1,15 +1,20 @@
 """Test the HA WhatsApp diagnostics."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-from custom_components.whatsapp import diagnostics
-from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL, DOMAIN
+from custom_components.whatsapp import diagnostics  # noqa: E402
+from custom_components.whatsapp.const import (  # noqa: E402
+    CONF_API_KEY,
+    CONF_URL,
+    DOMAIN,
+)
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
@@ -22,7 +27,7 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.diagnostics.async_redact_data") as mock_redact,
+        patch("custom_components.whatsapp.diagnostics.async_redact_data") as mock_redact,  # noqa: E501
     ):
         from ha_stubs import redact
         mock_redact.side_effect = redact

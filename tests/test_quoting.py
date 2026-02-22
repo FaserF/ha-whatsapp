@@ -13,7 +13,6 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
@@ -27,18 +26,16 @@ from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa
 
 
 @pytest.fixture
-def mock_client() -> Generator[AsyncMock, None, None]:
+def mock_client() -> Generator[MagicMock, None, None]:
     """Fixture to mock WhatsAppApiClient."""
     with patch(
         "custom_components.whatsapp.notify.WhatsAppApiClient", autospec=True
     ) as mock:
-        mock.is_allowed.return_value = True
-        mock.ensure_jid.return_value = "1234567890@s.whatsapp.net"
         yield mock
 
 
 @pytest.fixture
-def notify_entity(mock_client: AsyncMock) -> WhatsAppNotificationEntity:
+def notify_entity(mock_client: MagicMock) -> WhatsAppNotificationEntity:
     """Fixture to create WhatsAppNotificationEntity instance."""
     coordinator = MagicMock()
     entry = MagicMock()

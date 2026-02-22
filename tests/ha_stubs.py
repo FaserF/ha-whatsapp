@@ -1,8 +1,10 @@
 """Shared Home Assistant stub modules for testing."""
 
+import logging
 import sys
 import types
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
+
 
 # homeassistant.exceptions
 class HomeAssistantError(Exception):
@@ -17,7 +19,7 @@ class ServiceValidationError(HomeAssistantError):
 class ServiceCall:
     """Stub."""
 
-    def __init__(self, domain, service, data=None, context=None):
+    def __init__(self, domain, service, data=None, context=None):  # noqa: ARG002
         self.domain = domain
         self.service = service
         self.data = data or {}
@@ -76,7 +78,7 @@ class CoordinatorEntity(_GenericBase):
 
 
 class DataUpdateCoordinator(_GenericBase):
-    def __init__(self, hass, *args, **kwargs):
+    def __init__(self, hass, *args, **kwargs):  # noqa: ARG002
         self.data = {"connected": True, "stats": {"sent": 0, "failed": 0}}
         self.hass = hass
         self._listeners = []
@@ -92,7 +94,7 @@ class DataUpdateCoordinator(_GenericBase):
                  else:
                      self.data = res
              except Exception as e:
-                 print(f"Refresh failed: {e}")
+                 logging.getLogger(__name__).debug("Refresh failed: %s", e)
 
     async def async_refresh(self):
         if hasattr(self, "_async_update_data"):
@@ -103,7 +105,7 @@ class DataUpdateCoordinator(_GenericBase):
                  else:
                      self.data = res
              except Exception as e:
-                 print(f"Refresh failed: {e}")
+                 logging.getLogger(__name__).debug("Refresh failed: %s", e)
         for listener in self._listeners:
             if callable(listener):
                 listener()
@@ -135,10 +137,10 @@ class RepairsFlow:
     def __init__(self):
         self.hass = None
 
-    def async_show_form(self, step_id, data_schema=None, description_placeholders=None):
+    def async_show_form(self, step_id, data_schema=None, description_placeholders=None):  # noqa: ARG002
         return {"type": "form", "step_id": step_id}
 
-    def async_create_entry(self, title, data):
+    def async_create_entry(self, title, data):  # noqa: ARG002
         return {"type": "create_entry", "version": 1}
 
 
@@ -174,7 +176,7 @@ def _stub(name, **kwargs):
 stub = _stub
 
 
-def mock_add_entities(entities, update_before_add=False):
+def mock_add_entities(entities, update_before_add=False):  # noqa: ARG001
     hass = sys.modules.get("conftest_hass")
     for entity in entities:
         entity.hass = hass
@@ -183,7 +185,7 @@ def mock_add_entities(entities, update_before_add=False):
             if hasattr(entity, "is_on"):
                 domain = "binary_sensor"
 
-            # Use _stat_key if present (WhatsAppStatSensor), else translation_key, else name
+            # Use _stat_key if present (WhatsAppStatSensor), else translation_key, else name  # noqa: E501
             if domain == "sensor" and hasattr(entity, "_stat_key") and entity._stat_key:
                 stat = entity._stat_key
                 if stat == "uptime":
@@ -204,7 +206,7 @@ def mock_add_entities(entities, update_before_add=False):
 
 def _dt_utcnow():
     import datetime
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.UTC)
 
 def _dt_now():
     import datetime
@@ -220,11 +222,11 @@ class _MockDT:
     @staticmethod
     def utc_from_timestamp(ts):
         import datetime
-        return datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+        return datetime.datetime.fromtimestamp(ts, datetime.UTC)
 
 
 class MockConfigEntry:
-    def __init__(self, domain="whatsapp", data=None, entry_id=None, options=None, title="WhatsApp", **kwargs):
+    def __init__(self, domain="whatsapp", data=None, entry_id=None, options=None, title="WhatsApp", **kwargs):  # noqa: E501
         self.domain = domain
         self.data = data or {}
         self.entry_id = entry_id or "test_entry"
@@ -236,7 +238,7 @@ class MockConfigEntry:
     def async_on_unload(self, func):
         pass
 
-    def add_update_listener(self, func):
+    def add_update_listener(self, func):  # noqa: ARG002
         return lambda: None
 
     def as_dict(self):
@@ -260,7 +262,7 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if "homeassistant" in sys.modules and getattr(sys.modules["homeassistant"], "_is_stub", False):
+    if "homeassistant" in sys.modules and getattr(sys.modules["homeassistant"], "_is_stub", False):  # noqa: E501
         return
 
     # homeassistant.exceptions
@@ -390,9 +392,9 @@ def _build_ha_stub_modules() -> None:
     components.notify = sys.modules["homeassistant.components.notify"]
 
     # homeassistant.components.binary_sensor
-    _stub("homeassistant.components.binary_sensor", BinarySensorDeviceClass=MagicMock(), BinarySensorEntity=object)
+    _stub("homeassistant.components.binary_sensor", BinarySensorDeviceClass=MagicMock(), BinarySensorEntity=object)  # noqa: E501
     # homeassistant.components.sensor
-    _stub("homeassistant.components.sensor", SensorDeviceClass=MagicMock(), SensorEntity=object, SensorStateClass=MagicMock())
+    _stub("homeassistant.components.sensor", SensorDeviceClass=MagicMock(), SensorEntity=object, SensorStateClass=MagicMock())  # noqa: E501
 
     # homeassistant.components.diagnostics
     diag_mod = _stub("homeassistant.components.diagnostics", async_redact_data=redact)
@@ -409,10 +411,10 @@ def _build_ha_stub_modules() -> None:
     components.repairs = repairs_mod
 
     # homeassistant.util
-    util_mod = _stub("homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_"))
+    util_mod = _stub("homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_"))  # noqa: E501
     dt_mod = _stub("homeassistant.util.dt", utcnow=lambda: None, now=lambda: None)
     util_mod.dt = dt_mod
-    sw_mod = _stub("homeassistant.util.search_web", is_safe_url=lambda x: True)
+    sw_mod = _stub("homeassistant.util.search_web", is_safe_url=lambda _: True)
     util_mod.search_web = sw_mod
 
     # pytest_homeassistant_custom_component.common

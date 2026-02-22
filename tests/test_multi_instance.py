@@ -1,15 +1,20 @@
 """Tests for multi-instance support of the WhatsApp integration."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
+
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import HomeAssistant  # noqa: E402
+from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL, DOMAIN
+from custom_components.whatsapp.const import (  # noqa: E402
+    CONF_API_KEY,
+    CONF_URL,
+    DOMAIN,
+)
 
 
 async def test_multi_instance_setup(hass: HomeAssistant) -> None:

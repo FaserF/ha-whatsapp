@@ -1,14 +1,15 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
+
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant import config_entries  # noqa: E402
+from homeassistant.core import HomeAssistant  # noqa: E402
+from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-from custom_components.whatsapp.const import (
+from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_DEBUG_PAYLOADS,
     CONF_MARK_AS_READ,

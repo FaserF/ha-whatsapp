@@ -250,15 +250,26 @@ class WhatsAppNotificationEntity(
         elif "reaction" in data:
             # Send reaction: data: { reaction: "...", message_id: "..." }
             react = data["reaction"]
-            # If reaction is provided as a simple string, use it
-            reaction = react if isinstance(react, str) else react.get("reaction")
-            msg_id = (
-                react.get("message_id")
-                if isinstance(react, dict)
-                else data.get("message_id")
-            )
-            if reaction and msg_id:
-                await client.send_reaction(recipient, reaction, msg_id)
+            if not isinstance(react, (str, dict)):
+                _LOGGER.warning(
+                    "Invalid reaction payload type '%s'; expected str or dict",
+                    type(react).__name__,
+                )
+            else:
+                reaction = react if isinstance(react, str) else react.get("reaction")
+                msg_id = (
+                    react.get("message_id")
+                    if isinstance(react, dict)
+                    else data.get("message_id")
+                )
+                if reaction and msg_id:
+                    await client.send_reaction(recipient, reaction, msg_id)
+                else:
+                    _LOGGER.warning(
+                        "Reaction skipped: missing reaction=%r or msg_id=%r",
+                        reaction,
+                        msg_id,
+                    )
         elif "image" in data:
             # Send image: data: { image: "..." }
             image_url = data["image"]

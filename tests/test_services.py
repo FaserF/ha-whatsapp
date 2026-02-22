@@ -1,14 +1,15 @@
 """Test the WhatsApp services."""
 
 from unittest.mock import AsyncMock, patch
+
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-from custom_components.whatsapp.const import (
+from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,

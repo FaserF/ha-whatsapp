@@ -2,7 +2,7 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from custom_components.whatsapp.api import WhatsAppApiClient
+from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
 
 def test_jid_normalization() -> None:

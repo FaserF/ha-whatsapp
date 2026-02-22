@@ -3,13 +3,13 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from custom_components.whatsapp.api import WhatsAppApiClient
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError  # noqa: E402
+
+from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
 _LOGGER = logging.getLogger(__name__)
 

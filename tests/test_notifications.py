@@ -30,7 +30,7 @@ async def test_connection_lost_notification(data: dict[str, Any]) -> None:
         await data["coordinator"].async_refresh()
 
         # Verify issue creation was called
-        # In this integration, the coordinator handles the error and async_setup_entry creates the issue
+        # In this integration, the coordinator handles the error and async_setup_entry creates the issue  # noqa: E501
         # We need to make sure ir.async_create_issue was called.
         # Since we use the shared stub, ir.async_create_issue is a MagicMock.
         ir.async_create_issue.assert_called()
@@ -38,7 +38,6 @@ async def test_connection_lost_notification(data: dict[str, Any]) -> None:
 
 async def test_whatsapp_notification_entity() -> None:
     """Test the WhatsApp notification entity."""
-    hass = MagicMock()
 
     from homeassistant.helpers import entity_registry as er
 

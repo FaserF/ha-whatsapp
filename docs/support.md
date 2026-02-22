@@ -66,4 +66,4 @@ Not in a position to donate financially? No problem — there are many other way
 
 ---
 
-_Thank you for using and supporting this project. Every star, every issue report, and every donation makes a difference. — **FaserF** 💚_
+*Thank you for using and supporting this project. Every star, every issue report, and every donation makes a difference. — **FaserF** 💚*

@@ -36,13 +36,12 @@ from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
-    CONF_WHITELIST,
     CONF_SELF_MESSAGES,
+    CONF_WHITELIST,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
-from . import config_flow
 
 _LOGGER = getLogger(__name__)
 

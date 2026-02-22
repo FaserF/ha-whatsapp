@@ -17,7 +17,7 @@ def service_handlers():
     """Fixture to capture service registrations."""
     handlers = {}
 
-    def mock_register(domain, service, handler, schema=None):
+    def mock_register(domain, service, handler, schema=None):  # noqa: ARG001
         if domain == "whatsapp":
             handlers[service] = handler
 
@@ -30,7 +30,7 @@ def cleanup_modules():
     # Force reload of custom_components to ensure patches are applied fresh
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
     for m in to_del:
-        del sys.modules[m]
+        sys.modules.pop(m, None)
     yield
 
 

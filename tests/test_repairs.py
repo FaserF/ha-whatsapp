@@ -1,8 +1,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.whatsapp.const import DOMAIN
-
 from ha_stubs import _build_ha_stub_modules
+
+from custom_components.whatsapp.const import DOMAIN
 
 _build_ha_stub_modules()
 
