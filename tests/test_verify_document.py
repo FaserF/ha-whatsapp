@@ -1,18 +1,15 @@
 import logging
-import os
-import sys
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.exceptions import HomeAssistantError
+from ha_stubs import _build_ha_stub_modules
 
-try:
-    from custom_components.whatsapp.api import WhatsAppApiClient
-except ImportError:
-    # Fallback if running directly without package context
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    from custom_components.whatsapp.api import WhatsAppApiClient
+_build_ha_stub_modules()
+
+from homeassistant.exceptions import HomeAssistantError  # noqa: E402
+
+from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
 _LOGGER = logging.getLogger(__name__)
 

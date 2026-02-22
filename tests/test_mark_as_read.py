@@ -3,14 +3,19 @@
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.whatsapp.const import (
+from ha_stubs import _build_ha_stub_modules
+
+_build_ha_stub_modules()
+
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
+from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
@@ -104,8 +109,9 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
         assert callback_capture is not None
 
         msg_data = {
-            "key": {"remoteJid": "123456789@s.whatsapp.net", "id": "MSGID123"},
-            "message": {"conversation": "Hello"},
+            "sender": "123456789@s.whatsapp.net",
+            "raw": {"key": {"id": "MSGID123"}},
+            "content": "Hello",
         }
 
         callback_capture(msg_data)

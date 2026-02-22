@@ -27,6 +27,23 @@ The event payload contains the following fields:
 
 ---
 
+## Integration Options
+
+These options are configured within Home Assistant (Settings > Devices & Services > WhatsApp > Configure).
+
+| Option                | Type    | Default | Description                                                                                                                                                           |
+| :-------------------- | :------ | :------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `marking_as_read`     | boolean | `true`  | Automatically marks incoming messages as read.                                                                                                                        |
+| `self_messages`       | boolean | `false` | **(New)** If enabled, messages sent from your own account to yourself will trigger events in Home Assistant. Useful for "Note to Self" automations.                   |
+| `polling_interval`    | int     | `5`     | How often (in seconds) the integration checks for new events from the addon.                                                                                           |
+| `whitelist`           | string  | -       | Comma-separated list of phone numbers or group IDs. If set, only messages from these sources will be processed.                                                       |
+| `mask_sensitive_data` | boolean | `false` | If enabled, phone numbers in Home Assistant logs will be partially hidden.                                                                                            |
+| `retry_attempts`      | int     | `2`     | Number of times to retry sending a message if the first attempt fails.                                                                                                |
+| `ui_auth_enabled`     | boolean | `false` | Enables Basic Authentication for the Web UI (Port 8066). Recommended if exposed to the internet.                                                                      |
+| `ui_auth_password`    | string  | -       | The password for the Web UI (Username is always `admin`).                                                                                                             |
+
+---
+
 ## 🤖 Automation Examples
 
 ### 1. Simple Command Trigger
@@ -104,3 +121,18 @@ action:
 
 > **Tip:**
 > For advanced logic, you can inspect `trigger.event.data.raw.message.buttonsResponseMessage` to get the specific `id` of the button that was clicked.
+
+---
+
+## 🙋 Self-Messages (`fromMe`)
+
+By default, Home Assistant ignores messages that you send to yourself (i.e., messages where the sender is your own WhatsApp account). This is to prevent infinite loops where a bot might reply to its own message.
+
+If you want to use Home Assistant to react to commands you send to yourself (from your phone to your own "My account" chat), you can enable this in the **Integration Options**:
+
+1.  Go to **Settings** > **Devices & Services**.
+2.  Find the **WhatsApp** integration.
+3.  Click **Configure**.
+4.  Check **Allow Self-Messages**.
+
+When enabled, these messages will fire the same `whatsapp_message_received` event, but the `raw.key.fromMe` field will be `true`.

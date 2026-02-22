@@ -20,6 +20,7 @@ from .const import (
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     CONF_RETRY_ATTEMPTS,
+    CONF_SELF_MESSAGES,
     CONF_URL,
     CONF_WHITELIST,
     DEFAULT_PORT,
@@ -500,6 +501,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     CONF_WHITELIST,
                     default=self._config_entry.options.get(CONF_WHITELIST, ""),
                 ): str,
+                vol.Optional(
+                    CONF_SELF_MESSAGES,
+                    default=self._config_entry.options.get(CONF_SELF_MESSAGES, False),
+                ): bool,
                 vol.Optional("reset_session", default=False): bool,
             }
         )
