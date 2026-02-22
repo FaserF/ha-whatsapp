@@ -1,6 +1,9 @@
 """Test the HA WhatsApp diagnostics."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+from ha_stubs import _build_ha_stub_modules
+
+_build_ha_stub_modules()
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -19,7 +22,10 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("custom_components.whatsapp.diagnostics.async_redact_data") as mock_redact,
     ):
+        from ha_stubs import redact
+        mock_redact.side_effect = redact
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
@@ -32,6 +38,6 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
         result = await diagnostics.async_get_config_entry_diagnostics(hass, entry)
 
-        assert result["entry"]["data"]["api_key"] == "**REDACTED**"
+        assert result["entry"]["data"][CONF_API_KEY] == "**REDACTED**"
         assert result["entry"]["data"]["other"] == "ok"
         assert result["client_connected"] is True

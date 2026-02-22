@@ -404,7 +404,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         self.stats.update(data)
                         return self.stats
             except Exception as e:
-                _LOGGER.debug(f"Failed to fetch stats: {e}")
+                _LOGGER.debug("Failed to fetch stats: %s", e)
         return self.stats
 
     def register_callback(self, callback: Any) -> None:
@@ -430,7 +430,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Internal send message logic."""
         url = f"{self.host}/send_message"
         params = {"session_id": self.session_id}
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "message": message,
         }
@@ -527,7 +527,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "question": question,
             "options": options,
@@ -587,7 +587,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send image logic."""
         url = f"{self.host}/send_image"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "url": image_url,
             "caption": caption,
@@ -656,7 +656,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send document logic."""
         api_url = f"{self.host}/send_document"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "url": url,
             "fileName": file_name,
@@ -718,7 +718,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send video logic."""
         api_url = f"{self.host}/send_video"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "url": url,
             "caption": caption,
@@ -778,7 +778,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send audio logic."""
         api_url = f"{self.host}/send_audio"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "url": url,
             "ptt": ptt,

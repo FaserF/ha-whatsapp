@@ -31,17 +31,18 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.whatsapp.api import WhatsAppApiClient
-
+from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     CONF_WHITELIST,
+    CONF_SELF_MESSAGES,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
+from . import config_flow
 
 _LOGGER = getLogger(__name__)
 

@@ -1,6 +1,9 @@
 """Tests for multi-instance support of the WhatsApp integration."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
+from ha_stubs import _build_ha_stub_modules
+
+_build_ha_stub_modules()
 
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType

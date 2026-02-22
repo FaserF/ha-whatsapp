@@ -6,7 +6,7 @@ that represents the current WhatsApp session connectivity state.
 The sensor state is ``on`` (connected) or ``off`` (disconnected) and is
 updated by the :class:`~.coordinator.WhatsAppDataUpdateCoordinator` polling
 loop.  Additional diagnostic attributes (version, phone number, message
-counts) are exposed via :attrs:``extra_state_attributes``.
+counts) are exposed via :attr:``extra_state_attributes``.
 """
 
 from __future__ import annotations

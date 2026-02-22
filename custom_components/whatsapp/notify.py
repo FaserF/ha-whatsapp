@@ -187,7 +187,7 @@ class WhatsAppNotificationEntity(
                 errors.append((recipient, err))
 
         if errors:
-            raise Exception(
+            raise HomeAssistantError(
                 f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
                 f"{', '.join(r for r, _ in errors)}"
             )
@@ -206,111 +206,105 @@ class WhatsAppNotificationEntity(
         # Common quoted_message_id for text and media
         quoted = data.get("quote") or data.get("reply_to")
 
-        try:
-            if "poll" in data:
-                # Send poll: data: { poll: { question: "...", options: [...] } }
-                poll_data: dict[str, Any] = data["poll"]
-                question = poll_data.get("question", message)
-                options = poll_data.get("options", [])
-                await client.send_poll(
-                    recipient, question, options, quoted_message_id=quoted
-                )
+        if "poll" in data:
+            # Send poll: data: { poll: { question: "...", options: [...] } }
+            poll_data: dict[str, Any] = data["poll"]
+            question = poll_data.get("question", message)
+            options = poll_data.get("options", [])
+            await client.send_poll(
+                recipient, question, options, quoted_message_id=quoted
+            )
 
-            elif "location" in data:
-                # Send location: data: { location: { lat, lon, name, address } }
-                loc: dict[str, Any] = data["location"]
-                lat = loc.get("latitude")
-                lon = loc.get("longitude")
-                if lat is None or lon is None:
-                    _LOGGER.error(
-                        "Skipping location message to %s: latitude/longitude missing",
-                        recipient,
-                    )
-                    return
-                try:
-                    lat_f = float(lat)
-                    lon_f = float(lon)
-                except (ValueError, TypeError) as err:
-                    _LOGGER.error(
-                        "Skipping location message to %s: "
-                        "invalid coordinates (%s, %s): %s",
-                        recipient,
-                        lat,
-                        lon,
-                        err,
-                    )
-                    return
-
-                await client.send_location(
+        elif "location" in data:
+            # Send location: data: { location: { lat, lon, name, address } }
+            loc: dict[str, Any] = data["location"]
+            lat = loc.get("latitude")
+            lon = loc.get("longitude")
+            if lat is None or lon is None:
+                _LOGGER.error(
+                    "Skipping location message to %s: latitude/longitude missing",
                     recipient,
-                    lat_f,
-                    lon_f,
-                    loc.get("name"),
-                    loc.get("address"),
-                    quoted_message_id=quoted,
                 )
-            elif "reaction" in data:
-                # Send reaction: data: { reaction: "...", message_id: "..." }
-                react = data["reaction"]
-                # If reaction is provided as a simple string, use it
-                reaction = react if isinstance(react, str) else react.get("reaction")
-                msg_id = (
-                    react.get("message_id")
-                    if isinstance(react, dict)
-                    else data.get("message_id")
+                return
+            try:
+                lat_f = float(lat)
+                lon_f = float(lon)
+            except (ValueError, TypeError) as err:
+                _LOGGER.error(
+                    "Skipping location message to %s: invalid coordinates (%s, %s): %s",
+                    recipient,
+                    lat,
+                    lon,
+                    err,
                 )
-                if reaction and msg_id:
-                    await client.send_reaction(recipient, reaction, msg_id)
-            elif "image" in data:
-                # Send image: data: { image: "..." }
-                image_url = data["image"]
-                await client.send_image(
-                    recipient, image_url, message, quoted_message_id=quoted
+                return
+
+            await client.send_location(
+                recipient,
+                lat_f,
+                lon_f,
+                loc.get("name"),
+                loc.get("address"),
+                quoted_message_id=quoted,
+            )
+        elif "reaction" in data:
+            # Send reaction: data: { reaction: "...", message_id: "..." }
+            react = data["reaction"]
+            # If reaction is provided as a simple string, use it
+            reaction = react if isinstance(react, str) else react.get("reaction")
+            msg_id = (
+                react.get("message_id")
+                if isinstance(react, dict)
+                else data.get("message_id")
+            )
+            if reaction and msg_id:
+                await client.send_reaction(recipient, reaction, msg_id)
+        elif "image" in data:
+            # Send image: data: { image: "..." }
+            image_url = data["image"]
+            await client.send_image(
+                recipient, image_url, message, quoted_message_id=quoted
+            )
+        elif "buttons" in data or "inline_keyboard" in data:
+            # Send buttons: data: { buttons: [...], footer: "..." }
+            # OR Telegram-style:
+            # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
+            buttons: list[dict[str, str]] | None = data.get("buttons")
+            if not buttons and "inline_keyboard" in data:
+                # Map Telegram-style to WhatsApp style
+                buttons = []
+                for row in data["inline_keyboard"]:
+                    for btn in row:
+                        buttons.append(
+                            {
+                                "id": btn.get("callback_data", btn.get("url", "")),
+                                "displayText": btn.get("text", ""),
+                            }
+                        )
+            footer = data.get("footer")
+            if buttons:
+                await client.send_buttons(
+                    recipient, message, buttons, footer, quoted_message_id=quoted
                 )
-            elif "buttons" in data or "inline_keyboard" in data:
-                # Send buttons: data: { buttons: [...], footer: "..." }
-                # OR Telegram-style:
-                # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
-                buttons: list[dict[str, str]] | None = data.get("buttons")
-                if not buttons and "inline_keyboard" in data:
-                    # Map Telegram-style to WhatsApp style
-                    buttons = []
-                    for row in data["inline_keyboard"]:
-                        for btn in row:
-                            buttons.append(
-                                {
-                                    "id": btn.get("callback_data", btn.get("url", "")),
-                                    "displayText": btn.get("text", ""),
-                                }
-                            )
-                footer = data.get("footer")
-                if buttons:
-                    await client.send_buttons(
-                        recipient, message, buttons, footer, quoted_message_id=quoted
-                    )
-            elif "document" in data:
-                # Send document: data: { document: "http://..." }
-                url = data["document"]
-                file_name = data.get("file_name")
-                await client.send_document(
-                    recipient, url, file_name, message, quoted_message_id=quoted
-                )
-            elif "video" in data:
-                # Send video: data: { video: "http://..." }
-                url = data["video"]
-                await client.send_video(
-                    recipient, url, message, quoted_message_id=quoted
-                )
-            elif "audio" in data:
-                # Send audio: data: { audio: "http://..." }
-                url = data["audio"]
-                ptt = data.get("ptt", False)
-                await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
-            else:
-                # Default text message
-                await client.send_message(recipient, message, quoted_message_id=quoted)
-        except Exception as err:
-            _LOGGER.error("Error sending WhatsApp message to %s: %s", recipient, err)
+        elif "document" in data:
+            # Send document: data: { document: "http://..." }
+            url = data["document"]
+            file_name = data.get("file_name")
+            await client.send_document(
+                recipient, url, file_name, message, quoted_message_id=quoted
+            )
+        elif "video" in data:
+            # Send video: data: { video: "http://..." }
+            url = data["video"]
+            await client.send_video(recipient, url, message, quoted_message_id=quoted)
+        elif "audio" in data:
+            # Send audio: data: { audio: "http://..." }
+            url = data["audio"]
+            ptt = data.get("ptt", False)
+            await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
+        else:
+            # Default text message
+            await client.send_message(recipient, message, quoted_message_id=quoted)
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
@@ -372,7 +366,7 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
                 errors.append((target, err))
 
         if errors:
-            raise Exception(
+            raise HomeAssistantError(
                 f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
                 f"{', '.join(r for r, _ in errors)}"
             )

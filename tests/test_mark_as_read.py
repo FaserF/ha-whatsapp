@@ -2,6 +2,9 @@
 
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
+from ha_stubs import _build_ha_stub_modules
+
+_build_ha_stub_modules()
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry

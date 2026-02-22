@@ -20,6 +20,8 @@ import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
+
 from .const import DOMAIN
 
 
@@ -64,9 +66,9 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
         """
         if user_input is not None:
             # Clear the issue
-            from homeassistant.helpers import issue_registry as ir
-            issue_reg = ir.async_get(self.hass)
-            issue_reg.async_delete_issue(DOMAIN, self.issue_id)
+            if self.issue_id:
+                issue_reg = ir.async_get(self.hass)
+                issue_reg.async_delete_issue(DOMAIN, self.issue_id)
             return self.async_create_entry(title="", data={})
 
         return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}))

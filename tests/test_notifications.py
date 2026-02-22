@@ -1,116 +1,18 @@
 from __future__ import annotations
 
-import sys
-import types
-from collections.abc import Generator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-
-def _build_ha_stub_modules() -> None:
-    """Create lightweight stub modules so `import homeassistant.*` works."""
-
-    def _stub(name, **kwargs):
-        mod = types.ModuleType(name)
-        for k, v in kwargs.items():
-            setattr(mod, k, v)
-        sys.modules[name] = mod
-        return mod
-
-    # homeassistant.exceptions
-    class HomeAssistantError(Exception):
-        """Stub."""
-    class ServiceValidationError(HomeAssistantError):
-        """Stub."""
-    _stub("homeassistant.exceptions", HomeAssistantError=HomeAssistantError, ServiceValidationError=ServiceValidationError)
-
-    # homeassistant.core
-    class ServiceCall:
-        """Stub."""
-        def __init__(self, domain, service, data=None, context=None):
-            self.domain = domain
-            self.service = service
-            self.data = data or {}
-    _stub("homeassistant.core", HomeAssistant=object, callback=lambda f: f, ServiceCall=ServiceCall)
-
-    # homeassistant.const
-    class Platform:
-        """Stub."""
-        BINARY_SENSOR = "binary_sensor"
-        NOTIFY = "notify"
-        SENSOR = "sensor"
-    _stub("homeassistant.const", CONF_URL="url", CONF_API_KEY="api_key", Platform=Platform)
-
-    # homeassistant.helpers.update_coordinator
-    class _GenericBase:
-        def __class_getitem__(cls, item): return cls
-    class CoordinatorEntity(_GenericBase):
-        def __init__(self, coordinator): self.coordinator = coordinator
-    class DataUpdateCoordinator(_GenericBase):
-        def __init__(self, *args, **kwargs): pass
-    _stub("homeassistant.helpers.update_coordinator", DataUpdateCoordinator=DataUpdateCoordinator, CoordinatorEntity=CoordinatorEntity, UpdateFailed=Exception)
-
-    # homeassistant.helpers.config_validation
-    _stub("homeassistant.helpers.config_validation", string=str, ensure_list=list)
-
-    # homeassistant.helpers.entity_registry
-    _stub("homeassistant.helpers.entity_registry", async_get=MagicMock(), async_entries_for_config_entry=MagicMock())
-
-    # homeassistant.helpers.issue_registry
-    _stub("homeassistant.helpers.issue_registry", async_get=MagicMock(), IssueSeverity=MagicMock())
-
-    # homeassistant.helpers.entity_platform
-    _stub("homeassistant.helpers.entity_platform", AddEntitiesCallback=object)
-
-    # homeassistant.helpers.typing
-    _stub("homeassistant.helpers.typing", ConfigType=dict, DiscoveryInfoType=dict)
-
-    # homeassistant.components.notify
-    _stub("homeassistant.components.notify", ATTR_DATA="data", ATTR_MESSAGE="message", ATTR_TARGET="target", BaseNotificationService=object, NotifyEntity=object)
-
-    # homeassistant.data_entry_flow
-    class FlowResultType:
-        FORM = "form"
-        ABORT = "abort"
-    _stub("homeassistant.data_entry_flow", FlowResultType=FlowResultType)
-
-    # homeassistant.config_entries
-    _stub("homeassistant.config_entries", ConfigEntry=object)
-
-    # voluptuous
-    vol_mod = _stub("voluptuous")
-    vol_mod.Schema = lambda s, **_: s
-    vol_mod.Optional = lambda *a, **_: a[0]
-    vol_mod.Required = lambda *a, **_: a[0]
-    vol_mod.Marker = object
-
-    # Ensure parents exist and have children attributes
-    ha = _stub("homeassistant")
-    ha.core = sys.modules["homeassistant.core"]
-    ha.exceptions = sys.modules["homeassistant.exceptions"]
-    ha.const = sys.modules["homeassistant.const"]
-    helpers = _stub("homeassistant.helpers")
-    ha.helpers = helpers
-    helpers.update_coordinator = sys.modules["homeassistant.helpers.update_coordinator"]
-    helpers.config_validation = sys.modules["homeassistant.helpers.config_validation"]
-    helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]
-    helpers.issue_registry = sys.modules["homeassistant.helpers.issue_registry"]
-    helpers.entity_platform = sys.modules["homeassistant.helpers.entity_platform"]
-    helpers.typing = sys.modules["homeassistant.helpers.typing"]
-    components = _stub("homeassistant.components")
-    ha.components = components
-    components.notify = sys.modules["homeassistant.components.notify"]
-
+from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
 
-async def test_connection_lost_notification() -> None:
-    """Test that a notification is created on connection loss."""
-    hass = MagicMock()
+async def test_connection_lost_notification(data: dict[str, Any]) -> None:
+    """Test the connection lost notification logic."""
 
     from homeassistant.helpers import issue_registry as ir
+
     issue_registry = MagicMock()
     ir.async_get.return_value = issue_registry
 
@@ -118,28 +20,28 @@ async def test_connection_lost_notification() -> None:
 
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
-        mock_instance.connect = AsyncMock(side_effect=HomeAssistantError("Connection Failed"))
+        mock_instance.connect = AsyncMock(
+            side_effect=HomeAssistantError("Connection Failed")
+        )
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
-
-        # Setup entry (mocked)
-        coordinator = MagicMock()
-        coordinator.async_refresh = AsyncMock()
-        data = {"coordinator": coordinator}
-        hass.data = {DOMAIN: {"test_entry": data}}
 
         # In a real setup, async_setup_entry would create the issue
         # We test the logic by calling a coordinator update that fails
         await data["coordinator"].async_refresh()
 
-        # Verify issue creation was called (in actual code this happens in coordinator)
-        # For this test to work simply, we assume the coordinator logic is tested elsewhere
-        # or we mock the coordinator's failed update.
+        # Verify issue creation was called
+        # In this integration, the coordinator handles the error and async_setup_entry creates the issue
+        # We need to make sure ir.async_create_issue was called.
+        # Since we use the shared stub, ir.async_create_issue is a MagicMock.
+        ir.async_create_issue.assert_called()
+
 
 async def test_whatsapp_notification_entity() -> None:
     """Test the WhatsApp notification entity."""
     hass = MagicMock()
 
     from homeassistant.helpers import entity_registry as er
+
     registry = MagicMock()
     er.async_get.return_value = registry
 
@@ -155,6 +57,7 @@ async def test_whatsapp_notification_entity() -> None:
 
         # Instantiate Entity
         from custom_components.whatsapp.notify import WhatsAppNotificationEntity
+
         entity = WhatsAppNotificationEntity(mock_instance, MagicMock(), MagicMock())
 
         # Call the send_message
@@ -164,5 +67,3 @@ async def test_whatsapp_notification_entity() -> None:
         mock_instance.send_message.assert_awaited_with(
             "555", "Hello", quoted_message_id=None
         )
-
-from custom_components.whatsapp.const import DOMAIN
