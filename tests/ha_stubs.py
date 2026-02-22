@@ -176,8 +176,7 @@ def _stub(name, **kwargs):
 stub = _stub
 
 
-def mock_add_entities(entities, update_before_add=False):  # noqa: ARG001
-    hass = sys.modules.get("conftest_hass")
+def mock_add_entities(hass, entities, update_before_add=False):  # noqa: ARG001
     for entity in entities:
         entity.hass = hass
         if not entity.entity_id:

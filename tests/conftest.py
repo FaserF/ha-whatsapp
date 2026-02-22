@@ -89,7 +89,7 @@ def hass(mock_client):
         for platform in platforms:
             try:
                 mod = importlib.import_module(f"custom_components.whatsapp.{platform}")
-                await mod.async_setup_entry(hass, entry, ha_stubs.mock_add_entities)
+                await mod.async_setup_entry(hass, entry, lambda entities, update_before_add=False: ha_stubs.mock_add_entities(hass, entities, update_before_add))
             except Exception as e:
                 logging.getLogger(__name__).debug("Error setup platform %s: %s", platform, e)  # noqa: E501
 
