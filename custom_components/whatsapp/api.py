@@ -1,3 +1,27 @@
+"""HTTP client for the HA WhatsApp addon REST API.
+
+This module provides :class:`WhatsAppApiClient`, an ``aiohttp``-based client
+that communicates with the WhatsApp addon over its HTTP REST API.  Every
+public method maps to one (or more) addon endpoints and follows the same
+pattern:
+
+1. Validate whether the target is on the whitelist.
+2. Normalise the target to a valid WhatsApp JID via :meth:`ensure_jid`.
+3. Delegate to a private ``*_internal`` helper that performs the actual
+   HTTP request.
+4. Retry on transient failures via :meth:`_send_with_retry`.
+
+The client also manages an event-polling loop that calls a registered
+callback whenever new messages arrive from the addon.
+
+Example usage::
+
+    client = WhatsAppApiClient(host="http://localhost:8066", api_key="secret")
+    await client.start_polling(interval=5)
+    await client.send_message("491234567890", "Hello from HA!")
+    await client.close()
+"""
+
 import asyncio
 import contextlib
 import json
@@ -10,7 +34,35 @@ from homeassistant.exceptions import HomeAssistantError
 _LOGGER = logging.getLogger(__name__)
 
 
-class WhatsAppApiClient:
+class WhatsAppAuthError(HomeAssistantError):  # type: ignore[misc]
+    """Raised when the API key is invalid."""
+
+
+class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intentional
+    """Async HTTP client for the HA WhatsApp addon.
+
+    This client wraps every HTTP endpoint exposed by the WhatsApp addon
+    and provides a Pythonic interface for Home Assistant integrations.
+
+    Attributes:
+        host (str): Base URL of the addon, e.g. ``http://localhost:8066``.
+        api_key (str | None): Optional API key sent in the
+            ``X-Auth-Token`` header.
+        session_id (str): Identifier of the WhatsApp session managed by the
+            addon.  Defaults to ``"default"``.
+        mask_sensitive_data (bool): When ``True``, phone numbers and message
+            contents are partially masked in log output.
+        whitelist (list[str]): Phone numbers / JIDs that are allowed to
+            receive messages.  An empty list disables filtering.
+        retry_attempts (int): Number of *extra* attempts after the first
+            failure (0 = no retry).
+        stats (dict[str, Any]): Running statistics updated after every
+            send/receive operation.  Keys: ``sent``, ``received``,
+            ``failed``, ``last_sent_message``, ``last_sent_target``,
+            ``last_failed_message``, ``last_failed_target``,
+            ``last_error_reason``, ``uptime``, ``version``, ``my_number``.
+    """
+
     def __init__(
         self,
         host: str,
@@ -88,7 +140,10 @@ class WhatsAppApiClient:
                 if clean_allowed and target_jid.split("@")[0] == clean_allowed:
                     return True
 
-        _LOGGER.info("Blocking outgoing message to non-whitelisted target: %s", target)
+        _LOGGER.info(
+            "Blocking outgoing message to non-whitelisted target: %s",
+            self.mask(target),
+        )
         return False
 
     def ensure_jid(self, target: str | None) -> str | None:
@@ -127,13 +182,17 @@ class WhatsAppApiClient:
         # Default: treat as phone number
         return f"{clean_number}@s.whatsapp.net"
 
-    def _mask(self, text: str) -> str:
+    def mask(self, text: str) -> str:
         """Mask sensitive data if enabled."""
         if not self.mask_sensitive_data or not text:
             return text
         if len(text) <= 4:
             return "****"
         return f"{text[:3]}****{text[-2:]}"
+
+    def _mask(self, text: str) -> str:
+        """Deprecated: use mask()."""
+        return self.mask(text)
 
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
@@ -345,27 +404,38 @@ class WhatsAppApiClient:
                         self.stats.update(data)
                         return self.stats
             except Exception as e:
-                _LOGGER.debug(f"Failed to fetch stats: {e}")
+                _LOGGER.debug("Failed to fetch stats: %s", e)
         return self.stats
 
     def register_callback(self, callback: Any) -> None:
         """Register a callback."""
         self._callback = callback
 
-    async def send_message(self, number: str, message: str) -> None:
+    async def send_message(
+        self, number: str, message: str, quoted_message_id: str | None = None
+    ) -> None:
         """Send message via Addon (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(self._send_message_internal, target_jid, message)
+        await self._send_with_retry(
+            self._send_message_internal, target_jid, message, quoted_message_id
+        )
 
-    async def _send_message_internal(self, number: str, message: str) -> None:
+    async def _send_message_internal(
+        self, number: str, message: str, quoted_message_id: str | None = None
+    ) -> None:
         """Internal send message logic."""
         url = f"{self.host}/send_message"
         params = {"session_id": self.session_id}
-        payload = {"number": number, "message": message}
+        payload: dict[str, Any] = {
+            "number": number,
+            "message": message,
+        }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -379,13 +449,12 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
                 self.stats["last_failed_message"] = message
-                self.stats["last_failed_target"] = number
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send: {error_msg}")
@@ -401,6 +470,8 @@ class WhatsAppApiClient:
         for attempt in range(self.retry_attempts + 1):
             try:
                 return await func(*args, **kwargs)
+            except WhatsAppAuthError:
+                raise
             except Exception as e:
                 last_error = e
                 if attempt < self.retry_attempts:
@@ -430,7 +501,13 @@ class WhatsAppApiClient:
             await self._session.close()
         await self.stop_polling()
 
-    async def send_poll(self, number: str, question: str, options: list[str]) -> None:
+    async def send_poll(
+        self,
+        number: str,
+        question: str,
+        options: list[str],
+        quoted_message_id: str | None = None,
+    ) -> None:
         """Send a poll (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
@@ -438,15 +515,25 @@ class WhatsAppApiClient:
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_poll_internal, target_jid, question, options
+            self._send_poll_internal, target_jid, question, options, quoted_message_id
         )
 
     async def _send_poll_internal(
-        self, number: str, question: str, options: list[str]
+        self,
+        number: str,
+        question: str,
+        options: list[str],
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
-        payload = {"number": number, "question": question, "options": options}
+        payload: dict[str, Any] = {
+            "number": number,
+            "question": question,
+            "options": options,
+        }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -460,7 +547,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -475,7 +562,11 @@ class WhatsAppApiClient:
             self.stats["last_sent_target"] = number
 
     async def send_image(
-        self, number: str, image_url: str, caption: str | None = None
+        self,
+        number: str,
+        image_url: str,
+        caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send an image (with retry)."""
         if not self.is_allowed(number):
@@ -484,15 +575,25 @@ class WhatsAppApiClient:
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_image_internal, target_jid, image_url, caption
+            self._send_image_internal, target_jid, image_url, caption, quoted_message_id
         )
 
     async def _send_image_internal(
-        self, number: str, image_url: str, caption: str | None = None
+        self,
+        number: str,
+        image_url: str,
+        caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send image logic."""
         url = f"{self.host}/send_image"
-        payload = {"number": number, "url": image_url, "caption": caption}
+        payload: dict[str, Any] = {
+            "number": number,
+            "url": image_url,
+            "caption": caption,
+        }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -506,7 +607,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -528,6 +629,7 @@ class WhatsAppApiClient:
         url: str,
         file_name: str | None = None,
         caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send a document (with retry)."""
         if not self.is_allowed(number):
@@ -536,7 +638,12 @@ class WhatsAppApiClient:
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_document_internal, target_jid, url, file_name, caption
+            self._send_document_internal,
+            target_jid,
+            url,
+            file_name,
+            caption,
+            quoted_message_id,
         )
 
     async def _send_document_internal(
@@ -545,15 +652,18 @@ class WhatsAppApiClient:
         url: str,
         file_name: str | None = None,
         caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send document logic."""
         api_url = f"{self.host}/send_document"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "url": url,
             "fileName": file_name,
             "caption": caption,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -567,7 +677,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -587,6 +697,7 @@ class WhatsAppApiClient:
         number: str,
         url: str,
         caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send a video (with retry)."""
         if not self.is_allowed(number):
@@ -594,17 +705,26 @@ class WhatsAppApiClient:
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(self._send_video_internal, target_jid, url, caption)
+        await self._send_with_retry(
+            self._send_video_internal, target_jid, url, caption, quoted_message_id
+        )
 
     async def _send_video_internal(
         self,
         number: str,
         url: str,
         caption: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send video logic."""
         api_url = f"{self.host}/send_video"
-        payload = {"number": number, "url": url, "caption": caption}
+        payload: dict[str, Any] = {
+            "number": number,
+            "url": url,
+            "caption": caption,
+        }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -618,7 +738,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -637,6 +757,7 @@ class WhatsAppApiClient:
         number: str,
         url: str,
         ptt: bool = False,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send audio (with retry)."""
         if not self.is_allowed(number):
@@ -644,17 +765,26 @@ class WhatsAppApiClient:
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(self._send_audio_internal, target_jid, url, ptt)
+        await self._send_with_retry(
+            self._send_audio_internal, target_jid, url, ptt, quoted_message_id
+        )
 
     async def _send_audio_internal(
         self,
         number: str,
         url: str,
         ptt: bool = False,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send audio logic."""
         api_url = f"{self.host}/send_audio"
-        payload = {"number": number, "url": url, "ptt": ptt}
+        payload: dict[str, Any] = {
+            "number": number,
+            "url": url,
+            "ptt": ptt,
+        }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -668,7 +798,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -718,7 +848,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -766,7 +896,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -779,6 +909,7 @@ class WhatsAppApiClient:
         longitude: float,
         name: str | None = None,
         address: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send a location (with retry)."""
         if not self.is_allowed(number):
@@ -793,6 +924,7 @@ class WhatsAppApiClient:
             longitude,
             name,
             address,
+            quoted_message_id,
         )
 
     async def _send_location_internal(
@@ -802,6 +934,7 @@ class WhatsAppApiClient:
         longitude: float,
         name: str | None = None,
         address: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send location logic."""
         url = f"{self.host}/send_location"
@@ -812,6 +945,8 @@ class WhatsAppApiClient:
             "title": name,
             "description": address,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -825,7 +960,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text = await resp.text()
                 error_msg = self._extract_error(text)
@@ -839,7 +974,12 @@ class WhatsAppApiClient:
             self.stats["last_sent_message"] = f"Location: {name or 'Pinned'}"
             self.stats["last_sent_target"] = number
 
-    async def send_reaction(self, number: str, text: str, message_id: str) -> None:
+    async def send_reaction(
+        self,
+        number: str,
+        text: str,
+        message_id: str,
+    ) -> None:
         """Send a reaction to a specific message (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
@@ -868,7 +1008,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise Exception("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)
@@ -956,7 +1096,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 error_msg = self._extract_error(resp_text)
@@ -1012,7 +1152,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 resp_text = await resp.text()
                 error_msg = self._extract_error(resp_text)
@@ -1059,6 +1199,7 @@ class WhatsAppApiClient:
         text: str,
         buttons: list[dict[str, str]],
         footer: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Send a message with buttons (with retry)."""
         if not self.is_allowed(number):
@@ -1067,7 +1208,12 @@ class WhatsAppApiClient:
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_buttons_internal, target_jid, text, buttons, footer
+            self._send_buttons_internal,
+            target_jid,
+            text,
+            buttons,
+            footer,
+            quoted_message_id,
         )
 
     async def _send_buttons_internal(
@@ -1076,6 +1222,7 @@ class WhatsAppApiClient:
         text: str,
         buttons: list[dict[str, str]],
         footer: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> None:
         """Internal send buttons logic."""
         url = f"{self.host}/send_buttons"
@@ -1085,6 +1232,8 @@ class WhatsAppApiClient:
             "buttons": buttons,
             "footer": footer,
         }
+        if quoted_message_id is not None:
+            payload["quotedMessageId"] = quoted_message_id
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,
@@ -1097,7 +1246,7 @@ class WhatsAppApiClient:
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key")
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)

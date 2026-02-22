@@ -1,4 +1,17 @@
-"""DataUpdateCoordinator for HA WhatsApp."""
+"""DataUpdateCoordinator for HA WhatsApp.
+
+This module defines :class:`WhatsAppDataUpdateCoordinator`, the central
+poll-based coordinator that drives the periodic refresh of integration data
+(connection status, statistics) from the WhatsApp addon.
+
+The coordinator is responsible for:
+
+* Checking whether the WhatsApp session is still connected.
+* Creating / deleting Home Assistant issues (repairs) based on the session
+  and connectivity state.
+* Fetching aggregated statistics (messages sent/received/failed, uptime …)
+  that are exposed through sensor and binary-sensor entities.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +32,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # type: ignore[misc]
-    """Class to manage fetching data from the WhatsApp API."""
+    """Coordinator that periodically polls the WhatsApp addon for status and stats.
+
+    Inherits from
+    :class:`homeassistant.helpers.update_coordinator.DataUpdateCoordinator`
+    and wraps a :class:`~.api.WhatsAppApiClient`.  All platform entities
+    (binary sensor, sensors) subscribe to this coordinator and are updated
+    automatically whenever new data is fetched.
+    """
 
     def __init__(
         self,
@@ -27,7 +47,16 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         client: WhatsAppApiClient,
         entry: ConfigEntry,
     ) -> None:
-        """Initialize."""
+        """Initialise the coordinator.
+
+        Args:
+            hass: The Home Assistant instance.
+            client: A fully initialised :class:`~.api.WhatsAppApiClient`
+                that will be used for API communication.
+            entry: The config entry this coordinator belongs to.  The
+                :attr:`~homeassistant.config_entries.ConfigEntry.options`
+                dictionary is queried for ``polling_interval``.
+        """
         self.client = client
         self.entry = entry
 
@@ -41,7 +70,29 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         )
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Update data via library."""
+        """Fetch fresh data from the WhatsApp addon.
+
+        Calls :meth:`~.api.WhatsAppApiClient.connect` to verify the session
+        state and :meth:`~.api.WhatsAppApiClient.get_stats` to retrieve
+        message statistics.  Home Assistant *repair issues* are created or
+        deleted depending on the outcome:
+
+        * ``session_expired`` – Created when the addon responds but the
+          WhatsApp session is no longer authenticated.  Deleted once the
+          session comes back.
+        * ``connection_failed`` – Created when the addon cannot be reached
+          or returns an auth error.  Deleted on a successful round-trip.
+
+        Returns:
+            A dict with two keys:
+            ``connected`` (bool) – Whether the WhatsApp session is active.
+            ``stats`` (dict) – Statistics as returned by
+            :meth:`~.api.WhatsAppApiClient.get_stats`.
+
+        Raises:
+            UpdateFailed: When a :class:`~homeassistant.exceptions.HomeAssistantError`
+                or unexpected exception is raised by the API client.
+        """
 
         try:
             connected = await self.client.connect()

@@ -1,17 +1,25 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+from ha_stubs import _build_ha_stub_modules
 
-from custom_components.whatsapp.const import (
-    CONF_API_KEY,
-    CONF_MARK_AS_READ,
-    CONF_POLLING_INTERVAL,
-    CONF_RETRY_ATTEMPTS,
-    CONF_URL,
-    DOMAIN,
-)
+_build_ha_stub_modules()
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.whatsapp.const import (
+    CONF_API_KEY,
+    CONF_DEBUG_PAYLOADS,
+    CONF_MARK_AS_READ,
+    CONF_MASK_SENSITIVE_DATA,
+    CONF_POLLING_INTERVAL,
+    CONF_RETRY_ATTEMPTS,
+    CONF_SESSION_ID,
+    CONF_URL,
+    CONF_WHITELIST,
+    DOMAIN,
+)
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -58,7 +66,7 @@ async def test_form(hass: HomeAssistant) -> None:
         # Submit user step
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {"host": "http://localhost:8066", "api_key": "123"},
+            {CONF_URL: "http://localhost:8066", CONF_API_KEY: "123"},
         )
         # After user step, we go to scan step
         assert result2["type"] == FlowResultType.FORM
@@ -74,9 +82,9 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result3["type"] == FlowResultType.CREATE_ENTRY
     assert result3["title"] == "WhatsApp"
     # The config flow now generates a session_id
-    assert result3["data"]["session_id"]
+    assert result3["data"][CONF_SESSION_ID]
     assert result3["data"][CONF_URL] == "http://localhost:8066"
-    assert result3["data"]["api_key"] == "123"
+    assert result3["data"][CONF_API_KEY] == "123"
     assert len(mock_setup_entry.mock_calls) == 1
 
 
@@ -87,7 +95,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         version=1,
         domain=DOMAIN,
         title="WhatsApp",
-        data={"session": "mock", CONF_API_KEY: "mock_key"},
+        data={CONF_SESSION_ID: "mock", CONF_API_KEY: "mock_key"},
         source="user",
         options={},
         unique_id="1234",
@@ -103,14 +111,14 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 
     result2 = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        user_input={"debug_payloads": True},
+        user_input={CONF_DEBUG_PAYLOADS: True},
     )
     assert result2["type"] == FlowResultType.CREATE_ENTRY
     assert result2["data"] == {
-        "debug_payloads": True,
+        CONF_DEBUG_PAYLOADS: True,
         CONF_POLLING_INTERVAL: 5,
-        "mask_sensitive_data": False,
+        CONF_MASK_SENSITIVE_DATA: False,
         CONF_MARK_AS_READ: True,
         CONF_RETRY_ATTEMPTS: 2,
-        "whitelist": "",
+        CONF_WHITELIST: "",
     }

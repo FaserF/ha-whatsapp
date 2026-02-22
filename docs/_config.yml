@@ -1,6 +1,6 @@
 remote_theme: just-the-docs/just-the-docs
 
-title: WhatsApp for HA
+title: WhatsApp for Home Assistant
 description: "Advanced WhatsApp integration for Home Assistant"
 
 # Enable search
@@ -31,6 +31,7 @@ footer_content: "Maintained by <b>FaserF</b>. This project is not affiliated wit
 aux_links:
   "Integration GitHub": "https://github.com/FaserF/ha-whatsapp"
   "App GitHub": "https://github.com/FaserF/hassio-addons"
+  "❤️ Support": "/ha-whatsapp/support.html"
 
 # Theme customization
 brand_color: "#25D366" # WhatsApp Green

@@ -1,10 +1,26 @@
-"""Sensor platform for WhatsApp."""
+"""Sensor platform for HA WhatsApp.
+
+Provides the following sensor entities, all backed by the shared
+:class:`~.coordinator.WhatsAppDataUpdateCoordinator`:
+
+* :class:`WhatsAppStatSensor` – One entity per statistic key (``sent``,
+  ``received``, ``failed``).  Each reports a running integer count and
+  exposes detailed attributes such as the last message, target and
+  timestamp.
+* :class:`WhatsAppUptimeSensor` – Reports the addon's uptime in seconds.
+  Exposed as a diagnostic entity in the ``duration`` device class so that
+  Home Assistant can convert the value to a human-readable duration.
+"""
 
 from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -21,7 +37,21 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up WhatsApp sensors."""
+    """Set up WhatsApp sensor entities from a config entry.
+
+    Creates four sensor entities:
+
+    * ``sent`` – Number of messages successfully sent.
+    * ``received`` – Number of messages received.
+    * ``failed`` – Number of failed send attempts.
+    * ``uptime`` – Addon uptime in seconds.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: Config entry used to retrieve the coordinator from
+            ``hass.data``.
+        async_add_entities: Callback to register the new entities.
+    """
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
 
@@ -39,7 +69,15 @@ class WhatsAppStatSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     SensorEntity,  # type: ignore[misc]
 ):
-    """Representation of a WhatsApp statistic sensor."""
+    """Integer counter sensor for a single WhatsApp message statistic.
+
+    One instance is created for each of the three statistic keys:
+    ``sent``, ``received``, and ``failed``.
+
+    The :attr:`native_value` is the raw integer count.  Additional context
+    (last message content, target / sender, and timestamp) is exposed
+    through :attr:`extra_state_attributes`.
+    """
 
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
@@ -50,7 +88,14 @@ class WhatsAppStatSensor(
         entry: ConfigEntry,
         stat_key: str,
     ) -> None:
-        """Initialize the sensor."""
+        """Initialise the sensor.
+
+        Args:
+            coordinator: Shared data coordinator for this config entry.
+            entry: Config entry providing device-info identifiers.
+            stat_key: One of ``"sent"``, ``"received"``, or ``"failed"``.
+                Determines which statistic this sensor will report.
+        """
         super().__init__(coordinator)
         self._stat_key = stat_key
         self._attr_translation_key = stat_key
@@ -105,11 +150,20 @@ class WhatsAppUptimeSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     SensorEntity,  # type: ignore[misc]
 ):
-    """Representation of the WhatsApp uptime sensor."""
+    """Sensor that reports the WhatsApp addon's uptime in seconds.
+
+    Uses ``SensorDeviceClass.DURATION`` (``_attr_device_class = "duration"``)
+    with ``seconds`` as the unit of measurement, enabling Home Assistant to
+    display the value in a human-readable format (e.g. ``3 h 22 min``).
+
+    This entity is classified as a :attr:`EntityCategory.DIAGNOSTIC` sensor
+    so it is hidden from the default Lovelace entities card but still
+    accessible through the device page.
+    """
 
     _attr_has_entity_name = True
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_device_class = "duration"
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = "s"
 
     def __init__(
@@ -117,7 +171,12 @@ class WhatsAppUptimeSensor(
         coordinator: WhatsAppDataUpdateCoordinator,
         entry: ConfigEntry,
     ) -> None:
-        """Initialize the sensor."""
+        """Initialise the uptime sensor.
+
+        Args:
+            coordinator: Shared data coordinator for this config entry.
+            entry: Config entry providing device-info identifiers.
+        """
         super().__init__(coordinator)
         self._attr_translation_key = "uptime"
         self._attr_unique_id = f"{entry.entry_id}_uptime"

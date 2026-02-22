@@ -21,6 +21,30 @@ The WhatsApp Home Assistant App can be configured via the **Configuration** tab 
 | `ui_auth_enabled`      | boolean | `false`           | Enables Basic Authentication for the Web UI (Port 8066). Recommended if exposed to the internet.                                                                                                                                                              |
 | `ui_auth_password`     | string  | -                 | The password for the Web UI (Username is always `admin`).                                                                                                                                                                                                     |
 
+---
+
+## 🛠️ Integration Options
+
+These options are configured within Home Assistant via the **Configure** button on the WhatsApp integration card (**Settings > Devices & Services**).
+
+| Option                 | Type    | Default | Description                                                                                                                                         |
+| :--------------------- | :------ | :------ | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Mark as Read`         | boolean | `true`  | Automatically mark incoming messages as read on WhatsApp.                                                                                           |
+| `Allow Self-Messages`  | boolean | `false` | **(New)** If enabled, messages you send to yourself will trigger events. This allows you to trigger automations via "Note to Self".              |
+| `Polling Interval`     | int     | `5`     | Seconds between event checks.                                                                                                                       |
+| `Whitelist`            | string  | -       | Comma-separated list of allowed Numbers/Group IDs. If empty, all incoming messages are processed.                                                   |
+| `Mask Sensitive Data`  | boolean | `false` | Masks phone numbers in Home Assistant logs.                                                                                                         |
+| `Retry Attempts`       | int     | `2`     | How many times to retry sending a message on failure.                                                                                              |
+| `Debug Payload`        | boolean | `false` | Logs the full outgoing JSON payload for troubleshooting.                                                                                            |
+| `Reset Session`        | boolean | `false` | **(Caution)** Logging this instance out and deleting all Local Data from the Addon. Requires re-pairing.                                            |
+
+### Detailed: Allow Self-Messages
+
+By default, WhatsApp considers messages sent to yourself as "outgoing" (`fromMe: true`). Most bots ignore these to prevent loops. However, if you don't have a second phone number, you can use your own "Note to Self" chat to send commands to Home Assistant.
+
+> [!IMPORTANT]
+> When enabled, ensure your automations don't cause an infinite loop (e.g., an automation that reacts to any message by sending a message to yourself).
+
 ## Webhook Configuration
 
 Forward incoming messages to an external URL.

@@ -1,8 +1,27 @@
-"""The HA WhatsApp integration."""
+"""HA WhatsApp integration entry point.
+
+This module is the heart of the Home Assistant WhatsApp integration. It
+is responsible for:
+
+1. **Setup** (:func:`async_setup_entry`) – Reads the config entry, creates
+   a :class:`~.api.WhatsAppApiClient`, starts the WebSocket/polling loop,
+   registers HA services (``send_message``, ``send_image``, …), and spins
+   up the :class:`~.coordinator.WhatsAppDataUpdateCoordinator`.
+2. **Tear-down** (:func:`async_unload_entry`) – Cancels all background
+   tasks, closes the HTTP session, and unloads all platform entities.
+3. **Incoming-message handling** – Fires
+   :attr:`~.const.EVENT_MESSAGE_RECEIVED` Home Assistant events for every
+   message received from the addon, optionally marks them as read, and
+   applies whitelist filtering.
+4. **Service registration** – Binds ``whatsapp.send_message``,
+   ``whatsapp.send_image``, ``whatsapp.send_document``, … services to
+   the :class:`~.api.WhatsAppApiClient` methods so that automations can
+   call them directly.
+"""
 
 from __future__ import annotations
 
-import logging
+from logging import getLogger
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -18,18 +37,63 @@ from .const import (
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     CONF_WHITELIST,
+    CONF_SELF_MESSAGES,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
+from . import config_flow
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.SENSOR]
 
+_SERVICES = [
+    "send_message",
+    "send_poll",
+    "send_image",
+    "send_document",
+    "send_video",
+    "send_audio",
+    "revoke_message",
+    "edit_message",
+    "send_list",
+    "send_contact",
+    "configure_webhook",
+    "send_location",
+    "send_reaction",
+    "update_presence",
+    "send_buttons",
+    "search_groups",
+    "mark_as_read",
+]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up HA WhatsApp from a config entry."""
+    """Set up the WhatsApp integration from a config entry.
+
+    Called by Home Assistant when the integration is first loaded or when
+    the user completes the config flow. This function:
+
+    * Creates the :class:`~.api.WhatsAppApiClient` and starts the addon
+      polling loop.
+    * Creates and refreshes the
+      :class:`~.coordinator.WhatsAppDataUpdateCoordinator`.
+    * Forwards platform setup to ``binary_sensor``, ``sensor``, and
+      ``notify`` platforms.
+    * Registers all ``whatsapp.*`` services in the HA service registry.
+    * Sets up the incoming-message callback that fires HA events.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being loaded. Contains all configuration
+            values entered by the user (URL, API key, options …).
+
+    Returns:
+        ``True`` on success. Raises
+        :class:`~homeassistant.exceptions.ConfigEntryNotReady` if the
+        initial coordinator refresh fails.
+    """
 
     addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
     api_key = entry.data.get(CONF_API_KEY)
@@ -80,6 +144,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         data["sender_number"] = clean_sender
 
+        # Self-message filtering (fromMe)
+        # Default: Don't monitor 'fromMe' messages unless explicitly enabled in options
+        raw_msg = data.get("raw", {})
+        from_me = raw_msg.get("key", {}).get("fromMe", False)
+        if from_me and not entry.options.get(CONF_SELF_MESSAGES, False):
+            _LOGGER.debug(
+                "Ignoring self-message (fromMe) as it's disabled in configuration"
+            )
+            return
+
         # Whitelist filtering
         if whitelist is not None:
             # For groups, the raw data contains the group JID in remoteJid
@@ -89,10 +163,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             target = remote_id if is_group else full_sender
 
             if not client.is_allowed(target):
-                _LOGGER.info(
+                _LOGGER.debug(
                     "Ignoring incoming message from non-whitelisted %s: %s",
                     "group" if is_group else "sender",
-                    target,
+                    client.mask(target),
                 )
                 return
 
@@ -139,7 +213,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-# checking lines 141-176 replacement
 def get_client_for_account(
     hass: HomeAssistant, account: str | None
 ) -> WhatsAppApiClient:
@@ -171,9 +244,28 @@ def get_client_for_account(
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry and entry.unique_id == account:
             return client
-        # Fallback to title
+
+    # Fallback to title with ambiguity check
+    title_matches: list[tuple[str, WhatsAppApiClient]] = []
+    for entry_id, client in clients.items():
+        entry = hass.config_entries.async_get_entry(entry_id)
         if entry and entry.title == account:
-            return client
+            title_matches.append((entry_id, client))
+
+    if len(title_matches) > 1:
+        raise ServiceValidationError(
+            f"Multiple WhatsApp accounts found with title '{account}'. "
+            "Please disambiguate by using the entry ID or unique ID instead."
+        )
+
+    if len(title_matches) == 1:
+        _LOGGER.warning(
+            "Using title-based fallback for WhatsApp account '%s'. "
+            "Please update your automation to use the entry ID or unique ID "
+            "to avoid future collisions.",
+            account,
+        )
+        return title_matches[0][1]
 
     raise ServiceValidationError(f"WhatsApp account '{account}' not found")
 
@@ -189,16 +281,28 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         client = get_client_for_account(hass, account)
 
         service = call.service
-        data = {k: v for k, v in call.data.items() if k != "account"}
+        data: dict[str, Any] = {k: v for k, v in call.data.items() if k != "account"}
+
+        quoted = data.get("quote") or data.get("reply_to")
 
         if service == "send_message":
-            await client.send_message(data["target"], data["message"])
+            await client.send_message(
+                data["target"], data["message"], quoted_message_id=quoted
+            )
         elif service == "send_poll":
             await client.send_poll(
-                data["target"], data["question"], data.get("options", [])
+                data["target"],
+                data["question"],
+                data.get("options", []),
+                quoted_message_id=quoted,
             )
         elif service == "send_image":
-            await client.send_image(data["target"], data["url"], data.get("caption"))
+            await client.send_image(
+                data["target"],
+                data["url"],
+                data.get("caption"),
+                quoted_message_id=quoted,
+            )
         elif service == "send_location":
             await client.send_location(
                 data["target"],
@@ -206,6 +310,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 float(data["longitude"]),
                 data.get("name"),
                 data.get("address"),
+                quoted_message_id=quoted,
             )
         elif service == "send_reaction":
             await client.send_reaction(
@@ -213,12 +318,26 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_document":
             await client.send_document(
-                data["target"], data["url"], data.get("file_name"), data.get("message")
+                data["target"],
+                data["url"],
+                data.get("file_name"),
+                data.get("message"),
+                quoted_message_id=quoted,
             )
         elif service == "send_video":
-            await client.send_video(data["target"], data["url"], data.get("message"))
+            await client.send_video(
+                data["target"],
+                data["url"],
+                data.get("message"),
+                quoted_message_id=quoted,
+            )
         elif service == "send_audio":
-            await client.send_audio(data["target"], data["url"], data.get("ptt", False))
+            await client.send_audio(
+                data["target"],
+                data["url"],
+                data.get("ptt", False),
+                quoted_message_id=quoted,
+            )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
@@ -245,7 +364,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             await client.set_presence(data["target"], data["presence"])
         elif service == "send_buttons":
             await client.send_buttons(
-                data["target"], data["message"], data["buttons"], data.get("footer")
+                data["target"],
+                data["message"],
+                data["buttons"],
+                data.get("footer"),
+                quoted_message_id=quoted,
             )
         elif service == "mark_as_read":
             await client.mark_as_read(data["target"], data.get("message_id"))
@@ -296,239 +419,254 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 },
             )
 
-    # Define common schema with optional account
-    s_base: dict[Any, Any] = {vol.Optional("account"): cv.string}
+    # Define common schemas
+    s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}
+    s_quotable: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Optional("quote"): cv.string,
+        vol.Optional("reply_to"): cv.string,
+    }
 
+    msg_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(msg_schema),
     )
+
+    poll_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("question"): cv.string,
+        vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
+    }
     hass.services.async_register(
         DOMAIN,
         "send_poll",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("question"): cv.string,
-                vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
-            }
-        ),
+        schema=vol.Schema(poll_schema),
     )
+    image_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("caption"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_image",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("caption"): cv.string,
-            }
-        ),
+        schema=vol.Schema(image_schema),
     )
+    doc_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("file_name"): cv.string,
+        vol.Optional("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_document",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("file_name"): cv.string,
-                vol.Optional("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(doc_schema),
     )
+    video_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_video",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(video_schema),
     )
+    audio_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("url"): cv.string,
+        vol.Optional("ptt", default=False): cv.boolean,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_audio",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("url"): cv.string,
-                vol.Optional("ptt", default=False): cv.boolean,
-            }
-        ),
+        schema=vol.Schema(audio_schema),
     )
+    revoke_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "revoke_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(revoke_schema),
     )
+    edit_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("message_id"): cv.string,
+        vol.Required("message"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "edit_message",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("message_id"): cv.string,
-                vol.Required("message"): cv.string,
-            }
-        ),
+        schema=vol.Schema(edit_schema),
     )
+    list_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("sections"): cv.match_all,
+        vol.Optional("title"): cv.string,
+        vol.Optional("text"): cv.string,
+        vol.Optional("button_text"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_list",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("sections"): cv.match_all,
-                vol.Optional("title"): cv.string,
-                vol.Optional("text"): cv.string,
-                vol.Optional("button_text"): cv.string,
-            }
-        ),
+        schema=vol.Schema(list_schema),
     )
+    contact_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("name"): cv.string,
+        vol.Required("contact_number"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_contact",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("name"): cv.string,
-                vol.Required("contact_number"): cv.string,
-            }
-        ),
+        schema=vol.Schema(contact_schema),
     )
+    webhook_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("url"): cv.string,
+        vol.Optional("enabled", default=True): cv.boolean,
+        vol.Optional("token"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "configure_webhook",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("url"): cv.string,
-                vol.Optional("enabled", default=True): cv.boolean,
-                vol.Optional("token"): cv.string,
-            }
-        ),
+        schema=vol.Schema(webhook_schema),
     )
+    loc_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("latitude"): vol.Coerce(float),
+        vol.Required("longitude"): vol.Coerce(float),
+        vol.Optional("name"): cv.string,
+        vol.Optional("address"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_location",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("latitude"): vol.Coerce(float),
-                vol.Required("longitude"): vol.Coerce(float),
-                vol.Optional("name"): cv.string,
-                vol.Optional("address"): cv.string,
-            }
-        ),
+        schema=vol.Schema(loc_schema),
     )
+    react_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("reaction"): cv.string,
+        vol.Required("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_reaction",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("reaction"): cv.string,
-                vol.Required("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(react_schema),
     )
+    presence_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("presence"): vol.In(
+            ["available", "unavailable", "composing", "recording", "paused"]
+        ),
+    }
     hass.services.async_register(
         DOMAIN,
         "update_presence",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("presence"): vol.In(
-                    ["available", "unavailable", "composing", "recording", "paused"]
-                ),
-            }
-        ),
+        schema=vol.Schema(presence_schema),
     )
+    buttons_schema: dict[vol.Marker, Any] = {
+        **s_quotable,
+        vol.Required("target"): cv.string,
+        vol.Required("message"): cv.string,
+        vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
+        vol.Optional("footer"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "send_buttons",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Required("message"): cv.string,
-                vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
-                vol.Optional("footer"): cv.string,
-            }
-        ),
+        schema=vol.Schema(buttons_schema),
     )
+    search_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Optional("name_filter", default=""): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "search_groups",
         _handle_service,
-        schema=vol.Schema(
-            {**s_base, vol.Optional("name_filter", default=""): cv.string}
-        ),
+        schema=vol.Schema(search_schema),
     )
+    mark_as_read_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Optional("message_id"): cv.string,
+    }
     hass.services.async_register(
         DOMAIN,
         "mark_as_read",
         _handle_service,
-        schema=vol.Schema(
-            {
-                **s_base,
-                vol.Required("target"): cv.string,
-                vol.Optional("message_id"): cv.string,
-            }
-        ),
+        schema=vol.Schema(mark_as_read_schema),
     )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload the WhatsApp integration config entry.
+
+    Called by Home Assistant when the user removes the integration or
+    when HA shuts down.  This function:
+
+    * Cancels the polling task and closes the HTTP session.
+    * Unloads all platform entities (binary sensor, sensor, notify).
+    * Removes all ``whatsapp.*`` services from the service registry.
+    * Cleans up ``hass.data`` entries for the removed config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being unloaded.
+
+    Returns:
+        ``True`` if unloading succeeded, ``False`` otherwise.
+    """
     data = hass.data[DOMAIN][entry.entry_id]
     client: WhatsAppApiClient = data["client"]
     await client.close()
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
+
+    # If this was the last entry, remove global services
+    if not hass.data[DOMAIN]:
+        for service in _SERVICES:
+            if hass.services.has_service(DOMAIN, service):
+                hass.services.async_remove(DOMAIN, service)
+        hass.data.pop(DOMAIN)
 
     return bool(unload_ok)
 
