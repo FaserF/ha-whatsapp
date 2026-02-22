@@ -53,9 +53,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
     service_handlers: dict[tuple[str, str], Any] = {}
     states: dict[str, MagicMock] = {}
 
-    def async_register(
-        domain: str, service: str, handler: Any, **_kwargs: Any
-    ) -> None:
+    def async_register(domain: str, service: str, handler: Any, **_kwargs: Any) -> None:
         service_handlers[(domain, service)] = handler
 
     async def async_call(
@@ -149,9 +147,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
             flow_id = "reauth_flow"
         return {"type": "form", "flow_id": flow_id, "step_id": "user"}
 
-    async def async_configure(
-        flow_id: str, user_input: Any = None
-    ) -> dict[str, Any]:
+    async def async_configure(flow_id: str, user_input: Any = None) -> dict[str, Any]:
         if flow_id not in flow_steps:
             flow_steps[flow_id] = 0
         flow_steps[flow_id] += 1
@@ -199,7 +195,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
             if isinstance(
                 getattr(WhatsAppApiClient, "get_stats", None), (MagicMock, AsyncMock)
             ):  # noqa: E501
-                stats = await WhatsAppApiClient.get_stats()
+                stats = await WhatsAppApiClient.get_stats()  # type: ignore[call-arg]
             else:
                 stats = await mock_client.get_stats()
             unique_id = stats.get("my_number")
@@ -326,12 +322,13 @@ def data(hass: MagicMock, mock_client: MagicMock) -> dict[str, Any]:
                 WhatsAppDataUpdateCoordinator,
             )
 
-            # Build a minimal real coordinator to delegate to its _async_update_data
-            # Note: Manually constructing WhatsAppDataUpdateCoordinator via
-            # object.__new__ and manually setting attributes is fragile. If the
-            # __init__ signature or internal logic changes, this test setup MUST
-            # be updated accordingly, or preferably refactored to use a real
-            # coordinator instance.
+            # TODO: Refactor test `_real_refresh` mocking injection
+            # using `object.__new__` directly skips validation and requires manually
+            # wiring internal dependencies like `client`, `entry`, `data`, and
+            # `_listeners`.
+            # This should be replaced with a real test initialization helper or by
+            # invoking `__init__` normally to ensure structural changes fail loudly.
+            # Tracking issue: [TODO]
             real_coord = object.__new__(WhatsAppDataUpdateCoordinator)
             real_coord.hass = hass
             real_coord.client = mock_client
@@ -350,7 +347,7 @@ def data(hass: MagicMock, mock_client: MagicMock) -> dict[str, Any]:
                     listener()
             raise
 
-    coordinator.async_refresh = _real_refresh
+    coordinator.async_refresh = _real_refresh  # type: ignore[method-assign,assignment]
     # coordinator already has default data from ha_stubs.py
 
     return {"coordinator": coordinator, "entry": entry}

@@ -178,9 +178,7 @@ class WhatsAppNotificationEntity(
         errors: list[tuple[str, Exception]] = []
         for recipient in recipients:
             try:
-                await self._async_send_message_static(
-                    self.client, recipient, message, data
-                )
+                await async_send_whatsapp_message(self.client, recipient, message, data)
             except Exception as err:  # pylint: disable=broad-except
                 if len(recipients) == 1:
                     raise
@@ -192,144 +190,142 @@ class WhatsAppNotificationEntity(
                 f"{', '.join(r for r, _ in errors)}"
             )
 
-    @staticmethod
-    async def _async_send_message_static(
-        client: WhatsAppApiClient,
-        recipient: str,
-        message: str,
-        data: dict[str, Any],
-    ) -> None:
-        """Internal static helper to dispatch different message types.
 
-        This is used by both the NotifyEntity and the legacy NotificationService.
-        """
-        # Common quoted_message_id for text and media
-        quoted = data["quote"] if "quote" in data else data.get("reply_to")
+async def async_send_whatsapp_message(
+    client: WhatsAppApiClient,
+    recipient: str,
+    message: str,
+    data: dict[str, Any],
+) -> None:
+    """Helper function to dispatch different message types via the API client.
 
-        if "poll" in data:
-            # Send poll: data: { poll: { question: "...", options: [...] } }
-            poll_data: dict[str, Any] = data["poll"]
-            question = poll_data.get("question", message)
-            options = poll_data.get("options", [])
-            await client.send_poll(
-                recipient, question, options, quoted_message_id=quoted
-            )
+    This shared logic is extracted here so that both the NotifyEntity and
+    the legacy NotificationService can use it without coupling to each other.
+    """
+    # Common quoted_message_id for text and media
+    quoted = data["quote"] if "quote" in data else data.get("reply_to")
 
-        elif "location" in data:
-            # Send location: data: { location: { lat, lon, name, address } }
-            loc: dict[str, Any] = data["location"]
-            lat = loc.get("latitude")
-            lon = loc.get("longitude")
-            if lat is None or lon is None:
-                _LOGGER.error(
-                    "Skipping location message to %s: latitude/longitude missing",
-                    recipient,
-                )
-                raise HomeAssistantError(
-                    f"Skipping location message to {recipient}: "
-                    "latitude/longitude missing"
-                )
-            try:
-                lat_f = float(lat)
-                lon_f = float(lon)
-            except (ValueError, TypeError) as err:
-                _LOGGER.error(
-                    "Skipping location message to %s: invalid coordinates (%s, %s): %s",
-                    recipient,
-                    lat,
-                    lon,
-                    err,
-                )
-                raise HomeAssistantError(
-                    f"Skipping location message to {recipient}: "
-                    f"invalid coordinates ({lat}, {lon})"
-                ) from err
+    if "poll" in data:
+        # Send poll: data: { poll: { question: "...", options: [...] } }
+        poll_data: dict[str, Any] = data["poll"]
+        question = poll_data.get("question", message)
+        options = poll_data.get("options", [])
+        await client.send_poll(recipient, question, options, quoted_message_id=quoted)
 
-            await client.send_location(
+    elif "location" in data:
+        # Send location: data: { location: { lat, lon, name, address } }
+        loc: dict[str, Any] = data["location"]
+        lat = loc.get("latitude")
+        lon = loc.get("longitude")
+        if lat is None or lon is None:
+            _LOGGER.error(
+                "Skipping location message to %s: latitude/longitude missing",
                 recipient,
-                lat_f,
-                lon_f,
-                loc.get("name"),
-                loc.get("address"),
-                quoted_message_id=quoted,
             )
-        elif "reaction" in data:
-            # Send reaction: data: { reaction: "...", message_id: "..." }
-            react = data["reaction"]
-            if not isinstance(react, (str, dict)):
-                _LOGGER.warning(
-                    "Invalid reaction payload type '%s'; expected str or dict",
-                    type(react).__name__,
-                )
-            else:
-                reaction = react if isinstance(react, str) else react.get("reaction")
-                msg_id = (
-                    react.get("message_id")
-                    if isinstance(react, dict)
-                    else data.get("message_id")
-                )
-                if reaction and msg_id:
-                    await client.send_reaction(recipient, reaction, msg_id)
-                else:
-                    _LOGGER.warning(
-                        "Reaction skipped: missing reaction=%r or msg_id=%r",
-                        reaction,
-                        msg_id,
+            raise HomeAssistantError(
+                f"Skipping location message to {recipient}: "
+                "latitude/longitude missing"
+            )
+        try:
+            lat_f = float(lat)
+            lon_f = float(lon)
+        except (ValueError, TypeError) as err:
+            _LOGGER.error(
+                "Skipping location message to %s: invalid coordinates (%s, %s): %s",
+                recipient,
+                lat,
+                lon,
+                err,
+            )
+            raise HomeAssistantError(
+                f"Skipping location message to {recipient}: "
+                f"invalid coordinates ({lat}, {lon})"
+            ) from err
+
+        await client.send_location(
+            recipient,
+            lat_f,
+            lon_f,
+            loc.get("name"),
+            loc.get("address"),
+            quoted_message_id=quoted,
+        )
+    elif "reaction" in data:
+        # Send reaction: data: { reaction: "...", message_id: "..." }
+        react = data["reaction"]
+        if not isinstance(react, (str, dict)):
+            raise HomeAssistantError(
+                f"Invalid reaction payload type '{type(react).__name__}'; "
+                "expected str or dict"
+            )
+        reaction = react if isinstance(react, str) else react.get("reaction")
+        msg_id = (
+            react.get("message_id")
+            if isinstance(react, dict)
+            else data.get("message_id")
+        )
+        if not reaction:
+            raise HomeAssistantError(
+                "Reaction message failed: missing 'reaction' field"
+            )
+        if not msg_id:
+            raise HomeAssistantError(
+                "Reaction message failed: missing 'message_id' field"
+            )
+
+        await client.send_reaction(recipient, reaction, msg_id)
+    elif "image" in data:
+        # Send image: data: { image: "..." }
+        image_url = data["image"]
+        await client.send_image(recipient, image_url, message, quoted_message_id=quoted)
+    elif "buttons" in data or "inline_keyboard" in data:
+        # Send buttons: data: { buttons: [...], footer: "..." }
+        # OR Telegram-style:
+        # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
+        buttons: list[dict[str, str]] | None = data.get("buttons")
+        if not buttons and "inline_keyboard" in data:
+            # Map Telegram-style to WhatsApp style
+            buttons = []
+            for row in data["inline_keyboard"]:
+                for btn in row:
+                    buttons.append(
+                        {
+                            "id": btn.get("callback_data", btn.get("url", "")),
+                            "displayText": btn.get("text", ""),
+                        }
                     )
-        elif "image" in data:
-            # Send image: data: { image: "..." }
-            image_url = data["image"]
-            await client.send_image(
-                recipient, image_url, message, quoted_message_id=quoted
+        footer = data.get("footer")
+        if buttons:
+            await client.send_buttons(
+                recipient, message, buttons, footer, quoted_message_id=quoted
             )
-        elif "buttons" in data or "inline_keyboard" in data:
-            # Send buttons: data: { buttons: [...], footer: "..." }
-            # OR Telegram-style:
-            # data: { inline_keyboard: [[{text: "...", callback_data: "..."}]] }
-            buttons: list[dict[str, str]] | None = data.get("buttons")
-            if not buttons and "inline_keyboard" in data:
-                # Map Telegram-style to WhatsApp style
-                buttons = []
-                for row in data["inline_keyboard"]:
-                    for btn in row:
-                        buttons.append(
-                            {
-                                "id": btn.get("callback_data", btn.get("url", "")),
-                                "displayText": btn.get("text", ""),
-                            }
-                        )
-            footer = data.get("footer")
-            if buttons:
-                await client.send_buttons(
-                    recipient, message, buttons, footer, quoted_message_id=quoted
-                )
-            else:
-                _LOGGER.warning(
-                    "Skipping buttons message to %s: empty buttons list "
-                    "(original data: %s)",
-                    recipient,
-                    data,
-                )
-                return
-        elif "document" in data:
-            # Send document: data: { document: "http://..." }
-            url = data["document"]
-            file_name = data.get("file_name")
-            await client.send_document(
-                recipient, url, file_name, message, quoted_message_id=quoted
-            )
-        elif "video" in data:
-            # Send video: data: { video: "http://..." }
-            url = data["video"]
-            await client.send_video(recipient, url, message, quoted_message_id=quoted)
-        elif "audio" in data:
-            # Send audio: data: { audio: "http://..." }
-            url = data["audio"]
-            ptt = data.get("ptt", False)
-            await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
         else:
-            # Default text message
-            await client.send_message(recipient, message, quoted_message_id=quoted)
+            _LOGGER.warning(
+                "Skipping buttons message to %s: empty buttons list "
+                "(original data: %s)",
+                recipient,
+                data,
+            )
+            return
+    elif "document" in data:
+        # Send document: data: { document: "http://..." }
+        url = data["document"]
+        file_name = data.get("file_name")
+        await client.send_document(
+            recipient, url, file_name, message, quoted_message_id=quoted
+        )
+    elif "video" in data:
+        # Send video: data: { video: "http://..." }
+        url = data["video"]
+        await client.send_video(recipient, url, message, quoted_message_id=quoted)
+    elif "audio" in data:
+        # Send audio: data: { audio: "http://..." }
+        url = data["audio"]
+        ptt = data.get("ptt", False)
+        await client.send_audio(recipient, url, ptt, quoted_message_id=quoted)
+    else:
+        # Default text message
+        await client.send_message(recipient, message, quoted_message_id=quoted)
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
@@ -382,9 +378,7 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
         errors: list[tuple[str, Exception]] = []
         for target in targets:
             try:
-                await WhatsAppNotificationEntity._async_send_message_static(
-                    self.client, target, message, data
-                )
+                await async_send_whatsapp_message(self.client, target, message, data)
             except Exception as err:  # pylint: disable=broad-except
                 if len(targets) == 1:
                     raise

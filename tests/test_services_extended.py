@@ -21,9 +21,7 @@ def service_handlers() -> tuple[dict[str, Any], Callable[..., Any]]:
     """Fixture to capture service registrations."""
     handlers: dict[str, Any] = {}
 
-    def mock_register(
-        domain: str, service: str, handler: Any, **_kwargs: Any
-    ) -> None:
+    def mock_register(domain: str, service: str, handler: Any, **_kwargs: Any) -> None:
         if domain == "whatsapp":
             handlers[service] = handler
 

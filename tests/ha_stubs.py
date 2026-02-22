@@ -151,7 +151,9 @@ class RepairsFlow:
     def async_show_form(self, step_id: str, **_kwargs: Any) -> dict[str, Any]:
         return {"type": "form", "step_id": step_id}
 
-    def async_create_entry(self, title: str, data: Any) -> dict[str, Any]:  # noqa: ARG002
+    def async_create_entry(
+        self, title: str, data: Any  # noqa: ARG002
+    ) -> dict[str, Any]:
         return {"type": "create_entry", "version": 1}
 
 
@@ -170,17 +172,17 @@ def redact(data: Any, keys: list[str]) -> Any:
     return data
 
 
-def _stub(name: str, **kwargs: Any) -> types.ModuleType:
+def _stub(name: str, **kwargs: Any) -> Any:
     """Stub a module."""
     if name in sys.modules:
         mod = sys.modules[name]
     else:
         mod = types.ModuleType(name)
         sys.modules[name] = mod
-    mod.__path__ = []
+    setattr(mod, "__path__", [])
     for k, v in kwargs.items():
         setattr(mod, k, v)
-    mod._is_stub = True
+    mod._is_stub = True  # type: ignore[attr-defined]
     return mod
 
 
@@ -274,7 +276,9 @@ class MockConfigEntry:
     def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
 
-    def add_update_listener(self, func: Callable[..., Any]) -> Callable[[], None]:  # noqa: ARG002
+    def add_update_listener(
+        self, func: Callable[..., Any]  # noqa: ARG002
+    ) -> Callable[[], None]:
         return lambda: None
 
     def as_dict(self) -> dict[str, Any]:
@@ -417,13 +421,13 @@ def _build_ha_stub_modules() -> None:
     ha.const = sys.modules["homeassistant.const"]
     helpers = sys.modules["homeassistant.helpers"]
     ha.helpers = helpers
-    helpers.update_coordinator = sys.modules["homeassistant.helpers.update_coordinator"]
-    helpers.config_validation = cv_mod
-    helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]
-    helpers.issue_registry = ir_mod
+    helpers.update_coordinator = sys.modules["homeassistant.helpers.update_coordinator"]  # type: ignore[attr-defined]
+    helpers.config_validation = cv_mod  # type: ignore[attr-defined]
+    helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]  # type: ignore[attr-defined]
+    helpers.issue_registry = ir_mod  # type: ignore[attr-defined]
     ha.helpers.issue_registry = ir_mod
-    helpers.entity_platform = platform_mod
-    helpers.typing = sys.modules["homeassistant.helpers.typing"]
+    helpers.entity_platform = platform_mod  # type: ignore[attr-defined]
+    helpers.typing = sys.modules["homeassistant.helpers.typing"]  # type: ignore[attr-defined]
 
     components = _stub("homeassistant.components")
     ha.components = components
@@ -449,7 +453,7 @@ def _build_ha_stub_modules() -> None:
 
     # homeassistant.helpers.service
     _stub("homeassistant.helpers.service", async_register_admin_service=MagicMock())
-    helpers.service = sys.modules["homeassistant.helpers.service"]
+    helpers.service = sys.modules["homeassistant.helpers.service"]  # type: ignore[attr-defined]
 
     # homeassistant.components.repairs
     repairs_mod = _stub("homeassistant.components.repairs")

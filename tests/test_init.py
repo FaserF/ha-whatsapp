@@ -93,8 +93,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
 
         # 1. Test: Disabled (Default)
         with patch.object(hass.bus, "async_fire") as mock_fire:
-            if callback:
-                callback(self_message_payload)
+            assert callback is not None, "Callback was not registered!"
+            callback(self_message_payload)
             mock_fire.assert_not_called()
 
         # 2. Test: Enabled
@@ -104,8 +104,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         with patch.object(hass.bus, "async_fire") as mock_fire:
-            if callback:
-                callback(self_message_payload)
+            assert callback is not None, "Callback was not registered!"
+            callback(self_message_payload)
             mock_fire.assert_called_once()
             args, _ = mock_fire.call_args
             assert args[0] == "whatsapp_message_received"

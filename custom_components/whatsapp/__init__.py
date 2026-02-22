@@ -408,13 +408,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 },
             )
         except Exception as e:
-            _LOGGER.error("Failed to search groups: %s", e)
+            _LOGGER.error("Failed to search groups", exc_info=e)
+            error_details = str(e)[:200]
             await hass.services.async_call(
                 "persistent_notification",
                 "create",
                 {
                     "title": "WhatsApp Group Search Error",
-                    "message": f"Error: {e}",
+                    "message": (
+                        f"An error occurred while searching groups: {error_details}"
+                    ),
                     "notification_id": "whatsapp_group_search_error",
                 },
             )
