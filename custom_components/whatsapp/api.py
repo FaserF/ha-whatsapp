@@ -1055,7 +1055,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> None:
         """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
-        payload: dict[str, Any] = {"number": number, "reaction": text, "messageId": message_id}
+        payload: dict[str, Any] = {
+            "number": number,
+            "reaction": text,
+            "messageId": message_id,
+        }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (
             aiohttp.ClientSession() as session,

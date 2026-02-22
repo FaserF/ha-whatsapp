@@ -225,7 +225,12 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_document.assert_awaited_with(
-            "12345", "http://doc.pdf", "My Doc.pdf", "Caption", quoted_message_id=None, expiration=None
+            "12345",
+            "http://doc.pdf",
+            "My Doc.pdf",
+            "Caption",
+            quoted_message_id=None,
+            expiration=None,
         )
 
         # 14. Test send_video
@@ -240,7 +245,11 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_video.assert_awaited_with(
-            "12345", "http://vid.mp4", "Caption", quoted_message_id=None, expiration=None
+            "12345",
+            "http://vid.mp4",
+            "Caption",
+            quoted_message_id=None,
+            expiration=None,
         )
 
         # 15. Test send_audio

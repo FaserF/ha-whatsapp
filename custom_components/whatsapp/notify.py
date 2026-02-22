@@ -212,7 +212,11 @@ async def async_send_whatsapp_message(
         question = poll_data.get("question", message)
         options = poll_data.get("options", [])
         await client.send_poll(
-            recipient, question, options, quoted_message_id=quoted, expiration=expiration
+            recipient,
+            question,
+            options,
+            quoted_message_id=quoted,
+            expiration=expiration,
         )
 
     elif "location" in data:
@@ -282,7 +286,11 @@ async def async_send_whatsapp_message(
         # Send image: data: { image: "..." }
         image_url = data["image"]
         await client.send_image(
-            recipient, image_url, message, quoted_message_id=quoted, expiration=expiration
+            recipient,
+            image_url,
+            message,
+            quoted_message_id=quoted,
+            expiration=expiration,
         )
     elif "buttons" in data or "inline_keyboard" in data:
         # Send buttons: data: { buttons: [...], footer: "..." }
