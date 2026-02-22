@@ -60,8 +60,8 @@ description: 'A professional WhatsApp bridge for Home Assistant using Baileys an
         <tr>
           <td style="padding: 12px;"><strong>Activity</strong></td>
           <td style="padding: 12px;">
-            <a href="https://github.com/FaserF/ha-whatsapp/releases">
-              <img src="https://img.shields.io/github/release-date/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update" alt="Last Update">
+            <a href="https://github.com/FaserF/ha-whatsapp/commits/master">
+              <img src="https://img.shields.io/github/last-commit/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update" alt="Last Update">
             </a>
           </td>
           <td></td>
