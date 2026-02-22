@@ -103,6 +103,21 @@ send_poll:
       required: true
       selector:
         object:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
 
 send_image:
   name: Send Image
@@ -145,6 +160,21 @@ send_image:
       selector:
         text:
           multiline: true
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
 
 send_document:
   name: Send Document
@@ -193,6 +223,21 @@ send_document:
       example: "📊 Here's your monthly energy consumption report."
       selector:
         text:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
 
 send_video:
   name: Send Video
@@ -229,6 +274,21 @@ send_video:
       name: Caption
       description: Optional caption displayed with the video.
       example: "🚪 Motion detected at front door - {{ now().strftime('%H:%M') }}"
+      selector:
+        text:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
 
@@ -273,6 +333,21 @@ send_audio:
       default: false
       selector:
         boolean:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
 
 send_location:
   name: Send Location
@@ -330,6 +405,21 @@ send_location:
       name: Address
       description: The street address (shown below the name on the map preview).
       example: "Marienplatz 1, 80331 München, Germany"
+      selector:
+        text:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
 
@@ -465,6 +555,21 @@ send_buttons:
       name: Footer Text
       description: Optional small text shown below the buttons.
       example: "Tap a button to respond"
+      selector:
+        text:
+    quote:
+      name: Quote Message ID
+      description: >
+        The ID of a message to quote/reply to in this new message.
+        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
+      example: "3EB0B8A7C2E4F6789ABCDE"
+      selector:
+        text:
+    reply_to:
+      name: Reply To Message ID
+      description: >
+        Legacy alias for quote. The ID of a message to quote/reply to.
+      example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
 

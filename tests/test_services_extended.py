@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from contextlib import ExitStack
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -15,11 +17,13 @@ _build_ha_stub_modules()
 
 
 @pytest.fixture
-def service_handlers():
+def service_handlers() -> tuple[dict[str, Any], Callable[..., Any]]:
     """Fixture to capture service registrations."""
-    handlers = {}
+    handlers: dict[str, Any] = {}
 
-    def mock_register(domain, service, handler, schema=None):  # noqa: ARG001
+    def mock_register(
+        domain: str, service: str, handler: Any, **_kwargs: Any
+    ) -> None:
         if domain == "whatsapp":
             handlers[service] = handler
 
@@ -27,10 +31,10 @@ def service_handlers():
 
 
 @pytest.fixture(autouse=True)
-def cleanup_modules():
+def cleanup_modules() -> Any:
     """Clear sys.modules between tests to ensure fresh patches."""
 
-    def _clear():
+    def _clear() -> None:
         to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
         for m in to_del:
             sys.modules.pop(m, None)
@@ -40,7 +44,7 @@ def cleanup_modules():
     _clear()
 
 
-def get_patches(stack: ExitStack):
+def get_patches(stack: ExitStack) -> None:
     """Apply all required patches to the stack."""
     # cv patches
     stack.enter_context(
@@ -74,7 +78,9 @@ def get_patches(stack: ExitStack):
     stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
 
 
-async def test_search_groups_service(service_handlers) -> None:
+async def test_search_groups_service(
+    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
+) -> None:
     """Test that search_groups creates a persistent notification."""
     handlers, mock_register = service_handlers
     hass = MagicMock()
@@ -134,7 +140,9 @@ async def test_search_groups_service(service_handlers) -> None:
                 assert "Found 1 group(s)" in args[2]["message"]
 
 
-async def test_service_routing(service_handlers) -> None:
+async def test_service_routing(
+    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
+) -> None:
     """Test that specifying 'account' routes correctly."""
     handlers, mock_register = service_handlers
     hass = MagicMock()
@@ -197,7 +205,9 @@ async def test_service_routing(service_handlers) -> None:
             )
 
 
-async def test_send_buttons_normalization(service_handlers) -> None:
+async def test_send_buttons_normalization(
+    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
+) -> None:
     """Test send_buttons normalization."""
     handlers, mock_register = service_handlers
     hass = MagicMock()

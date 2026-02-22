@@ -282,25 +282,26 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         service = call.service
         data: dict[str, Any] = {k: v for k, v in call.data.items() if k != "account"}
 
-        quoted = data["quote"] if "quote" in data else data.get("reply_to")
+        def _get_quoted() -> str | None:
+            return data["quote"] if "quote" in data else data.get("reply_to")
 
         if service == "send_message":
             await client.send_message(
-                data["target"], data["message"], quoted_message_id=quoted
+                data["target"], data["message"], quoted_message_id=_get_quoted()
             )
         elif service == "send_poll":
             await client.send_poll(
                 data["target"],
                 data["question"],
                 data.get("options", []),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "send_image":
             await client.send_image(
                 data["target"],
                 data["url"],
                 data.get("caption"),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "send_location":
             await client.send_location(
@@ -309,7 +310,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 float(data["longitude"]),
                 data.get("name"),
                 data.get("address"),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "send_reaction":
             await client.send_reaction(
@@ -321,21 +322,21 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["url"],
                 data.get("file_name"),
                 data.get("message"),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "send_video":
             await client.send_video(
                 data["target"],
                 data["url"],
                 data.get("message"),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "send_audio":
             await client.send_audio(
                 data["target"],
                 data["url"],
                 data.get("ptt", False),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
@@ -367,7 +368,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data["message"],
                 data["buttons"],
                 data.get("footer"),
-                quoted_message_id=quoted,
+                quoted_message_id=_get_quoted(),
             )
         elif service == "mark_as_read":
             await client.mark_as_read(data["target"], data.get("message_id"))

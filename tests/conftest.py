@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 # Import ha_stubs to ensure it's available
@@ -6,13 +8,13 @@ import ha_stubs
 import pytest
 
 
-def pytest_sessionstart(session):  # noqa: ARG001
+def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     """Called after the Session object has been created and before performing collection and entering the run test loop."""  # noqa: E501
     ha_stubs._build_ha_stub_modules()
 
 
 @pytest.fixture(autouse=True)
-def cleanup_whatsapp_module_cache():
+def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
     """Clear sys.modules between tests to ensure fresh global variables."""
     import sys
 
@@ -26,9 +28,9 @@ def cleanup_whatsapp_module_cache():
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> MagicMock:
     """Fixture for mocking WhatsAppApiClient."""
-    from custom_components.whatsapp import WhatsAppApiClient
+    from custom_components.whatsapp.api import WhatsAppApiClient
 
     client = MagicMock(spec=WhatsAppApiClient)
     client.connect = AsyncMock(return_value=True)
@@ -44,27 +46,31 @@ def mock_client():
 
 
 @pytest.fixture
-def hass(mock_client):
+def hass(mock_client: MagicMock) -> MagicMock:
     """Fixture to mock Home Assistant object."""
     hass = MagicMock()
     # hass is intentionally not injected into sys.modules to avoid leaking state between tests  # noqa: E501
-    service_handlers = {}
-    states = {}
+    service_handlers: dict[tuple[str, str], Any] = {}
+    states: dict[str, MagicMock] = {}
 
-    def async_register(domain, service, handler, schema=None):  # noqa: ARG001
+    def async_register(
+        domain: str, service: str, handler: Any, **_kwargs: Any
+    ) -> None:
         service_handlers[(domain, service)] = handler
 
-    async def async_call(domain, service, service_data=None, **_kwargs):
+    async def async_call(
+        domain: str, service: str, service_data: Any = None, **_kwargs: Any
+    ) -> None:
         if (domain, service) in service_handlers:
             from ha_stubs import ServiceCall
 
             call = ServiceCall(domain, service, service_data)
             await service_handlers[(domain, service)](call)
 
-    def async_set_state(entity_id, state, attributes=None):
+    def async_set_state(entity_id: str, state: str, attributes: Any = None) -> None:
         states[entity_id] = MagicMock(state=state, attributes=attributes or {})
 
-    def get_state(entity_id):
+    def get_state(entity_id: str) -> MagicMock | None:
         return states.get(entity_id)
 
     hass.services = MagicMock()
@@ -78,11 +84,10 @@ def hass(mock_client):
     hass.states.get = MagicMock(side_effect=get_state)
     hass.states.async_set_state = MagicMock(side_effect=async_set_state)
     hass.async_block_till_done = AsyncMock()
-    import ha_stubs
 
     hass.bus = ha_stubs.Bus()
 
-    async def async_setup(entry_id):
+    async def async_setup(entry_id: str) -> bool:
         if "entries" in hass.data and entry_id in hass.data["entries"]:
             entry = hass.data["entries"][entry_id]
             try:
@@ -98,7 +103,9 @@ def hass(mock_client):
     hass.config_entries.async_setup = AsyncMock(side_effect=async_setup)
     hass.config_entries.async_reload = AsyncMock(return_value=True)
 
-    async def async_update_entry(entry, options=None, data=None):
+    async def async_update_entry(
+        entry: Any, options: dict[str, Any] | None = None, data: Any = None
+    ) -> None:
         if options is not None:
             entry.options.update(options)
         if data is not None:
@@ -106,14 +113,14 @@ def hass(mock_client):
 
     hass.config_entries.async_update_entry = AsyncMock(side_effect=async_update_entry)
 
-    async def async_forward_entry_setups(entry, platforms):
+    async def async_forward_entry_setups(entry: Any, platforms: list[str]) -> None:
         import importlib
-
-        import ha_stubs
 
         for platform in platforms:
 
-            def _mock_add_entities(entities, update_before_add=False):
+            def _mock_add_entities(
+                entities: Any, update_before_add: bool = False
+            ) -> None:
                 ha_stubs.mock_add_entities(hass, entities, update_before_add)
 
             try:
@@ -129,10 +136,12 @@ def hass(mock_client):
     )  # noqa: E501
 
     hass.config_entries.flow = MagicMock()
-    flow_data = {}
-    flow_steps = {}  # flow_id -> step_count
+    flow_data: dict[str, Any] = {}
+    flow_steps: dict[str, int] = {}  # flow_id -> step_count
 
-    async def async_init(domain, context=None, data=None):  # noqa: ARG001
+    async def async_init(
+        domain: str, context: Any = None, data: Any = None  # noqa: ARG001
+    ) -> dict[str, Any]:
         import uuid
 
         flow_id = str(uuid.uuid4())
@@ -140,7 +149,9 @@ def hass(mock_client):
             flow_id = "reauth_flow"
         return {"type": "form", "flow_id": flow_id, "step_id": "user"}
 
-    async def async_configure(flow_id, user_input=None):
+    async def async_configure(
+        flow_id: str, user_input: Any = None
+    ) -> dict[str, Any]:
         if flow_id not in flow_steps:
             flow_steps[flow_id] = 0
         flow_steps[flow_id] += 1
@@ -161,9 +172,9 @@ def hass(mock_client):
             # For the user step, check if we should go to scan
             if flow_steps[flow_id] == 1:
                 # Preference: use classes to see patches if available
-                from custom_components.whatsapp import WhatsAppApiClient
+                from custom_components.whatsapp.api import WhatsAppApiClient
 
-                conn = mock_client
+                conn: Any = mock_client
                 if isinstance(
                     getattr(WhatsAppApiClient, "connect", None), (MagicMock, AsyncMock)
                 ):  # noqa: E501
@@ -183,7 +194,7 @@ def hass(mock_client):
         unique_id = None
         try:
             # Try to get stats from the class (to see patches)
-            from custom_components.whatsapp import WhatsAppApiClient
+            from custom_components.whatsapp.api import WhatsAppApiClient
 
             if isinstance(
                 getattr(WhatsAppApiClient, "get_stats", None), (MagicMock, AsyncMock)
@@ -243,10 +254,14 @@ def hass(mock_client):
 
     hass.config_entries.options = MagicMock()
 
-    async def async_options_init(entry_id, context=None, data=None):  # noqa: ARG001
+    async def async_options_init(
+        entry_id: str, context: Any = None, data: Any = None  # noqa: ARG001
+    ) -> dict[str, Any]:
         return {"type": "form", "flow_id": "test_options", "step_id": "init"}
 
-    async def async_options_configure(flow_id, user_input=None):  # noqa: ARG001
+    async def async_options_configure(
+        flow_id: str, user_input: Any = None  # noqa: ARG001
+    ) -> dict[str, Any]:
         from custom_components.whatsapp.const import (
             CONF_DEBUG_PAYLOADS,
             CONF_MARK_AS_READ,
@@ -278,7 +293,7 @@ def hass(mock_client):
 
 
 @pytest.fixture
-def data(hass, mock_client):
+def data(hass: MagicMock, mock_client: MagicMock) -> dict[str, Any]:
     """Fixture for common test data (coordinator)."""
     # homeassistant.util
     util_mod = ha_stubs.stub(
@@ -302,12 +317,10 @@ def data(hass, mock_client):
     entry.add_to_hass(hass)
 
     coordinator = ha_stubs.DataUpdateCoordinator(hass, mock_client, entry)
-    # Keep async_request_refresh as mock (no event loop needed)
-    coordinator.async_request_refresh = AsyncMock()
 
     # Override async_refresh to actually call _async_update_data (like the real HA does)
     # This allows test_connection_lost_notification to verify ir.async_create_issue is called  # noqa: E501
-    async def _real_refresh():
+    async def _real_refresh() -> None:
         try:
             from custom_components.whatsapp.coordinator import (
                 WhatsAppDataUpdateCoordinator,

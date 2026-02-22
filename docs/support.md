@@ -7,9 +7,9 @@ description: 'Support the development of WhatsApp for Home Assistant.'
 
 # ❤️ Support This Project
 
-This integration is developed and maintained **entirely in my free time, alongside a regular full-time job**. Every feature, every bug fix, and every documentation update happens in the evenings and on weekends.
+This integration is developed and maintained **entirely in my personal time, alongside a regular full-time job**. Every feature, every bug fix, and every documentation update happens in the evenings and on weekends.
 
-> **If this integration saves you time or makes your smart home better, please consider supporting its continued development!**
+> **If this integration saves you time or improves your smart home experience, please consider supporting its continued development!**
 
 ---
 
@@ -17,7 +17,7 @@ This integration is developed and maintained **entirely in my free time, alongsi
 
 | Why it helps | Details |
 | :----------- | :------ |
-| 🕒 **Time** | Development happens exclusively in free time. More support = more time available for this project. |
+| 🕒 **Time** | Development happens exclusively in personal time. More support = more time available for this project. |
 | 🔧 **Hardware** | Testing requires real devices — test phones, spare Home Assistant hardware, etc. These cost real money. |
 | 💪 **Independence** | The more support I receive, the less I depend on other income sources and the more I can invest in open-source projects like this one. |
 | 🚀 **Features** | Donations directly motivate new features, faster bug fixes, and better documentation. |

@@ -3,7 +3,11 @@
 import logging
 import sys
 import types
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 from unittest.mock import MagicMock
+
+_T = TypeVar("_T")
 
 
 # homeassistant.exceptions
@@ -19,7 +23,13 @@ class ServiceValidationError(HomeAssistantError):
 class ServiceCall:
     """Stub."""
 
-    def __init__(self, domain, service, data=None, context=None):  # noqa: ARG002
+    def __init__(
+        self,
+        domain: str,
+        service: str,
+        data: dict[str, Any] | None = None,
+        **_kwargs: Any,
+    ) -> None:
         self.domain = domain
         self.service = service
         self.data = data or {}
@@ -28,7 +38,7 @@ class ServiceCall:
 class Bus:
     """Stub."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.async_fire = MagicMock()
 
 
@@ -49,19 +59,19 @@ class EntityCategory:
 
 
 # homeassistant.helpers.update_coordinator
-class _GenericBase:
-    def __class_getitem__(cls, item):
+class _GenericBase(Generic[_T]):  # noqa: UP046
+    def __class_getitem__(cls, item: Any) -> Any:
         return cls
 
 
-class CoordinatorEntity(_GenericBase):
-    def __init__(self, coordinator):
+class CoordinatorEntity(_GenericBase[Any]):
+    def __init__(self, coordinator: Any) -> None:
         self.coordinator = coordinator
-        self.hass = None
-        self.entity_id = None
+        self.hass: Any = None
+        self.entity_id: str | None = None
         coordinator.async_add_listener(self.async_write_ha_state)
 
-    def async_write_ha_state(self):
+    def async_write_ha_state(self) -> None:
         if self.hass and self.entity_id:
             state = getattr(self, "state", None)
             if state is None:
@@ -76,18 +86,22 @@ class CoordinatorEntity(_GenericBase):
             )
 
 
-class DataUpdateCoordinator(_GenericBase):
-    def __init__(self, hass, *args, **kwargs):  # noqa: ARG002
+class DataUpdateCoordinator(_GenericBase[Any]):
+    def __init__(self, hass: Any, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
         self.data = {"connected": True, "stats": {"sent": 0, "failed": 0}}
         self.hass = hass
-        self._listeners = []
+        self._listeners: list[Callable[[], None]] = []
         if "config_entry" in kwargs:
             self.config_entry = kwargs["config_entry"]
 
-    async def _fetch_update_data(self):
+    async def _fetch_update_data(self) -> None:
         """Shared update helper."""
         if hasattr(self, "_async_update_data"):
             try:
+                # Note: self._async_update_data() may return either a coroutine
+                # or a plain result, so we detect awaitability via
+                # hasattr(res, "__await__") and await only when necessary.
+                # This avoids needing separate sync/async branches.
                 res = self._async_update_data()
                 if hasattr(res, "__await__"):
                     self.data = await res
@@ -96,16 +110,18 @@ class DataUpdateCoordinator(_GenericBase):
             except Exception as e:
                 logging.getLogger(__name__).debug("Refresh failed: %s", e)
 
-    async def async_config_entry_first_refresh(self):
+    async def async_config_entry_first_refresh(self) -> None:
         await self._fetch_update_data()
 
-    async def async_refresh(self):
+    async def async_refresh(self) -> None:
         await self._fetch_update_data()
         for listener in self._listeners:
             if callable(listener):
                 listener()
 
-    def async_add_listener(self, update_callback):
+    def async_add_listener(
+        self, update_callback: Callable[[], None]
+    ) -> Callable[[], None]:
         self._listeners.append(update_callback)
         return lambda: self._listeners.remove(update_callback)
 
@@ -119,32 +135,32 @@ class FlowResultType:
 
 # homeassistant.components.repairs
 class ConfigFlow:
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         pass
 
 
 class OptionsFlow:
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
         pass
 
 
 class RepairsFlow:
-    def __init__(self):
-        self.hass = None
+    def __init__(self) -> None:
+        self.hass: Any = None
 
-    def async_show_form(self, step_id, **_kwargs):
+    def async_show_form(self, step_id: str, **_kwargs: Any) -> dict[str, Any]:
         return {"type": "form", "step_id": step_id}
 
-    def async_create_entry(self, title, data):  # noqa: ARG002
+    def async_create_entry(self, title: str, data: Any) -> dict[str, Any]:  # noqa: ARG002
         return {"type": "create_entry", "version": 1}
 
 
 class ConfirmRepairFlow(RepairsFlow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
-def redact(data, keys):
+def redact(data: Any, keys: list[str]) -> Any:
     if isinstance(data, dict):
         return {
             k: "**REDACTED**" if k in keys else redact(v, keys) for k, v in data.items()
@@ -154,7 +170,7 @@ def redact(data, keys):
     return data
 
 
-def _stub(name, **kwargs):
+def _stub(name: str, **kwargs: Any) -> types.ModuleType:
     """Stub a module."""
     if name in sys.modules:
         mod = sys.modules[name]
@@ -171,10 +187,12 @@ def _stub(name, **kwargs):
 stub = _stub
 
 
-def mock_add_entities(hass, entities, update_before_add=False):  # noqa: ARG001
+def mock_add_entities(
+    hass: Any, entities: list[Any], update_before_add: bool = False  # noqa: ARG001
+) -> None:
     for entity in entities:
         entity.hass = hass
-        if not entity.entity_id:
+        if not getattr(entity, "entity_id", None):
             domain = "sensor"
             if hasattr(entity, "is_on"):
                 domain = "binary_sensor"
@@ -199,13 +217,13 @@ def mock_add_entities(hass, entities, update_before_add=False):  # noqa: ARG001
         entity.async_write_ha_state()
 
 
-def _dt_utcnow():
+def _dt_utcnow() -> Any:
     import datetime
 
     return datetime.datetime.now(datetime.UTC)
 
 
-def _dt_now():
+def _dt_now() -> Any:
     import datetime
 
     return datetime.datetime.now()
@@ -213,19 +231,19 @@ def _dt_now():
 
 class _MockDT:
     @staticmethod
-    def utcnow():
+    def utcnow() -> Any:
         return _dt_utcnow()
 
     @staticmethod
-    def now():
+    def now() -> Any:
         return _dt_now()
 
     @staticmethod
-    def as_local(dt):
+    def as_local(dt: Any) -> Any:
         return dt
 
     @staticmethod
-    def utc_from_timestamp(ts):
+    def utc_from_timestamp(ts: float) -> Any:
         import datetime
 
         return datetime.datetime.fromtimestamp(ts, datetime.UTC)
@@ -234,13 +252,13 @@ class _MockDT:
 class MockConfigEntry:
     def __init__(
         self,
-        domain="whatsapp",
-        data=None,
-        entry_id=None,
-        options=None,
-        title="WhatsApp",
-        **kwargs,
-    ):  # noqa: E501
+        domain: str = "whatsapp",
+        data: dict[str, Any] | None = None,
+        entry_id: str | None = None,
+        options: dict[str, Any] | None = None,
+        title: str = "WhatsApp",
+        **kwargs: Any,
+    ) -> None:  # noqa: E501
         self.domain = domain
         self.data = data or {}
         if entry_id is None:
@@ -253,13 +271,13 @@ class MockConfigEntry:
         self.unique_id = kwargs.get("unique_id")
         self.version = kwargs.get("version", 1)
 
-    def async_on_unload(self, func):
+    def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
 
-    def add_update_listener(self, func):  # noqa: ARG002
+    def add_update_listener(self, func: Callable[..., Any]) -> Callable[[], None]:  # noqa: ARG002
         return lambda: None
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, Any]:
         return {
             "entry_id": self.entry_id,
             "domain": self.domain,
@@ -270,7 +288,7 @@ class MockConfigEntry:
             "version": self.version,
         }
 
-    def add_to_hass(self, hass):
+    def add_to_hass(self, hass: Any) -> None:
         if "entries" not in hass.data:
             hass.data["entries"] = {}
         hass.data["entries"][self.entry_id] = self

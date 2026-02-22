@@ -204,7 +204,7 @@ class WhatsAppNotificationEntity(
         This is used by both the NotifyEntity and the legacy NotificationService.
         """
         # Common quoted_message_id for text and media
-        quoted = data.get("quote") or data.get("reply_to")
+        quoted = data["quote"] if "quote" in data else data.get("reply_to")
 
         if "poll" in data:
             # Send poll: data: { poll: { question: "...", options: [...] } }
@@ -225,8 +225,6 @@ class WhatsAppNotificationEntity(
                     "Skipping location message to %s: latitude/longitude missing",
                     recipient,
                 )
-                from homeassistant.exceptions import HomeAssistantError
-
                 raise HomeAssistantError(
                     f"Skipping location message to {recipient}: "
                     "latitude/longitude missing"
@@ -242,8 +240,6 @@ class WhatsAppNotificationEntity(
                     lon,
                     err,
                 )
-                from homeassistant.exceptions import HomeAssistantError
-
                 raise HomeAssistantError(
                     f"Skipping location message to {recipient}: "
                     f"invalid coordinates ({lat}, {lon})"

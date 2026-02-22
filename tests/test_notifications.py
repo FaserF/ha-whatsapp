@@ -68,6 +68,6 @@ async def test_whatsapp_notification_entity() -> None:
         await entity.async_send_message(message="Hello", target=["555"])
 
         # Verify client was called
-        mock_instance.send_message.assert_awaited_with(
+        mock_instance.send_message.assert_awaited_once_with(
             "555", "Hello", quoted_message_id=None
         )

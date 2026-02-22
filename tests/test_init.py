@@ -1,10 +1,12 @@
 """Tests for ha_whatsapp."""
 
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ha_stubs import _build_ha_stub_modules
+import ha_stubs
 
-_build_ha_stub_modules()
+ha_stubs._build_ha_stub_modules()
 
 from homeassistant.core import HomeAssistant  # noqa: E402
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
@@ -61,9 +63,9 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
-        callback = None
+        callback: Callable[[dict[str, Any]], None] | None = None
 
-        def reg_cb(cb):
+        def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
             nonlocal callback
             callback = cb
 
@@ -91,7 +93,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
 
         # 1. Test: Disabled (Default)
         with patch.object(hass.bus, "async_fire") as mock_fire:
-            callback(self_message_payload)
+            if callback:
+                callback(self_message_payload)
             mock_fire.assert_not_called()
 
         # 2. Test: Enabled
@@ -101,7 +104,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         with patch.object(hass.bus, "async_fire") as mock_fire:
-            callback(self_message_payload)
+            if callback:
+                callback(self_message_payload)
             mock_fire.assert_called_once()
             args, _ = mock_fire.call_args
             assert args[0] == "whatsapp_message_received"
