@@ -1,188 +1,108 @@
 ---
 layout: default
-title: REST API
+title: REST API Reference
 nav_order: 10
 ---
 
-# 📜 REST API Documentation
+# 📜 REST API Technical Reference
 
-The WhatsApp Home Assistant App exposes a REST API that acts as a bridge between Home Assistant and the WhatsApp network. While the integration handles most things automatically, advanced users can interact with the API directly.
-
----
-
-## 🔒 Authentication
-
-All API requests (except `/health`) **MUST** include the `X-Auth-Token` header.
-
-- The token is automatically generated on first run.
-- You can view and copy the token from the **App Dashboard** (Web UI).
+The WhatsApp Addon bridge exposes a REST API for programmatic interaction. This document is the **authoritative source** for all available endpoints.
 
 ---
 
-## 🚀 Endpoints
+## 🔒 Security & Headers
 
-### 1️⃣ Connection Management
-
-#### `POST /session/start`
-
-Initiates a new session. If not connected, it starts the QR code generation process.
-
-**Response:**
-
-```json
-{ "status": "starting", "message": "Session init started" }
-```
-
-#### `GET /status`
-
-Returns the current connection status and library version.
-
-**Response:**
-
-```json
-{
-  "connected": true,
-  "version": "1.0.4"
-}
-```
-
-#### `GET /qr`
-
-Returns the current QR code as a Data URL image string if scanning is required.
-
-**Response:**
-
-```json
-{
-  "status": "scanning",
-  "qr": "data:image/png;base64,..."
-}
-```
-
-#### `DELETE /session`
-
-Logs out and deletes the current session data. Useful for resetting connection errors.
-
-**Response:**
-
-```json
-{ "status": "success", "message": "Session deleted and logged out" }
-```
+All requests (except `/health`) **MUST** include:
+- `X-Auth-Token`: Your security token (found in the Web UI).
+- `Content-Type: application/json`
 
 ---
 
-### 2️⃣ Messaging
+## 🚀 Messaging Endpoints
 
-#### `POST /send_message`
+Every sending endpoint supports these **Global JSON Keys**:
+- `number`: (String) Target JID (e.g., `49123...@s.whatsapp.net` or `12345...@g.us`).
+- `quotedMessageId`: (String, Optional) Reply to a specific message ID.
+- `expiration`: (Number, Optional) Auto-delete timer in seconds.
 
-Sends a basic text message.
+### `POST /send_message`
+Basic text messaging.
+- `message`: (String) The text content.
 
-**Payload:**
+### `POST /send_image` / `send_video` / `send_document`
+Media transmission.
+- `url`: (String) Publicly accessible HTTPS URL.
+- `caption` / `message`: (String, Optional) The accompanying text.
+- `fileName`: (String, **Document Only**) Override the recipient's view.
 
-```json
-{
-  "number": "491234567890",
-  "message": "Hello World"
-}
-```
+### `POST /send_audio`
+- `url`: (String) Link to audio.
+- `ptt`: (Boolean) Set `true` for voice-note style.
 
-#### `POST /send_image`
+### `POST /send_poll`
+- `question`: (String)
+- `options`: (Array of Strings) Max 12.
 
-Sends an image from a public URL.
+### `POST /send_location`
+- `latitude`: (Float)
+- `longitude`: (Float)
+- `title`: (String, Optional)
+- `description`: (String, Optional)
 
-**Payload:**
+### `POST /send_buttons`
+- `message`: (String) Body text.
+- `buttons`: (Array) Objects with `id` and `displayText`.
+- `footer`: (String, Optional)
 
-```json
-{
-  "number": "491234567890",
-  "url": "https://example.com/image.png",
-  "caption": "Check this out!"
-}
-```
-
-#### `POST /send_poll`
-
-Sends an interactive poll.
-
-**Payload:**
-
-```json
-{
-  "number": "491234567890",
-  "question": "Pizza or Burger?",
-  "options": ["Pizza", "Burger", "Both"]
-}
-```
-
-#### `POST /send_location`
-
-Sends a location pin.
-
-**Payload:**
-
-```json
-{
-  "number": "491234567890",
-  "latitude": 52.52,
-  "longitude": 13.405,
-  "name": "Berlin",
-  "address": "Alexanderplatz"
-}
-```
-
-#### `POST /send_reaction`
-
-Reacts to a specific message using an emoji.
-
-**Payload:**
-
-```json
-{
-  "number": "491234567890",
-  "reaction": "❤️",
-  "messageId": "BAE5F..."
-}
-```
+### `POST /send_list`
+- `title`, `text`, `button_text`: (Strings)
+- `sections`: (Array) Nested rows with `id`, `title`, `description`.
 
 ---
 
-### 3️⃣ Interaction
+## 📝 Message Management
 
-#### `POST /set_presence`
+### `POST /edit_message`
+- `message_id`: (String)
+- `new_content`: (String)
 
-Sets the chat presence/status for a specific contact.
+### `POST /revoke_message`
+- `message_id`: (String)
 
-**Payload:**
+### `POST /send_reaction`
+- `messageId`: (String) **Note case sensitivity.**
+- `reaction`: (String) Emoji.
 
-```json
-{
-  "number": "491234567890",
-  "presence": "composing"
-}
-```
-
-**Allowed Values:** `composing` (typing...), `recording` (recording audio...), `paused`, `available`.
-
----
-
-### 4️⃣ System & Health
-
-#### `GET /health`
-
-Healthcheck endpoint for Docker/Supervisor. **No authentication required.**
-
-**Response:**
-
-```json
-{ "status": "ok", "service": "whatsapp-App" }
-```
-
-#### `GET /logs`
-
-Returns the recent internal connection logs (same as shown in the Dashboard).
+### `POST /mark_as_read`
+- `messageId`: (String, Optional) If omitted, marks whole chat.
 
 ---
 
-> **Tip:**
-> **Base URL**: Most users will access the API at `http://YOUR_HA_IP:8066`.
-> If using SSL/Ingress, use the appropriate internal proxy URL provided by Home Assistant.
+## ⚙️ Administration
+
+### `POST /set_presence`
+- `presence`: `composing`, `recording`, `paused`, `available`, `unavailable`.
+
+### `POST /settings/webhook`
+- `url`: Destination URL.
+- `enabled`: (Boolean)
+- `token`: (String, Optional) Secure validation header.
+
+---
+
+## 📊 Connection & Info
+
+### `GET /status`
+Returns: `{ "connected": bool, "version": string }`
+
+### `GET /stats`
+Returns internal traffic and error counters.
+
+### `GET /qr`
+Returns: `{ "status": "scanning", "qr": "data:image/png..." }`
+
+### `GET /groups`
+Returns an array of all participating Group objects.
+
+### `GET /health`
+Standard healthcheck. **No Token required.**

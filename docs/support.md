@@ -26,7 +26,7 @@ This integration is developed and maintained **entirely in my personal time, alo
 
 ## 💸 How to Donate
 
-Donations are completely **voluntary** — this integration will always be free and open-source. But every contribution, no matter how small, is deeply appreciated. 🙏
+Donations are completely **voluntary**. This project is a labor of love and will **always remain free and open-source**. There are no "Premium Upgrades", hidden features, or paid versions. Every contribution, no matter how small, is deeply appreciated. 🙏
 
 <div align="center" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 2rem 0;">
 
