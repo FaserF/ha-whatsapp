@@ -36,7 +36,7 @@ These options are configured within Home Assistant via the **Configure** button 
 | `Mask Sensitive Data`  | boolean | `false` | Masks phone numbers in Home Assistant logs.                                                                                                         |
 | `Retry Attempts`       | int     | `2`     | How many times to retry sending a message on failure.                                                                                              |
 | `Debug Payload`        | boolean | `false` | Logs the full outgoing JSON payload for troubleshooting.                                                                                            |
-| `Reset Session`        | boolean | `false` | **(Caution)** Logging this instance out and deleting all Local Data from the Addon. Requires re-pairing.                                            |
+| `Reset Session`        | boolean | `false` | **(Caution)** Logs this instance out and deletes all local data from the Addon. Requires re-pairing.                                            |
 
 ### Detailed: Allow Self-Messages
 

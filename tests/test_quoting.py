@@ -10,7 +10,7 @@ Home Assistant installation.
 from __future__ import annotations
 
 from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from ha_stubs import _build_ha_stub_modules
@@ -50,7 +50,7 @@ def notify_entity(mock_client: MagicMock) -> WhatsAppNotificationEntity:
 
 async def test_send_message_with_quote(
     notify_entity: WhatsAppNotificationEntity,
-    mock_client: AsyncMock,
+    mock_client: MagicMock,
 ) -> None:
     """Test that ``quote`` in data is forwarded as ``quoted_message_id``."""
     await notify_entity.async_send_message(
@@ -66,7 +66,7 @@ async def test_send_message_with_quote(
 
 async def test_send_message_with_reply_to(
     notify_entity: WhatsAppNotificationEntity,
-    mock_client: AsyncMock,
+    mock_client: MagicMock,
 ) -> None:
     """Test that ``reply_to`` in data is forwarded as ``quoted_message_id``."""
     await notify_entity.async_send_message(
@@ -82,7 +82,7 @@ async def test_send_message_with_reply_to(
 
 async def test_send_message_without_quote(
     notify_entity: WhatsAppNotificationEntity,
-    mock_client: AsyncMock,
+    mock_client: MagicMock,
 ) -> None:
     """Test that a plain message is sent without ``quoted_message_id``."""
     await notify_entity.async_send_message(
@@ -98,7 +98,7 @@ async def test_send_message_without_quote(
 
 async def test_send_message_to_multiple_targets(
     notify_entity: WhatsAppNotificationEntity,
-    mock_client: AsyncMock,
+    mock_client: MagicMock,
 ) -> None:
     """Test that quoting works correctly for multiple targets."""
     await notify_entity.async_send_message(

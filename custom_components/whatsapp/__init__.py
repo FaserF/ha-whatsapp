@@ -45,6 +45,8 @@ from .coordinator import WhatsAppDataUpdateCoordinator
 
 _LOGGER = getLogger(__name__)
 
+_SERVICES_REGISTERED = False
+
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.SENSOR]
 
 _SERVICES = [
@@ -156,7 +158,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Whitelist filtering
         if whitelist is not None:
             # For groups, the raw data contains the group JID in remoteJid
-            raw_msg = data.get("raw", {})
             remote_id = raw_msg.get("key", {}).get("remoteJid", "")
             is_group = "@g.us" in remote_id
             target = remote_id if is_group else full_sender
@@ -178,8 +179,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Automatically mark as read if enabled
         if entry.options.get(CONF_MARK_AS_READ, True):
             # Extract ID and sender JID from the nested raw data
-            # The addon sends full data in 'raw'
-            raw_msg = data.get("raw", {})
             # Try to get message_id from 'raw.key.id' or fallback to top-level 'id'
             message_id = raw_msg.get("key", {}).get("id") or data.get("id")
             number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
@@ -271,7 +270,8 @@ def get_client_for_account(
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Set up global WhatsApp services."""
-    if hass.services.has_service(DOMAIN, "send_message"):
+    global _SERVICES_REGISTERED
+    if _SERVICES_REGISTERED:
         return
 
     async def _handle_service(call: ServiceCall) -> None:
@@ -634,6 +634,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema(mark_as_read_schema),
     )
 
+    _SERVICES_REGISTERED = True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the WhatsApp integration config entry.
@@ -666,6 +668,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if hass.services.has_service(DOMAIN, service):
                 hass.services.async_remove(DOMAIN, service)
         hass.data.pop(DOMAIN)
+
+        global _SERVICES_REGISTERED
+        _SERVICES_REGISTERED = False
 
     return bool(unload_ok)
 

@@ -48,7 +48,7 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
 
 
 async def test_self_message_received(hass: HomeAssistant) -> None:
-    """Test that a self-message (fromMe: True) is filtered by default but processed when enabled."""  # noqa: E501
+    """Ensure self-messages are filtered by default and processed when enabled."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_URL: "test", CONF_API_KEY: "abc"},
@@ -60,6 +60,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
         callback = None
 
         def reg_cb(cb):
@@ -99,7 +100,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         await hass.config_entries.async_update_entry(entry, options=new_options)
         await hass.async_block_till_done()
 
-        with patch("homeassistant.core.Bus.async_fire") as mock_fire:
+        with patch.object(hass.bus, "async_fire") as mock_fire:
             callback(self_message_payload)
             mock_fire.assert_called_once()
             args, _ = mock_fire.call_args

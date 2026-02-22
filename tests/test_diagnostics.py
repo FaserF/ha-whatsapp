@@ -25,11 +25,12 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
+    from ha_stubs import redact
+
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
         patch("custom_components.whatsapp.diagnostics.async_redact_data") as mock_redact,  # noqa: E501
     ):
-        from ha_stubs import redact
         mock_redact.side_effect = redact
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)

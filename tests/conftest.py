@@ -11,6 +11,19 @@ def pytest_sessionstart(session):  # noqa: ARG001
     ha_stubs._build_ha_stub_modules()
 
 
+@pytest.fixture(autouse=True)
+def cleanup_whatsapp_module_cache():
+    """Clear sys.modules between tests to ensure fresh global variables."""
+    import sys
+    to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
+    for m in to_del:
+        sys.modules.pop(m, None)
+    yield
+    to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
+    for m in to_del:
+        sys.modules.pop(m, None)
+
+
 @pytest.fixture
 def mock_client():
     """Fixture for mocking WhatsAppApiClient."""
@@ -87,11 +100,16 @@ def hass(mock_client):
 
         import ha_stubs
         for platform in platforms:
+            def _mock_add_entities(entities, update_before_add=False):
+                ha_stubs.mock_add_entities(hass, entities, update_before_add)
+
             try:
                 mod = importlib.import_module(f"custom_components.whatsapp.{platform}")
-                await mod.async_setup_entry(hass, entry, lambda entities, update_before_add=False: ha_stubs.mock_add_entities(hass, entities, update_before_add))
+                await mod.async_setup_entry(hass, entry, _mock_add_entities)
             except Exception as e:
-                logging.getLogger(__name__).debug("Error setup platform %s: %s", platform, e)  # noqa: E501
+                logging.getLogger(__name__).debug(
+                    "Error setup platform %s: %s", platform, e
+                )
 
     hass.config_entries.async_forward_entry_setups = AsyncMock(side_effect=async_forward_entry_setups)  # noqa: E501
 

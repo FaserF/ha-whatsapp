@@ -8,7 +8,9 @@ from ha_stubs import _build_ha_stub_modules
 _build_ha_stub_modules()
 
 
-async def test_connection_lost_notification(data: dict[str, Any]) -> None:
+async def test_connection_lost_notification(
+    data: dict[str, Any], mock_client: MagicMock
+) -> None:
     """Test the connection lost notification logic."""
 
     from homeassistant.helpers import issue_registry as ir
@@ -18,22 +20,26 @@ async def test_connection_lost_notification(data: dict[str, Any]) -> None:
 
     from homeassistant.exceptions import HomeAssistantError
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
-        mock_instance = mock_client_cls.return_value
-        mock_instance.connect = AsyncMock(
-            side_effect=HomeAssistantError("Connection Failed")
-        )
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+    mock_client.connect = AsyncMock(
+        side_effect=HomeAssistantError("Connection Failed")
+    )
+    mock_client.get_stats = AsyncMock(
+        return_value={"sent": 0, "failed": 0}
+    )
 
-        # In a real setup, async_setup_entry would create the issue
-        # We test the logic by calling a coordinator update that fails
+    import pytest
+    from homeassistant.helpers.update_coordinator import UpdateFailed
+
+    # In a real setup, async_setup_entry would create the issue
+    # We test the logic by calling a coordinator update that fails
+    with pytest.raises(UpdateFailed):
         await data["coordinator"].async_refresh()
 
-        # Verify issue creation was called
-        # In this integration, the coordinator handles the error and async_setup_entry creates the issue  # noqa: E501
-        # We need to make sure ir.async_create_issue was called.
-        # Since we use the shared stub, ir.async_create_issue is a MagicMock.
-        ir.async_create_issue.assert_called()
+    # Verify issue creation was called
+    # In this integration, the coordinator handles the error and async_setup_entry creates the issue  # noqa: E501
+    # We need to make sure ir.async_create_issue was called.
+    # Since we use the shared stub, ir.async_create_issue is a MagicMock.
+    ir.async_create_issue.assert_called()
 
 
 async def test_whatsapp_notification_entity() -> None:
