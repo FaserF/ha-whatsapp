@@ -177,9 +177,7 @@ def cleanup_handlers() -> Any:
     yield
 
 
-def mock_register(
-    domain: str, service: str, handler: Any, _schema: Any = None
-) -> None:
+def mock_register(domain: str, service: str, handler: Any, _schema: Any = None) -> None:
     if domain == "whatsapp":
         handlers[service] = handler
 
