@@ -139,10 +139,14 @@ def _build_ha_stub_modules() -> None:
         IssueSeverity=MagicMock(),
     )
     if "homeassistant.helpers.entity_platform" in sys.modules:
-        ha_helpers.entity_platform = sys.modules["homeassistant.helpers.entity_platform"]
+        ha_helpers.entity_platform = sys.modules[
+            "homeassistant.helpers.entity_platform"
+        ]
     else:
 
-        def mock_add_entities(entities: list[Any], update_before_add: bool = False) -> None:
+        def mock_add_entities(
+            entities: list[Any], update_before_add: bool = False
+        ) -> None:
             """Stub."""
             pass
 
