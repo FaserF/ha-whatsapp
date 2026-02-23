@@ -8,10 +8,10 @@ from contextlib import ExitStack
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import aiohttp
 
 # Global handlers to capture service registrations
 handlers = {}
+
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
@@ -34,28 +34,45 @@ def _build_ha_stub_modules() -> None:
     # Exceptions
     class HomeAssistantError(Exception):
         """Stub."""
+
     class ServiceValidationError(HomeAssistantError):
         """Stub."""
-    ha_exceptions = _stub("homeassistant.exceptions", HomeAssistantError=HomeAssistantError, ServiceValidationError=ServiceValidationError)
+
+    ha_exceptions = _stub(
+        "homeassistant.exceptions",
+        HomeAssistantError=HomeAssistantError,
+        ServiceValidationError=ServiceValidationError,
+    )
     ha.exceptions = ha_exceptions
 
     # Core
     class ServiceCall:
         """Stub."""
+
         def __init__(self, domain, service, data=None, context=None):
             self.domain = domain
             self.service = service
             self.data = data or {}
-    ha_core = _stub("homeassistant.core", HomeAssistant=object, callback=lambda f: f, ServiceCall=ServiceCall)
+
+    ha_core = _stub(
+        "homeassistant.core",
+        HomeAssistant=object,
+        callback=lambda f: f,
+        ServiceCall=ServiceCall,
+    )
     ha.core = ha_core
 
     # Const
     class Platform:
         """Stub."""
+
         BINARY_SENSOR = "binary_sensor"
         NOTIFY = "notify"
         SENSOR = "sensor"
-    ha_const = _stub("homeassistant.const", CONF_URL="url", CONF_API_KEY="api_key", Platform=Platform)
+
+    ha_const = _stub(
+        "homeassistant.const", CONF_URL="url", CONF_API_KEY="api_key", Platform=Platform
+    )
     ha.const = ha_const
 
     # Config Validation
@@ -64,31 +81,64 @@ def _build_ha_stub_modules() -> None:
 
     # Update Coordinator
     class _GenericBase:
-        def __class_getitem__(cls, item): return cls
+        def __class_getitem__(cls, item):
+            return cls
+
     class CoordinatorEntity(_GenericBase):
-        def __init__(self, coordinator): self.coordinator = coordinator
+        def __init__(self, coordinator):
+            self.coordinator = coordinator
+
     class DataUpdateCoordinator(_GenericBase):
-        def __init__(self, *args, **kwargs): pass
-    uc = _stub("homeassistant.helpers.update_coordinator", DataUpdateCoordinator=DataUpdateCoordinator, CoordinatorEntity=CoordinatorEntity, UpdateFailed=Exception)
+        def __init__(self, *args, **kwargs):
+            pass
+
+    uc = _stub(
+        "homeassistant.helpers.update_coordinator",
+        DataUpdateCoordinator=DataUpdateCoordinator,
+        CoordinatorEntity=CoordinatorEntity,
+        UpdateFailed=Exception,
+    )
     ha_helpers.update_coordinator = uc
 
     # Registries
-    ha_helpers.entity_registry = _stub("homeassistant.helpers.entity_registry", async_get=MagicMock(), async_entries_for_config_entry=MagicMock())
-    ha_helpers.issue_registry = _stub("homeassistant.helpers.issue_registry", async_get=MagicMock(), IssueSeverity=MagicMock())
-    ha_helpers.entity_platform = _stub("homeassistant.helpers.entity_platform", AddEntitiesCallback=object)
-    ha_helpers.typing = _stub("homeassistant.helpers.typing", ConfigType=dict, DiscoveryInfoType=dict)
-    ha_helpers.service = _stub("homeassistant.helpers.service", async_register_admin_service=MagicMock())
+    ha_helpers.entity_registry = _stub(
+        "homeassistant.helpers.entity_registry",
+        async_get=MagicMock(),
+        async_entries_for_config_entry=MagicMock(),
+    )
+    ha_helpers.issue_registry = _stub(
+        "homeassistant.helpers.issue_registry",
+        async_get=MagicMock(),
+        IssueSeverity=MagicMock(),
+    )
+    ha_helpers.entity_platform = _stub(
+        "homeassistant.helpers.entity_platform", AddEntitiesCallback=object
+    )
+    ha_helpers.typing = _stub(
+        "homeassistant.helpers.typing", ConfigType=dict, DiscoveryInfoType=dict
+    )
+    ha_helpers.service = _stub(
+        "homeassistant.helpers.service", async_register_admin_service=MagicMock()
+    )
 
     # Components
     ha_comp = _stub("homeassistant.components")
     ha.components = ha_comp
-    ha_comp.notify = _stub("homeassistant.components.notify", ATTR_DATA="data", ATTR_MESSAGE="message", ATTR_TARGET="target", BaseNotificationService=object, NotifyEntity=object)
+    ha_comp.notify = _stub(
+        "homeassistant.components.notify",
+        ATTR_DATA="data",
+        ATTR_MESSAGE="message",
+        ATTR_TARGET="target",
+        BaseNotificationService=object,
+        NotifyEntity=object,
+    )
 
     # Others
     class FlowResultType:
         FORM = "form"
         ABORT = "abort"
         CREATE_ENTRY = "create_entry"
+
     _stub("homeassistant.data_entry_flow", FlowResultType=FlowResultType)
     _stub("homeassistant.config_entries", ConfigEntry=object)
 
@@ -109,6 +159,7 @@ def _build_ha_stub_modules() -> None:
 
 _build_ha_stub_modules()
 
+
 @pytest.fixture(autouse=True)
 def cleanup_handlers():
     """Clear handlers and sys.modules between tests."""
@@ -118,16 +169,30 @@ def cleanup_handlers():
         del sys.modules[m]
     yield
 
+
 def mock_register(domain, service, handler, schema=None):
     if domain == "whatsapp":
         handlers[service] = handler
 
+
 def get_patches(stack: ExitStack):
     """Apply all required HA/voluptuous patches."""
-    stack.enter_context(patch("homeassistant.helpers.config_validation.string", str, create=True))
-    stack.enter_context(patch("homeassistant.helpers.config_validation.ensure_list", list, create=True))
-    stack.enter_context(patch("homeassistant.helpers.config_validation.boolean", bool, create=True))
-    stack.enter_context(patch("homeassistant.helpers.config_validation.match_all", lambda x: x, create=True))
+    stack.enter_context(
+        patch("homeassistant.helpers.config_validation.string", str, create=True)
+    )
+    stack.enter_context(
+        patch("homeassistant.helpers.config_validation.ensure_list", list, create=True)
+    )
+    stack.enter_context(
+        patch("homeassistant.helpers.config_validation.boolean", bool, create=True)
+    )
+    stack.enter_context(
+        patch(
+            "homeassistant.helpers.config_validation.match_all",
+            lambda x: x,
+            create=True,
+        )
+    )
     stack.enter_context(patch("voluptuous.All", lambda *a, **_: a[0], create=True))
     stack.enter_context(patch("voluptuous.Required", MagicMock(), create=True))
     stack.enter_context(patch("voluptuous.Optional", MagicMock(), create=True))
@@ -139,6 +204,7 @@ def get_patches(stack: ExitStack):
     stack.enter_context(patch("voluptuous.Marker", object, create=True))
     stack.enter_context(patch("voluptuous.Invalid", Exception, create=True))
     stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
+
 
 def setup_mock_session(stack):
     """Helper to mock aiohttp.ClientSession and its context managers."""
@@ -155,8 +221,11 @@ def setup_mock_session(stack):
     mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
     mock_session_instance.__aexit__ = AsyncMock()
 
-    stack.enter_context(patch("aiohttp.ClientSession", return_value=mock_session_instance))
+    stack.enter_context(
+        patch("aiohttp.ClientSession", return_value=mock_session_instance)
+    )
     return mock_session_instance
+
 
 async def test_quoted_message_payload() -> None:
     """Verify that quotedMessageId is correctly sent in the payload."""
@@ -168,6 +237,7 @@ async def test_quoted_message_payload() -> None:
         get_patches(stack)
         from custom_components.whatsapp import async_setup_entry
         from custom_components.whatsapp.const import DOMAIN
+
         hass.data = {DOMAIN: {}}
 
         mock_session = setup_mock_session(stack)
@@ -178,7 +248,9 @@ async def test_quoted_message_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
+        with patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -187,11 +259,12 @@ async def test_quoted_message_payload() -> None:
         assert send_msg_service is not None
 
         from homeassistant.core import ServiceCall
-        call = ServiceCall("whatsapp", "send_message", {
-            "target": "123456789",
-            "message": "Reply text",
-            "quote": "MSG_ID_123"
-        })
+
+        call = ServiceCall(
+            "whatsapp",
+            "send_message",
+            {"target": "123456789", "message": "Reply text", "quote": "MSG_ID_123"},
+        )
 
         await send_msg_service(call)
 
@@ -203,6 +276,7 @@ async def test_quoted_message_payload() -> None:
         assert payload["message"] == "Reply text"
         assert payload["quotedMessageId"] == "MSG_ID_123"
 
+
 async def test_buttons_payload() -> None:
     """Verify that buttons are correctly sent in the payload."""
     hass = MagicMock()
@@ -213,6 +287,7 @@ async def test_buttons_payload() -> None:
         get_patches(stack)
         from custom_components.whatsapp import async_setup_entry
         from custom_components.whatsapp.const import DOMAIN
+
         hass.data = {DOMAIN: {}}
 
         mock_session = setup_mock_session(stack)
@@ -222,7 +297,9 @@ async def test_buttons_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
+        with patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -232,15 +309,20 @@ async def test_buttons_payload() -> None:
 
         buttons = [
             {"id": "btn_1", "displayText": "Option 1"},
-            {"id": "btn_2", "displayText": "Option 2"}
+            {"id": "btn_2", "displayText": "Option 2"},
         ]
         from homeassistant.core import ServiceCall
-        call = ServiceCall("whatsapp", "send_buttons", {
-            "target": "123456789",
-            "message": "Choose one:",
-            "buttons": buttons,
-            "footer": "My Footer"
-        })
+
+        call = ServiceCall(
+            "whatsapp",
+            "send_buttons",
+            {
+                "target": "123456789",
+                "message": "Choose one:",
+                "buttons": buttons,
+                "footer": "My Footer",
+            },
+        )
 
         await send_btn_service(call)
 
@@ -253,6 +335,7 @@ async def test_buttons_payload() -> None:
         assert payload["buttons"] == buttons
         assert payload["footer"] == "My Footer"
 
+
 async def test_telegram_buttons_normalization() -> None:
     """Verify that Telegram-style inline_keyboard buttons are normalized correctly in notify."""
     hass = MagicMock()
@@ -260,30 +343,35 @@ async def test_telegram_buttons_normalization() -> None:
     with ExitStack() as stack:
         get_patches(stack)
 
-        from custom_components.whatsapp.notify import WhatsAppNotificationService
         from custom_components.whatsapp.api import WhatsAppApiClient
+        from custom_components.whatsapp.notify import WhatsAppNotificationService
 
         mock_client = MagicMock(spec=WhatsAppApiClient)
         mock_client.send_buttons = AsyncMock()
-        mock_client.ensure_jid = MagicMock(side_effect=lambda x: x if "@" in x else f"{x}@s.whatsapp.net")
+        mock_client.ensure_jid = MagicMock(
+            side_effect=lambda x: x if "@" in x else f"{x}@s.whatsapp.net"
+        )
 
         service_instance = WhatsAppNotificationService(mock_client)
 
         # Telegram format
         inline_keyboard = [
-            [{"text": "Yes", "callback_data": "click_yes"}, {"text": "No", "callback_data": "click_no"}]
+            [
+                {"text": "Yes", "callback_data": "click_yes"},
+                {"text": "No", "callback_data": "click_no"},
+            ]
         ]
 
         await service_instance.async_send_message(
             message="Alarm?",
             target=["123456789"],
-            data={"inline_keyboard": inline_keyboard}
+            data={"inline_keyboard": inline_keyboard},
         )
 
         # Check if send_buttons was called on the client with normalized buttons
         expected_normalized = [
             {"id": "click_yes", "displayText": "Yes"},
-            {"id": "click_no", "displayText": "No"}
+            {"id": "click_no", "displayText": "No"},
         ]
         mock_client.send_buttons.assert_awaited_once()
         args = mock_client.send_buttons.call_args.args
