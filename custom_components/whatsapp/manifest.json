@@ -9,11 +9,14 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues",
   "integration_type": "hub",
+  "after_dependencies": [
+    "hassio"
+  ],
   "requirements": [],
   "zeroconf": [
     {
       "type": "_ha-whatsapp._tcp.local.",
-      "name": "WhatsApp Addon*"
+      "name": "whatsapp addon*"
     }
   ],
   "version": "1.3.1-dev"

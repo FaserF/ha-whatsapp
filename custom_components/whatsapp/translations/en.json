@@ -22,7 +22,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to the WhatsApp Addon. Please ensure the [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) is installed and running.",
+      "cannot_connect": "Failed to connect to the WhatsApp Addon. Please ensure the [WhatsApp Addon]({addon_url}) is installed and running.",
       "invalid_auth": "Invalid authentication",
       "connection_error": "Not connected to WhatsApp. Please scan the QR code first.",
       "addon_install_error": "Failed to install the WhatsApp Add-on. Please check the Supervisor logs.",
@@ -267,7 +267,7 @@
         },
         "buttons": {
           "name": "Buttons",
-          "description": "List of buttons defined as objects: {'id': '1', 'displayText': 'Yes'}."
+          "description": "List of buttons defined as objects with id and displayText."
         },
         "footer": {
           "name": "Footer",

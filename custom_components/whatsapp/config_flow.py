@@ -164,6 +164,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         ): vol.All(str, vol.Length(min=1)),
                     }
                 ),
+                description_placeholders={
+                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                },
                 errors=errors,
             )
         except Exception:
@@ -181,6 +184,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         ): vol.All(str, vol.Length(min=1)),
                     }
                 ),
+                description_placeholders={
+                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                },
                 errors=errors,
             )
 
