@@ -49,7 +49,13 @@ def _build_ha_stub_modules() -> None:
     class ServiceCall:
         """Stub."""
 
-        def __init__(self, domain, service, data=None, context=None):
+        def __init__(
+            self,
+            domain,
+            service,
+            data=None,
+            context=None,  # noqa: ARG002
+        ):
             self.domain = domain
             self.service = service
             self.data = data or {}
@@ -170,7 +176,7 @@ def cleanup_handlers():
     yield
 
 
-def mock_register(domain, service, handler, schema=None):
+def mock_register(domain, service, handler, schema=None):  # noqa: ARG001
     if domain == "whatsapp":
         handlers[service] = handler
 
@@ -337,8 +343,7 @@ async def test_buttons_payload() -> None:
 
 
 async def test_telegram_buttons_normalization() -> None:
-    """Verify that Telegram-style inline_keyboard buttons are normalized correctly in notify."""
-    hass = MagicMock()
+    """Verify Telegram inline_keyboard buttons are normalized correctly."""
 
     with ExitStack() as stack:
         get_patches(stack)

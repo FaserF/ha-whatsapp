@@ -16,7 +16,7 @@ _Coming soon to HACS Default Repository._
 4. Click **Install**.
 5. **Restart Home Assistant**. 🔄
 
-> [!TIP]
+> **TIP:**
 > **Using Home Assistant OS / Supervisor?** You can skip manual addon installation! The integration will offer to install the official Addon (Stable or Edge) automatically during the setup flow.
 
 ### B. Manual Installation

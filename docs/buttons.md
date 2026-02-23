@@ -38,7 +38,7 @@ action:
       entity_id: all
 ```
 
-> [!TIP]
+> **TIP:**
 > You can also check for `trigger.event.data.id` (or `trigger.event.data.raw.key.id` depending on bridge) to match the internal button ID precisely.
 
 ---

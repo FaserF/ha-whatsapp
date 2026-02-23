@@ -35,7 +35,7 @@ graph LR
 4. **Restart** the App.
 5. Check the App **Web UI** and copy your **API Token** and **Port (8066)**.
 
-> [!TIP]
+> **TIP:**
 > **Multi-Instance Rocket.Chat**: If you have multiple WhatsApp accounts, you can either share the same Rocket.Chat webhook (and use automation logic to route) or set up separate Rocket.Chat App instances if supported.
 
 ---

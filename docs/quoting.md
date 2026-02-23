@@ -61,5 +61,5 @@ Both parameters are supported for compatibility. If both are provided, `quote` t
 
 ---
 
-> [!TIP]
+> **TIP:**
 > You can quote messages in almost all sending services, including `send_image`, `send_poll`, `send_buttons`, and `send_list`!

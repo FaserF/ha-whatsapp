@@ -86,7 +86,7 @@ description: 'A professional WhatsApp bridge for Home Assistant using Baileys an
 
 ---
 
-> [!NOTE]
+> **NOTE:**
 > **This project is 100% free and open-source.** There are no hidden costs, premium versions, or paid features. Donations are strictly voluntary and support the hardware/time needed for development.
 
 ## 🔗 Webhook Integration

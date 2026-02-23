@@ -18,7 +18,7 @@ This guide describes how to install the **Beta version** of the Home Assistant I
 
 You can mix and match (e.g., Stable App with Beta Integration), but for testing new features, it is often necessary to update both.
 
-> [!TIP]
+> **TIP:**
 > **Simplified Edge Installation**: The WhatsApp integration can now automatically install the Edge version for you! Just start the configuration flow and select "Edge (Development)" when prompted to install the official Add-on.
 
 ## Terminology
@@ -90,7 +90,7 @@ The App runs the actual WhatsApp Web client (Baileys) in the background. To get 
 
 5. **Start** the new WhatsApp (Edge) App.
 
-> [!TIP]
+> **TIP:**
 > You can switch back to the Stable App at any time by stopping the Edge version and starting the Stable version.
 
 ---

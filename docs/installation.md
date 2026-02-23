@@ -22,7 +22,7 @@ The App handles the heavy lifting of connecting to WhatsApp.
 
 1. **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
-> [!TIP]
+> **TIP:**
 > **Using Home Assistant OS / Supervisor?** You can skip manual addon installation! The integration will offer to install the official Addon (Stable or Edge) automatically during the config flow setup.
 
 <div class="btn-myha-wrapper">
