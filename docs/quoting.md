@@ -30,7 +30,7 @@ action:
     data:
       target: "{{ trigger.event.data.sender }}"
       message: "pong 🏓"
-      quote: "{{ trigger.event.data.msg_id }}"
+      quote: "{{ trigger.event.data.id | default(trigger.event.data.raw.key.id) }}"
 ```
 
 ### B. Using the `notify.whatsapp` Service (Legacy)

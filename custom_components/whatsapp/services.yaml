@@ -594,6 +594,7 @@ send_buttons:
     When tapped, the button ID is sent back via webhook.
     Perfect for confirmation dialogs, quick replies, or menu selections.
     Maximum 3 buttons per message. Also supports Telegram inline_keyboard format.
+    See [Buttons Guide](https://faserf.github.io/ha-whatsapp/buttons) for more details.
   fields:
     account:
       name: Account
