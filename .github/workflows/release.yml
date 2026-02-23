@@ -1,10 +1,6 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'custom_components/whatsapp/manifest.json'
   schedule:
     - cron: '0 0 * * 6' # Weekly on Saturday Midnight
   workflow_dispatch:
