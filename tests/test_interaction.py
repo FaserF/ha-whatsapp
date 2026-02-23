@@ -178,8 +178,8 @@ def cleanup_handlers() -> Any:
 
 
 def mock_register(
-    domain: str, service: str, handler: Any, schema: Any = None
-) -> None:  # noqa: ARG001
+    domain: str, service: str, handler: Any, _schema: Any = None
+) -> None:
     if domain == "whatsapp":
         handlers[service] = handler
 
