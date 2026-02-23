@@ -5,11 +5,10 @@ from __future__ import annotations
 import sys
 import types
 from contextlib import ExitStack
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from typing import Any
-import aiohttp # type: ignore
 
 # Global handlers to capture service registrations
 handlers: dict[str, Any] = {}
@@ -178,7 +177,9 @@ def cleanup_handlers() -> Any:
     yield
 
 
-def mock_register(domain: str, service: str, handler: Any, schema: Any = None) -> None:  # noqa: ARG001
+def mock_register(
+    domain: str, service: str, handler: Any, schema: Any = None
+) -> None:  # noqa: ARG001
     if domain == "whatsapp":
         handlers[service] = handler
 
