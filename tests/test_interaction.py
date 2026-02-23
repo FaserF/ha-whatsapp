@@ -24,7 +24,8 @@ def _build_ha_stub_modules() -> None:
             mod = types.ModuleType(name)
             sys.modules[name] = mod
         for k, v in kwargs.items():
-            setattr(mod, k, v)
+            if not hasattr(mod, k):
+                setattr(mod, k, v)
         return mod
 
     # Create basic structure
@@ -32,18 +33,21 @@ def _build_ha_stub_modules() -> None:
     ha_helpers: Any = _stub("homeassistant.helpers")
     ha.helpers = ha_helpers
 
-    # Exceptions
-    class HomeAssistantError(Exception):
-        """Stub."""
+    if "homeassistant.exceptions" in sys.modules:
+        ha_exceptions = sys.modules["homeassistant.exceptions"]
+    else:
 
-    class ServiceValidationError(HomeAssistantError):
-        """Stub."""
+        class HomeAssistantError(Exception):
+            """Stub."""
 
-    ha_exceptions: Any = _stub(
-        "homeassistant.exceptions",
-        HomeAssistantError=HomeAssistantError,
-        ServiceValidationError=ServiceValidationError,
-    )
+        class ServiceValidationError(HomeAssistantError):
+            """Stub."""
+
+        ha_exceptions = _stub(
+            "homeassistant.exceptions",
+            HomeAssistantError=HomeAssistantError,
+            ServiceValidationError=ServiceValidationError,
+        )
     ha.exceptions = ha_exceptions
 
     # Core
@@ -94,10 +98,26 @@ def _build_ha_stub_modules() -> None:
     class CoordinatorEntity(_GenericBase):
         def __init__(self, coordinator: Any) -> None:
             self.coordinator = coordinator
+            coordinator.async_add_listener(self.async_write_ha_state)
+
+        def async_write_ha_state(self) -> None:
+            """Stub."""
+            pass
 
     class DataUpdateCoordinator(_GenericBase):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            pass
+            self.data: dict[str, Any] = {"connected": True, "stats": {}}
+            self._listeners: list[Callable[[], None]] = []
+
+        async def async_config_entry_first_refresh(self) -> None:
+            """Stub."""
+            for listener in self._listeners:
+                listener()
+
+        def async_add_listener(self, cb: Callable[[], None]) -> Callable[[], None]:
+            """Stub."""
+            self._listeners.append(cb)
+            return lambda: self._listeners.remove(cb)
 
     uc = _stub(
         "homeassistant.helpers.update_coordinator",
@@ -118,9 +138,18 @@ def _build_ha_stub_modules() -> None:
         async_get=MagicMock(),
         IssueSeverity=MagicMock(),
     )
-    ha_helpers.entity_platform = _stub(
-        "homeassistant.helpers.entity_platform", AddEntitiesCallback=object
-    )
+    if "homeassistant.helpers.entity_platform" in sys.modules:
+        ha_helpers.entity_platform = sys.modules["homeassistant.helpers.entity_platform"]
+    else:
+
+        def mock_add_entities(entities: list[Any], update_before_add: bool = False) -> None:
+            """Stub."""
+            pass
+
+        ha_helpers.entity_platform = _stub(
+            "homeassistant.helpers.entity_platform",
+            AddEntitiesCallback=mock_add_entities,
+        )
     ha_helpers.typing = _stub(
         "homeassistant.helpers.typing", ConfigType=dict, DiscoveryInfoType=dict
     )
@@ -177,7 +206,7 @@ def cleanup_handlers() -> Any:
     yield
 
 
-def mock_register(domain: str, service: str, handler: Any, _schema: Any = None) -> None:
+def mock_register(domain: str, service: str, handler: Any, schema: Any = None) -> None:
     if domain == "whatsapp":
         handlers[service] = handler
 
