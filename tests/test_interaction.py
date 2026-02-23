@@ -8,15 +8,17 @@ from contextlib import ExitStack
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from typing import Any
+import aiohttp # type: ignore
 
 # Global handlers to capture service registrations
-handlers = {}
+handlers: dict[str, Any] = {}
 
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
 
-    def _stub(name, **kwargs):
+    def _stub(name: str, **kwargs: Any) -> types.ModuleType:
         if name in sys.modules:
             mod = sys.modules[name]
         else:
@@ -27,8 +29,8 @@ def _build_ha_stub_modules() -> None:
         return mod
 
     # Create basic structure
-    ha = _stub("homeassistant")
-    ha_helpers = _stub("homeassistant.helpers")
+    ha: Any = _stub("homeassistant")
+    ha_helpers: Any = _stub("homeassistant.helpers")
     ha.helpers = ha_helpers
 
     # Exceptions
@@ -38,7 +40,7 @@ def _build_ha_stub_modules() -> None:
     class ServiceValidationError(HomeAssistantError):
         """Stub."""
 
-    ha_exceptions = _stub(
+    ha_exceptions: Any = _stub(
         "homeassistant.exceptions",
         HomeAssistantError=HomeAssistantError,
         ServiceValidationError=ServiceValidationError,
@@ -51,16 +53,16 @@ def _build_ha_stub_modules() -> None:
 
         def __init__(
             self,
-            domain,
-            service,
-            data=None,
-            context=None,  # noqa: ARG002
-        ):
+            domain: str,
+            service: str,
+            data: dict[str, Any] | None = None,
+            context: Any = None,  # noqa: ARG002
+        ) -> None:
             self.domain = domain
             self.service = service
             self.data = data or {}
 
-    ha_core = _stub(
+    ha_core: Any = _stub(
         "homeassistant.core",
         HomeAssistant=object,
         callback=lambda f: f,
@@ -76,7 +78,7 @@ def _build_ha_stub_modules() -> None:
         NOTIFY = "notify"
         SENSOR = "sensor"
 
-    ha_const = _stub(
+    ha_const: Any = _stub(
         "homeassistant.const", CONF_URL="url", CONF_API_KEY="api_key", Platform=Platform
     )
     ha.const = ha_const
@@ -87,15 +89,15 @@ def _build_ha_stub_modules() -> None:
 
     # Update Coordinator
     class _GenericBase:
-        def __class_getitem__(cls, item):
+        def __class_getitem__(cls, item: Any) -> Any:
             return cls
 
     class CoordinatorEntity(_GenericBase):
-        def __init__(self, coordinator):
+        def __init__(self, coordinator: Any) -> None:
             self.coordinator = coordinator
 
     class DataUpdateCoordinator(_GenericBase):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
     uc = _stub(
@@ -128,7 +130,7 @@ def _build_ha_stub_modules() -> None:
     )
 
     # Components
-    ha_comp = _stub("homeassistant.components")
+    ha_comp: Any = _stub("homeassistant.components")
     ha.components = ha_comp
     ha_comp.notify = _stub(
         "homeassistant.components.notify",
@@ -149,7 +151,7 @@ def _build_ha_stub_modules() -> None:
     _stub("homeassistant.config_entries", ConfigEntry=object)
 
     # voluptuous
-    vol_mod = _stub("voluptuous")
+    vol_mod: Any = _stub("voluptuous")
     vol_mod.Schema = lambda s, **_: s
     vol_mod.Optional = MagicMock()
     vol_mod.Required = MagicMock()
@@ -167,7 +169,7 @@ _build_ha_stub_modules()
 
 
 @pytest.fixture(autouse=True)
-def cleanup_handlers():
+def cleanup_handlers() -> Any:
     """Clear handlers and sys.modules between tests."""
     handlers.clear()
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
@@ -176,12 +178,12 @@ def cleanup_handlers():
     yield
 
 
-def mock_register(domain, service, handler, schema=None):  # noqa: ARG001
+def mock_register(domain: str, service: str, handler: Any, schema: Any = None) -> None:  # noqa: ARG001
     if domain == "whatsapp":
         handlers[service] = handler
 
 
-def get_patches(stack: ExitStack):
+def get_patches(stack: ExitStack) -> None:
     """Apply all required HA/voluptuous patches."""
     stack.enter_context(
         patch("homeassistant.helpers.config_validation.string", str, create=True)
@@ -212,7 +214,7 @@ def get_patches(stack: ExitStack):
     stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
 
 
-def setup_mock_session(stack):
+def setup_mock_session(stack: ExitStack) -> MagicMock:
     """Helper to mock aiohttp.ClientSession and its context managers."""
     mock_resp = MagicMock()
     mock_resp.status = 200

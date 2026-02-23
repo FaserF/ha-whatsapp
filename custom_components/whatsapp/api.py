@@ -1119,6 +1119,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         text: str,
         button_text: str,
         sections: list[dict[str, Any]],
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Send a list message (interactive menu)."""
         if not self.is_allowed(number):
@@ -1127,7 +1129,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         await self._send_with_retry(
-            self._send_list_internal, target_jid, title, text, button_text, sections
+            self._send_list_internal,
+            target_jid,
+            title,
+            text,
+            button_text,
+            sections,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_list_internal(
@@ -1137,6 +1146,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         text: str,
         button_text: str,
         sections: list[dict[str, Any]],
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
     ) -> None:
         """Internal send list logic."""
         api_url = f"{self.host}/send_list"
@@ -1147,6 +1158,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "button_text": button_text,
             "sections": sections,
         }
+        if quoted_message_id:
+            payload["quotedMessageId"] = quoted_message_id
+        if expiration:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
