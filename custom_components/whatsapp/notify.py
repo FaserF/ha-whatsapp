@@ -230,8 +230,7 @@ async def async_send_whatsapp_message(
                 recipient,
             )
             raise HomeAssistantError(
-                f"Skipping location message to {recipient}: "
-                "latitude/longitude missing"
+                f"Skipping location message to {recipient}: latitude/longitude missing"
             )
         try:
             lat_f = float(lat)

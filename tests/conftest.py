@@ -139,7 +139,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
     flow_steps: dict[str, int] = {}  # flow_id -> step_count
 
     async def async_init(
-        domain: str, context: Any = None, data: Any = None  # noqa: ARG001
+        domain: str,  # noqa: ARG001
+        context: Any = None,
+        data: Any = None,  # noqa: ARG001
     ) -> dict[str, Any]:
         import uuid
 
@@ -252,12 +254,15 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.config_entries.options = MagicMock()
 
     async def async_options_init(
-        entry_id: str, context: Any = None, data: Any = None  # noqa: ARG001
+        entry_id: str,  # noqa: ARG001
+        context: Any = None,  # noqa: ARG001
+        data: Any = None,  # noqa: ARG001
     ) -> dict[str, Any]:
         return {"type": "form", "flow_id": "test_options", "step_id": "init"}
 
     async def async_options_configure(
-        flow_id: str, user_input: Any = None  # noqa: ARG001
+        flow_id: str,  # noqa: ARG001
+        user_input: Any = None,  # noqa: ARG001
     ) -> dict[str, Any]:
         from custom_components.whatsapp.const import (
             CONF_DEBUG_PAYLOADS,

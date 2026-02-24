@@ -236,15 +236,19 @@ async def test_quoted_message_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch(
-            "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-            return_value=None,
-        ), patch(
-            "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-            side_effect=lambda *a: None,
-        ), patch(
-            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-        ) as mock_coord:
+        with (
+            patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
+                return_value=None,
+            ),
+            patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
+                side_effect=lambda *_: None,
+            ),
+            patch(
+                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+            ) as mock_coord,
+        ):
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -292,15 +296,19 @@ async def test_buttons_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch(
-            "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-            return_value=None,
-        ), patch(
-            "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-            side_effect=lambda *a: None,
-        ), patch(
-            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-        ) as mock_coord:
+        with (
+            patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
+                return_value=None,
+            ),
+            patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
+                side_effect=lambda *_: None,
+            ),
+            patch(
+                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+            ) as mock_coord,
+        ):
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 

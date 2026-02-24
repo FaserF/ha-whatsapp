@@ -152,7 +152,9 @@ class RepairsFlow:
         return {"type": "form", "step_id": step_id}
 
     def async_create_entry(
-        self, title: str, data: Any  # noqa: ARG002
+        self,
+        title: str,  # noqa: ARG002
+        data: Any,  # noqa: ARG002
     ) -> dict[str, Any]:
         return {"type": "create_entry", "version": 1}
 
@@ -190,7 +192,9 @@ stub = _stub
 
 
 def mock_add_entities(
-    hass: Any, entities: list[Any], update_before_add: bool = False  # noqa: ARG001
+    hass: Any,
+    entities: list[Any],
+    update_before_add: bool = False,  # noqa: ARG001
 ) -> None:
     for entity in entities:
         entity.hass = hass
@@ -277,7 +281,8 @@ class MockConfigEntry:
         pass
 
     def add_update_listener(
-        self, func: Callable[..., Any]  # noqa: ARG002
+        self,
+        func: Callable[..., Any],  # noqa: ARG002
     ) -> Callable[[], None]:
         return lambda: None
 
