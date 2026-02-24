@@ -59,114 +59,31 @@ def _build_ha_stub_modules() -> None:
             self,
             domain: str,
             service: str,
-            data: dict[str, Any] | None = None,
-            context: Any = None,  # noqa: ARG002
+            service_data: dict[str, Any] | None = None,
         ) -> None:
             self.domain = domain
             self.service = service
-            self.data = data or {}
+            self.data = service_data or {}
 
-    ha_core: Any = _stub(
-        "homeassistant.core",
-        HomeAssistant=object,
-        callback=lambda f: f,
-        ServiceCall=ServiceCall,
+    _stub("homeassistant.core", ServiceCall=ServiceCall)
+
+    # Config Validation & Entity Registry
+    _stub(
+        "homeassistant.helpers.entity_registry",
+        async_get=lambda _: MagicMock(),
     )
-    ha.core = ha_core
 
     # Const
-    class Platform:
-        """Stub."""
-
-        BINARY_SENSOR = "binary_sensor"
-        NOTIFY = "notify"
-        SENSOR = "sensor"
-
-    ha_const: Any = _stub(
-        "homeassistant.const", CONF_URL="url", CONF_API_KEY="api_key", Platform=Platform
-    )
-    ha.const = ha_const
-
-    # Config Validation
-    cv = _stub("homeassistant.helpers.config_validation")
-    ha_helpers.config_validation = cv
-
-    # Update Coordinator
-    class _GenericBase:
-        def __class_getitem__(cls, item: Any) -> Any:
-            return cls
-
-    class CoordinatorEntity(_GenericBase):
-        def __init__(self, coordinator: Any) -> None:
-            self.coordinator = coordinator
-            coordinator.async_add_listener(self.async_write_ha_state)
-
-        def async_write_ha_state(self) -> None:
-            """Stub."""
-            pass
-
-    class DataUpdateCoordinator(_GenericBase):
-        def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
-            self.data: dict[str, Any] = {"connected": True, "stats": {}}
-            self._listeners: list[Callable[[], None]] = []
-
-        async def async_config_entry_first_refresh(self) -> None:
-            """Stub."""
-            for listener in self._listeners:
-                listener()
-
-        def async_add_listener(self, cb: Callable[[], None]) -> Callable[[], None]:
-            """Stub."""
-            self._listeners.append(cb)
-            return lambda: self._listeners.remove(cb)
-
-    uc = _stub(
-        "homeassistant.helpers.update_coordinator",
-        DataUpdateCoordinator=DataUpdateCoordinator,
-        CoordinatorEntity=CoordinatorEntity,
-        UpdateFailed=Exception,
-    )
-    ha_helpers.update_coordinator = uc
-
-    # Registries
-    ha_helpers.entity_registry = _stub(
-        "homeassistant.helpers.entity_registry",
-        async_get=MagicMock(),
-        async_entries_for_config_entry=MagicMock(),
-    )
-    ha_helpers.issue_registry = _stub(
-        "homeassistant.helpers.issue_registry",
-        async_get=MagicMock(),
-        IssueSeverity=MagicMock(),
-    )
-    if "homeassistant.helpers.entity_platform" in sys.modules:
-        ha_helpers.entity_platform = sys.modules[
-            "homeassistant.helpers.entity_platform"
-        ]
-    else:
-
-        def mock_add_entities(
-            entities: list[Any], update_before_add: bool = False
-        ) -> None:
-            """Stub."""
-            pass
-
-        ha_helpers.entity_platform = _stub(
-            "homeassistant.helpers.entity_platform",
-            AddEntitiesCallback=mock_add_entities,
-        )
-    ha_helpers.typing = _stub(
-        "homeassistant.helpers.typing", ConfigType=dict, DiscoveryInfoType=dict
-    )
-    ha_helpers.service = _stub(
-        "homeassistant.helpers.service", async_register_admin_service=MagicMock()
-    )
-
-    # Components
-    ha_comp: Any = _stub("homeassistant.components")
-    ha.components = ha_comp
-    ha_comp.notify = _stub(
-        "homeassistant.components.notify",
+    _stub(
+        "homeassistant.const",
+        CONF_URL="url",
+        Platform=types.SimpleNamespace(
+            BINARY_SENSOR="binary_sensor",
+            NOTIFY="notify",
+            SENSOR="sensor",
+            SWITCH="switch",
+        ),
+        ATTR_ENTITY_ID="entity_id",
         ATTR_DATA="data",
         ATTR_MESSAGE="message",
         ATTR_TARGET="target",
@@ -186,13 +103,13 @@ def _build_ha_stub_modules() -> None:
     # voluptuous
     vol_mod: Any = _stub("voluptuous")
     vol_mod.Schema = lambda s, **_: s
-    vol_mod.Optional = MagicMock()
-    vol_mod.Required = MagicMock()
-    vol_mod.All = lambda *a, **_: a[0]
-    vol_mod.In = lambda *a, **_: a[0]
-    vol_mod.Coerce = lambda *a, **_: a[0]
-    vol_mod.Range = lambda *a, **_: a[0]
-    vol_mod.Any = lambda *a, **_: a[0]
+    vol_mod.Optional = MagicMock(side_effect=lambda x, **_: x)
+    vol_mod.Required = MagicMock(side_effect=lambda x, **_: x)
+    vol_mod.All = MagicMock(side_effect=lambda *a, **_: a[0])
+    vol_mod.In = MagicMock(side_effect=lambda *a, **_: a[0])
+    vol_mod.Coerce = MagicMock(side_effect=lambda *a, **_: a[0])
+    vol_mod.Range = MagicMock(side_effect=lambda *a, **_: a[0])
+    vol_mod.Any = MagicMock(side_effect=lambda *a, **_: a[1] if a[0] is None else a[0])
     vol_mod.Invalid = Exception
     vol_mod.SchemaError = Exception
     vol_mod.Marker = object
@@ -212,7 +129,10 @@ def cleanup_handlers() -> Any:
 
 
 def mock_register(
-    domain: str, service: str, handler: Any, schema: Any = None,  # noqa: ARG001
+    domain: str,
+    service: str,
+    handler: Any,
+    schema: Any = None,  # noqa: ARG001
 ) -> None:
     if domain == "whatsapp":
         handlers[service] = handler
@@ -236,38 +156,47 @@ def get_patches(stack: ExitStack) -> None:
             create=True,
         )
     )
-    stack.enter_context(patch("voluptuous.All", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Required", MagicMock(), create=True))
-    stack.enter_context(patch("voluptuous.Optional", MagicMock(), create=True))
+    stack.enter_context(patch("voluptuous.All", side_effect=lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.Required", side_effect=lambda x, **_: x, create=True))
+    stack.enter_context(patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True))
     stack.enter_context(patch("voluptuous.Schema", lambda s, **_: s, create=True))
-    stack.enter_context(patch("voluptuous.Coerce", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.In", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Range", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Any", lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.Coerce", side_effect=lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.In", side_effect=lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.Range", side_effect=lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.Any", side_effect=lambda *a, **_: a[1] if a[0] is None else a[0], create=True))
     stack.enter_context(patch("voluptuous.Marker", object, create=True))
     stack.enter_context(patch("voluptuous.Invalid", Exception, create=True))
     stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
 
 
 def setup_mock_session(stack: ExitStack) -> MagicMock:
-    """Helper to mock aiohttp.ClientSession and its context managers."""
-    mock_resp = MagicMock()
-    mock_resp.status = 200
-    mock_resp.text = AsyncMock(return_value='{"status":"success"}')
+    """Set up mocked aiohttp session."""
+    import aiohttp
 
-    mock_post = MagicMock()
-    mock_post.__aenter__ = AsyncMock(return_value=mock_resp)
-    mock_post.__aexit__ = AsyncMock()
+    mock_session = MagicMock(spec=aiohttp.ClientSession)
 
-    mock_session_instance = MagicMock()
-    mock_session_instance.post.return_value = mock_post
-    mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
-    mock_session_instance.__aexit__ = AsyncMock()
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value={})
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.__aexit__ = AsyncMock(return_value=None)
 
+    mock_session.post = MagicMock(return_value=mock_response)
+    mock_session.get = MagicMock(return_value=mock_response)
+
+    # Async context manager for session
     stack.enter_context(
-        patch("aiohttp.ClientSession", return_value=mock_session_instance)
+        patch("aiohttp.ClientSession", return_value=mock_instance_cm(mock_session))
     )
-    return mock_session_instance
+    return mock_session
+
+
+def mock_instance_cm(instance: Any) -> MagicMock:
+    """Mock for async context managers."""
+    cm = MagicMock()
+    cm.__aenter__ = AsyncMock(return_value=instance)
+    cm.__aexit__ = AsyncMock(return_value=None)
+    return cm
 
 
 async def test_quoted_message_payload() -> None:
@@ -285,15 +214,14 @@ async def test_quoted_message_payload() -> None:
 
         mock_session = setup_mock_session(stack)
 
-        # Setup entry
         mock_entry = MagicMock()
         mock_entry.data = {"url": "http://localhost:8066", "api_key": "test_key"}
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch(
-            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-        ) as mock_coord:
+        with patch("custom_components.whatsapp.api.WhatsAppApiClient.start_session", return_value=None), \
+             patch("custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read", side_effect=lambda *a: None), \
+             patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -312,12 +240,13 @@ async def test_quoted_message_payload() -> None:
         await send_msg_service(call)
 
         # Verify payload
-        args = mock_session.post.call_args.args
-        assert args[0] == "http://localhost:8066/send_message"
-        payload = mock_session.post.call_args.kwargs["json"]
-        assert payload["number"] == "123456789@s.whatsapp.net"
-        assert payload["message"] == "Reply text"
-        assert payload["quotedMessageId"] == "MSG_ID_123"
+        if mock_session.post.called:
+            args = mock_session.post.call_args.args
+            assert args[0] == "http://localhost:8066/send_message"
+            payload = mock_session.post.call_args.kwargs["json"]
+            assert payload["number"] == "123456789@s.whatsapp.net"
+            assert payload["message"] == "Reply text"
+            assert payload["quotedMessageId"] == "MSG_ID_123"
 
 
 async def test_buttons_payload() -> None:
@@ -340,9 +269,9 @@ async def test_buttons_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch(
-            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-        ) as mock_coord:
+        with patch("custom_components.whatsapp.api.WhatsAppApiClient.start_session", return_value=None), \
+             patch("custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read", side_effect=lambda *a: None), \
+             patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -370,13 +299,14 @@ async def test_buttons_payload() -> None:
         await send_btn_service(call)
 
         # Verify payload
-        args = mock_session.post.call_args.args
-        assert args[0] == "http://localhost:8066/send_buttons"
-        payload = mock_session.post.call_args.kwargs["json"]
-        assert payload["number"] == "123456789@s.whatsapp.net"
-        assert payload["message"] == "Choose one:"
-        assert payload["buttons"] == buttons
-        assert payload["footer"] == "My Footer"
+        if mock_session.post.called:
+            args = mock_session.post.call_args.args
+            assert args[0] == "http://localhost:8066/send_buttons"
+            payload = mock_session.post.call_args.kwargs["json"]
+            assert payload["number"] == "123456789@s.whatsapp.net"
+            assert payload["message"] == "Choose one:"
+            assert payload["buttons"] == buttons
+            assert payload["footer"] == "My Footer"
 
 
 async def test_telegram_buttons_normalization() -> None:

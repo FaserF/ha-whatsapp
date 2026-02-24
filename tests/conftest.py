@@ -32,17 +32,17 @@ def mock_client() -> MagicMock:
     """Fixture for mocking WhatsAppApiClient."""
     from custom_components.whatsapp.api import WhatsAppApiClient
 
-    client = MagicMock()
+    client = MagicMock(spec=WhatsAppApiClient)
     client.connect = AsyncMock(return_value=True)
-    client.start_session = lambda: None
+    client.start_session = MagicMock(return_value=None)
     client.get_qr_code = AsyncMock(return_value="data:image/png;base64,mock_qr")
     client.get_stats = AsyncMock(
         return_value={"sent": 0, "failed": 0, "my_number": "123456789"}
-    )  # noqa: E401
+    )  # noqa: E501
     client.register_callback = MagicMock()
     client.start_polling = AsyncMock()
     client.close = AsyncMock()
-    client.mark_as_read = lambda *_: None
+    client.mark_as_read = MagicMock(return_value=None)
     return client
 
 

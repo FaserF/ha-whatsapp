@@ -442,6 +442,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         **s_account,
         vol.Optional("quote"): cv.string,
         vol.Optional("reply_to"): cv.string,
+        vol.Optional("expiration"): vol.Any(None, vol.Coerce(int)),
     }
 
     msg_schema: dict[vol.Marker, Any] = {
@@ -544,6 +545,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         **s_account,
         vol.Required("target"): cv.string,
         vol.Required("sections"): cv.match_all,
+        vol.Optional("expiration"): vol.Any(None, vol.Coerce(int)),
         vol.Optional("title"): cv.string,
         vol.Optional("text"): cv.string,
         vol.Optional("button_text"): cv.string,
