@@ -97,20 +97,35 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         try:
             connected = await self.client.connect()
 
-            # Fix for issue #1: WhatsApp Disconnected
-            # (Addon is running, but session is gone)
+            # Differentiated disconnect handling:
+            # - logged_out  → user must re-pair (session_expired repair)
+            # - connection_error → Baileys bug / transient, auto-retrying
             if not connected:
-                ir.async_create_issue(
-                    self.hass,
-                    DOMAIN,
-                    "session_expired",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="session_expired",
-                    learn_more_url="https://github.com/FaserF/ha-whatsapp/blob/master/docs/installation.md#pairing-with-whatsapp",
-                )
+                reason = self.client.disconnect_reason
+                if reason == "logged_out":
+                    ir.async_create_issue(
+                        self.hass,
+                        DOMAIN,
+                        "session_expired",
+                        is_fixable=False,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="session_expired",
+                        learn_more_url="https://github.com/FaserF/ha-whatsapp/blob/master/docs/installation.md#pairing-with-whatsapp",
+                    )
+                    ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
+                else:
+                    ir.async_create_issue(
+                        self.hass,
+                        DOMAIN,
+                        "connection_error_baileys",
+                        is_fixable=False,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="connection_error_baileys",
+                    )
+                    ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
             else:
                 ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
+                ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
 
             # Always delete connection issue if we successfully reached this point
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")

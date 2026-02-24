@@ -18,9 +18,8 @@ async def test_send_buttons_payload() -> None:
         mock_response.json = AsyncMock(return_value={"status": "success"})
         mock_post.return_value.__aenter__.return_value = mock_response
 
-        # We need to mock the ClientSession instance or just the post method if it's called on a new instance
-        # Actually, since it's used as 'async with aiohttp.ClientSession() as session, session.post(...)',
-        # we can patch ClientSession.
+        # Mock the ClientSession to intercept calls made
+        # via 'async with aiohttp.ClientSession() as session'.
         with patch("aiohttp.ClientSession") as mock_session_cls:
             mock_session = mock_session_cls.return_value.__aenter__.return_value
             mock_session.post = mock_post

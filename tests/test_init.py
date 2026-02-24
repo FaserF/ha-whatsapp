@@ -35,7 +35,7 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = AsyncMock()
+        mock_instance.start_session = MagicMock()
         mock_instance.close = AsyncMock()
 
         # Setup using the config entries flow (not direct call)
@@ -71,7 +71,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
 
         mock_instance.register_callback = MagicMock(side_effect=reg_cb)
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = AsyncMock()
+        mock_instance.start_session = MagicMock()
         mock_instance.close = AsyncMock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)

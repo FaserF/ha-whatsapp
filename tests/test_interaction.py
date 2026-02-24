@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import types
+from collections.abc import Callable
 from contextlib import ExitStack
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -105,7 +106,7 @@ def _build_ha_stub_modules() -> None:
             pass
 
     class DataUpdateCoordinator(_GenericBase):
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
             self.data: dict[str, Any] = {"connected": True, "stats": {}}
             self._listeners: list[Callable[[], None]] = []
 
@@ -210,7 +211,9 @@ def cleanup_handlers() -> Any:
     yield
 
 
-def mock_register(domain: str, service: str, handler: Any, schema: Any = None) -> None:
+def mock_register(
+    domain: str, service: str, handler: Any, schema: Any = None,  # noqa: ARG001
+) -> None:
     if domain == "whatsapp":
         handlers[service] = handler
 

@@ -306,6 +306,10 @@
     "session_expired": {
       "title": "WhatsApp session expired",
       "description": "Your WhatsApp session is no longer active or was terminated on the phone. Please re-pair your device via the Addon Web UI."
+    },
+    "connection_error_baileys": {
+      "title": "WhatsApp connection interrupted",
+      "description": "The WhatsApp Addon is experiencing connection issues (likely a known Baileys library bug). The addon is automatically retrying. No action is needed — this issue will resolve itself once the connection is re-established."
     }
   }
 }

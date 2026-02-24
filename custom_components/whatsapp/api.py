@@ -79,6 +79,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self.whitelist = whitelist or []
         self.retry_attempts = 2
         self._connected = False
+        self._disconnect_reason: str | None = None
         self.stats: dict[str, Any] = {
             "sent": 0,
             "received": 0,
@@ -367,6 +368,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         data = await resp.json()
                         connected = bool(data.get("connected", False))
                         self._connected = connected
+                        self._disconnect_reason = data.get("disconnect_reason")
                         return connected
 
                     # Any other status is an error
@@ -385,6 +387,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     async def is_connected(self) -> bool:
         """Return if connected."""
         return self._connected
+
+    @property
+    def disconnect_reason(self) -> str | None:
+        """Return the reason for the last disconnection, if any."""
+        return self._disconnect_reason
 
     async def get_stats(self) -> dict[str, Any]:
         """Fetch stats from the Addon."""

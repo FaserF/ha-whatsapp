@@ -97,6 +97,6 @@ async def async_setup_repair_flow(
         back to a simple :class:`~homeassistant.components.repairs.ConfirmRepairFlow`
         for unknown issues.
     """
-    if issue_id == "session_expired":
+    if issue_id in ("session_expired", "connection_error_baileys"):
         return WhatsAppRepairFlow(issue_id)
     return ConfirmRepairFlow()

@@ -354,6 +354,10 @@
     "session_expired": {
       "title": "WhatsApp-Sitzung abgelaufen",
       "description": "Deine WhatsApp-Sitzung ist nicht mehr aktiv oder wurde auf dem Telefon beendet. Bitte kopple dein Gerät erneut über das Addon-Webinterface."
+    },
+    "connection_error_baileys": {
+      "title": "WhatsApp-Verbindung unterbrochen",
+      "description": "Das WhatsApp-Addon hat Verbindungsprobleme (wahrscheinlich ein bekannter Baileys-Bibliotheks-Bug). Das Addon versucht automatisch eine Wiederverbindung. Es ist keine Aktion erforderlich — dieses Problem löst sich von selbst, sobald die Verbindung wiederhergestellt ist."
     }
   }
 }

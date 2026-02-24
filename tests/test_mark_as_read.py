@@ -27,14 +27,17 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
-        mock_instance = mock_client_cls.return_value
-        mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
-        mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = AsyncMock()
-        mock_instance.close = AsyncMock()
-        mock_instance.mark_as_read = AsyncMock()
+    mock_instance = MagicMock()
+    mock_instance.connect = AsyncMock(return_value=True)
+    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+    mock_instance.start_polling = AsyncMock()
+    mock_instance.start_session = MagicMock(return_value=None)
+    mock_instance.close = AsyncMock()
+    mock_instance.mark_as_read = MagicMock(return_value=None)
+
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
 
         # We need to capture the callback registered
         callback_capture: Any = None
@@ -81,14 +84,17 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
-        mock_instance = mock_client_cls.return_value
-        mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
-        mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = AsyncMock()
-        mock_instance.close = AsyncMock()
-        mock_instance.mark_as_read = AsyncMock()
+    mock_instance = MagicMock()
+    mock_instance.connect = AsyncMock(return_value=True)
+    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+    mock_instance.start_polling = AsyncMock()
+    mock_instance.start_session = MagicMock(return_value=None)
+    mock_instance.close = AsyncMock()
+    mock_instance.mark_as_read = MagicMock(return_value=None)
+
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
 
         callback_capture: Any = None
 

@@ -31,7 +31,7 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         mock_instance.get_stats = AsyncMock(return_value={"sent": 10, "failed": 2})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = AsyncMock()
+        mock_instance.start_session = MagicMock()
         mock_instance.close = AsyncMock()
 
         # Setup the integration
