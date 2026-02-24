@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import sys
 import types
-from collections.abc import Callable
 from contextlib import ExitStack
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -156,14 +155,32 @@ def get_patches(stack: ExitStack) -> None:
             create=True,
         )
     )
-    stack.enter_context(patch("voluptuous.All", side_effect=lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Required", side_effect=lambda x, **_: x, create=True))
-    stack.enter_context(patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True))
+    stack.enter_context(
+        patch("voluptuous.All", side_effect=lambda *a, **_: a[0], create=True)
+    )
+    stack.enter_context(
+        patch("voluptuous.Required", side_effect=lambda x, **_: x, create=True)
+    )
+    stack.enter_context(
+        patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True)
+    )
     stack.enter_context(patch("voluptuous.Schema", lambda s, **_: s, create=True))
-    stack.enter_context(patch("voluptuous.Coerce", side_effect=lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.In", side_effect=lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Range", side_effect=lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Any", side_effect=lambda *a, **_: a[1] if a[0] is None else a[0], create=True))
+    stack.enter_context(
+        patch("voluptuous.Coerce", side_effect=lambda *a, **_: a[0], create=True)
+    )
+    stack.enter_context(
+        patch("voluptuous.In", side_effect=lambda *a, **_: a[0], create=True)
+    )
+    stack.enter_context(
+        patch("voluptuous.Range", side_effect=lambda *a, **_: a[0], create=True)
+    )
+    stack.enter_context(
+        patch(
+            "voluptuous.Any",
+            side_effect=lambda *a, **_: a[1] if a[0] is None else a[0],
+            create=True,
+        )
+    )
     stack.enter_context(patch("voluptuous.Marker", object, create=True))
     stack.enter_context(patch("voluptuous.Invalid", Exception, create=True))
     stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
@@ -219,9 +236,15 @@ async def test_quoted_message_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch("custom_components.whatsapp.api.WhatsAppApiClient.start_session", return_value=None), \
-             patch("custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read", side_effect=lambda *a: None), \
-             patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
+        with patch(
+            "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
+            return_value=None,
+        ), patch(
+            "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
+            side_effect=lambda *a: None,
+        ), patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 
@@ -269,9 +292,15 @@ async def test_buttons_payload() -> None:
         mock_entry.options = {}
         mock_entry.entry_id = "test_entry"
 
-        with patch("custom_components.whatsapp.api.WhatsAppApiClient.start_session", return_value=None), \
-             patch("custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read", side_effect=lambda *a: None), \
-             patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord:
+        with patch(
+            "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
+            return_value=None,
+        ), patch(
+            "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
+            side_effect=lambda *a: None,
+        ), patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord:
             mock_coord.return_value.async_config_entry_first_refresh = AsyncMock()
             await async_setup_entry(hass, mock_entry)
 

@@ -1,7 +1,6 @@
 """Test the expiration parameter for WhatsApp services."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Any
 
 from ha_stubs import _build_ha_stub_modules
 
@@ -26,6 +25,7 @@ async def test_send_message_with_expiration(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
 
     from custom_components.whatsapp.api import WhatsAppApiClient
+
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
     mock_instance.get_stats = AsyncMock(return_value={})
@@ -62,6 +62,7 @@ async def test_send_image_with_expiration(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
 
     from custom_components.whatsapp.api import WhatsAppApiClient
+
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
     mock_instance.get_stats = AsyncMock(return_value={})
