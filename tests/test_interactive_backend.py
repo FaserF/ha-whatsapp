@@ -7,7 +7,7 @@ import pytest
 from custom_components.whatsapp.api import WhatsAppApiClient
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_buttons_payload() -> None:
     """Test the JSON payload sent by send_buttons."""
     client = WhatsAppApiClient(host="http://localhost:8066", api_key="test")
@@ -37,7 +37,7 @@ async def test_send_buttons_payload() -> None:
             assert kwargs["json"]["buttons"] == buttons
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_list_payload() -> None:
     """Test the JSON payload sent by send_list."""
     client = WhatsAppApiClient(host="http://localhost:8066", api_key="test")

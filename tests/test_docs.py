@@ -12,7 +12,7 @@ UNSUPPORTED_ALERTS = re.compile(
 )
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore[untyped-decorator]
     "filepath",
     list(glob.glob("docs/**/*.md", recursive=True)),
 )

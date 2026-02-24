@@ -117,7 +117,7 @@ def _build_ha_stub_modules() -> None:
 _build_ha_stub_modules()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
 def cleanup_handlers() -> Any:
     """Clear handlers and sys.modules between tests."""
     handlers.clear()
