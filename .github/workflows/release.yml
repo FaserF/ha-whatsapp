@@ -1,8 +1,6 @@
 name: Release
 
 on:
-  schedule:
-    - cron: '0 0 * * 6' # Weekly on Saturday Midnight
   workflow_dispatch:
     inputs:
       help:

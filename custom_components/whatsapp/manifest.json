@@ -11,13 +11,7 @@
   "documentation": "https://faserf.github.io/ha-whatsapp/",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues",
-  "platforms": [
-    "binary_sensor",
-    "button",
-    "notify",
-    "sensor"
-  ],
+  "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues/",
   "requirements": [],
   "version": "1.3.2.dev20260307",
   "zeroconf": [

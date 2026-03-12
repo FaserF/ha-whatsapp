@@ -101,10 +101,7 @@ class WhatsAppStatSensor(
         self._attr_translation_key = stat_key
         self._attr_unique_id = f"{entry.entry_id}_{stat_key}"
         self._attr_entity_registry_enabled_default = False
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
-        }
+        self._attr_device_info = coordinator.client.get_device_info()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -180,12 +177,9 @@ class WhatsAppUptimeSensor(
         super().__init__(coordinator)
         self._attr_translation_key = "uptime"
         self._attr_unique_id = f"{entry.entry_id}_uptime"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
-        }
+        self._attr_device_info = coordinator.client.get_device_info()
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_entity_registry_enabled_default = True
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self) -> int:

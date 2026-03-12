@@ -296,6 +296,21 @@
       "phone_number": {
         "name": "Phone Number"
       }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connection"
+      }
+    },
+    "button": {
+      "diagnostic_test": {
+        "name": "Diagnostic Test"
+      }
+    },
+    "notify": {
+      "whatsapp": {
+        "name": "WhatsApp"
+      }
     }
   },
   "issues": {

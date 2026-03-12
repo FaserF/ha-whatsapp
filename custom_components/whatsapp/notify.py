@@ -109,6 +109,7 @@ class WhatsAppNotificationEntity(
 
     _attr_name = None
     _attr_has_entity_name = True
+    _attr_translation_key = "whatsapp"
     _attr_unique_id = "whatsapp_notify"
 
     def __init__(
@@ -128,10 +129,7 @@ class WhatsAppNotificationEntity(
         super().__init__(coordinator)
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_notify"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
-        }
+        self._attr_device_info = coordinator.client.get_device_info()
 
     @property
     def state(self) -> str:

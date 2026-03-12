@@ -75,6 +75,7 @@ class WhatsAppConnectionSensor(
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_translation_key = "connection"
 
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
@@ -88,12 +89,7 @@ class WhatsAppConnectionSensor(
         """
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_connection"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "WhatsApp",
-            "manufacturer": "HA WhatsApp",
-            "model": "API Client",
-        }
+        self._attr_device_info = coordinator.client.get_device_info()
 
     @property
     def is_on(self) -> bool:

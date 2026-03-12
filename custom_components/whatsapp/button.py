@@ -20,7 +20,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the WhatsApp button platform."""
-    coordinator: WhatsAppDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
     async_add_entities([WhatsAppTestButton(coordinator)])
 
 
@@ -29,7 +30,7 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
 
     _attr_has_entity_name = True
     _attr_translation_key = "diagnostic_test"
-    _attr_entity_registry_enabled_default = False
+    _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:flask-outline"
 
     def __init__(self, coordinator: WhatsAppDataUpdateCoordinator) -> None:

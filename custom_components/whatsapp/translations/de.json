@@ -22,7 +22,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stelle sicher, dass das [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) installiert ist und läuft.",
+      "cannot_connect": "Verbindung zum WhatsApp-Addon fehlgeschlagen. Bitte stelle sicher, dass das [WhatsApp Addon]({addon_url}) installiert ist und läuft.",
       "invalid_auth": "Ungültige Authentifizierung",
       "connection_error": "Nicht mit WhatsApp verbunden. Bitte scanne zuerst den QR-Code.",
       "addon_install_error": "Installation des WhatsApp-Addons fehlgeschlagen. Bitte prüfe die Supervisor-Logs.",
@@ -315,7 +315,7 @@
         },
         "buttons": {
           "name": "Buttons",
-          "description": "Liste von Buttons als Objekte: {'id': '1', 'displayText': 'Ja'}."
+          "description": "Liste von Buttons als Objekte: [id: 1, displayText: Ja]."
         },
         "footer": {
           "name": "Fußzeile",
@@ -343,6 +343,21 @@
       },
       "phone_number": {
         "name": "Telefonnummer"
+      }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Verbindung"
+      }
+    },
+    "button": {
+      "diagnostic_test": {
+        "name": "Diagnose-Test"
+      }
+    },
+    "notify": {
+      "whatsapp": {
+        "name": "WhatsApp"
       }
     }
   },

@@ -434,11 +434,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Return device information for HA."""
         return {
             "identifiers": {(DOMAIN, self.session_id)},
-            "name": f"WhatsApp ({self.session_id})",
-            "manufacturer": "Baileys",
-            "model": f"WhatsApp API {self.stats.get('version', 'Unknown')}",
+            "name": f"API Client ({self.session_id})",
+            "manufacturer": "HA WhatsApp",
+            "model": "WhatsApp API",
             "sw_version": self.stats.get("version"),
         }
+
+    def get_my_jid(self) -> str | None:
+        """Return the JID for the current session."""
+        number = self.stats.get("my_number")
+        if not number:
+            return None
+        if "@" in number:
+            return number
+        return f"{number.split(':')[0]}@s.whatsapp.net"
 
     async def get_stats(self) -> dict[str, Any]:
         """Fetch stats from the Addon."""

@@ -34,13 +34,6 @@ The App handles the heavy lifting of connecting to WhatsApp.
    - **Start** the App.
    - Open the **Web UI** and look for the **API Token** (hidden behind "Show API Key"). **Copy this token** for the next step.
 
-> **Tip**
-> **Host Network Mode:** If you want the integration to be automatically discovered ("New devices found"), enable the **"Use Host Network"** toggle in the App configuration.
->
-> **Note**
-> The QR Code might not appear immediately in the App Web UI if you are not observing it. **Do not scan anything yet.** The scanning happens in the Integration setup.
-> {: .tip }
-
 ---
 
 ## 2️⃣ Integration Installation
@@ -79,7 +72,7 @@ Now we connect the components and link your device.
   <a href="https://my.home-assistant.io/redirect/config_flow/?domain=whatsapp" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Integration</span></a>
 </div>
 
-1. **Auto-Discovery**: If your network supports mDNS (and Host Network is enabled in the App), you will see a notification in Home Assistant. Click **Configure**.
+1. **Discovery**: Home Assistant will automatically find the app and show a notification ("New devices found"). Click **Configure**.
 2. **Connection Details**:
    - **Host**: Enter the URL of your App. (Default: `http://localhost:8066`).
    - **API Key**: Paste the **API Token** you copied from the App Web UI.
