@@ -149,12 +149,12 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
     async def _test_buttons(self, jid: str) -> None:
         """Test sending buttons."""
         buttons = [
-            {"buttonId": "diag_yes", "buttonText": {"displayText": "Yes"}, "type": 1},
-            {"buttonId": "diag_no", "buttonText": {"displayText": "No"}, "type": 1},
+            {"buttonId": "btn_1", "displayText": "Option 1"},
+            {"buttonId": "btn_2", "displayText": "Option 2"},
         ]
         await self.coordinator.client.send_buttons(
             jid,
-            "🔘 *Interactive Buttons Test*",
+            "This is a button test. Choose one below:",
             buttons,
             "Diagnostic Footer",
         )
@@ -163,19 +163,20 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         """Test sending a list."""
         sections = [
             {
-                "title": "📋 Diagnostic Section",
+                "title": "Category 1",
                 "rows": [
-                    {"title": "Option 1", "rowId": "opt1", "description": "Diagnostic"},
-                    {"title": "Option 2", "rowId": "opt2"},
+                    {"title": "Row 1", "description": "Description 1", "id": "row_1"},
+                    {"title": "Row 2", "description": "Description 2", "id": "row_2"},
                 ],
             }
         ]
         await self.coordinator.client.send_list(
             jid,
-            "📋 *Interactive List Test*",
-            "This is a menu test. Please select an option below.",
-            "Open Menu",
+            "Diagnostic List Test",
+            "Please select an option from the list below.",
+            "Select Option",
             sections,
+            "Diagnostic Footer",
         )
 
     async def _test_location(self, jid: str) -> str:

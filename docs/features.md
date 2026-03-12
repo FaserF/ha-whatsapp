@@ -29,8 +29,8 @@ This table provides a quick overview of what is currently supported by the Whats
 | Stickers                     |   ✅    | Received as URL (webp)                                      |
 | **Interactive**              |         |                                                             |
 | Polls                        |   ✅    | Create polls with multiple options                          |
-| Lists                        |   ✅    | Interactive menus with sections and rows                    |
-| Buttons                      |   ✅    | Interactive buttons (iOS limitations apply, List preferred) |
+| Lists                        |   ⚠️    | Interactive menus (Reliability varies by device/account)    |
+| Buttons                      |   ⚠️    | Interactive buttons (Reliability varies by device/account)  |
 | Reactions                    |   ✅    | React to messages with emojis                               |
 | **System**                   |         |                                                             |
 | Location                     |   ✅    | Send location pins with address                             |
@@ -55,3 +55,16 @@ The bot will instantly reply with a comprehensive status report, including:
 - **System Uptime**
 - **Message Statistics** (Sent, Received, Failed)
 - Quick links to Documentation and Issue Tracker
+
+## ⚠️ A Note on Reliability
+
+Interactive messages (Buttons and Lists) are increasingly restricted by Meta for unofficial WhatsApp APIs. 
+
+If you find that Buttons or Lists are not showing up on your device (especially on iOS), this is likely a server-side restriction by WhatsApp to encourage the use of the official Business API.
+
+**Common symptoms:**
+- Diagnostic tests show "OK" but no message arrives.
+- Messages appear on WhatsApp Web/Desktop but not on the mobile app.
+- Messages appear on Android but not on iOS.
+
+**Recommendation:** If buttons/lists fail for you, stick to standard text messages or use the **Poll** feature, which tends to be much more reliable across all devices even in unofficial APIs.
