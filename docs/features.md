@@ -44,17 +44,30 @@ This table provides a quick overview of what is currently supported by the Whats
 | Uptime & Stats               |   ✅    | Monitor message throughput and system health                |
 | Integration Repairs          |   ✅    | Guided troubleshooting and self-healing for common errors   |
 
-## 🪄 Magic Status Keyword
+## 🪄 HA-App Control Commands
 
-The integration includes a built-in auto-responder for quick status checks. Simply send the following message to your bot:
+The integration includes a built-in command system for authorized administrators. To use these commands, you must first configure your phone number(s) in the **Addon Configuration** under the `admin_numbers` field.
 
-`ha-app-status`
+### Admin Setup
+1.  Go to the **WhatsApp Addon** -> **Configuration**.
+2.  Add your phone number to `admin_numbers` (multiple numbers can be comma-separated).
+3.  **Note**: Formats like `+49...`, `49...`, `0...`, or with spaces are automatically normalized.
 
-The bot will instantly reply with a comprehensive status report, including:
-- **Addon Version** & **Integration Version**
-- **System Uptime**
-- **Message Statistics** (Sent, Received, Failed)
-- Quick links to Documentation and Issue Tracker
+### Available Commands
+Simply send one of these commands to your bot:
+
+| Command | Description |
+| :--- | :--- |
+| `ha-app-status` | **Public** status report (Anonymized & Rate-limited for non-admins). |
+| `ha-app-help` | Lists all available commands and examples (Admin only). |
+| `ha-app-logs` | Retrieves the 10 most recent connection events (Admin only). |
+| `ha-app-restart` | Restarts the WhatsApp connection gracefully (Admin only). |
+| `ha-app-stats` | View message statistics (Admin only). |
+
+> [!NOTE]
+> **Permissions & Rate Limits**: 
+> - `ha-app-status` can be used by anyone, but non-admins see masked Session IDs and are limited to **1 request per minute**.
+> - If a non-admin user tries to send any other command, they will receive a one-time "Permission Denied" message. Subsequent attempts (except for status) will be silently ignored.
 
 ## ⚠️ A Note on Reliability
 

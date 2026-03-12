@@ -37,6 +37,15 @@ After processing, check the **Attributes** of the button in Home Assistant. Each
 
 ---
 
+## 🗝️ Native App Diagnostics
+
+Since the App handles the WhatsApp connection logic, several diagnostic tools are built directly into the WhatsApp interface. If you are an **Admin**, you can send these commands to the bot:
+
+- `ha-app-diagnose`: Performs a full self-test of all message types (Text, Reaction, Buttons, Lists, Location). This is identical to the HA Diagnostic Button but can be triggered directly from your phone.
+- `ha-app-status`: Returns the current health of the addon, versions, and connectivity status.
+- `ha-app-logs`: Sends you a text message with the last few connection events (e.g., reconnection attempts).
+- `ha-app-ping`: A simple connectivity check.
+
 ## 🧐 Common Issues
 
 ### 1. Bot is "Disconnected" (Binary Sensor is Off)

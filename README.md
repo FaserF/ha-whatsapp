@@ -79,6 +79,8 @@
 - **📝 Message Management**: Edit or Revoke (delete) messages after sending.
 - **🕵️ Discovery Tools**: Built-in service to find Group IDs without checking logs.
 - **🤖 Automation Triggers**: Real-time events for everything happening on WhatsApp.
+- **🛡️ Native Control**: Built-in commands (`ha-app-*`) to check status, restart, or run diagnostics directly via WhatsApp.
+- **🔔 Admin Alerts**: Proactive system notifications for WhatsApp loss/restore and HA Core/Integration updates.
 - **🌍 Localization**: Full native support for English and German (DE/EN).
 
 ---
@@ -424,6 +426,31 @@ action:
       target: '{{ trigger.event.data.from }}'
       message: "System is Online! 🟢\nBattery: {{ states('sensor.phone_battery_level') }}%"
 ```
+
+---
+
+---
+
+## 🗝️ Native Control & Notifications
+
+This integration works in tandem with the [WhatsApp App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp), which provides several built-in features that don't require any YAML configuration:
+
+### 🎮 Control Commands
+If you are configured as an **Admin**, you can control the addon directly via WhatsApp by sending:
+- `ha-app-status`: Full health check (Versions, Uptime, Memory).
+- `ha-app-help`: List all available control commands.
+- `ha-app-logs`: View the latest connection events.
+- `ha-app-diagnose`: Run a full diagnostic of all message types.
+- `ha-app-restart`: Trigger a reconnect of the WhatsApp session.
+
+### 🔔 System Status Notifications
+The app can automatically notify administrators about critical events:
+- **✅ Update Success**: Reports when HA Core, the Addon, or this Integration has been successfully updated.
+- **🔄 HA Restart**: Notifies you when HA Core is back online after a restart/reboot.
+- **🌐 Connectivity**: Alerts if the connection to WhatsApp or HA Core is lost/restored, including downtime duration.
+
+### 👋 Welcome Message
+The bot automatically sends a role-aware greeting to new users on their first direct contact, ensuring they know how to interact with the system.
 
 ---
 
