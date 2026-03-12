@@ -50,6 +50,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        # Check if we are starting fresh (no accounts)
+        # If so, we use 'default' as the session_id for better UX with the Addon dashboard
+        if not self.hass.config_entries.async_entries(DOMAIN):
+            self.session_id = "default"
         # Check if we are running in Hass.io
         is_hassio_env = False
         try:

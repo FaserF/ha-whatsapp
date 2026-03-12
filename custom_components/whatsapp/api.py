@@ -363,16 +363,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 401:
+                        _LOGGER.error("WhatsApp Auth failed: Invalid API Key for session %s", self.session_id)
                         raise HomeAssistantError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
                         connected = bool(data.get("connected", False))
                         self._connected = connected
                         self._disconnect_reason = data.get("disconnect_reason")
+                        if not connected:
+                            _LOGGER.debug("WhatsApp session %s is disconnected. Reason: %s", self.session_id, self._disconnect_reason)
                         return connected
 
                     # Any other status is an error
-                    _LOGGER.debug("Unexpected API response in connect: %s", resp.status)
+                    text = await resp.text()
+                    _LOGGER.warning("Unexpected API response in connect for session %s: %s - %s", self.session_id, resp.status, text)
                     self._connected = False
                     return False
             except HomeAssistantError:
@@ -381,7 +385,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             except Exception as e:
                 self._connected = False
                 # Connectivity error (ClientConnectorError, etc)
-                _LOGGER.debug("Cannot connect to Addon: %s", e)
+                _LOGGER.debug("Cannot connect to Addon at %s for session %s: %s", self.host, self.session_id, e)
                 return False
 
     async def is_connected(self) -> bool:
