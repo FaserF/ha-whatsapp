@@ -97,7 +97,7 @@ Forward your WhatsApp messages to any HTTP endpoint in real-time. This project i
 - **Generic HTTP Servers** (Python, Node.js, PHP, etc.) for logging or custom bots.
 - **Unified Chat Platforms** like Rocket.Chat or Slack.
 
-[View the Webhook Guide](webhooks.html)
+[View the Webhook Guide](webhooks.md)
 {: .btn .btn-outline }
 
 > **Legal Disclaimer / Haftungsausschluss**

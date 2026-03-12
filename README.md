@@ -90,7 +90,7 @@ The most up-to-date and detailed documentation is available at our **[Official D
 | Guide                                                      | Description                                               |
 | :--------------------------------------------------------- | :-------------------------------------------------------- |
 | **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)** | Installation, Services, Automations, and Pro-Tips.        |
-| **[📚 Whitelist Guide](docs/WHITELIST.md)**                | Restrict interaction to specific users/groups.            |
+| **[📚 Whitelist Guide](docs/configuration.md#security-whitelist-feature)** | Restrict interaction to specific users/groups.            |
 | **[🔘 Buttons Guide](docs/buttons.md)**                     | Deep dive into interactive buttons and limitations.       |
 | **[📖 Local Examples](EXAMPLES.md)**                       | Quick reference for YAML snippets inside this repository. |
 
