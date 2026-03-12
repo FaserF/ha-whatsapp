@@ -43,3 +43,15 @@ This table provides a quick overview of what is currently supported by the Whats
 | Connection Status Entity     |   ✅    | Real-time connection feedback                               |
 | Uptime & Stats               |   ✅    | Monitor message throughput and system health                |
 | Integration Repairs          |   ✅    | Guided troubleshooting and self-healing for common errors   |
+
+## 🪄 Magic Status Keyword
+
+The integration includes a built-in auto-responder for quick status checks. Simply send the following message to your bot:
+
+`ha-app-status`
+
+The bot will instantly reply with a comprehensive status report, including:
+- **Addon Version** & **Integration Version**
+- **System Uptime**
+- **Message Statistics** (Sent, Received, Failed)
+- Quick links to Documentation and Issue Tracker

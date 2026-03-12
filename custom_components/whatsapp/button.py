@@ -60,6 +60,21 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         self._results = {"Status": "Running diagnostic tests..."}
         self.async_write_ha_state()
 
+        # 0. Intro Message
+        intro_text = (
+            "🤖 *WhatsApp Integration: Diagnostic Test Started*\n\n"
+            "This test was triggered from Home Assistant to verify "
+            "the communication between the integration and the addon.\n\n"
+            "*Upcoming Tests:*\n"
+            "• 📝 Text Message\n"
+            "• ✅ Reaction\n"
+            "• 🔘 Interactive Buttons\n"
+            "• 📋 Interactive List\n"
+            "• 📍 Location Sharing\n"
+            "• 🗑️ Auto-Deletion\n"
+        )
+        await client.send_message(my_jid, intro_text)
+
         final_results = {}
 
         # 1. Text Message
@@ -108,6 +123,16 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         except Exception as err:
             final_results["Auto-Delete"] = f"Error: {err}"
 
+        # 7. Final Completion Message
+        completion_text = (
+            "🏁 *Diagnostic Test Completed*\n\n"
+            "All functional tests have been performed. Check the Home Assistant "
+            "button entity attributes for detailed status of each step.\n\n"
+            "📖 *Documentation:* https://faserf.github.io/ha-whatsapp/\n"
+            "🐞 *Report Issues:* https://github.com/FaserF/ha-whatsapp/issues"
+        )
+        await client.send_message(my_jid, completion_text)
+
         self._results = {**final_results, "Status": "Completed"}
         self.async_write_ha_state()
 
@@ -124,20 +149,33 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
     async def _test_buttons(self, jid: str) -> None:
         """Test sending buttons."""
         buttons = [
-            {"id": "diag_yes", "displayText": "Yes"},
-            {"id": "diag_no", "displayText": "No"},
+            {"buttonId": "diag_yes", "buttonText": {"displayText": "Yes"}, "type": 1},
+            {"buttonId": "diag_no", "buttonText": {"displayText": "No"}, "type": 1},
         ]
         await self.coordinator.client.send_buttons(
-            jid, "Buttons Test", buttons, "Diagnostic Footer"
+            jid,
+            "🔘 *Interactive Buttons Test*",
+            buttons,
+            "Diagnostic Footer",
         )
 
     async def _test_list(self, jid: str) -> None:
         """Test sending a list."""
         sections = [
-            {"title": "Section 1", "rows": [{"title": "Option 1", "rowId": "opt1"}]}
+            {
+                "title": "📋 Diagnostic Section",
+                "rows": [
+                    {"title": "Option 1", "rowId": "opt1", "description": "Diagnostic"},
+                    {"title": "Option 2", "rowId": "opt2"},
+                ],
+            }
         ]
         await self.coordinator.client.send_list(
-            jid, "List Test", "Select an option", "View Options", sections
+            jid,
+            "📋 *Interactive List Test*",
+            "This is a menu test. Please select an option below.",
+            "Open Menu",
+            sections,
         )
 
     async def _test_location(self, jid: str) -> str:

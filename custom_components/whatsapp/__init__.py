@@ -26,6 +26,7 @@ from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant import loader
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -127,6 +128,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await coordinator.async_config_entry_first_refresh()
 
+    integration = await loader.async_get_integration(hass, DOMAIN)
+
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message from API."""
@@ -180,6 +183,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         data["session_id"] = session_id
 
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
+
+        # Automatic status response trigger
+        raw_msg = data.get("raw", {})
+        msg_content = raw_msg.get("message", {})
+        incoming_text = (
+            data.get("text")
+            or msg_content.get("conversation")
+            or msg_content.get("extendedTextMessage", {}).get("text")
+            or ""
+        ).strip().lower()
+
+        if incoming_text == "ha-app-status":
+            stats = client.stats
+            uptime_seconds = stats.get("uptime", 0)
+            days, remainder = divmod(uptime_seconds, 86400)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, _ = divmod(remainder, 60)
+            uptime_str = f"{int(days)}d {int(hours)}h {int(minutes)}m"
+
+            status_text = (
+                "📊 *WhatsApp Integration Status*\n\n"
+                f"• *Addon Version:* {stats.get('version', 'Unknown')}\n"
+                f"• *Integration Version:* {integration.version}\n"
+                f"• *Uptime:* {uptime_str}\n"
+                f"• *Session:* {session_id}\n\n"
+                "*Message Statistics:*\n"
+                f"• ✅ Sent: {stats.get('sent', 0)}\n"
+                f"• 📥 Received: {stats.get('received', 0)}\n"
+                f"• ❌ Failed: {stats.get('failed', 0)}\n\n"
+                "📖 *Documentation:* https://faserf.github.io/ha-whatsapp/\n"
+                "🐞 *Report Issues:* https://github.com/FaserF/ha-whatsapp/issues"
+            )
+            hass.async_create_task(client.send_message(full_sender, status_text))
 
         # Automatically mark as read if enabled
         if entry.options.get(CONF_MARK_AS_READ, True):
