@@ -314,11 +314,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         raise HomeAssistantError(f"Addon error {resp.status}: {text}")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
-                raise HomeAssistantError(
-                    f"Failed to delete session: {e}"
-                ) from e
+                raise HomeAssistantError(f"Failed to delete session: {e}") from e
         return
-
 
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""

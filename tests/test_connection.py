@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import sys
-import types
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -18,11 +17,9 @@ if root_dir not in sys.path:
 
 # Use centralized stubs
 from ha_stubs import _build_ha_stub_modules
+
 _build_ha_stub_modules()
 
-from homeassistant.exceptions import HomeAssistantError  # noqa: E402
-from homeassistant.core import HomeAssistant  # noqa: E402
-import voluptuous as vol  # noqa: E402
 
 # 2. Import under test
 from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
@@ -34,6 +31,7 @@ def api_client() -> WhatsAppApiClient:
     return WhatsAppApiClient(
         host="http://localhost:8066", api_key="test_key", session_id="default"
     )
+
 
 def mock_aiohttp_post(
     status: int = 200, json_data: Any | None = None, text_data: str = ""
@@ -53,6 +51,7 @@ def mock_aiohttp_post(
     mock_session.__aexit__ = AsyncMock(return_value=None)
 
     return mock_session
+
 
 @pytest.mark.asyncio
 async def test_send_message(api_client: WhatsAppApiClient) -> None:
@@ -79,6 +78,7 @@ async def test_send_poll(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["question"] == "Question?"
         assert kwargs["json"]["options"] == ["Yes", "No"]
         assert kwargs["json"]["expiration"] == 86400
+
 
 @pytest.mark.asyncio
 async def test_send_media(api_client: WhatsAppApiClient) -> None:
@@ -134,6 +134,7 @@ async def test_revoke_message(api_client: WhatsAppApiClient) -> None:
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["fromMe"] is False
 
+
 @pytest.mark.asyncio
 async def test_edit_message(api_client: WhatsAppApiClient) -> None:
     """Test editing a message."""
@@ -187,6 +188,7 @@ async def test_send_list(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["title"] == "Title"
         assert kwargs["json"]["expiration"] == 604800
 
+
 @pytest.mark.asyncio
 async def test_send_buttons(api_client: WhatsAppApiClient) -> None:
     """Test sending buttons."""
@@ -204,6 +206,7 @@ async def test_send_buttons(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["footer"] == "Footer"
         assert kwargs["json"]["expiration"] == 3600
 
+
 @pytest.mark.asyncio
 async def test_send_contact(api_client: WhatsAppApiClient) -> None:
     """Test sending a contact."""
@@ -213,6 +216,7 @@ async def test_send_contact(api_client: WhatsAppApiClient) -> None:
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["contact_name"] == "Name"
         assert kwargs["json"]["expiration"] == 3600
+
 
 @pytest.mark.asyncio
 async def test_send_location(api_client: WhatsAppApiClient) -> None:
@@ -226,31 +230,44 @@ async def test_send_location(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["latitude"] == 52.52
         assert kwargs["json"]["expiration"] == 3600
 
+
 @pytest.mark.asyncio
 async def test_self_chat_bypass(api_client: WhatsAppApiClient) -> None:
-        """Test that the bot can always message itself even if not in whitelist."""
-        api_client.whitelist = ["11111"]  # Current whitelist doesn't include 12345
-        api_client.stats["my_number"] = "12345"
+    """Test that the bot can always message itself even if not in whitelist."""
+    api_client.whitelist = ["11111"]  # Current whitelist doesn't include 12345
+    api_client.stats["my_number"] = "12345"
 
-        # Should be allowed (bypass)
-        assert api_client.is_allowed("12345") is True
-        # Should NOT be allowed (not in whitelist, not self)
-        assert api_client.is_allowed("22222") is False
+    # Should be allowed (bypass)
+    assert api_client.is_allowed("12345") is True
+    # Should NOT be allowed (not in whitelist, not self)
+    assert api_client.is_allowed("22222") is False
+
 
 if __name__ == "__main__":
     import asyncio
+
     async def run() -> None:
         """Sanity check helper."""
         # print("Running comprehensive tests...")
         client = WhatsAppApiClient("http://localhost:8066", "key", "session")
         # Just a sanity check that imports work and methods exist
         methods = [
-            "send_message", "send_image", "send_video", "send_poll",
-            "revoke_message", "edit_message", "send_reaction",
-            "get_groups", "mark_as_read", "send_list", "send_buttons",
-            "send_contact", "send_location"
+            "send_message",
+            "send_image",
+            "send_video",
+            "send_poll",
+            "revoke_message",
+            "edit_message",
+            "send_reaction",
+            "get_groups",
+            "mark_as_read",
+            "send_list",
+            "send_buttons",
+            "send_contact",
+            "send_location",
         ]
         for method in methods:
             assert hasattr(client, method), f"Missing method {method}"
         # print("All methods present. Run with pytest for full verification.")
+
     asyncio.run(run())

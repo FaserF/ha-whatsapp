@@ -132,10 +132,9 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
 
     async def _test_list(self, jid: str) -> None:
         """Test sending a list."""
-        sections = [{
-            "title": "Section 1",
-            "rows": [{"title": "Option 1", "rowId": "opt1"}]
-        }]
+        sections = [
+            {"title": "Section 1", "rows": [{"title": "Option 1", "rowId": "opt1"}]}
+        ]
         await self.coordinator.client.send_list(
             jid, "List Test", "Select an option", "View Options", sections
         )
@@ -152,7 +151,7 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
             jid, "🗑️ This message will be deleted automatically in 2 seconds."
         )
         if not msg_id:
-             raise ValueError("Failed to get message ID for deletion test")
+            raise ValueError("Failed to get message ID for deletion test")
         # For diagnostic, let's just wait 2s to simulate.
         await asyncio.sleep(2)
         return await self.coordinator.client.revoke_message(jid, msg_id)
