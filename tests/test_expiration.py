@@ -33,7 +33,9 @@ async def test_send_message_with_expiration(hass: HomeAssistant) -> None:
     mock_instance.start_session = MagicMock(return_value=None)
     mock_instance.send_message = AsyncMock()
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -45,7 +47,9 @@ async def test_send_message_with_expiration(hass: HomeAssistant) -> None:
             blocking=True,
         )
 
-        mock_instance.send_message.assert_awaited_with("12345", "Expires", quoted_message_id=None, expiration=86400)
+        mock_instance.send_message.assert_awaited_with(
+            "12345", "Expires", quoted_message_id=None, expiration=86400
+        )
 
 
 async def test_send_image_with_expiration(hass: HomeAssistant) -> None:
@@ -65,7 +69,9 @@ async def test_send_image_with_expiration(hass: HomeAssistant) -> None:
     mock_instance.start_session = MagicMock(return_value=None)
     mock_instance.send_image = AsyncMock()
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 

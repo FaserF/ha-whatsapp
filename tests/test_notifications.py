@@ -8,7 +8,9 @@ from ha_stubs import _build_ha_stub_modules
 _build_ha_stub_modules()
 
 
-async def test_connection_lost_notification(data: dict[str, Any], mock_client: MagicMock) -> None:
+async def test_connection_lost_notification(
+    data: dict[str, Any], mock_client: MagicMock
+) -> None:
     """Test the connection lost notification logic."""
 
     from homeassistant.helpers import issue_registry as ir
@@ -66,4 +68,6 @@ async def test_whatsapp_notification_entity() -> None:
         await entity.async_send_message(message="Hello", target=["555"])
 
         # Verify client was called
-        mock_instance.send_message.assert_awaited_once_with("555", "Hello", quoted_message_id=None, expiration=None)
+        mock_instance.send_message.assert_awaited_once_with(
+            "555", "Hello", quoted_message_id=None, expiration=None
+        )

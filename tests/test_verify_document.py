@@ -29,7 +29,9 @@ async def test_verify_send_document() -> None:
     """Verify the send_document logic."""
     _LOGGER.info("Verifying send_document logic...")
 
-    client = WhatsAppApiClient(host="http://localhost:8066", api_key="test_key", whitelist=["49123456789"])
+    client = WhatsAppApiClient(
+        host="http://localhost:8066", api_key="test_key", whitelist=["49123456789"]
+    )
 
     # 1. Test allowed target
     _LOGGER.info("Testing allowed target...")
@@ -48,7 +50,9 @@ async def test_verify_send_document() -> None:
     mock_session_cm = MockAsyncContextManager(mock_session)
 
     with patch("aiohttp.ClientSession", return_value=mock_session_cm):
-        await client.send_document("49123456789", "http://test.com/file.pdf", "test.pdf", "Here is a file")
+        await client.send_document(
+            "49123456789", "http://test.com/file.pdf", "test.pdf", "Here is a file"
+        )
 
         # Verify call data
         args, kwargs = mock_session.post.call_args

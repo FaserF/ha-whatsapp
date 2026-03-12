@@ -344,7 +344,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
                         if status == "connected":
                             # Already connected, no QR needed
-                            _LOGGER.info("Addon reports already connected, no QR code needed")
+                            _LOGGER.info(
+                                "Addon reports already connected, no QR code needed"
+                            )
                             return ""
                         if status == "waiting":
                             # QR not yet generated
@@ -717,7 +719,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 text = await resp.text()
                 error_msg = self._extract_error(text)
                 self.stats["failed"] += 1
-                self.stats["last_failed_message"] = "Image" if not caption else f"Image: {caption}"
+                self.stats["last_failed_message"] = (
+                    "Image" if not caption else f"Image: {caption}"
+                )
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send image: {error_msg}")
@@ -960,7 +964,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        return await self._send_with_retry(self._revoke_message_internal, target_jid, message_id, from_me)
+        return await self._send_with_retry(
+            self._revoke_message_internal, target_jid, message_id, from_me
+        )
 
     async def _revoke_message_internal(
         self,
@@ -1009,7 +1015,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        return await self._send_with_retry(self._edit_message_internal, target_jid, message_id, new_content)
+        return await self._send_with_retry(
+            self._edit_message_internal, target_jid, message_id, new_content
+        )
 
     async def _edit_message_internal(
         self,
@@ -1140,9 +1148,13 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        return await self._send_with_retry(self._send_reaction_internal, target_jid, text, message_id)
+        return await self._send_with_retry(
+            self._send_reaction_internal, target_jid, text, message_id
+        )
 
-    async def _send_reaction_internal(self, number: str, text: str, message_id: str) -> str:
+    async def _send_reaction_internal(
+        self, number: str, text: str, message_id: str
+    ) -> str:
         """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
         payload: dict[str, Any] = {

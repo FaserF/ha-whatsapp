@@ -37,7 +37,9 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
         super().__init__()
         self.issue_id = issue_id
 
-    async def async_step_init(self, _user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(
+        self, _user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
         """Entry point for the repair flow, forwards to the confirmation step.
 
         Args:
@@ -49,7 +51,9 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
         """
         return await self.async_step_confirm()
 
-    async def async_step_confirm(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_confirm(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
         """Show a confirmation form and complete the flow when the user confirms.
 
         Args:

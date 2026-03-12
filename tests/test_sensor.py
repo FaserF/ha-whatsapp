@@ -40,7 +40,9 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         # Enable entities
         registry = er.async_get(hass)
         registry.async_update_entity("sensor.whatsapp_messages_sent", disabled_by=None)
-        registry.async_update_entity("sensor.whatsapp_messages_failed", disabled_by=None)
+        registry.async_update_entity(
+            "sensor.whatsapp_messages_failed", disabled_by=None
+        )
         await hass.async_block_till_done()
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()
