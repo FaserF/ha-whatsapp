@@ -17,6 +17,7 @@ def _get_or_create_class(name: str, base: type = object) -> type:
     if not hasattr(sys, attr):
         # Create the class
         if base is Exception:
+
             class StubError(Exception):
                 pass
 
