@@ -22,7 +22,7 @@
   "version": "1.3.2.dev20260307",
   "zeroconf": [
     {
-      "name": "whatsapp addon*",
+      "name": "whatsapp homeassistant app*",
       "type": "_ha-whatsapp._tcp.local."
     }
   ]
