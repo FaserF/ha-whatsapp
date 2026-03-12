@@ -16,7 +16,7 @@ if root_dir not in sys.path:
 
 
 # Use centralized stubs
-from ha_stubs import _build_ha_stub_modules
+from ha_stubs import _build_ha_stub_modules  # noqa: E402
 
 _build_ha_stub_modules()
 

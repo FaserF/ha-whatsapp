@@ -16,12 +16,11 @@ def _get_or_create_class(name: str, base: type = object) -> type:
     attr = f"_ha_stub_{name}"
     if not hasattr(sys, attr):
         # Create the class
-        if base == Exception:
-
-            class StubException(Exception):
+        if base is Exception:
+            class StubError(Exception):
                 pass
 
-            cls = StubException
+            cls = StubError
         else:
 
             class StubClass(base):
@@ -217,7 +216,7 @@ stub = _stub
 
 
 def mock_add_entities(
-    hass: Any, entities: list[Any], update_before_add: bool = False
+    hass: Any, entities: list[Any], _update_before_add: bool = False
 ) -> None:
     for entity in entities:
         entity.hass = hass
@@ -270,7 +269,7 @@ class MockConfigEntry:
     def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
 
-    def add_update_listener(self, func: Callable[..., Any]) -> Callable[[], None]:
+    def add_update_listener(self, _func: Callable[..., Any]) -> Callable[[], None]:
         return lambda: None
 
     def as_dict(self) -> dict[str, Any]:

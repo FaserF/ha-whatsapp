@@ -64,7 +64,7 @@ Simply send one of these commands to your bot:
 | `ha-app-restart` | Restarts the WhatsApp connection gracefully (Admin only). |
 | `ha-app-stats` | View message statistics (Admin only). |
 
-> [!NOTE]
+> **NOTE:**
 > **Permissions & Rate Limits**: 
 > - `ha-app-status` can be used by anyone, but non-admins see masked Session IDs and are limited to **1 request per minute**.
 > - If a non-admin user tries to send any other command, they will receive a one-time "Permission Denied" message. Subsequent attempts (except for status) will be silently ignored.
