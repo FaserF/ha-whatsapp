@@ -45,15 +45,9 @@ def cleanup_modules() -> Any:
 def get_patches(stack: ExitStack) -> None:
     """Apply all required patches to the stack."""
     # cv patches
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.string", str, create=True)
-    )
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.ensure_list", list, create=True)
-    )
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.boolean", bool, create=True)
-    )
+    stack.enter_context(patch("homeassistant.helpers.config_validation.string", str, create=True))
+    stack.enter_context(patch("homeassistant.helpers.config_validation.ensure_list", list, create=True))
+    stack.enter_context(patch("homeassistant.helpers.config_validation.boolean", bool, create=True))
     stack.enter_context(
         patch(
             "homeassistant.helpers.config_validation.match_all",
@@ -110,9 +104,7 @@ async def test_search_groups_service(
             mock_entry.entry_id = "test_entry"
             hass.data = {DOMAIN: {}}
 
-            with patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls:
+            with patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord_cls:
                 mock_coord = mock_coord_cls.return_value
                 mock_coord.async_config_entry_first_refresh = AsyncMock()
 
@@ -157,13 +149,9 @@ async def test_service_routing(
         hass.data = {DOMAIN: {}}
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account"
-            ) as mock_get_client,
+            patch("custom_components.whatsapp.get_client_for_account") as mock_get_client,
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-            patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls,
+            patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord_cls,
         ):
             mock_instance = mock_client_cls.return_value
             mock_instance.connect = AsyncMock(return_value=True)
@@ -198,9 +186,7 @@ async def test_service_routing(
             await send_msg_service(call)
 
             mock_get_client.assert_called_with(hass, "MyAccount")
-            mock_client.send_message.assert_called_once_with(
-                "999", "Hi", quoted_message_id=None, expiration=None
-            )
+            mock_client.send_message.assert_called_once_with("999", "Hi", quoted_message_id=None, expiration=None)
 
 
 async def test_send_buttons_normalization(
@@ -222,13 +208,9 @@ async def test_send_buttons_normalization(
         hass.data = {DOMAIN: {}}
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account"
-            ) as mock_get_client,
+            patch("custom_components.whatsapp.get_client_for_account") as mock_get_client,
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-            patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls,
+            patch("custom_components.whatsapp.WhatsAppDataUpdateCoordinator") as mock_coord_cls,
         ):
             mock_instance = mock_client_cls.return_value
             mock_instance.connect = AsyncMock(return_value=True)

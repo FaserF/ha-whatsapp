@@ -57,9 +57,7 @@ async def test_services(hass: HomeAssistant) -> None:
             {"target": "12345", "message": "Hello"},
             blocking=True,
         )
-        mock_instance.send_message.assert_awaited_with(
-            "12345", "Hello", quoted_message_id=None, expiration=None
-        )
+        mock_instance.send_message.assert_awaited_with("12345", "Hello", quoted_message_id=None, expiration=None)
 
         # 2. Test send_poll
         await hass.services.async_call(
@@ -72,9 +70,7 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_poll.assert_awaited_with(
-            "12345", "Q?", ["A", "B"], quoted_message_id=None, expiration=None
-        )
+        mock_instance.send_poll.assert_awaited_with("12345", "Q?", ["A", "B"], quoted_message_id=None, expiration=None)
 
         # 3. Test send_image
         await hass.services.async_call(

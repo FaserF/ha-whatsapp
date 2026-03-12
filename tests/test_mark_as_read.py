@@ -37,9 +37,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
-    ):
+    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
         # Capture the callback
         callback_capture: Any = None
 
@@ -90,9 +88,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
-    ):
+    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
         callback_capture: Any = None
 
         def register_side_effect(callback: Any) -> None:

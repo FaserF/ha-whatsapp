@@ -7,9 +7,7 @@ import pytest
 
 # The documentation engine does not support GitHub-style alerts.
 # Example: > [!TIP] will literally render as "[!TIP]"
-UNSUPPORTED_ALERTS = re.compile(
-    r"\[!(TIP|NOTE|WARNING|CAUTION|IMPORTANT)\]", re.IGNORECASE
-)
+UNSUPPORTED_ALERTS = re.compile(r"\[!(TIP|NOTE|WARNING|CAUTION|IMPORTANT)\]", re.IGNORECASE)
 
 
 @pytest.mark.parametrize(  # type: ignore[untyped-decorator]

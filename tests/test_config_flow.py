@@ -34,9 +34,7 @@ async def test_form(hass: HomeAssistant) -> None:
     ) as mock_get_qr:
         mock_get_qr.return_value = "data:image/png;base64,mockqr"
 
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "user"
 

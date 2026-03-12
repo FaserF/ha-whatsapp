@@ -36,9 +36,7 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
         ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key1"},
@@ -67,9 +65,7 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
         ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key2"},
@@ -114,9 +110,7 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
             return_value=None,
         ),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key1"},
