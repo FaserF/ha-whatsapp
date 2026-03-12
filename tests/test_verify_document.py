@@ -40,6 +40,7 @@ async def test_verify_send_document() -> None:
     mock_response = MagicMock()
     mock_response.status = 200
     mock_response.text = AsyncMock(return_value="OK")
+    mock_response.json = AsyncMock(return_value={"status": "sent", "id": "123"})
 
     # Mocking session
     mock_session = MagicMock()

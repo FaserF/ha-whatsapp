@@ -110,7 +110,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                         is_fixable=False,
                         severity=ir.IssueSeverity.WARNING,
                         translation_key="session_expired",
-                        learn_more_url="https://github.com/FaserF/ha-whatsapp/blob/master/docs/installation.md#pairing-with-whatsapp",
+                        learn_more_url="https://faserf.github.io/ha-whatsapp/setup/",
                     )
                     ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
                 else:

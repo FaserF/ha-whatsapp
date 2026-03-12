@@ -51,7 +51,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     ) -> FlowResult:
         """Handle the initial step."""
         # Check if we are starting fresh (no accounts)
-        # If so, we use 'default' as the session_id for better UX with the Addon dashboard
+        # If so, we use 'default' as the session_id for better UX
+        # with the Addon dashboard
         if not self.hass.config_entries.async_entries(DOMAIN):
             self.session_id = "default"
         # Check if we are running in Hass.io
@@ -127,7 +128,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         }
                     ),
                     description_placeholders={
-                        "setup_url": "https://github.com/FaserF/ha-whatsapp/blob/master/docs/SETUP.md"
+                        "setup_url": "https://faserf.github.io/ha-whatsapp/"
                     },
                     errors=errors,
                 )
@@ -250,7 +251,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         if user_input is not None:
             # User clicked "Submit" (meaning they scanned it)
-            # Verify connection AGAIN - check if WhatsApp is actually connected
             try:
                 connected = await self.client.connect()
                 if connected:

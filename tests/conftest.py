@@ -91,7 +91,15 @@ def hass(mock_client: MagicMock) -> MagicMock:
             entry = hass.data["entries"][entry_id]
             try:
                 from custom_components.whatsapp import async_setup_entry
-
+                from custom_components.whatsapp.coordinator import WhatsAppDataUpdateCoordinator
+                logging.getLogger(__name__).debug(
+                    "DEBUG: WhatsAppDataUpdateCoordinator MRO: %s",
+                    WhatsAppDataUpdateCoordinator.mro()
+                )
+                logging.getLogger(__name__).debug(
+                    "DEBUG: WhatsAppDataUpdateCoordinator has first_refresh: %s",
+                    hasattr(WhatsAppDataUpdateCoordinator, "async_config_entry_first_refresh")
+                )
                 return await async_setup_entry(hass, entry)
             except Exception:
                 logging.getLogger(__name__).exception("Error in async_setup_entry")

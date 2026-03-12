@@ -47,7 +47,12 @@ _LOGGER = getLogger(__name__)
 
 _SERVICES_REGISTERED = False
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.NOTIFY, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    getattr(Platform, "BUTTON", "button"),
+    Platform.NOTIFY,
+    Platform.SENSOR,
+]
 
 _SERVICES = [
     "send_message",
@@ -421,7 +426,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         except Exception as e:
             _LOGGER.error("Failed to search groups", exc_info=e)
-            error_details = str(e)[:200]
+            error_str = str(e)
+            error_details = error_str[:200]
             await hass.services.async_call(
                 "persistent_notification",
                 "create",

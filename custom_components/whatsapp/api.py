@@ -31,6 +31,8 @@ from typing import Any
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
 
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -107,11 +109,17 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     def is_allowed(self, target: str) -> bool:
         """Check if a target JID is allowed by the whitelist."""
+        # Always allow messaging self (diagnostic and internal use)
+        target_jid = self.ensure_jid(target)
+        if target_jid and self.stats.get("my_number"):
+            my_jid = self.ensure_jid(self.stats["my_number"])
+            if my_jid and target_jid.split("@")[0] == my_jid.split("@")[0]:
+                return True
+
         if not self.whitelist:
             return True
 
         # Normalize target for comparison
-        target_jid = self.ensure_jid(target)
         if not target_jid:
             _LOGGER.warning("Could not normalize target '%s' to a valid JID", target)
             return False
@@ -189,7 +197,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return text
         if len(text) <= 4:
             return "****"
-        return f"{text[:3]}****{text[-2:]}"
+        prefix = text[:3]
+        suffix = text[-2:]
+        return f"{prefix}****{suffix}"
 
     def _mask(self, text: str) -> str:
         """Deprecated: use mask()."""
@@ -206,14 +216,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     async def stop_polling(self) -> None:
         """Stop the polling loop."""
-        if self._polling_task:
-            self._polling_task.cancel()
+        task = self._polling_task
+        if task:
+            task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
-                await self._polling_task
+                await task
             self._polling_task = None
 
-        if self._session:
-            await self._session.close()
+        session = self._session
+        if session:
+            await session.close()
             self._session = None
         _LOGGER.debug("Stopped polling loop")
 
@@ -302,7 +314,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         raise HomeAssistantError(f"Addon error {resp.status}: {text}")
             except Exception as e:
                 _LOGGER.error("Failed to delete session: %s", e)
-                raise HomeAssistantError(f"Failed to delete session: {e}") from e
+                raise HomeAssistantError(
+                    f"Failed to delete session: {e}"
+                ) from e
+        return
+
 
     async def get_qr_code(self) -> str:
         """Get the QR code from the Addon."""
@@ -348,6 +364,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             except Exception as e:
                 _LOGGER.error("Error fetching QR from addon: %s", e)
                 return ""
+        return ""
 
     async def connect(self) -> bool:
         """Check connection and validate Auth."""
@@ -363,7 +380,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 401:
-                        _LOGGER.error("WhatsApp Auth failed: Invalid API Key for session %s", self.session_id)
+                        _LOGGER.error(
+                            "WhatsApp Auth failed: Invalid API Key for session %s",
+                            self.session_id,
+                        )
                         raise HomeAssistantError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
@@ -371,22 +391,38 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         self._connected = connected
                         self._disconnect_reason = data.get("disconnect_reason")
                         if not connected:
-                            _LOGGER.debug("WhatsApp session %s is disconnected. Reason: %s", self.session_id, self._disconnect_reason)
+                            _LOGGER.debug(
+                                "WhatsApp session %s is disconnected. Reason: %s",
+                                self.session_id,
+                                self._disconnect_reason,
+                            )
                         return connected
 
                     # Any other status is an error
                     text = await resp.text()
-                    _LOGGER.warning("Unexpected API response in connect for session %s: %s - %s", self.session_id, resp.status, text)
+                    _LOGGER.warning(
+                        "Unexpected API response in connect for session %s: %s - %s",
+                        self.session_id,
+                        resp.status,
+                        text,
+                    )
                     self._connected = False
                     return False
             except HomeAssistantError:
                 self._connected = False
                 raise
+                return False
             except Exception as e:
                 self._connected = False
                 # Connectivity error (ClientConnectorError, etc)
-                _LOGGER.debug("Cannot connect to Addon at %s for session %s: %s", self.host, self.session_id, e)
+                _LOGGER.debug(
+                    "Cannot connect to Addon at %s for session %s: %s",
+                    self.host,
+                    self.session_id,
+                    e,
+                )
                 return False
+        return False
 
     async def is_connected(self) -> bool:
         """Return if connected."""
@@ -396,6 +432,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     def disconnect_reason(self) -> str | None:
         """Return the reason for the last disconnection, if any."""
         return self._disconnect_reason
+
+    def get_device_info(self) -> dict[str, Any]:
+        """Return device information for HA."""
+        return {
+            "identifiers": {(DOMAIN, self.session_id)},
+            "name": f"WhatsApp ({self.session_id})",
+            "manufacturer": "Baileys",
+            "model": f"WhatsApp API {self.stats.get('version', 'Unknown')}",
+            "sw_version": self.stats.get("version"),
+        }
 
     async def get_stats(self) -> dict[str, Any]:
         """Fetch stats from the Addon."""
@@ -428,14 +474,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         message: str,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send message via Addon (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_message_internal,
             target_jid,
             message,
@@ -449,7 +495,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         message: str,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send message logic."""
         url = f"{self.host}/send_message"
         params = {"session_id": self.session_id}
@@ -484,10 +530,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send: {error_msg}")
 
+            result = await resp.json()
+
+            msg_id = str(result.get("id", ""))
             # Local fallback increment (stats will update on next poll)
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = message
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def _send_with_retry(self, func: Any, *args: Any, **kwargs: Any) -> Any:
         """Helper to retry API calls."""
@@ -533,14 +585,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         options: list[str],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a poll (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_poll_internal,
             target_jid,
             question,
@@ -556,7 +608,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         options: list[str],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
         payload: dict[str, Any] = {
@@ -591,9 +643,15 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send poll: {error_msg}")
 
+            result = await resp.json()
+
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Poll: {question}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_image(
         self,
@@ -602,14 +660,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send an image (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_image_internal,
             target_jid,
             image_url,
@@ -625,7 +683,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send image logic."""
         url = f"{self.host}/send_image"
         payload: dict[str, Any] = {
@@ -662,9 +720,15 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send image: {error_msg}")
 
+            result = await resp.json()
+
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Image Sent"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_document(
         self,
@@ -674,14 +738,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a document (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_document_internal,
             target_jid,
             url,
@@ -699,7 +763,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send document logic."""
         api_url = f"{self.host}/send_document"
         payload: dict[str, Any] = {
@@ -724,21 +788,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp,
         ):
-            if resp.status == 401:
-                raise WhatsAppAuthError("Invalid API Key")
-            if resp.status != 200:
-                text = await resp.text()
-                error_msg = self._extract_error(text)
-                self.stats["failed"] += 1
-                label = file_name or "unnamed"
-                self.stats["last_failed_message"] = f"Document: {label}"
-                self.stats["last_failed_target"] = number
-                self.stats["last_error_reason"] = error_msg
-                raise HomeAssistantError(f"Failed to send document: {error_msg}")
-
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Document: {file_name or 'unnamed'}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_video(
         self,
@@ -747,14 +804,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a video (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_video_internal,
             target_jid,
             url,
@@ -770,7 +827,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send video logic."""
         api_url = f"{self.host}/send_video"
         payload: dict[str, Any] = {
@@ -805,9 +862,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send video: {error_msg}")
 
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Video: {caption or 'unnamed'}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_audio(
         self,
@@ -816,14 +878,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ptt: bool = False,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send audio (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_audio_internal,
             target_jid,
             url,
@@ -839,7 +901,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ptt: bool = False,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send audio logic."""
         api_url = f"{self.host}/send_audio"
         payload: dict[str, Any] = {
@@ -874,33 +936,45 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send audio: {error_msg}")
 
+            result = await resp.json()
+
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = "Voice Note" if ptt else "Audio"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def revoke_message(
         self,
         number: str,
         message_id: str,
-    ) -> None:
+        from_me: bool = True,
+    ) -> str:
         """Revoke (delete) a message."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
-            self._revoke_message_internal, target_jid, message_id
+        return await self._send_with_retry(
+            self._revoke_message_internal, target_jid, message_id, from_me
         )
 
     async def _revoke_message_internal(
         self,
         number: str,
         message_id: str,
-    ) -> None:
+        from_me: bool = True,
+    ) -> str:
         """Internal revoke message logic."""
         api_url = f"{self.host}/revoke_message"
-        payload: dict[str, Any] = {"number": number, "message_id": message_id}
+        payload: dict[str, Any] = {
+            "number": number,
+            "message_id": message_id,
+            "fromMe": from_me,
+        }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -920,19 +994,22 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 error_msg = self._extract_error(text)
                 raise HomeAssistantError(f"Failed to revoke message: {error_msg}")
 
+            result = await resp.json()
+            return str(result.get("id", message_id))
+
     async def edit_message(
         self,
         number: str,
         message_id: str,
         new_content: str,
-    ) -> None:
+    ) -> str:
         """Edit a message."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._edit_message_internal, target_jid, message_id, new_content
         )
 
@@ -941,7 +1018,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         number: str,
         message_id: str,
         new_content: str,
-    ) -> None:
+    ) -> str:
         """Internal edit message logic."""
         api_url = f"{self.host}/edit_message"
         payload: dict[str, Any] = {
@@ -968,6 +1045,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 error_msg = self._extract_error(text)
                 raise HomeAssistantError(f"Failed to edit message: {error_msg}")
 
+            result = await resp.json()
+            return str(result.get("id", message_id))
+
     async def send_location(
         self,
         number: str,
@@ -977,14 +1057,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         address: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a location (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_location_internal,
             target_jid,
             latitude,
@@ -1004,7 +1084,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         address: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send location logic."""
         url = f"{self.host}/send_location"
         payload: dict[str, Any] = {
@@ -1041,29 +1121,34 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send location: {error_msg}")
 
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Location: {name or 'Pinned'}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_reaction(
         self,
         number: str,
         text: str,
         message_id: str,
-    ) -> None:
+    ) -> str:
         """Send a reaction to a specific message (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_reaction_internal, target_jid, text, message_id
         )
 
     async def _send_reaction_internal(
         self, number: str, text: str, message_id: str
-    ) -> None:
+    ) -> str:
         """Internal send reaction logic."""
         url = f"{self.host}/send_reaction"
         payload: dict[str, Any] = {
@@ -1092,6 +1177,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_failed_target"] = number
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send reaction: {error_msg}")
+
+            result = await resp.json()
+            return str(result.get("id", ""))
+
+        return ""
 
     async def set_webhook(
         self,
@@ -1132,14 +1222,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         sections: list[dict[str, Any]],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a list message (interactive menu)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_list_internal,
             target_jid,
             title,
@@ -1159,7 +1249,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         sections: list[dict[str, Any]],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send list logic."""
         api_url = f"{self.host}/send_list"
         payload: dict[str, Any] = {
@@ -1196,24 +1286,36 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send list: {error_msg}")
 
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"List: {title}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def send_contact(
         self,
         number: str,
         contact_name: str,
         contact_number: str,
-    ) -> None:
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
+    ) -> str:
         """Send a contact card (VCard)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
-            self._send_contact_internal, target_jid, contact_name, contact_number
+        return await self._send_with_retry(
+            self._send_contact_internal,
+            target_jid,
+            contact_name,
+            contact_number,
+            quoted_message_id,
+            expiration,
         )
 
     async def _send_contact_internal(
@@ -1221,14 +1323,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         number: str,
         contact_name: str,
         contact_number: str,
-    ) -> None:
+        quoted_message_id: str | None = None,
+        expiration: int | None = None,
+    ) -> str:
         """Internal send contact logic."""
         api_url = f"{self.host}/send_contact"
-        payload = {
+        payload: dict[str, Any] = {
             "number": number,
             "contact_name": contact_name,
             "contact_number": contact_number,
         }
+        if quoted_message_id:
+            payload["quotedMessageId"] = quoted_message_id
+        if expiration:
+            payload["expiration"] = expiration
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -1252,9 +1360,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send contact: {error_msg}")
 
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Contact: {contact_name}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def set_presence(self, number: str, presence: str) -> None:
         """Set presence (available, composing, recording, paused)."""
@@ -1291,14 +1404,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         footer: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Send a message with buttons (with retry)."""
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
-        await self._send_with_retry(
+        return await self._send_with_retry(
             self._send_buttons_internal,
             target_jid,
             text,
@@ -1316,7 +1429,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         footer: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
-    ) -> None:
+    ) -> str:
         """Internal send buttons logic."""
         url = f"{self.host}/send_buttons"
         payload: dict[str, Any] = {
@@ -1351,9 +1464,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self.stats["last_error_reason"] = error_msg
                 raise HomeAssistantError(f"Failed to send buttons: {error_msg}")
 
+            result = await resp.json()
+            msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = f"Buttons: {text}"
             self.stats["last_sent_target"] = number
+            return msg_id
+
+        return ""
 
     async def get_groups(self) -> list[dict[str, Any]]:
         """Fetch all participating groups."""
@@ -1379,6 +1497,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             except Exception as e:
                 _LOGGER.error("Error fetching groups from addon: %s", e)
                 return []
+        return []
 
     async def mark_as_read(self, number: str, message_id: str | None = None) -> None:
         """Mark a message (or all messages) as read.

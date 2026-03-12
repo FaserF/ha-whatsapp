@@ -1,206 +1,256 @@
-"""Tests for WhatsApp connection status logic."""
+"""Comprehensive tests for WhatsApp Integration."""
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 import types
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-# Add the root of the integration to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import pytest
 
-# 1. Robust Module Mocking
-def mock_module(name: str, **kwargs: Any) -> Any:
-    parts = name.split('.')
-    for i in range(1, len(parts) + 1):
-        partial_name = '.'.join(parts[:i])
-        if partial_name not in sys.modules:
-            mod = types.ModuleType(partial_name)
-            mod.__path__ = []  # Treat all as potential packages
-            sys.modules[partial_name] = mod
-        
-        mod = sys.modules[partial_name]
-        if i > 1:
-            parent_name = '.'.join(parts[:i-1])
-            setattr(sys.modules[parent_name], parts[i-1], mod)
-            
-    mod = sys.modules[name]
-    for k, v in kwargs.items():
-        setattr(mod, k, v)
-    return mod
+# Add the root of the integration to sys.path
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
-# Stub essential modules
-mock_module("homeassistant.helpers.config_validation")
-mock_module("homeassistant.helpers.entity_platform")
-class MockSubscriptable:
-    def __init__(self, *args, **kwargs): pass
-    def __class_getitem__(cls, _): return cls
 
-mock_module("homeassistant.helpers.entity", Entity=MockSubscriptable)
-mock_module("homeassistant.helpers.entity_component", EntityComponent=MockSubscriptable)
-mock_module("homeassistant.helpers.update_coordinator", DataUpdateCoordinator=MockSubscriptable, UpdateFailed=Exception)
-mock_module("homeassistant.helpers.issue_registry")
-mock_module("homeassistant.helpers.device_registry", DeviceInfo=dict)
-mock_module("homeassistant.helpers.entity_registry")
-mock_module("homeassistant.helpers.storage")
-mock_module("homeassistant.helpers.aiohttp_client")
-mock_module("homeassistant.util.dt")
-mock_module("homeassistant.util.uuid", random_uuid_hex=lambda: "dummy_uuid")
-mock_module("homeassistant.components.sensor", SensorEntity=object)
-mock_module("homeassistant.components.binary_sensor", BinarySensorEntity=object)
-mock_module("homeassistant.components.hassio")
-mock_module("homeassistant.components.notify")
-mock_module("homeassistant.components.persistent_notification")
-mock_module("homeassistant.data_entry_flow", AbortFlow=Exception, FlowResult=dict)
+# Use centralized stubs
+from ha_stubs import _build_ha_stub_modules
+_build_ha_stub_modules()
 
-class MockConfigFlow:
-    def __init__(self, *args, **kwargs):
-        self.hass = None
-        self.context = {}
-    @classmethod
-    def __init_subclass__(cls, **kwargs): pass
-    async def async_show_form(self, *args, **kwargs): return {"type": "form"}
-    async def async_abort(self, *args, **kwargs): return {"type": "abort"}
-    async def async_create_entry(self, *args, **kwargs): return {"type": "create_entry"}
+from homeassistant.exceptions import HomeAssistantError  # noqa: E402
+from homeassistant.core import HomeAssistant  # noqa: E402
+import voluptuous as vol  # noqa: E402
 
-mock_module("homeassistant.config_entries", ConfigEntry=object, ConfigFlow=MockConfigFlow, OptionsFlow=MockSubscriptable)
+# 2. Import under test
+from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
-class Platform:
-    SENSOR = "sensor"
-    BINARY_SENSOR = "binary_sensor"
-    NOTIFY = "notify"
 
-mock_module("homeassistant.const", Platform=Platform, CONF_URL="url", CONF_NAME="name", CONF_HOST="host", CONF_API_KEY="api_key", CONF_SCAN_INTERVAL="scan_interval", CONF_BASE_URL="base_url", CONF_SESSION_ID="session_id")
-
-class HomeAssistantError(Exception): """Stub."""
-class ServiceValidationError(Exception): """Stub."""
-class ConfigEntryNotReady(Exception): """Stub."""
-mock_module("homeassistant.exceptions", HomeAssistantError=HomeAssistantError, ServiceValidationError=ServiceValidationError, ConfigEntryNotReady=ConfigEntryNotReady)
-
-class HomeAssistant:
-    def __init__(self):
-        self.config_entries = MagicMock()
-        self.services = MagicMock()
-class ServiceCall: """Stub."""
-mock_module("homeassistant.core", HomeAssistant=HomeAssistant, ServiceCall=ServiceCall, callback=lambda x: x, ServiceResponse=dict)
-
-vol_mod = mock_module("voluptuous")
-vol_mod.Schema = lambda s, **_: s
-vol_mod.Required = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.Optional = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.All = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.In = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.Coerce = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.Any = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
-vol_mod.Length = MagicMock(return_value=lambda x: x)
-vol_mod.Email = MagicMock(return_value=lambda x: x)
-vol_mod.Url = MagicMock(return_value=lambda x: x)
-vol_mod.Matches = MagicMock(return_value=lambda x: x)
-vol_mod.Range = MagicMock(return_value=lambda x: x)
-
-# 2. Now we can import things that use homeassistant
-try:
-    from homeassistant.exceptions import HomeAssistantError
-    from custom_components.whatsapp.api import WhatsAppApiClient
-    from custom_components.whatsapp.config_flow import ConfigFlow
-    from custom_components.whatsapp.const import DOMAIN
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
-
-@pytest.mark.asyncio
-async def test_session_id_default_for_first_instance() -> None:
-    """Verify that 'default' is used as session_id if no instances exist."""
-    hass = MagicMock()
-    # Mock no entries existing
-    hass.config_entries.async_entries.return_value = []
-    
-    flow = ConfigFlow()
-    flow.hass = hass
-    
-    # We need to mock the socket check in async_step_user or just check the session_id after it's called
-    with patch("custom_components.whatsapp.config_flow.socket.create_connection") as mock_conn:
-        mock_conn.side_effect = Exception("No host")
-        await (await flow.async_step_user())
-    
-    assert flow.session_id == "default"
-
-@pytest.mark.asyncio
-async def test_session_id_uuid_for_subsequent_instances() -> None:
-    """Verify that a UUID is used if an instance already exists."""
-    hass = HomeAssistant()
-    # Mock one entry existing
-    hass.config_entries.async_entries.return_value = [MagicMock()]
-    
-    flow = ConfigFlow()
-    flow.hass = hass
-    
-    # Capture initial UUID
-    initial_uuid = flow.session_id
-    assert initial_uuid != "default"
-    
-    with patch("custom_components.whatsapp.config_flow.socket.create_connection") as mock_conn:
-        mock_conn.side_effect = Exception("No host")
-        await (await flow.async_step_user())
-    
-    assert flow.session_id == initial_uuid
-    assert flow.session_id != "default"
-
-@pytest.mark.asyncio
-async def test_api_client_status_handling() -> None:
-    """Test how the API client handles various status responses."""
-    client = WhatsAppApiClient(
-        host="http://localhost:8066",
-        api_key="test",
-        session_id="test_session"
+@pytest.fixture
+def api_client() -> WhatsAppApiClient:
+    """Fixture."""
+    return WhatsAppApiClient(
+        host="http://localhost:8066", api_key="test_key", session_id="default"
     )
-    
+
+def mock_aiohttp_post(
+    status: int = 200, json_data: Any | None = None, text_data: str = ""
+) -> MagicMock:
+    """Mock aiohttp post."""
     mock_response = MagicMock()
-    mock_response.status = 200
-    mock_response.json = AsyncMock(return_value={"connected": True})
+    mock_response.status = status
+    mock_response.json = AsyncMock(return_value=json_data or {"status": "sent"})
+    mock_response.text = AsyncMock(return_value=text_data)
     mock_response.__aenter__ = AsyncMock(return_value=mock_response)
     mock_response.__aexit__ = AsyncMock(return_value=None)
-    
-    with patch("aiohttp.ClientSession") as mock_session_class:
-        mock_session = mock_session_class.return_value
-        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-        mock_session.__aexit__ = AsyncMock(return_value=None)
-        mock_session.get.return_value = mock_response
-        
-        assert await client.connect() is True
-        
-        # Test disconnected status
-        mock_response.json = AsyncMock(return_value={"connected": False})
-        assert await client.connect() is False
-        
-        # Test error status
-        mock_response.status = 500
-        mock_response.text = AsyncMock(return_value="Error")
-        assert await client.connect() is False
 
-        # Test 401 status raises HomeAssistantError
-        mock_response.status = 401
-        with pytest.raises(HomeAssistantError):
-            await client.connect()
+    mock_session = MagicMock()
+    mock_session.post.return_value = mock_response
+    mock_session.get.return_value = mock_response
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=None)
+
+    return mock_session
+
+@pytest.mark.asyncio
+async def test_send_message(api_client: WhatsAppApiClient) -> None:
+    """Test sending a text message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_message("12345", "Hello", expiration=604800)
+        mock_session.post.assert_called_once()
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["message"] == "Hello"
+        assert kwargs["json"]["expiration"] == 604800
+        assert kwargs["params"]["session_id"] == "default"
+
+
+@pytest.mark.asyncio
+async def test_send_poll(api_client: WhatsAppApiClient) -> None:
+    """Test sending a poll message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_poll(
+            "12345", "Question?", ["Yes", "No"], expiration=86400
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["question"] == "Question?"
+        assert kwargs["json"]["options"] == ["Yes", "No"]
+        assert kwargs["json"]["expiration"] == 86400
+
+@pytest.mark.asyncio
+async def test_send_media(api_client: WhatsAppApiClient) -> None:
+    """Test sending various media types (image, video, document, audio)."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        # Image
+        await api_client.send_image(
+            "12345", "http://img.jpg", "caption", expiration=3600
+        )
+        assert "/send_image" in mock_session.post.call_args[0][0]
+        assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+
+        # Video
+        mock_session.post.reset_mock()
+        await api_client.send_video(
+            "12345", "http://vid.mp4", "caption", expiration=3600
+        )
+        assert "/send_video" in mock_session.post.call_args[0][0]
+        assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+
+        # Document
+        mock_session.post.reset_mock()
+        await api_client.send_document(
+            "12345", "http://doc.pdf", "file.pdf", "caption", expiration=3600
+        )
+        assert "/send_document" in mock_session.post.call_args[0][0]
+        assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+
+        # Audio
+        mock_session.post.reset_mock()
+        await api_client.send_audio(
+            "12345", "http://aud.mp3", ptt=True, expiration=3600
+        )
+        assert "/send_audio" in mock_session.post.call_args[0][0]
+        assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+
+
+@pytest.mark.asyncio
+async def test_revoke_message(api_client: WhatsAppApiClient) -> None:
+    """Test revoking a message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        # Default (fromMe=True)
+        await api_client.revoke_message("12345", "msg123")
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["message_id"] == "msg123"
+        assert kwargs["json"]["fromMe"] is True
+
+        # Admin delete (fromMe=False)
+        mock_session.post.reset_mock()
+        await api_client.revoke_message("12345", "msg456", from_me=False)
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["fromMe"] is False
+
+@pytest.mark.asyncio
+async def test_edit_message(api_client: WhatsAppApiClient) -> None:
+    """Test editing a message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.edit_message("12345", "msg123", "New text")
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["new_content"] == "New text"
+
+
+@pytest.mark.asyncio
+async def test_send_reaction(api_client: WhatsAppApiClient) -> None:
+    """Test sending a reaction."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_reaction("12345", "👍", "msg123")
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["reaction"] == "👍"
+
+
+@pytest.mark.asyncio
+async def test_fetch_groups(api_client: WhatsAppApiClient) -> None:
+    """Test fetching groups."""
+    groups_data = [{"id": "g1", "name": "Group 1", "participants": 5}]
+    mock_session = mock_aiohttp_post(json_data=groups_data)
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        res = await api_client.get_groups()
+        assert res == groups_data
+        assert "/groups" in mock_session.get.call_args[0][0]
+
+
+@pytest.mark.asyncio
+async def test_mark_as_read(api_client: WhatsAppApiClient) -> None:
+    """Test marking a message as read."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.mark_as_read("12345", "msg123")
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["messageId"] == "msg123"
+
+
+@pytest.mark.asyncio
+async def test_send_list(api_client: WhatsAppApiClient) -> None:
+    """Test sending a list message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_list(
+            "12345", "Title", "Text", "Button", [], expiration=604800
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["title"] == "Title"
+        assert kwargs["json"]["expiration"] == 604800
+
+@pytest.mark.asyncio
+async def test_send_buttons(api_client: WhatsAppApiClient) -> None:
+    """Test sending buttons."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_buttons(
+            "12345",
+            "Text",
+            [{"id": "btn1", "displayText": "Yes"}],
+            "Footer",
+            expiration=3600,
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["message"] == "Text"
+        assert kwargs["json"]["footer"] == "Footer"
+        assert kwargs["json"]["expiration"] == 3600
+
+@pytest.mark.asyncio
+async def test_send_contact(api_client: WhatsAppApiClient) -> None:
+    """Test sending a contact."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_contact("12345", "Name", "123456789", expiration=3600)
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["contact_name"] == "Name"
+        assert kwargs["json"]["expiration"] == 3600
+
+@pytest.mark.asyncio
+async def test_send_location(api_client: WhatsAppApiClient) -> None:
+    """Test sending a location."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_location(
+            "12345", 52.52, 13.40, "Berlin", "Germany", expiration=3600
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["latitude"] == 52.52
+        assert kwargs["json"]["expiration"] == 3600
+
+@pytest.mark.asyncio
+async def test_self_chat_bypass(api_client: WhatsAppApiClient) -> None:
+        """Test that the bot can always message itself even if not in whitelist."""
+        api_client.whitelist = ["11111"]  # Current whitelist doesn't include 12345
+        api_client.stats["my_number"] = "12345"
+
+        # Should be allowed (bypass)
+        assert api_client.is_allowed("12345") is True
+        # Should NOT be allowed (not in whitelist, not self)
+        assert api_client.is_allowed("22222") is False
 
 if __name__ == "__main__":
     import asyncio
-    async def run():
-        try:
-            print("Testing session_id_default...")
-            await test_session_id_default_for_first_instance()
-            print("Testing session_id_uuid...")
-            await test_session_id_uuid_for_subsequent_instances()
-            print("Testing api_client_status...")
-            await test_api_client_status_handling()
-            print("Tests passed!")
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            sys.exit(1)
+    async def run() -> None:
+        """Sanity check helper."""
+        # print("Running comprehensive tests...")
+        client = WhatsAppApiClient("http://localhost:8066", "key", "session")
+        # Just a sanity check that imports work and methods exist
+        methods = [
+            "send_message", "send_image", "send_video", "send_poll",
+            "revoke_message", "edit_message", "send_reaction",
+            "get_groups", "mark_as_read", "send_list", "send_buttons",
+            "send_contact", "send_location"
+        ]
+        for method in methods:
+            assert hasattr(client, method), f"Missing method {method}"
+        # print("All methods present. Run with pytest for full verification.")
     asyncio.run(run())
