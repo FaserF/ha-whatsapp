@@ -52,7 +52,7 @@
 
 ### HACS (Recommended)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository?owner=FaserF&repository=ha-whatsapp&category=integration)
 
 1. Click the button above or add this repository as a **custom repository** in HACS:
    - Go to HACS → Integrations → ⋮ (menu) → Custom repositories
