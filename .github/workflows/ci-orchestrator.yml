@@ -49,7 +49,7 @@ jobs:
         uses: actions/labeler@v6
         with:
           repo-token: ${{ github.token }}
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
