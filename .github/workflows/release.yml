@@ -302,8 +302,8 @@ jobs:
 
           if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
-            # Robust version sort, handling both 'v1.4.0' and '1.4.2'.
-            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -rV)
+            # Robust version sort, handling both 'v1.4.0' and '1.4.2'. Unique sort (-u) prevents duplicate checks.
+            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -urV)
             CURRENT_VER="${{ steps.params.outputs.version }}"
             OVERRIDE="${{ steps.params.outputs.base_tag_override }}"
 
@@ -334,14 +334,13 @@ jobs:
                 continue
               fi
 
-              IS_EMPTY=$(echo "$RELEASE_BODY" | grep -c "HA App (Addon) only changes" || echo "0")
-
-              if [[ "$IS_EMPTY" -eq 0 ]]; then
+              # Robust check using unique hidden marker to avoid false positives on older releases
+              if echo "$RELEASE_BODY" | grep -q "<!-- sync-release -->"; then
+                echo "⏭️ Skipping empty sync release: $CHECK_TAG (marker found)"
+              else
                 FOUND_TAG="$CHECK_TAG"
                 echo "🔍 Found last 'real' stable release: $FOUND_TAG"
                 break
-              else
-                echo "⏭️ Skipping empty sync release: $CHECK_TAG"
               fi
             done
 
@@ -394,7 +393,7 @@ jobs:
         run: |
           {
             echo "changelog<<EOF"
-            echo "## ℹ️ Sync Release"
+            echo "## ℹ️ Sync Release <!-- sync-release -->"
             echo ""
             echo "HA App (Addon) only changes, no changes on integration side."
             echo ""
