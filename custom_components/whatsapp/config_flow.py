@@ -284,9 +284,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 description_placeholders={
                     "qr_image": self.qr_code
                     or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
-                    "status_text": (
-                        "Not connected yet. Please scan the QR code and try again."
-                    ),
                 },
                 errors={"base": "connection_error"},
             )
@@ -335,11 +332,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             description_placeholders={
                 "qr_image": self.qr_code
                 or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
-                "status_text": (
-                    "Waiting for QR Code... (Click Submit to refresh)"
-                    if not self.qr_code
-                    else "Scan this code with WhatsApp"
-                ),
             },
         )
 
@@ -523,15 +515,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
             }
         )
 
-    def _get_placeholders(self) -> dict[str, str]:
-        """Return description placeholders."""
-        return {
-            "warning": (
-                "⚠️ CAUTION: 'Reset Session' will log you out and "
-                "delete session data on the Addon."
-            )
-        }
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -555,7 +538,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     return self.async_show_form(
                         step_id="init",
                         data_schema=self._get_schema(),
-                        description_placeholders=self._get_placeholders(),
                         errors=errors,
                     )
                 except Exception:
@@ -564,7 +546,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     return self.async_show_form(
                         step_id="init",
                         data_schema=self._get_schema(),
-                        description_placeholders=self._get_placeholders(),
                         errors=errors,
                     )
 
@@ -603,7 +584,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                         return self.async_show_form(
                             step_id="init",
                             data_schema=self._get_schema(),
-                            description_placeholders=self._get_placeholders(),
                             errors=errors,
                         )
 
@@ -617,7 +597,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
         return self.async_show_form(
             step_id="init",
             data_schema=self._get_schema(),
-            description_placeholders=self._get_placeholders(),
         )
 
 

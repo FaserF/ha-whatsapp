@@ -31,7 +31,11 @@
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert",
-      "single_instance_allowed": "Es ist nur eine einzige Instanz dieser Integration erlaubt."
+      "single_instance_allowed": "Es ist nur eine einzige Instanz dieser Integration erlaubt.",
+      "missing_dependency": "Fehlende Abhängigkeit für die QR-Code-Generierung.",
+      "invalid_auth": "Ungültige Authentifizierung",
+      "connection_error": "Verbindungsfehler",
+      "unknown": "Unerwarteter Fehler"
     }
   },
   "options": {
@@ -46,13 +50,15 @@
           "api_key": "API Schlüssel",
           "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
           "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
+          "self_messages": "Nachrichten von sich selbst verarbeiten",
           "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
         },
-        "description": "{warning}"
+        "description": "⚠️ ACHTUNG: 'Sitzung zurücksetzen' meldet dich ab und löscht die Sitzungsdaten im Addon."
       }
     },
     "error": {
-      "reset_failed": "Sitzung konnte nicht zurückgesetzt werden. Prüfe die Logs."
+      "reset_failed": "Sitzung konnte nicht zurückgesetzt werden. Prüfe die Logs.",
+      "invalid_auth": "Ungültige Authentifizierung"
     }
   },
   "services": {
