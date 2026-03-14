@@ -52,6 +52,11 @@ on:
         description: 'Manual Version (only for Manual release type, e.g. 1.2.3b5)'
         required: false
         type: string
+      empty_release:
+        description: 'Generate empty release (Addon-only changes)?'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release:
@@ -77,8 +82,17 @@ jobs:
             echo "📅 Scheduled run: Forcing release type to nightly"
           fi
 
-          # Get BASE_VERSION from the absolute latest tag (including betas)
-          LATEST_TAG=$(git tag -l "[v0-9]*" --sort=-v:refname | head -n 1)
+          # Get BASE_VERSION from the absolute latest tag (including betas).
+          # Robust sort handling both 'v1.4.0' and '1.4.2' by stripping 'v' for comparison.
+          LATEST_TAG=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -V | tail -n 1)
+          # Note: LATEST_TAG here is cleaned. We check if the actual tag had a 'v'.
+          if git rev-parse "v$LATEST_TAG" >/dev/null 2>&1; then
+            REAL_LATEST_TAG="v$LATEST_TAG"
+          else
+            REAL_LATEST_TAG="$LATEST_TAG"
+          fi
+          echo "ℹ️ Absolute latest tag found: $REAL_LATEST_TAG"
+          LATEST_TAG="$REAL_LATEST_TAG"
 
           if [[ -z "$LATEST_TAG" ]]; then
             # No tags exist at all, start from 1.0.0
@@ -138,7 +152,11 @@ jobs:
             IFS='.' read -r major minor patch <<< "$BASE_VERSION"
 
             # Find highest existing STABLE tag for this Major.Minor version (exclude betas/devs)
-            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" "${major}.${minor}.*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
+            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" "${major}.${minor}.*" | grep -vE 'b[0-9]+|\.dev' | sed 's/^v//' | sort -V | tail -n 1)
+            # Restore v if needed for existence check
+            if git rev-parse "v$HIGHEST_TAG" >/dev/null 2>&1; then
+              HIGHEST_TAG="v$HIGHEST_TAG"
+            fi
 
             if [[ -n "$HIGHEST_TAG" ]]; then
               # Extract patch from highest tag (v1.0.1 -> 1)
@@ -164,7 +182,10 @@ jobs:
 
           elif [[ "$RELEASE_TYPE" == "beta" ]]; then
              # Always look for the next logical beta tag for the calculated BASE_VERSION
-             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" "${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
+             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" "${BASE_VERSION}b*" | sed 's/^v//' | sort -V | tail -n 1)
+             if git rev-parse "v$LAST_BETA" >/dev/null 2>&1; then
+               LAST_BETA="v$LAST_BETA"
+             fi
 
              if [[ -z "$LAST_BETA" ]]; then
                  # No beta exists for this base, start at b0
@@ -235,6 +256,7 @@ jobs:
           echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "empty_release=${{ inputs.empty_release || 'false' }}" >> $GITHUB_OUTPUT
 
       - name: Prepare Release Version (Update Manifest)
         if: steps.params.outputs.should_release == 'true'
@@ -268,17 +290,48 @@ jobs:
       - name: 📝 Determine Base Tag for Changelog
         if: steps.params.outputs.should_release == 'true'
         id: base_tag
+        env:
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         run: |
           RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
 
           if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
-            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "b[0-9]|\.dev[0-9]" | head -n 1)
-            echo "base_tag=$LAST_STABLE" >> $GITHUB_OUTPUT
-            echo "🔍 Comparing stable release against last stable: $LAST_STABLE"
+            # Robust version sort, handling both 'v1.4.0' and '1.4.2'.
+            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -rV)
+
+            FOUND_TAG=""
+            for t in $STABLE_TAGS; do
+              CHECK_TAG="$t"
+              if git rev-parse "v$t" >/dev/null 2>&1; then
+                CHECK_TAG="v$t"
+              fi
+
+              # Check if release body contains the addon-only marker
+              # Note: gh release view requires GH_TOKEN which is available in environment
+              IS_EMPTY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null | grep -c "HA App (Addon) only changes" || echo "0")
+
+              if [[ "$IS_EMPTY" -eq 0 ]]; then
+                FOUND_TAG="$CHECK_TAG"
+                echo "🔍 Found last 'real' stable release: $FOUND_TAG"
+                break
+              else
+                echo "⏭️ Skipping empty sync release: $CHECK_TAG"
+              fi
+            done
+
+            if [[ -z "$FOUND_TAG" ]]; then
+               # Fallback: if all were empty or none found, use the absolute latest stable
+               FOUND_TAG=$(echo "$STABLE_TAGS" | head -n 1)
+               if git rev-parse "v$FOUND_TAG" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
+            fi
+
+            echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
+            echo "🔍 Comparing stable release against last 'real' stable: $FOUND_TAG"
           else
             # Releasing BETA/NIGHTLY: Compare against the absolute last tag
-            LAST_TAG=$(git tag --sort=-v:refname | head -n 1)
+            LAST_TAG=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -V | tail -n 1)
+            if git rev-parse "v$LAST_TAG" >/dev/null 2>&1; then LAST_TAG="v$LAST_TAG"; fi
             echo "base_tag=$LAST_TAG" >> $GITHUB_OUTPUT
             echo "🔍 Comparing prerelease against last tag: $LAST_TAG"
           fi
@@ -288,7 +341,7 @@ jobs:
           fi
 
       - name: 📝 Build Changelog
-        if: steps.params.outputs.should_release == 'true'
+        if: steps.params.outputs.should_release == 'true' && steps.params.outputs.empty_release == 'false'
         id: build_changelog
         uses: mikepenz/release-changelog-builder-action@v6
         with:
@@ -299,6 +352,23 @@ jobs:
           fail_on_empty: "false"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Set Empty Changelog
+        if: steps.params.outputs.should_release == 'true' && steps.params.outputs.empty_release == 'true'
+        id: empty_changelog
+        run: |
+          {
+            echo "changelog<<EOF"
+            echo "## ℹ️ Sync Release"
+            echo ""
+            echo "HA App (Addon) only changes, no changes on integration side."
+            echo ""
+            echo "This release is only to stay in sync with the HA App addon version. For more details on the latest HA App (Addon) changes, please visit the [Addon repository](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)."
+            echo ""
+            echo "An overview of all versions can be found on the [documentation page](https://faserf.github.io/ha-whatsapp/)."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         if: steps.params.outputs.should_release == 'true'
@@ -306,7 +376,7 @@ jobs:
         with:
           tag_name: v${{ steps.params.outputs.version }}
           name: v${{ steps.params.outputs.version }}
-          body: ${{ steps.build_changelog.outputs.changelog }}
+          body: ${{ steps.params.outputs.empty_release == 'true' && steps.empty_changelog.outputs.changelog || steps.build_changelog.outputs.changelog }}
           prerelease: ${{ steps.params.outputs.prerelease }}
           files: whatsapp.zip
           target_commitish: ${{ env.NEW_SHA }}
