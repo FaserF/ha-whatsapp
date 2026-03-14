@@ -299,11 +299,13 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         run: |
           RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
+          echo "ℹ️ Release type: $RELEASE_TYPE"
 
           if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
-            # Robust version sort, handling both 'v1.4.0' and '1.4.2'. Unique sort (-u) prevents duplicate checks.
-            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -urV)
+            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -urV || true)
+            echo "ℹ️ Found stable tags: $STABLE_TAGS"
+            
             CURRENT_VER="${{ steps.params.outputs.version }}"
             OVERRIDE="${{ steps.params.outputs.base_tag_override }}"
 
@@ -326,36 +328,34 @@ jobs:
                 CHECK_TAG="v$t"
               fi
 
+              echo "🔍 Checking release: $CHECK_TAG"
               # Check if release body contains the addon-only marker
-              # Note: gh release view requires GH_TOKEN which is available in environment
-              RELEASE_BODY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null)
-              if [[ $? -ne 0 ]]; then
-                echo "⏭️ No release found for $CHECK_TAG, skipping..."
-                continue
-              fi
-
+              RELEASE_BODY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null || echo "")
+              
               # Robust check using both unique hidden marker and the text description to catch older releases
               if echo "$RELEASE_BODY" | grep -q -E "<!-- sync-release -->|HA App \(Addon\) only changes"; then
                 echo "⏭️ Skipping empty sync release: $CHECK_TAG (marker found)"
               else
                 FOUND_TAG="$CHECK_TAG"
-                echo "🔍 Found last 'real' stable release: $FOUND_TAG"
+                echo "✅ Found last 'real' stable release: $FOUND_TAG"
                 break
               fi
             done
 
             if [[ -z "$FOUND_TAG" ]]; then
                # Fallback: if all were empty or none found, use the absolute latest stable (skipping current)
-               FOUND_TAG=$(echo "$STABLE_TAGS" | grep -v "^$CURRENT_VER$" | head -n 1)
-               if git rev-parse "v$FOUND_TAG" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
+               echo "⚠️ No 'real' stable release found in history, using fallback logic..."
+               FOUND_TAG=$(echo "$STABLE_TAGS" | grep -v "^$CURRENT_VER$" | head -n 1 || true)
+               if [[ -n "$FOUND_TAG" ]]; then
+                 if git rev-parse "v$FOUND_TAG" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
+               fi
             fi
 
             echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
             echo "✅ FINAL BASE TAG: $FOUND_TAG"
-            echo "🔍 Comparing stable release against last 'real' stable: $FOUND_TAG"
           else
             # Releasing BETA/NIGHTLY: Compare against the absolute last tag
-            ALL_TAGS=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -rV)
+            ALL_TAGS=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -rV || true)
             CURRENT_VER="${{ steps.params.outputs.version }}"
             FOUND_TAG=""
             for t in $ALL_TAGS; do
@@ -367,10 +367,11 @@ jobs:
               break
             done
             echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
+            echo "✅ FINAL BASE TAG: $FOUND_TAG"
             echo "🔍 Comparing prerelease against last tag: $FOUND_TAG"
           fi
 
-          if [[ -z "$LAST_STABLE" ]] && [[ -z "$LAST_TAG" ]]; then
+          if [[ -z "$FOUND_TAG" ]]; then
              echo "⚠️ No previous tags found. Changelog will cover all commits."
           fi
 
