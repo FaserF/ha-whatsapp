@@ -382,8 +382,7 @@ jobs:
           configuration: ".github/release-changelog-config.json"
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
-          mode: "PR"
-          fail_on_empty: "false"
+          fetchViaCommits: true
         env:
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}

@@ -55,48 +55,57 @@
     "empty_template": "No significant changes in this release.",
     "label_extractor": [
         {
-            "pattern": "(?i).*\\[skip ci\\].*",
+            "pattern": ".*\\[skip ci\\].*",
             "target": "ignore",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(chore: release|chore: bump|chore: auto-fix|ci fix|update release).*\\b",
+            "pattern": "^(chore: release|chore: bump|chore: auto-fix|ci fix|update release).*\\b",
             "target": "ignore",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(merge pull request|merge branch).*\\b",
+            "pattern": "^(merge pull request|merge branch).*\\b",
             "target": "ignore",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(feat|feature|add)\\b.*",
+            "pattern": "^(feat|feature|add)\\b.*",
             "target": "✨ Features",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(fix|bug|patch|fixed|fixes)\\b.*",
+            "pattern": "^(fix|bug|patch|fixed|fixes)\\b.*",
             "target": "🐛 Bug Fixes",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(deps|dependenc|update).*\\b",
+            "pattern": "^(deps|dependenc|update).*\\b",
             "target": "📦 Dependencies",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(docs|documentation)\\b.*",
+            "pattern": "^(docs|documentation)\\b.*",
             "target": "📝 Documentation",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(test|pytest)\\b.*",
+            "pattern": "^(test|pytest)\\b.*",
             "target": "🧪 Tests",
+            "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "(?i)^(chore|config|ci|workflow|ruff)\\b.*",
+            "pattern": "^(chore|config|ci|workflow|ruff)\\b.*",
             "target": "🔧 Maintenance & CI",
+            "flags": "i",
             "on_property": "title"
         }
     ],
