@@ -50,8 +50,8 @@
     ],
     "sort": "DESC",
     "template": "⚠️ **IMPORTANT**: This integration requires the corresponding Home Assistant Add-on to be updated. Please ensure you are running the latest version of the [WhatsApp Add-on](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n# Changelog\n\n#{{CHANGELOG}}\n",
-    "pr_template": "- #{{TITLE}} (#{{NUMBER}})",
-    "commit_template": "- #{{TITLE}}",
+    "pr_template": "- {{TITLE}} #{{NUMBER}}",
+    "commit_template": "- {{TITLE}}",
     "empty_template": "No significant changes in this release.",
     "label_extractor": [
         {
@@ -61,49 +61,49 @@
             "on_property": "title"
         },
         {
-            "pattern": "^(chore: release|chore: bump|chore: auto-fix|ci fix|update release).*\\b",
+            "pattern": "\\b(chore: release|chore: bump|chore: auto-fix|ci fix|update release)\\b",
             "target": "ignore",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(merge pull request|merge branch).*\\b",
+            "pattern": "\\b(merge pull request|merge branch)\\b",
             "target": "ignore",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(feat|feature|add)\\b.*",
+            "pattern": "\\b(feat|feature|add)\\b",
             "target": "✨ Features",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(fix|bug|patch|fixed|fixes)\\b.*",
+            "pattern": "\\b(fix|bug|patch|fixed|fixes)\\b",
             "target": "🐛 Bug Fixes",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(deps|dependenc|update).*\\b",
+            "pattern": "\\b(deps|dependenc|update)\\b",
             "target": "📦 Dependencies",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(docs|documentation)\\b.*",
+            "pattern": "\\b(docs|documentation)\\b",
             "target": "📝 Documentation",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(test|pytest)\\b.*",
+            "pattern": "\\b(test|pytest)\\b",
             "target": "🧪 Tests",
             "flags": "i",
             "on_property": "title"
         },
         {
-            "pattern": "^(chore|config|ci|workflow|ruff)\\b.*",
+            "pattern": "\\b(chore|config|ci|workflow|ruff)\\b",
             "target": "🔧 Maintenance & CI",
             "flags": "i",
             "on_property": "title"
