@@ -382,7 +382,7 @@ jobs:
           configuration: ".github/release-changelog-config.json"
           fromTag: ${{ steps.base_tag.outputs.base_tag }}
           toTag: HEAD
-          mode: "TAG"
+          mode: "HYBRID"
           fetchViaCommits: true
         env:
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
