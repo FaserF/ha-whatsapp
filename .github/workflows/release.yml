@@ -334,8 +334,8 @@ jobs:
                 continue
               fi
 
-              # Robust check using unique hidden marker to avoid false positives on older releases
-              if echo "$RELEASE_BODY" | grep -q "<!-- sync-release -->"; then
+              # Robust check using both unique hidden marker and the text description to catch older releases
+              if echo "$RELEASE_BODY" | grep -q -E "<!-- sync-release -->|HA App \(Addon\) only changes"; then
                 echo "⏭️ Skipping empty sync release: $CHECK_TAG (marker found)"
               else
                 FOUND_TAG="$CHECK_TAG"
