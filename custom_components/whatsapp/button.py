@@ -1,9 +1,9 @@
 """Button platform for WhatsApp Integration."""
 
 from __future__ import annotations
-from typing import Any, cast
 
 import asyncio
+from typing import cast
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry

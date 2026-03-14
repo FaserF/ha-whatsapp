@@ -980,9 +980,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
-            str, await self._send_with_retry(
+            str,
+            await self._send_with_retry(
                 self._revoke_message_internal, target_jid, message_id, from_me
-            )
+            ),
         )
 
     async def _revoke_message_internal(
@@ -1033,9 +1034,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
-            str, await self._send_with_retry(
+            str,
+            await self._send_with_retry(
                 self._edit_message_internal, target_jid, message_id, new_content
-            )
+            ),
         )
 
     async def _edit_message_internal(
@@ -1171,9 +1173,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
-            str, await self._send_with_retry(
+            str,
+            await self._send_with_retry(
                 self._send_reaction_internal, target_jid, text, message_id
-            )
+            ),
         )
 
     async def _send_reaction_internal(
@@ -1457,7 +1460,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 footer,
                 quoted_message_id,
                 expiration,
-            )
+            ),
         )
 
     async def _send_buttons_internal(
