@@ -50,9 +50,13 @@ async def async_get_config_entry_diagnostics(
     """
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator = data["coordinator"]
+    client = coordinator.client
+
+    addon_debug_info = await client.get_debug_info()
 
     return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
         "client_connected": coordinator.data.get("connected", False),
         "stats": coordinator.data.get("stats", {}),
+        "addon_debug": async_redact_data(addon_debug_info, TO_REDACT),
     }

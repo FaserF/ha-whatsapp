@@ -194,4 +194,6 @@ class WhatsAppUptimeSensor(
         return {
             "version": stats.get("version", "Unknown"),
             "phone_number": stats.get("my_number", "Unknown"),
+            "connected": stats.get("connected", False),
+            "disconnect_reason": stats.get("disconnect_reason"),
         }

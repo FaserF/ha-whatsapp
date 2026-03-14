@@ -362,64 +362,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 _LOGGER.error("Error fetching QR from addon: %s", e)
                 return ""
         return ""
-
     async def connect(self) -> bool:
-        """Check connection and validate Auth."""
-        url = f"{self.host}/status"
-        params = {"session_id": self.session_id}
-        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(
-                    url,
-                    headers=headers,
-                    params=params,
-                    timeout=aiohttp.ClientTimeout(total=5),
-                ) as resp:
-                    if resp.status == 401:
-                        _LOGGER.error(
-                            "WhatsApp Auth failed: Invalid API Key for session %s",
-                            self.session_id,
-                        )
-                        raise HomeAssistantError("Invalid API Key")
-                    if resp.status == 200:
-                        data = await resp.json()
-                        connected = bool(data.get("connected", False))
-                        self._connected = connected
-                        self._disconnect_reason = data.get("disconnect_reason")
-                        if not connected:
-                            _LOGGER.debug(
-                                "WhatsApp session %s is disconnected. Reason: %s",
-                                self.session_id,
-                                self._disconnect_reason,
-                            )
-                        return connected
+        """Check connection and validate Auth (Consolidated with get_stats)."""
+        # We now rely on get_stats to update connectivity info
+        stats = await self.get_stats()
+        return bool(stats.get("connected", False))
 
-                    # Any other status is an error
-                    text = await resp.text()
-                    _LOGGER.warning(
-                        "Unexpected API response in connect for session %s: %s - %s",
-                        self.session_id,
-                        resp.status,
-                        text,
-                    )
-                    self._connected = False
-                    return False
-            except HomeAssistantError:
-                self._connected = False
-                raise
-                return False
-            except Exception as e:
-                self._connected = False
-                # Connectivity error (ClientConnectorError, etc)
-                _LOGGER.debug(
-                    "Cannot connect to Addon at %s for session %s: %s",
-                    self.host,
-                    self.session_id,
-                    e,
-                )
-                return False
-        return False
 
     async def is_connected(self) -> bool:
         """Return if connected."""
@@ -462,13 +410,46 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     params=params,
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
+                    if resp.status == 401:
+                        _LOGGER.error(
+                            "Auth failed during stats fetch for session %s",
+                            self.session_id,
+                        )
+                        raise WhatsAppAuthError("Invalid API Key")
                     if resp.status == 200:
-                        data = await resp.json()
+                        data: dict[str, Any] = await resp.json()
                         self.stats.update(data)
+                        # Also update connectivity bit
+                        self._connected = bool(data.get("connected", False))
+                        self._disconnect_reason = data.get("disconnect_reason")
                         return self.stats
+            except WhatsAppAuthError:
+                self._connected = False
+                raise
             except Exception as e:
                 _LOGGER.debug("Failed to fetch stats: %s", e)
+                # If we can't reach addon, mark disconnected
+                self._connected = False
         return self.stats
+
+    async def get_debug_info(self) -> dict[str, Any]:
+        """Fetch full debug report from the addon."""
+        url = f"{self.host}/api/debug/download"
+        params = {"session_id": self.session_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status == 200:
+                        return await resp.json()
+            except Exception as e:
+                _LOGGER.error("Failed to fetch debug info: %s", e)
+        return {}
 
     def register_callback(self, callback: Any) -> None:
         """Register a callback."""
@@ -548,7 +529,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         return ""
 
     async def _send_with_retry(self, func: Any, *args: Any, **kwargs: Any) -> Any:
-        """Helper to retry API calls."""
+        """Helper to retry API calls with exponential backoff."""
         last_error: Exception | None = None
         for attempt in range(self.retry_attempts + 1):
             try:
@@ -557,13 +538,31 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 raise
             except Exception as e:
                 last_error = e
-                if attempt < self.retry_attempts:
+                # Check for rate limiting
+                if "429" in str(e):
+                    # For 429, we wait longer
+                    wait_time = 15 * (attempt + 1)
                     _LOGGER.warning(
-                        "Attempt %s failed to send WhatsApp message: %s. Retrying...",
+                        "WhatsApp API rate limited (429). "
+                        "Waiting %ss before retry %s/%s",
+                        wait_time,
+                        attempt + 1,
+                        self.retry_attempts,
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue
+
+                if attempt < self.retry_attempts:
+                    # Exponential backoff: 1s, 2s, 4s...
+                    wait_time = 2**attempt
+                    _LOGGER.warning(
+                        "Attempt %s failed to send WhatsApp message: %s. "
+                        "Retrying in %ss...",
                         attempt + 1,
                         e,
+                        wait_time,
                     )
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(wait_time)
                 else:
                     _LOGGER.error(
                         "All %s attempts failed to send WhatsApp message: %s",
@@ -574,8 +573,6 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if last_error:
             raise last_error
 
-        # Should never reach here if retry_attempts >= 0 and no error occurs
-        # as func returns directly in the loop.
         return None
 
     async def close(self) -> None:
@@ -1460,7 +1457,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise WhatsAppAuthError("Invalid API Key")
+                raise WhatsAppAuthError("Invalid API Key. Please check your configuration.")
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)
@@ -1535,7 +1532,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise HomeAssistantError("Invalid API Key")
+                raise HomeAssistantError("Invalid API Key. Please verify in settings.")
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)

@@ -19,11 +19,15 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
 from .api import WhatsAppApiClient
 from .const import CONF_POLLING_INTERVAL, DOMAIN
@@ -95,13 +99,13 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         """
 
         try:
-            connected = await self.client.connect()
+            # Fetch full stats from addon (now also includes connectivity info)
+            stats = await self.client.get_stats()
+            connected = stats.get("connected", False)
 
             # Differentiated disconnect handling:
-            # - logged_out  → user must re-pair (session_expired repair)
-            # - connection_error → Baileys bug / transient, auto-retrying
             if not connected:
-                reason = self.client.disconnect_reason
+                reason = stats.get("disconnect_reason")
                 if reason == "logged_out":
                     ir.async_create_issue(
                         self.hass,
@@ -130,14 +134,11 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             # Always delete connection issue if we successfully reached this point
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
 
-            # Fetch full stats from addon
-            stats = await self.client.get_stats()
-
             return {
                 "connected": connected,
                 "stats": stats,
             }
-        except HomeAssistantError as err:
+        except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
             # Create issue for connection failure (Addon unreachable or Auth)
             ir.async_create_issue(
                 self.hass,
@@ -148,8 +149,14 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 translation_key="connection_failed",
                 translation_placeholders={"error": str(err)},
             )
+            # If we were previously connected, we might want to log a warning instead
+            # of failing hard immediately to let entities keep their last known
+            # state for a short while.
+            # But HA's DataUpdateCoordinator usually handles this via UpdateFailed.
+            _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         except Exception as err:
+            _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(
                 f"Unexpected error communicating with API: {err}"
             ) from err
