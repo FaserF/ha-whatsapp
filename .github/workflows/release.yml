@@ -78,7 +78,7 @@ jobs:
           fi
 
           # Get BASE_VERSION from the absolute latest tag (including betas)
-          LATEST_TAG=$(git tag -l "v[0-9]*" --sort=-v:refname | head -n 1)
+          LATEST_TAG=$(git tag -l "[v0-9]*" --sort=-v:refname | head -n 1)
 
           if [[ -z "$LATEST_TAG" ]]; then
             # No tags exist at all, start from 1.0.0
@@ -138,7 +138,7 @@ jobs:
             IFS='.' read -r major minor patch <<< "$BASE_VERSION"
 
             # Find highest existing STABLE tag for this Major.Minor version (exclude betas/devs)
-            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
+            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" "${major}.${minor}.*" --sort=-v:refname | grep -vE 'b[0-9]+|\.dev' | head -n 1)
 
             if [[ -n "$HIGHEST_TAG" ]]; then
               # Extract patch from highest tag (v1.0.1 -> 1)
@@ -164,7 +164,7 @@ jobs:
 
           elif [[ "$RELEASE_TYPE" == "beta" ]]; then
              # Always look for the next logical beta tag for the calculated BASE_VERSION
-             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
+             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" "${BASE_VERSION}b*" --sort=-v:refname | head -n 1)
 
              if [[ -z "$LAST_BETA" ]]; then
                  # No beta exists for this base, start at b0
@@ -273,7 +273,7 @@ jobs:
 
           if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
-            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "b[0-9]|\.dev[0-9]" | head -n 1)
+            LAST_STABLE=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | grep -vE "b[0-9]|\.dev[0-9]" | head -n 1)
             echo "base_tag=$LAST_STABLE" >> $GITHUB_OUTPUT
             echo "🔍 Comparing stable release against last stable: $LAST_STABLE"
           else
