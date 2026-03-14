@@ -30,7 +30,7 @@ on:
       release_type:
         description: 'Which type of release to create?'
         required: true
-        default: 'beta'
+        default: 'stable'
         type: choice
         options:
           - beta
@@ -41,7 +41,7 @@ on:
       bump_type:
         description: 'How should the version be incremented from the last tag?'
         required: true
-        default: 'none'
+        default: 'patch'
         type: choice
         options:
           - none
@@ -57,6 +57,10 @@ on:
         required: false
         type: boolean
         default: false
+      base_tag_override:
+        description: 'Override Base Tag for Changelog (e.g. v1.4.0)'
+        required: false
+        type: string
 
 jobs:
   release:
@@ -257,6 +261,7 @@ jobs:
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
           echo "empty_release=${{ inputs.empty_release || 'false' }}" >> $GITHUB_OUTPUT
+          echo "base_tag_override=${{ inputs.base_tag_override || '' }}" >> $GITHUB_OUTPUT
 
       - name: Prepare Release Version (Update Manifest)
         if: steps.params.outputs.should_release == 'true'
@@ -299,9 +304,23 @@ jobs:
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
             # Robust version sort, handling both 'v1.4.0' and '1.4.2'.
             STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -rV)
+            CURRENT_VER="${{ steps.params.outputs.version }}"
+            OVERRIDE="${{ steps.params.outputs.base_tag_override }}"
+
+            if [[ -n "$OVERRIDE" ]]; then
+              echo "🔍 Using manual base_tag override: $OVERRIDE"
+              echo "base_tag=$OVERRIDE" >> $GITHUB_OUTPUT
+              exit 0
+            fi
 
             FOUND_TAG=""
             for t in $STABLE_TAGS; do
+              # Skip the version we are currently releasing
+              if [[ "$t" == "$CURRENT_VER" ]]; then
+                echo "⏭️ Skipping current version: $t"
+                continue
+              fi
+
               CHECK_TAG="$t"
               if git rev-parse "v$t" >/dev/null 2>&1; then
                 CHECK_TAG="v$t"
@@ -309,7 +328,13 @@ jobs:
 
               # Check if release body contains the addon-only marker
               # Note: gh release view requires GH_TOKEN which is available in environment
-              IS_EMPTY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null | grep -c "HA App (Addon) only changes" || echo "0")
+              RELEASE_BODY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null)
+              if [[ $? -ne 0 ]]; then
+                echo "⏭️ No release found for $CHECK_TAG, skipping..."
+                continue
+              fi
+
+              IS_EMPTY=$(echo "$RELEASE_BODY" | grep -c "HA App (Addon) only changes" || echo "0")
 
               if [[ "$IS_EMPTY" -eq 0 ]]; then
                 FOUND_TAG="$CHECK_TAG"
@@ -321,8 +346,8 @@ jobs:
             done
 
             if [[ -z "$FOUND_TAG" ]]; then
-               # Fallback: if all were empty or none found, use the absolute latest stable
-               FOUND_TAG=$(echo "$STABLE_TAGS" | head -n 1)
+               # Fallback: if all were empty or none found, use the absolute latest stable (skipping current)
+               FOUND_TAG=$(echo "$STABLE_TAGS" | grep -v "^$CURRENT_VER$" | head -n 1)
                if git rev-parse "v$FOUND_TAG" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
             fi
 
@@ -330,10 +355,19 @@ jobs:
             echo "🔍 Comparing stable release against last 'real' stable: $FOUND_TAG"
           else
             # Releasing BETA/NIGHTLY: Compare against the absolute last tag
-            LAST_TAG=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -V | tail -n 1)
-            if git rev-parse "v$LAST_TAG" >/dev/null 2>&1; then LAST_TAG="v$LAST_TAG"; fi
-            echo "base_tag=$LAST_TAG" >> $GITHUB_OUTPUT
-            echo "🔍 Comparing prerelease against last tag: $LAST_TAG"
+            ALL_TAGS=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -rV)
+            CURRENT_VER="${{ steps.params.outputs.version }}"
+            FOUND_TAG=""
+            for t in $ALL_TAGS; do
+              if [[ "$t" == "$CURRENT_VER" ]]; then
+                continue
+              fi
+              FOUND_TAG="$t"
+              if git rev-parse "v$t" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
+              break
+            done
+            echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
+            echo "🔍 Comparing prerelease against last tag: $FOUND_TAG"
           fi
 
           if [[ -z "$LAST_STABLE" ]] && [[ -z "$LAST_TAG" ]]; then
@@ -375,7 +409,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.params.outputs.version }}
-          name: v${{ steps.params.outputs.version }}
+          name: v${{ steps.params.outputs.version }}${{ steps.params.outputs.empty_release == 'true' && ' - HA App (Addon) only changes' || '' }}
           body: ${{ steps.params.outputs.empty_release == 'true' && steps.empty_changelog.outputs.changelog || steps.build_changelog.outputs.changelog }}
           prerelease: ${{ steps.params.outputs.prerelease }}
           files: whatsapp.zip
