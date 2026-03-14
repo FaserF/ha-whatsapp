@@ -23,7 +23,9 @@ async def test_connection_lost_notification(
 
     from homeassistant.exceptions import HomeAssistantError
 
-    mock_client.get_stats = AsyncMock(side_effect=HomeAssistantError("Connection Failed"))
+    mock_client.get_stats = AsyncMock(
+        side_effect=HomeAssistantError("Connection Failed")
+    )
     mock_client.connect = AsyncMock(return_value=False)
 
     import pytest

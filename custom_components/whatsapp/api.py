@@ -362,12 +362,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 _LOGGER.error("Error fetching QR from addon: %s", e)
                 return ""
         return ""
+
     async def connect(self) -> bool:
         """Check connection and validate Auth (Consolidated with get_stats)."""
         # We now rely on get_stats to update connectivity info
         stats = await self.get_stats()
         return bool(stats.get("connected", False))
-
 
     async def is_connected(self) -> bool:
         """Return if connected."""
@@ -1457,7 +1457,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             ) as resp,
         ):
             if resp.status == 401:
-                raise WhatsAppAuthError("Invalid API Key. Please check your configuration.")
+                raise WhatsAppAuthError(
+                    "Invalid API Key. Please check your configuration."
+                )
             if resp.status != 200:
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)
