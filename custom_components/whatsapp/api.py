@@ -40,6 +40,10 @@ class WhatsAppAuthError(HomeAssistantError):  # type: ignore[misc]
     """Raised when the API key is invalid."""
 
 
+class WhatsAppRateLimitError(HomeAssistantError):  # type: ignore[misc]
+    """Raised when the API is rate limited (429)."""
+
+
 class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intentional
     """Async HTTP client for the HA WhatsApp addon.
 
@@ -416,6 +420,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                             self.session_id,
                         )
                         raise WhatsAppAuthError("Invalid API Key")
+                    if resp.status == 429:
+                        _LOGGER.warning(
+                            "Stats fetch failed: Rate limited (429) for session %s",
+                            self.session_id,
+                        )
+                        raise WhatsAppRateLimitError("Too many requests")
                     if resp.status == 200:
                         data: dict[str, Any] = await resp.json()
                         self.stats.update(data)

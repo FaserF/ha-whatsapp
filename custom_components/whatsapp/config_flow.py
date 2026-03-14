@@ -149,10 +149,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             await self.client.connect()
             # connect() now raises Exception if not 200 OK or invalid auth
         except HomeAssistantError as e:
+            from .api import WhatsAppRateLimitError
+
             error_msg = str(e)
             _LOGGER.error("Config Flow Validation Error: %s", error_msg)
 
-            if "Invalid API Key" in error_msg:
+            if isinstance(e, WhatsAppRateLimitError):
+                errors["base"] = "rate_limit"
+            elif "Invalid API Key" in error_msg:
                 errors["base"] = "invalid_auth"
             else:
                 errors["base"] = "cannot_connect"

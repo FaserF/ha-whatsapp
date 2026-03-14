@@ -26,6 +26,7 @@
       "invalid_auth": "Invalid authentication",
       "connection_error": "Not connected to WhatsApp. Please scan the QR code first.",
       "addon_install_error": "Failed to install the WhatsApp Add-on. Please check the Supervisor logs.",
+      "rate_limit": "Too many requests. Please wait 15 minutes and try again.",
       "unknown": "Unexpected error"
     },
     "abort": {
