@@ -351,6 +351,7 @@ jobs:
             fi
 
             echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
+            echo "✅ FINAL BASE TAG: $FOUND_TAG"
             echo "🔍 Comparing stable release against last 'real' stable: $FOUND_TAG"
           else
             # Releasing BETA/NIGHTLY: Compare against the absolute last tag

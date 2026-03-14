@@ -38,6 +38,10 @@
             "labels": [
                 "test"
             ]
+        },
+        {
+            "title": "Other Changes",
+            "labels": []
         }
     ],
     "ignore_labels": [
