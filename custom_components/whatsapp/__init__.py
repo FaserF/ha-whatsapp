@@ -441,17 +441,17 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     # Define common schemas
-    s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}
+    s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}  # type: ignore[misc]
     # Note: Both 'quote' and 'reply_to' are accepted for backwards compatibility.
     # If both are provided, 'quote' takes precedence over 'reply_to'.
-    s_quotable: dict[vol.Marker, Any] = {
+    s_quotable: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_account,
         vol.Optional("quote"): cv.string,
         vol.Optional("reply_to"): cv.string,
         vol.Optional("expiration"): vol.Any(None, vol.Coerce(int)),
     }
 
-    msg_schema: dict[vol.Marker, Any] = {
+    msg_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("message"): cv.string,
@@ -463,7 +463,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema(msg_schema),
     )
 
-    poll_schema: dict[vol.Marker, Any] = {
+    poll_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("question"): cv.string,
@@ -475,7 +475,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(poll_schema),
     )
-    image_schema: dict[vol.Marker, Any] = {
+    image_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
@@ -487,7 +487,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(image_schema),
     )
-    doc_schema: dict[vol.Marker, Any] = {
+    doc_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
@@ -500,7 +500,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(doc_schema),
     )
-    video_schema: dict[vol.Marker, Any] = {
+    video_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
@@ -512,7 +512,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(video_schema),
     )
-    audio_schema: dict[vol.Marker, Any] = {
+    audio_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
