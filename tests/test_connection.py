@@ -25,7 +25,7 @@ _build_ha_stub_modules()
 from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def api_client() -> WhatsAppApiClient:
     """Fixture."""
     return WhatsAppApiClient(
@@ -53,7 +53,7 @@ def mock_aiohttp_post(
     return mock_session
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_message(api_client: WhatsAppApiClient) -> None:
     """Test sending a text message."""
     mock_session = mock_aiohttp_post()
@@ -66,7 +66,7 @@ async def test_send_message(api_client: WhatsAppApiClient) -> None:
         assert kwargs["params"]["session_id"] == "default"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_poll(api_client: WhatsAppApiClient) -> None:
     """Test sending a poll message."""
     mock_session = mock_aiohttp_post()
@@ -80,7 +80,7 @@ async def test_send_poll(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["expiration"] == 86400
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_media(api_client: WhatsAppApiClient) -> None:
     """Test sending various media types (image, video, document, audio)."""
     mock_session = mock_aiohttp_post()
@@ -117,7 +117,7 @@ async def test_send_media(api_client: WhatsAppApiClient) -> None:
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_revoke_message(api_client: WhatsAppApiClient) -> None:
     """Test revoking a message."""
     mock_session = mock_aiohttp_post()
@@ -135,7 +135,7 @@ async def test_revoke_message(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["fromMe"] is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_edit_message(api_client: WhatsAppApiClient) -> None:
     """Test editing a message."""
     mock_session = mock_aiohttp_post()
@@ -145,7 +145,7 @@ async def test_edit_message(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["new_content"] == "New text"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_reaction(api_client: WhatsAppApiClient) -> None:
     """Test sending a reaction."""
     mock_session = mock_aiohttp_post()
@@ -155,7 +155,7 @@ async def test_send_reaction(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["reaction"] == "👍"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_fetch_groups(api_client: WhatsAppApiClient) -> None:
     """Test fetching groups."""
     groups_data = [{"id": "g1", "name": "Group 1", "participants": 5}]
@@ -166,7 +166,7 @@ async def test_fetch_groups(api_client: WhatsAppApiClient) -> None:
         assert "/groups" in mock_session.get.call_args[0][0]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_mark_as_read(api_client: WhatsAppApiClient) -> None:
     """Test marking a message as read."""
     mock_session = mock_aiohttp_post()
@@ -176,7 +176,7 @@ async def test_mark_as_read(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["messageId"] == "msg123"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_list(api_client: WhatsAppApiClient) -> None:
     """Test sending a list message."""
     mock_session = mock_aiohttp_post()
@@ -189,7 +189,7 @@ async def test_send_list(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["expiration"] == 604800
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_buttons(api_client: WhatsAppApiClient) -> None:
     """Test sending buttons."""
     mock_session = mock_aiohttp_post()
@@ -207,7 +207,7 @@ async def test_send_buttons(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["expiration"] == 3600
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_contact(api_client: WhatsAppApiClient) -> None:
     """Test sending a contact."""
     mock_session = mock_aiohttp_post()
@@ -218,7 +218,7 @@ async def test_send_contact(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["expiration"] == 3600
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_send_location(api_client: WhatsAppApiClient) -> None:
     """Test sending a location."""
     mock_session = mock_aiohttp_post()
@@ -231,7 +231,7 @@ async def test_send_location(api_client: WhatsAppApiClient) -> None:
         assert kwargs["json"]["expiration"] == 3600
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_self_chat_bypass(api_client: WhatsAppApiClient) -> None:
     """Test that the bot can always message itself even if not in whitelist."""
     api_client.whitelist = ["11111"]  # Current whitelist doesn't include 12345

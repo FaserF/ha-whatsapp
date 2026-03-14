@@ -4,7 +4,7 @@ import logging
 import sys
 import types
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def _get_or_create_class(name: str, base: type = object) -> type:
             cls = StubError
         else:
 
-            class StubClass(base):
+            class StubClass(base):  # type: ignore[misc, valid-type]
                 pass
 
             cls = StubClass
@@ -42,7 +42,7 @@ def _get_or_create_class(name: str, base: type = object) -> type:
         cls.__module__ = mod_prefix
         setattr(sys, attr, cls)
 
-    return getattr(sys, attr)
+    return cast(type, getattr(sys, attr))
 
 
 # Exceptions
