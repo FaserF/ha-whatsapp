@@ -224,6 +224,28 @@ action:
       entity_id: light.hallway
 ```
 
+### 📊 🚨 Handle Poll Votes
+*React when someone votes for a specific option in a poll.*
+
+```yaml
+alias: Pizza Poll Handler
+trigger:
+  - platform: event
+    event_type: whatsapp_message_received
+    event_data:
+      type: 'poll_update'
+condition:
+  # 'vote' is a list of selected option names (as strings)
+  - condition: template
+    value_template: "{{ 'Pizza' in trigger.event.data.vote }}"
+action:
+  - service: whatsapp.send_message
+    data:
+      target: '{{ trigger.event.data.from }}'
+      message: 'Great choice! 🍕'
+```
+
+
 ---
 
 ## 💡 Best Practices for Beginners

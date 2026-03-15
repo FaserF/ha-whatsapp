@@ -408,6 +408,7 @@ action:
     data:
       target: '{{ trigger.event.data.from }}'
       message: 'Great choice! 🍕'
+
 ```
 
 #### 3. General Message Handler
