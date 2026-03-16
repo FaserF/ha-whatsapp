@@ -19,6 +19,10 @@
           "version": "Add-on Version"
         },
         "description": "Möchtest du das offizielle WhatsApp-Addon installieren? Dies ist die empfohlene Methode, um diese Integration unter Home Assistant OS zu nutzen."
+      },
+      "discovery_confirm": {
+        "title": "Entdeckung bestätigen",
+        "description": "Möchtest du WhatsApp unter `{host}` einrichten?"
       }
     },
     "error": {

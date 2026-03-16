@@ -227,6 +227,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         "session_id": self.session_id,
                         CONF_URL: self.discovery_info[CONF_URL],
                         CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                        "system_id": self.discovery_info.get("system_id"),
                     },
                 )
         except AbortFlow:
@@ -271,6 +272,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                             "session_id": self.session_id,
                             CONF_URL: self.discovery_info[CONF_URL],
                             CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                            "system_id": self.discovery_info.get("system_id"),
                         },
                     )
 
@@ -315,6 +317,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                                 "session_id": self.session_id,
                                 CONF_URL: self.discovery_info[CONF_URL],
                                 CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                                "system_id": self.discovery_info.get("system_id"),
                             },
                         )
                 except Exception:
@@ -447,23 +450,48 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             description_placeholders={"addon_name": ADDON_NAME},
         )
 
-    async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
+    async def async_step_zeroconf(
+        self, discovery_info: config_entries.ZeroconfServiceInfo
+    ) -> FlowResult:
         """Handle zeroconf discovery."""
         host = discovery_info.host
         port = discovery_info.port
+        system_id = discovery_info.properties.get("system_id")
+        self.discovery_info["system_id"] = system_id
 
-        # Check if already configured
-        await self.async_set_unique_id(f"{host}:{port}")
-        self._abort_if_unique_id_configured()
+        if system_id:
+            # First check if any entry already has this system_id
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.data.get("system_id") == system_id:
+                    return self.async_abort(reason="already_configured")
+
+            await self.async_set_unique_id(system_id)
+            self._abort_if_unique_id_configured(updates={CONF_URL: f"http://{host}:{port}"})
+        else:
+            # Fallback for older addon versions or if system_id is missing
+            await self.async_set_unique_id(f"{host}:{port}")
+            self._abort_if_unique_id_configured()
 
         # Pre-fill host
         suggested_url = f"http://{host}:{port}"
         self.discovery_info["host"] = suggested_url
 
-        self.context["title_placeholders"] = {"name": "WhatsApp Addon"}
+        self.context["title_placeholders"] = {"host": suggested_url}
 
-        # Pass to user step with suggested host
-        return await self.async_step_user()
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Confirm discovery."""
+        if user_input is not None:
+            return await self.async_step_user()
+
+        self._set_confirm_only()
+        return self.async_show_form(
+            step_id="discovery_confirm",
+            description_placeholders={"host": self.discovery_info["host"]},
+        )
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
