@@ -466,7 +466,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     return self.async_abort(reason="already_configured")
 
             await self.async_set_unique_id(system_id)
-            self._abort_if_unique_id_configured(updates={CONF_URL: f"http://{host}:{port}"})
+            self._abort_if_unique_id_configured(
+                updates={CONF_URL: f"http://{host}:{port}"}
+            )
         else:
             # Fallback for older addon versions or if system_id is missing
             await self.async_set_unique_id(f"{host}:{port}")
