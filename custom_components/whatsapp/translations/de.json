@@ -22,7 +22,7 @@
       },
       "discovery_confirm": {
         "title": "Entdeckung bestätigen",
-        "description": "Möchtest du WhatsApp unter `{host}` einrichten?"
+        "description": "Möchtest du die **WhatsApp Homeassistant App (ehem. Add-on)** unter `{host}` einrichten?"
       }
     },
     "error": {

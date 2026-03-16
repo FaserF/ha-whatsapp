@@ -22,7 +22,7 @@
       },
       "discovery_confirm": {
         "title": "Confirm Discovery",
-        "description": "Do you want to set up WhatsApp found at `{host}`?"
+        "description": "Do you want to set up the **WhatsApp Homeassistant App (f.k. Add-on)** discovered at `{host}`?"
       }
     },
     "error": {

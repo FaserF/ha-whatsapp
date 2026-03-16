@@ -68,6 +68,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             user_input is None
             and is_hassio_env
             and not self.context.get("hassio_checked")
+            and not self.discovery_info.get(CONF_URL)
         ):
             self.context["hassio_checked"] = True
             return await self.async_step_hassio()
@@ -123,7 +124,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                             ),
                             vol.Required(
                                 CONF_API_KEY,
-                                default=self.discovery_info.get(CONF_API_KEY, ""),
+                                default=self.discovery_info.get(CONF_API_KEY) or "",
                             ): vol.All(str, vol.Length(min=1)),
                         }
                     ),
@@ -456,8 +457,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Handle zeroconf discovery."""
         host = discovery_info.host
         port = discovery_info.port
-        system_id = discovery_info.properties.get("system_id")
+        properties = discovery_info.properties
+
+        def decode_property(key: str) -> str | None:
+            value = properties.get(key)
+            if isinstance(value, bytes):
+                return value.decode("utf-8")
+            return str(value) if value is not None else None
+
+        system_id = decode_property("system_id")
+        api_key = decode_property("api_key")
+
+        # Pre-fill discovery info
+        suggested_url = f"http://{host}:{port}"
+        self.discovery_info[CONF_URL] = suggested_url
         self.discovery_info["system_id"] = system_id
+        self.discovery_info[CONF_API_KEY] = api_key
 
         if system_id:
             # First check if any entry already has this system_id
@@ -466,19 +481,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     return self.async_abort(reason="already_configured")
 
             await self.async_set_unique_id(system_id)
-            self._abort_if_unique_id_configured(
-                updates={CONF_URL: f"http://{host}:{port}"}
-            )
+            self._abort_if_unique_id_configured(updates={CONF_URL: suggested_url})
         else:
             # Fallback for older addon versions or if system_id is missing
             await self.async_set_unique_id(f"{host}:{port}")
             self._abort_if_unique_id_configured()
 
-        # Pre-fill host
-        suggested_url = f"http://{host}:{port}"
-        self.discovery_info["host"] = suggested_url
-
-        self.context["title_placeholders"] = {"host": suggested_url}
+        self.context.update(
+            {
+                "title_placeholders": {"host": suggested_url},
+                "hassio_checked": True,  # Avoid jumping to Hassio install step
+            }
+        )
 
         return await self.async_step_discovery_confirm()
 
@@ -489,10 +503,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if user_input is not None:
             return await self.async_step_user()
 
-        self._set_confirm_only()
         return self.async_show_form(
             step_id="discovery_confirm",
-            description_placeholders={"host": self.discovery_info["host"]},
+            description_placeholders={"host": self.discovery_info[CONF_URL]},
+            data_schema=vol.Schema({}),
         )
 
 

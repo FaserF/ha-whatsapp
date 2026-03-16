@@ -1,6 +1,6 @@
 {
   "domain": "whatsapp",
-  "name": "WhatsApp",
+  "name": "WhatsApp Homeassistant App",
   "after_dependencies": [
     "hassio"
   ],
