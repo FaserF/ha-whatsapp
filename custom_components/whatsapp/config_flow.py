@@ -281,6 +281,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 pass
 
             # If verification failed (not connected), show error and let user retry
+            self.qr_code = None
             return self.async_show_form(
                 step_id="scan",
                 data_schema=vol.Schema({}),
