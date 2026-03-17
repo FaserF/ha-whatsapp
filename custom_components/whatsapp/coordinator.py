@@ -99,7 +99,26 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         """
 
         try:
-            # Fetch full stats from addon (now also includes connectivity info)
+            # 1. Check Addon Health first (Lightweight)
+            health = await self.client.get_health()
+            status = health.get("status", "unknown")
+            details = health.get("details", "")
+
+            # If addon is unreachable, handled by the generic Exception block below
+            if status == "unreachable":
+                raise UpdateFailed(f"Addon is unreachable: {details}")
+
+            # If addon is still starting, we report that and skip full stats
+            if status == "starting":
+                self._connected = False
+                return {
+                    "connected": False,
+                    "status": "starting",
+                    "status_details": details,
+                    "stats": self.client.stats,
+                }
+
+            # 2. Fetch full stats (Requires Auth and fully started service)
             stats = await self.client.get_stats()
             connected = stats.get("connected", False)
 
@@ -136,6 +155,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
             return {
                 "connected": connected,
+                "status": status,
+                "status_details": details,
                 "stats": stats,
             }
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:

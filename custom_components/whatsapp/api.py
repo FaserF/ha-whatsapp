@@ -442,6 +442,22 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self._connected = False
         return self.stats
 
+    async def get_health(self) -> dict[str, Any]:
+        """Fetch health status from the Addon."""
+        url = f"{self.host}/health"
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as resp:
+                    if resp.status == 200:
+                        return cast(dict[str, Any], await resp.json())
+                    return {"status": "unreachable", "details": f"HTTP {resp.status}"}
+            except Exception as e:
+                _LOGGER.debug("Health check failed: %s", e)
+                return {"status": "unreachable", "details": str(e)}
+
     async def get_debug_info(self) -> dict[str, Any]:
         """Fetch full debug report from the addon."""
         url = f"{self.host}/api/debug/download"

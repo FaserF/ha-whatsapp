@@ -14,7 +14,7 @@ Provides the following sensor entities, all backed by the shared
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -61,6 +61,7 @@ async def async_setup_entry(
             WhatsAppStatSensor(coordinator, entry, "received"),
             WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppUptimeSensor(coordinator, entry),
+            WhatsAppStatusSensor(coordinator, entry),
         ]
     )
 
@@ -196,4 +197,45 @@ class WhatsAppUptimeSensor(
             "phone_number": stats.get("my_number", "Unknown"),
             "connected": stats.get("connected", False),
             "disconnect_reason": stats.get("disconnect_reason"),
+        }
+
+
+class WhatsAppStatusSensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SensorEntity,  # type: ignore[misc]
+):
+    """Sensor that reports the WhatsApp addon's granular health status.
+
+    Reports values like ``starting``, ``running``, ``connected``, or ``faulty``.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "status"
+
+    def __init__(
+        self,
+        coordinator: WhatsAppDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialise the status sensor.
+
+        Args:
+            coordinator: Shared data coordinator for this config entry.
+            entry: Config entry providing device-info identifiers.
+        """
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_status"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the state of the sensor."""
+        return cast(Optional[str], self.coordinator.data.get("status"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes."""
+        return {
+            "details": self.coordinator.data.get("status_details"),
+            "last_update": self.coordinator.data.get("stats", {}).get("start_time"),
         }
