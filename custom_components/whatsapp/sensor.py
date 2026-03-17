@@ -14,7 +14,7 @@ Provides the following sensor entities, all backed by the shared
 
 from __future__ import annotations
 
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -230,7 +230,7 @@ class WhatsAppStatusSensor(
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return cast(Optional[str], self.coordinator.data.get("status"))
+        return cast(str | None, self.coordinator.data.get("status"))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
