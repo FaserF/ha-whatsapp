@@ -179,6 +179,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         data["entry_id"] = entry.entry_id
         data["session_id"] = session_id
 
+        _LOGGER.debug("Firing WhatsApp event: %s", data)
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
         # Automatically mark as read if enabled

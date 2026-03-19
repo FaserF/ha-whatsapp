@@ -28,10 +28,12 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 5, "failed": 1})
+        mock_instance.get_stats = AsyncMock(return_value={"sent": 5, "failed": 1, "connected": True})
+        mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
+        mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = MagicMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
         mock_instance.close = AsyncMock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)
