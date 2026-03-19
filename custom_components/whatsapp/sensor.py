@@ -275,4 +275,3 @@ class WhatsAppChatsSensor(
         return {
             "groups": chats_data.get("groups", []),
         }
-
