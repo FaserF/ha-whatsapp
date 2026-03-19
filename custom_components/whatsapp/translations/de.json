@@ -354,6 +354,9 @@
       },
       "phone_number": {
         "name": "Telefonnummer"
+      },
+      "chats": {
+        "name": "Chats"
       }
     },
     "binary_sensor": {

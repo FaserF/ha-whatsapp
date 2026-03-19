@@ -105,6 +105,7 @@ class WhatsAppConnectionSensor(
             "phone_number": stats.get("my_number", "Unknown"),
             "addon_status": self.coordinator.data.get("status"),
             "addon_status_details": self.coordinator.data.get("status_details"),
+            "last_update": stats.get("start_time"),
             "uptime_seconds": stats.get("uptime", 0),
             "total_sent": stats.get("sent", 0),
             "total_received": stats.get("received", 0),

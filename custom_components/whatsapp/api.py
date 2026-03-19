@@ -386,7 +386,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Return device information for HA."""
         return {
             "identifiers": {(DOMAIN, self.session_id)},
-            "name": f"API Client ({self.session_id})",
+            "name": f"HA App ({self.session_id})",
             "manufacturer": "HA WhatsApp",
             "model": "WhatsApp API",
             "sw_version": self.stats.get("version"),

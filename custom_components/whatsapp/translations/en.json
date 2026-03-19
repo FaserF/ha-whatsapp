@@ -306,6 +306,9 @@
       },
       "phone_number": {
         "name": "Phone Number"
+      },
+      "chats": {
+        "name": "Chats"
       }
     },
     "binary_sensor": {
