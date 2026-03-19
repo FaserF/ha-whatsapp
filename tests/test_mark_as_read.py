@@ -24,7 +24,9 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+    mock_instance.get_stats = AsyncMock(
+        return_value={"sent": 0, "failed": 0, "connected": True}
+    )
     mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
@@ -79,7 +81,9 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+    mock_instance.get_stats = AsyncMock(
+        return_value={"sent": 0, "failed": 0, "connected": True}
+    )
     mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
