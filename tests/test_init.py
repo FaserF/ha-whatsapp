@@ -33,9 +33,10 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = MagicMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
         mock_instance.close = AsyncMock()
 
         # Setup using the config entries flow (not direct call)
@@ -63,6 +64,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0})
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         callback: Callable[[dict[str, Any]], None] | None = None
 
         def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
@@ -71,7 +73,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
 
         mock_instance.register_callback = MagicMock(side_effect=reg_cb)
         mock_instance.start_polling = AsyncMock()
-        mock_instance.start_session = MagicMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
         mock_instance.close = AsyncMock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)
