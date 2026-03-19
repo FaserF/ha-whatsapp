@@ -57,6 +57,7 @@ Once configured, the integration provides several entities:
 - **WhatsApp Connected**: A binary sensor showing if the bridge is "Online".
 - **Messages Sent**: Tracks your automation volume.
 - **Last Message**: Attributes show the content and target of the very last message sent.
+- **Chats**: Displays the total number of available chats (direct and group chats). Its attributes include a `groups` list containing all available group names and their corresponding IDs, which is extremely useful for setting up automations.
 
 ### Repairs
 If your session expires (e.g. you logged out on your phone), a **Repair Issue** will appear in the Home Assistant sidebar. Click **Fix** and follow the instructions to re-scan the QR code.

@@ -122,6 +122,13 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             stats = await self.client.get_stats()
             connected = stats.get("connected", False)
 
+            chats = {"total_chats": 0, "groups": []}
+            if connected:
+                try:
+                    chats = await self.client.get_chats()
+                except Exception as chat_err:
+                    _LOGGER.debug("Failed to fetch chats: %s", chat_err)
+
             # Differentiated disconnect handling:
             if not connected:
                 reason = stats.get("disconnect_reason")
@@ -158,6 +165,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "status": status,
                 "status_details": details,
                 "stats": stats,
+                "chats": chats,
             }
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
             # Create issue for connection failure (Addon unreachable or Auth)

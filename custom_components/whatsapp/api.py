@@ -442,6 +442,25 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 self._connected = False
         return self.stats
 
+    async def get_chats(self) -> dict[str, Any]:
+        """Fetch chats and groups from the Addon."""
+        url = f"{self.host}/chats"
+        params = {"session_id": self.session_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as resp:
+                    if resp.status == 200:
+                        return cast(dict[str, Any], await resp.json())
+            except Exception as e:
+                _LOGGER.error("Failed to fetch chats: %s", e)
+        return {"total_chats": 0, "groups": []}
+
     async def get_health(self) -> dict[str, Any]:
         """Fetch health status from the Addon."""
         url = f"{self.host}/health"

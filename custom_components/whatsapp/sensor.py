@@ -62,6 +62,7 @@ async def async_setup_entry(
             WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppUptimeSensor(coordinator, entry),
             WhatsAppStatusSensor(coordinator, entry),
+            WhatsAppChatsSensor(coordinator, entry),
         ]
     )
 
@@ -239,3 +240,39 @@ class WhatsAppStatusSensor(
             "details": self.coordinator.data.get("status_details"),
             "last_update": self.coordinator.data.get("stats", {}).get("start_time"),
         }
+
+
+class WhatsAppChatsSensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SensorEntity,  # type: ignore[misc]
+):
+    """Sensor that reports the number of available chats and lists all groups."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:forum"
+    _attr_translation_key = "chats"
+
+    def __init__(
+        self,
+        coordinator: WhatsAppDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialise the chats sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_chats"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def native_value(self) -> int:
+        """Return the total number of chats."""
+        chats_data = self.coordinator.data.get("chats", {})
+        return int(chats_data.get("total_chats", 0))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes (lists all groups)."""
+        chats_data = self.coordinator.data.get("chats", {})
+        return {
+            "groups": chats_data.get("groups", []),
+        }
+
