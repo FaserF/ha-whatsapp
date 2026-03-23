@@ -8,15 +8,14 @@ import ha_stubs
 
 ha_stubs._build_ha_stub_modules()
 
-from homeassistant.core import HomeAssistant  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
-
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_SELF_MESSAGES,
     CONF_URL,
     DOMAIN,
 )
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_setup_entry(hass: HomeAssistant) -> None:

@@ -47,9 +47,7 @@ def _get_or_create_class(name: str, base: type = object) -> type:
 
 # Exceptions
 HomeAssistantError = _get_or_create_class("HomeAssistantError", Exception)
-ServiceValidationError = _get_or_create_class(
-    "ServiceValidationError", HomeAssistantError
-)
+ServiceValidationError = _get_or_create_class("ServiceValidationError", HomeAssistantError)
 
 
 # Core
@@ -113,9 +111,7 @@ class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-t
         for listener in list(self._listeners):
             listener()
 
-    def async_add_listener(
-        self, update_callback: Callable[[], None]
-    ) -> Callable[[], None]:
+    def async_add_listener(self, update_callback: Callable[[], None]) -> Callable[[], None]:
         self._listeners.append(update_callback)
         return lambda: self._listeners.remove(update_callback)
 
@@ -143,9 +139,7 @@ class CoordinatorEntity(_CoordinatorEntityBase):  # type: ignore[valid-type, mis
             if hasattr(self, "is_on"):
                 state = "on" if self.is_on else "off"
 
-            self.hass.states.async_set_state(
-                self.entity_id, state, getattr(self, "extra_state_attributes", {})
-            )
+            self.hass.states.async_set_state(self.entity_id, state, getattr(self, "extra_state_attributes", {}))
 
 
 # Flow
@@ -191,9 +185,7 @@ class ConfirmRepairFlow(RepairsFlow):
 
 def redact(data: Any, keys: list[str]) -> Any:
     if isinstance(data, dict):
-        return {
-            k: "**REDACTED**" if k in keys else redact(v, keys) for k, v in data.items()
-        }
+        return {k: "**REDACTED**" if k in keys else redact(v, keys) for k, v in data.items()}
     if isinstance(data, list):
         return [redact(item, keys) for item in data]
     return data
@@ -216,9 +208,7 @@ def _stub(name: str, **kwargs: Any) -> Any:
 stub = _stub
 
 
-def mock_add_entities(
-    hass: Any, entities: list[Any], _update_before_add: bool = False
-) -> None:
+def mock_add_entities(hass: Any, entities: list[Any], _update_before_add: bool = False) -> None:
     for entity in entities:
         entity.hass = hass
         if not getattr(entity, "entity_id", None):
@@ -294,9 +284,7 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if sys.modules.get("homeassistant") and getattr(
-        sys.modules["homeassistant"], "_is_stub", False
-    ):
+    if sys.modules.get("homeassistant") and getattr(sys.modules["homeassistant"], "_is_stub", False):
         return
 
     _LOGGER.debug("Building HA stubs...")
@@ -416,9 +404,7 @@ def _build_ha_stub_modules() -> None:
     ha.exceptions = sys.modules["homeassistant.exceptions"]
     ha.const = sys.modules["homeassistant.const"]
     ha.helpers = sys.modules["homeassistant.helpers"]
-    ha.helpers.update_coordinator = sys.modules[
-        "homeassistant.helpers.update_coordinator"
-    ]
+    ha.helpers.update_coordinator = sys.modules["homeassistant.helpers.update_coordinator"]
     ha.helpers.config_validation = cv_mod
     ha.helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]
     ha.helpers.issue_registry = ir_mod
@@ -443,14 +429,10 @@ def _build_ha_stub_modules() -> None:
     )
 
     # components.diagnostics
-    components.diagnostics = _stub(
-        "homeassistant.components.diagnostics", async_redact_data=redact
-    )
+    components.diagnostics = _stub("homeassistant.components.diagnostics", async_redact_data=redact)
 
     # helpers.service
-    ha.helpers.service = _stub(
-        "homeassistant.helpers.service", async_register_admin_service=MagicMock()
-    )
+    ha.helpers.service = _stub("homeassistant.helpers.service", async_register_admin_service=MagicMock())
 
     # components.repairs
     repairs_mod = _stub(
@@ -461,9 +443,7 @@ def _build_ha_stub_modules() -> None:
     components.repairs = repairs_mod
 
     # homeassistant.util
-    util_mod = _stub(
-        "homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_")
-    )
+    util_mod = _stub("homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_"))
     import datetime
 
     dt_mod = _stub(
@@ -473,15 +453,11 @@ def _build_ha_stub_modules() -> None:
         as_local=lambda dt: dt,
     )
     util_mod.dt = dt_mod
-    util_mod.search_web = _stub(
-        "homeassistant.util.search_web", is_safe_url=lambda _: True
-    )
+    util_mod.search_web = _stub("homeassistant.util.search_web", is_safe_url=lambda _: True)
 
     # pytest_homeassistant_custom_component.common
     pytest_ha_mod = _stub("pytest_homeassistant_custom_component")
-    pytest_ha_common_mod = _stub(
-        "pytest_homeassistant_custom_component.common", MockConfigEntry=MockConfigEntry
-    )
+    pytest_ha_common_mod = _stub("pytest_homeassistant_custom_component.common", MockConfigEntry=MockConfigEntry)
     pytest_ha_mod.common = pytest_ha_common_mod
 
     ha._is_stub = True

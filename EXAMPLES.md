@@ -11,6 +11,7 @@ Native services offer the most control and are the most robust way to use the in
 ### 📝 1. Messaging & Text
 
 #### Simple Message
+
 ```yaml
 service: whatsapp.send_message
 data:
@@ -19,7 +20,9 @@ data:
 ```
 
 #### Message with Expiration (Disappearing Messages)
-*Note: The expiration must match your chat settings (e.g., 86400 for 24h).*
+
+_Note: The expiration must match your chat settings (e.g., 86400 for 24h)._
+
 ```yaml
 service: whatsapp.send_message
 data:
@@ -29,7 +32,9 @@ data:
 ```
 
 #### Edit a Sent Message
-*You need a `message_id` (from events or service response).*
+
+_You need a `message_id` (from events or service response)._
+
 ```yaml
 service: whatsapp.edit_message
 data:
@@ -39,6 +44,7 @@ data:
 ```
 
 #### Revoke (Delete) a Message
+
 ```yaml
 service: whatsapp.revoke_message
 data:
@@ -51,6 +57,7 @@ data:
 ### 🖼️ 2. Media & Files
 
 #### Send Image
+
 ```yaml
 service: whatsapp.send_image
 data:
@@ -60,6 +67,7 @@ data:
 ```
 
 #### Send Video
+
 ```yaml
 service: whatsapp.send_video
 data:
@@ -69,7 +77,9 @@ data:
 ```
 
 #### Send Audio / Voice Note (PTT)
-*Setting `ptt: true` makes it look like a recorded voice message.*
+
+_Setting `ptt: true` makes it look like a recorded voice message._
+
 ```yaml
 service: whatsapp.send_audio
 data:
@@ -79,6 +89,7 @@ data:
 ```
 
 #### Send Document
+
 ```yaml
 service: whatsapp.send_document
 data:
@@ -93,6 +104,7 @@ data:
 ### 📊 3. Interactive Content
 
 #### Send Poll
+
 ```yaml
 service: whatsapp.send_poll
 data:
@@ -105,7 +117,9 @@ data:
 ```
 
 #### Send Buttons (Quick Response)
-*Max 3 buttons. Tapping a button sends an event back to HA.*
+
+_Max 3 buttons. Tapping a button sends an event back to HA._
+
 ```yaml
 service: whatsapp.send_buttons
 data:
@@ -120,7 +134,9 @@ data:
 ```
 
 #### Send List Menu
-*Ideal for many choices. Opens a popup menu on the phone.*
+
+_Ideal for many choices. Opens a popup menu on the phone._
+
 ```yaml
 service: whatsapp.send_list
 data:
@@ -142,7 +158,9 @@ data:
 ### ⚙️ 4. Administration & Utilities
 
 #### Search for Group IDs
-*Results appear in your Home Assistant Notifications area!*
+
+_Results appear in your Home Assistant Notifications area!_
+
 ```yaml
 service: whatsapp.search_groups
 data:
@@ -150,6 +168,7 @@ data:
 ```
 
 #### Set Presence Status
+
 ```yaml
 service: whatsapp.update_presence
 data:
@@ -158,6 +177,7 @@ data:
 ```
 
 #### Mark Messages as Read
+
 ```yaml
 service: whatsapp.mark_as_read
 data:
@@ -188,26 +208,28 @@ data:
 ## 🤖 Advanced Automation Examples
 
 ### 🚗 Automatic Reply with Location
-*Reply with the current car location when someone asks "Where is the car?"*
+
+_Reply with the current car location when someone asks "Where is the car?"_
 
 ```yaml
-alias: "Reply with Car Location"
+alias: 'Reply with Car Location'
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: "Where is the car?"
+      content: 'Where is the car?'
 action:
   - service: whatsapp.send_location
     data:
-      target: "{{ trigger.event.data.sender }}"
+      target: '{{ trigger.event.data.sender }}'
       latitude: "{{ state_attr('device_tracker.car', 'latitude') }}"
       longitude: "{{ state_attr('device_tracker.car', 'longitude') }}"
-      name: "Tesla Model 3"
+      name: 'Tesla Model 3'
 ```
 
 ### 🚨 Handle Button Clicks
-*Turn on the light when the "Yes" button is clicked.*
+
+_Turn on the light when the "Yes" button is clicked._
 
 ```yaml
 alias: "Handle 'Light On' Button"
@@ -225,7 +247,8 @@ action:
 ```
 
 ### 📊 🚨 Handle Poll Votes
-*React when someone votes for a specific option in a poll.*
+
+_React when someone votes for a specific option in a poll._
 
 ```yaml
 alias: Pizza Poll Handler
@@ -245,12 +268,11 @@ action:
       message: 'Great choice! 🍕'
 ```
 
-
 ---
 
 ## 💡 Best Practices for Beginners
 
-1.  **Format your numbers**: Always use the international format like `+49123...` or `49123...`. The integration handles the REST.
-2.  **Groups**: Use `whatsapp.search_groups` to find your Group IDs. They look like `123456789@g.us`.
-3.  **Security**: Use the `sender_number` field in automation conditions to ensure only authorized people can trigger your home actions.
-4.  **Logging**: Enable `mask_sensitive_data` in the integration configuration if you share logs and want to hide phone numbers.
+1. **Format your numbers**: Always use the international format like `+49123...` or `49123...`. The integration handles the REST.
+2. **Groups**: Use `whatsapp.search_groups` to find your Group IDs. They look like `123456789@g.us`.
+3. **Security**: Use the `sender_number` field in automation conditions to ensure only authorized people can trigger your home actions.
+4. **Logging**: Enable `mask_sensitive_data` in the integration configuration if you share logs and want to hide phone numbers.

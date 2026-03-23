@@ -36,9 +36,7 @@ def mock_client() -> MagicMock:
     client.connect = AsyncMock(return_value=True)
     client.start_session = MagicMock(return_value=None)
     client.get_qr_code = AsyncMock(return_value="data:image/png;base64,mock_qr")
-    client.get_stats = AsyncMock(
-        return_value={"sent": 0, "failed": 0, "my_number": "123456789"}
-    )  # noqa: E501
+    client.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "my_number": "123456789"})  # noqa: E501
     client.register_callback = MagicMock()
     client.start_polling = AsyncMock()
     client.close = AsyncMock()
@@ -57,9 +55,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
     def async_register(domain: str, service: str, handler: Any, **_kwargs: Any) -> None:
         service_handlers[(domain, service)] = handler
 
-    async def async_call(
-        domain: str, service: str, service_data: Any = None, **_kwargs: Any
-    ) -> None:
+    async def async_call(domain: str, service: str, service_data: Any = None, **_kwargs: Any) -> None:
         if (domain, service) in service_handlers:
             from ha_stubs import ServiceCall
 
@@ -75,9 +71,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.services = MagicMock()
     hass.services.async_register = MagicMock(side_effect=async_register)
     hass.services.async_call = AsyncMock(side_effect=async_call)
-    hass.services.has_service = MagicMock(
-        side_effect=lambda d, s: (d, s) in service_handlers
-    )  # noqa: E501
+    hass.services.has_service = MagicMock(side_effect=lambda d, s: (d, s) in service_handlers)  # noqa: E501
 
     hass.states = MagicMock()
     hass.states.get = MagicMock(side_effect=get_state)
@@ -116,9 +110,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.config_entries.async_setup = AsyncMock(side_effect=async_setup)
     hass.config_entries.async_reload = AsyncMock(return_value=True)
 
-    async def async_update_entry(
-        entry: Any, options: dict[str, Any] | None = None, data: Any = None
-    ) -> None:
+    async def async_update_entry(entry: Any, options: dict[str, Any] | None = None, data: Any = None) -> None:
         if options is not None:
             entry.options.update(options)
         if data is not None:
@@ -131,22 +123,16 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
         for platform in platforms:
 
-            def _mock_add_entities(
-                entities: Any, update_before_add: bool = False
-            ) -> None:
+            def _mock_add_entities(entities: Any, update_before_add: bool = False) -> None:
                 ha_stubs.mock_add_entities(hass, entities, update_before_add)
 
             try:
                 mod = importlib.import_module(f"custom_components.whatsapp.{platform}")
                 await mod.async_setup_entry(hass, entry, _mock_add_entities)
             except Exception as e:
-                logging.getLogger(__name__).debug(
-                    "Error setup platform %s: %s", platform, e
-                )
+                logging.getLogger(__name__).debug("Error setup platform %s: %s", platform, e)
 
-    hass.config_entries.async_forward_entry_setups = AsyncMock(
-        side_effect=async_forward_entry_setups
-    )  # noqa: E501
+    hass.config_entries.async_forward_entry_setups = AsyncMock(side_effect=async_forward_entry_setups)  # noqa: E501
 
     hass.config_entries.flow = MagicMock()
     flow_data: dict[str, Any] = {}
@@ -188,9 +174,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 from custom_components.whatsapp.api import WhatsAppApiClient
 
                 conn: Any = mock_client
-                if isinstance(
-                    getattr(WhatsAppApiClient, "connect", None), (MagicMock, AsyncMock)
-                ):  # noqa: E501
+                if isinstance(getattr(WhatsAppApiClient, "connect", None), (MagicMock, AsyncMock)):  # noqa: E501
                     conn = WhatsAppApiClient
 
                 await conn.connect()  # burn first call if needed
@@ -209,9 +193,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
             # Try to get stats from the class (to see patches)
             from custom_components.whatsapp.api import WhatsAppApiClient
 
-            if isinstance(
-                getattr(WhatsAppApiClient, "get_stats", None), (MagicMock, AsyncMock)
-            ):  # noqa: E501
+            if isinstance(getattr(WhatsAppApiClient, "get_stats", None), (MagicMock, AsyncMock)):  # noqa: E501
                 stats = await WhatsAppApiClient.get_stats()  # type: ignore[call-arg]
             else:
                 stats = await mock_client.get_stats()
@@ -233,9 +215,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
         result = {
             "type": "create_entry",
             "title": (
-                "WhatsApp"
-                if unique_id == "123456789"
-                else (f"WhatsApp ({unique_id})" if unique_id else "WhatsApp")
+                "WhatsApp" if unique_id == "123456789" else (f"WhatsApp ({unique_id})" if unique_id else "WhatsApp")
             ),  # noqa: E501
             "data": final_data,
             "result": res,
@@ -251,9 +231,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
         if result["type"] == "create_entry":
             from ha_stubs import MockConfigEntry
 
-            entry = MockConfigEntry(
-                domain="whatsapp", data=final_data, unique_id=unique_id
-            )  # noqa: E501
+            entry = MockConfigEntry(domain="whatsapp", data=final_data, unique_id=unique_id)  # noqa: E501
             entry.add_to_hass(hass)
             await hass.config_entries.async_setup(entry.entry_id)
 
@@ -300,9 +278,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
         return {"type": "create_entry", "data": {**defaults, **(user_input or {})}}
 
     hass.config_entries.options.async_init = AsyncMock(side_effect=async_options_init)
-    hass.config_entries.options.async_configure = AsyncMock(
-        side_effect=async_options_configure
-    )  # noqa: E501
+    hass.config_entries.options.async_configure = AsyncMock(side_effect=async_options_configure)  # noqa: E501
 
     hass.data = {}
     return hass
@@ -312,24 +288,17 @@ def hass(mock_client: MagicMock) -> MagicMock:
 def data(hass: MagicMock, mock_client: MagicMock) -> dict[str, Any]:
     """Fixture for common test data (coordinator)."""
     # homeassistant.util
-    util_mod = ha_stubs.stub(
-        "homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_")
-    )  # noqa: E501
-    dt_mod = ha_stubs.stub(
-        "homeassistant.util.dt", utcnow=lambda: None, now=lambda: None
-    )  # noqa: E501
+    util_mod = ha_stubs.stub("homeassistant.util", slugify=lambda x: x.lower().replace(" ", "_"))  # noqa: E501
+    dt_mod = ha_stubs.stub("homeassistant.util.dt", utcnow=lambda: None, now=lambda: None)  # noqa: E501
     util_mod.dt = dt_mod
     sw_mod = ha_stubs.stub("homeassistant.util.search_web", is_safe_url=lambda _: True)
     util_mod.search_web = sw_mod
 
     # pytest_homeassistant_custom_component.common
+    from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-    from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL
-
-    entry = MockConfigEntry(
-        domain="whatsapp", data={CONF_URL: "test", CONF_API_KEY: "mock"}
-    )  # noqa: E501
+    entry = MockConfigEntry(domain="whatsapp", data={CONF_URL: "test", CONF_API_KEY: "mock"})  # noqa: E501
     entry.add_to_hass(hass)
 
     coordinator = ha_stubs.DataUpdateCoordinator(hass, mock_client, entry)

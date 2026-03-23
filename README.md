@@ -17,8 +17,7 @@
 | **App (Edge)**           | [![App Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
 | **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                    | interface  |
 | **Integration (Beta)**   | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                       | testing    |
-| **Activity**             | [![Last Commit](https://img.shields.io/github/last-commit/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/commits/master)                                                                                                                  |            |
-
+| **Activity**             | [![Last Commit](https://img.shields.io/github/last-commit/FaserF/ha-whatsapp?style=flat-square&label=Last%20Update)](https://github.com/FaserF/ha-whatsapp/commits/master)                                                                                                            |            |
 
 ---
 
@@ -89,13 +88,13 @@
 
 The most up-to-date and detailed documentation is available at our **[Official Documentation Site](https://faserf.github.io/ha-whatsapp/)**.
 
-| Guide                                                      | Description                                               |
-| :--------------------------------------------------------- | :-------------------------------------------------------- |
-| **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)** | Installation, Services, Automations, and Pro-Tips.        |
+| Guide                                                                      | Description                                               |
+| :------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)**                 | Installation, Services, Automations, and Pro-Tips.        |
 | **[📚 Whitelist Guide](docs/configuration.md#security-whitelist-feature)** | Restrict interaction to specific users/groups.            |
-| **[🔘 Buttons Guide](docs/buttons.md)**                     | Deep dive into interactive buttons and limitations.       |
-| **[📖 Local Examples](EXAMPLES.md)**                       | Quick reference for YAML snippets inside this repository. |
-| **[🛠️ Troubleshooting](docs/troubleshooting.md)**          | Diagnostic tools and fixing common connection issues.     |
+| **[🔘 Buttons Guide](docs/buttons.md)**                                    | Deep dive into interactive buttons and limitations.       |
+| **[📖 Local Examples](EXAMPLES.md)**                                       | Quick reference for YAML snippets inside this repository. |
+| **[🛠️ Troubleshooting](docs/troubleshooting.md)**                          | Diagnostic tools and fixing common connection issues.     |
 
 ---
 
@@ -408,7 +407,6 @@ action:
     data:
       target: '{{ trigger.event.data.from }}'
       message: 'Great choice! 🍕'
-
 ```
 
 #### 3. General Message Handler
@@ -437,7 +435,9 @@ action:
 This integration works in tandem with the [WhatsApp App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp), which provides several built-in features that don't require any YAML configuration:
 
 ### 🎮 Control Commands
+
 If you are configured as an **Admin**, you can control the addon directly via WhatsApp by sending:
+
 - `ha-app-status`: Full health check (Versions, Uptime, Memory).
 - `ha-app-help`: List all available control commands.
 - `ha-app-logs`: View the latest connection events.
@@ -445,12 +445,15 @@ If you are configured as an **Admin**, you can control the addon directly via Wh
 - `ha-app-restart`: Trigger a reconnect of the WhatsApp session.
 
 ### 🔔 System Status Notifications
+
 The app can automatically notify administrators about critical events:
+
 - **✅ Update Success**: Reports when HA Core, the Addon, or this Integration has been successfully updated.
 - **🔄 HA Restart**: Notifies you when HA Core is back online after a restart/reboot.
 - **🌐 Connectivity**: Alerts if the connection to WhatsApp or HA Core is lost/restored, including downtime duration.
 
 ### 👋 Welcome Message
+
 The bot automatically sends a role-aware greeting to new users on their first direct contact, ensuring they know how to interact with the system.
 
 ---
@@ -460,10 +463,13 @@ The bot automatically sends a role-aware greeting to new users on their first di
 To send messages, you need a `target` ID. The integration makes finding these very easy.
 
 ### 1. Private Chats (Phone Numbers)
+
 Use the phone number in international format. The integration automatically adds the required suffix.
+
 - **Example**: `+491234567890` or `491234567890`
 
 ### 2. Group IDs (The Easy Way) 🏆
+
 Group IDs look like `120363012345678901@g.us`. Instead of searching through logs or listening to events, use the built-in **Search Service**:
 
 1. Go to **Developer Tools** → **Services**.
@@ -473,7 +479,9 @@ Group IDs look like `120363012345678901@g.us`. Instead of searching through logs
 5. **Check your Notifications (Bell icon 🔔 in the sidebar)!** A table with all your groups and their IDs will appear instantly.
 
 ### 3. Listening to Events (Advanced)
+
 If you need the ID of a specific incoming message or a dynamic sender:
+
 1. Go to **Developer Tools** → **Events**.
 2. Listen to `whatsapp_message_received`.
 3. Send a message to the bot. The ID is in the `from` field.

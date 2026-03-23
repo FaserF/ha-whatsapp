@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 // --- Advanced Color Palette ---
-$wa-green: #25D366;
+$wa-green: #25d366;
 $wa-green-glow: rgba(37, 211, 102, 0.4);
 $wa-bg-dark: #0b141a;
 $wa-sidebar-dark: #111b21;
@@ -24,7 +24,8 @@ body {
 .hero-section {
   position: relative;
   padding: 5rem 2rem;
-  background: radial-gradient(circle at top right, rgba(37, 211, 102, 0.15), transparent),
+  background:
+    radial-gradient(circle at top right, rgba(37, 211, 102, 0.15), transparent),
     linear-gradient(135deg, $wa-bg-dark 0%, #1c272d 100%);
   border-radius: 24px;
   border: 1px solid $wa-border;

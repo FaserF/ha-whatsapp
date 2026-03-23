@@ -6,15 +6,14 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-from homeassistant.core import HomeAssistant  # noqa: E402
-from homeassistant.helpers import entity_registry as er  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
-
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
 )
+from homeassistant.core import HomeAssistant  # noqa: E402
+from homeassistant.helpers import entity_registry as er  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_stats_sensors(hass: HomeAssistant) -> None:
@@ -28,13 +27,9 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(
-            return_value={"sent": 5, "failed": 1, "connected": True}
-        )
+        mock_instance.get_stats = AsyncMock(return_value={"sent": 5, "failed": 1, "connected": True})
         mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
-        mock_instance.get_chats = AsyncMock(
-            return_value={"total_chats": 0, "groups": []}
-        )
+        mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
         mock_instance.start_session = AsyncMock(return_value=None)
@@ -46,9 +41,7 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         # Enable entities
         registry = er.async_get(hass)
         registry.async_update_entity("sensor.whatsapp_messages_sent", disabled_by=None)
-        registry.async_update_entity(
-            "sensor.whatsapp_messages_failed", disabled_by=None
-        )
+        registry.async_update_entity("sensor.whatsapp_messages_failed", disabled_by=None)
         await hass.async_block_till_done()
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()

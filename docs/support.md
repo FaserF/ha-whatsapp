@@ -15,12 +15,12 @@ This integration is developed and maintained **entirely in my personal time, alo
 
 ## 💡 Why Your Support Matters
 
-| Why it helps | Details |
-| :----------- | :------ |
-| 🕒 **Time** | Development happens exclusively in personal time. More support = more time available for this project. |
-| 🔧 **Hardware** | Testing requires real devices — test phones, spare Home Assistant hardware, etc. These cost real money. |
+| Why it helps        | Details                                                                                                                                |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------- |
+| 🕒 **Time**         | Development happens exclusively in personal time. More support = more time available for this project.                                 |
+| 🔧 **Hardware**     | Testing requires real devices — test phones, spare Home Assistant hardware, etc. These cost real money.                                |
 | 💪 **Independence** | The more support I receive, the less I depend on other income sources and the more I can invest in open-source projects like this one. |
-| 🚀 **Features** | Donations directly motivate new features, faster bug fixes, and better documentation. |
+| 🚀 **Features**     | Donations directly motivate new features, faster bug fixes, and better documentation.                                                  |
 
 ---
 
@@ -40,7 +40,7 @@ Donations are completely **voluntary**. This project is a labor of love and will
 
 </div>
 
-### GitHub Sponsors ⭐ *(Recommended)*
+### GitHub Sponsors ⭐ _(Recommended)_
 
 GitHub Sponsors is the best way to support me on a recurring basis. Even a small monthly amount makes a huge difference by providing a stable foundation to plan more time for this project.
 
@@ -66,4 +66,4 @@ Not in a position to donate financially? No problem — there are many other way
 
 ---
 
-*Thank you for using and supporting this project. Every star, every issue report, and every donation makes a difference. — **FaserF** 💚*
+_Thank you for using and supporting this project. Every star, every issue report, and every donation makes a difference. — **FaserF** 💚_

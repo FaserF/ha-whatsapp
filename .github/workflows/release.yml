@@ -305,7 +305,7 @@ jobs:
             # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
             STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -urV || true)
             echo "ℹ️ Found stable tags: $STABLE_TAGS"
-            
+
             CURRENT_VER="${{ steps.params.outputs.version }}"
             OVERRIDE="${{ steps.params.outputs.base_tag_override }}"
 
@@ -331,7 +331,7 @@ jobs:
               echo "🔍 Checking release: $CHECK_TAG"
               # Check if release body contains the addon-only marker
               RELEASE_BODY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null || echo "")
-              
+
               # Robust check using both unique hidden marker and the text description to catch older releases
               if echo "$RELEASE_BODY" | grep -q -E "<!-- sync-release -->|HA App \(Addon\) only changes"; then
                 echo "⏭️ Skipping empty sync release: $CHECK_TAG (marker found)"
@@ -386,20 +386,20 @@ jobs:
           import os, subprocess, re
           from_tag = os.environ.get("FROM_TAG")
           repo_url = os.environ.get("REPO_URL")
-          
+
           # Get commits since from_tag for current directory
           # If no from_tag, get all commits
           if from_tag:
               cmd = ["git", "log", f"{from_tag}..HEAD", "--pretty=format:%H|%h|%s", "--", "."]
           else:
               cmd = ["git", "log", "--pretty=format:%H|%h|%s", "--", "."]
-              
+
           try:
               commits = subprocess.check_output(cmd, text=True).strip().split("\n")
           except Exception as e:
               print(f"Error getting commits: {e}")
               commits = []
-          
+
           cats = {
               "✨ Features": [],
               "🐛 Bug Fixes": [],
@@ -409,20 +409,20 @@ jobs:
               "🧪 Tests": [],
               "🚀 Other": []
           }
-          
+
           for line in commits:
               if not line or "|" not in line: continue
               fh, sh, sub = line.split("|", 2)
               sl = sub.lower()
-              
+
               # Skip release commits and merge commits
               if any(x in sl for x in ["chore: release", "chore: bump", "merge ", "[skip ci]"]):
                   continue
-              
+
               # Linkify PR numbers: "subject (#123)" -> "subject ([#123](.../pull/123))"
               sub = re.sub(r"\(#(\d+)\)", rf"([#\1]({repo_url}/pull/\1))", sub)
               entry = f"- {sub} ([{sh}]({repo_url}/commit/{fh}))"
-              
+
               if re.match(r"^(feat|add|new)", sl): cats["✨ Features"].append(entry)
               elif re.match(r"^(fix|bug|patch|fixed|fixes)", sl): cats["🐛 Bug Fixes"].append(entry)
               elif re.match(r"^(deps|dep|update|bump|renovate|⬆️)", sl): cats["📦 Dependencies"].append(entry)
@@ -430,10 +430,10 @@ jobs:
               elif re.match(r"^(docs|documentation)", sl): cats["📝 Documentation"].append(entry)
               elif re.match(r"^(test|pytest)", sl): cats["🧪 Tests"].append(entry)
               else: cats["🚀 Other"].append(entry)
-          
+
           changelog = "⚠️ **IMPORTANT**: This integration requires the corresponding Home Assistant App to be updated. Please ensure you are running the latest version of the [WhatsApp HA App (Add-on)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n## Changelog\n\n"
           has_content = False
-          
+
           # Use fixed order for categories
           for title in ["✨ Features", "🐛 Bug Fixes", "📦 Dependencies", "🔧 Maintenance & CI", "📝 Documentation", "🧪 Tests", "🚀 Other"]:
               items = cats[title]
@@ -443,10 +443,10 @@ jobs:
                       changelog += f"{item}\n"
                   changelog += "\n"
                   has_content = True
-          
+
           if not has_content:
               changelog += "No significant changes in this release."
-          
+
           with open("CHANGELOG_BODY.md", "w", encoding="utf-8") as f:
               f.write(changelog)
 

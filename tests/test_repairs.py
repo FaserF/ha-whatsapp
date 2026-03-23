@@ -1,8 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ha_stubs import _build_ha_stub_modules
-
 from custom_components.whatsapp.const import DOMAIN
+from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
@@ -61,6 +60,4 @@ async def test_repair_flow_reconnect_success() -> None:
         assert result["type"] == FlowResultType.CREATE_ENTRY
 
         # Verify issue is cleared
-        issue_registry.async_delete_issue.assert_called_with(
-            DOMAIN, "connection_failed"
-        )
+        issue_registry.async_delete_issue.assert_called_with(DOMAIN, "connection_failed")

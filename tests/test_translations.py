@@ -37,9 +37,7 @@ def load_json(path: pathlib.Path) -> Any:
         return json.load(f)
 
 
-def flatten_dict(
-    d: dict[str, Any], parent_key: str = "", sep: str = "."
-) -> dict[str, Any]:
+def flatten_dict(d: dict[str, Any], parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Flatten a nested dictionary into a single level with dot-separated keys."""
     items: list[tuple[str, Any]] = []
     for k, v in d.items():
@@ -75,13 +73,9 @@ def test_translation_consistency() -> None:
 
     errors: list[str] = []
     if missing_in_en:
-        errors.append(
-            f"Keys in strings.json missing in en.json: {sorted(missing_in_en)}"
-        )
+        errors.append(f"Keys in strings.json missing in en.json: {sorted(missing_in_en)}")
     if missing_in_de:
-        errors.append(
-            f"Keys in strings.json missing in de.json: {sorted(missing_in_de)}"
-        )
+        errors.append(f"Keys in strings.json missing in de.json: {sorted(missing_in_de)}")
 
     assert not errors, "\n".join(errors)
 
@@ -106,10 +100,7 @@ def test_config_flow_keys_translated() -> None:
     abort_reasons = re.findall(r'async_abort\(reason=["\'](\w+)["\']', content)
     for reason in abort_reasons:
         key = f"config.abort.{reason}"
-        assert key in strings_data, (
-            f"Abort reason '{reason}' used in code but missing in "
-            f"translations ({key})"
-        )
+        assert key in strings_data, f"Abort reason '{reason}' used in code but missing in " f"translations ({key})"
 
     # 2. Check for error keys
     # errors["base"] = "..." or errors["host"] = "..."
@@ -120,8 +111,7 @@ def test_config_flow_keys_translated() -> None:
         # Some might be in options.error
         alt_key = f"options.error.{err}"
         assert key in strings_data or alt_key in strings_data, (
-            f"Error key '{err}' used in code but missing in "
-            f"translations ({key} or {alt_key})"
+            f"Error key '{err}' used in code but missing in " f"translations ({key} or {alt_key})"
         )
 
     # 3. Check for step titles/descriptions (implicit by step_id)
@@ -129,13 +119,9 @@ def test_config_flow_keys_translated() -> None:
     for step in steps:
         if step == "init" and "OptionsFlowHandler" in content:
             # This is options flow
-            assert (
-                "options.step.init.title" in strings_data
-            ), "Options step 'init' missing title"
+            assert "options.step.init.title" in strings_data, "Options step 'init' missing title"
         else:
-            assert (
-                f"config.step.{step}.title" in strings_data
-            ), f"Config step '{step}' missing title"
+            assert f"config.step.{step}.title" in strings_data, f"Config step '{step}' missing title"
 
 
 def test_hardcoded_strings_in_config_flow() -> None:
@@ -193,11 +179,7 @@ def test_hardcoded_strings_in_config_flow() -> None:
 
     # Specifically check the known hardcoded strings I identified earlier
     for i, line in enumerate(lines):
-        if (
-            '"Not connected yet' in line
-            or '"Waiting for QR' in line
-            or '"Scan this code' in line
-        ):
+        if '"Not connected yet' in line or '"Waiting for QR' in line or '"Scan this code' in line:
             errors.append(f"Line {i+1}: Hardcoded string found: {line.strip()}")
         if "⚠️ CAUTION" in line:
             errors.append(f"Line {i+1}: Hardcoded string found: {line.strip()}")

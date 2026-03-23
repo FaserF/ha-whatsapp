@@ -77,9 +77,7 @@ class WhatsAppConnectionSensor(
     _attr_name = None
     _attr_translation_key = "connection"
 
-    def __init__(
-        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
-    ) -> None:
+    def __init__(self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialise the binary sensor entity.
 
         Args:

@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from custom_components.whatsapp.api import WhatsAppApiClient
 
 

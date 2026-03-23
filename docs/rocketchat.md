@@ -77,7 +77,7 @@ To send a message back to WhatsApp, prefix your message with the recipient's pho
 > `[49123456789] Hello from Rocket.Chat!`
 >
 > > **Tip:**
-> You can also send messages to WhatsApp Groups by using the group JID (if you know it) or the group number from the logs.
+> > You can also send messages to WhatsApp Groups by using the group JID (if you know it) or the group number from the logs.
 
 ---
 

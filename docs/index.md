@@ -163,7 +163,7 @@ graph TD
 > {: .important }
 >
 > > **Tip:**
-> **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
+> > **Want to use Rocket.Chat?** Check out our [Rocket.Chat Bridge Guide](rocketchat.md) to connect WhatsApp to your team workspace!
 
 - **Stable**: Production-ready. Follows semantic versioning (e.g., `v1.x.x`).
 - **Beta**: Feature-complete testing versions. Recommended for testing new features.

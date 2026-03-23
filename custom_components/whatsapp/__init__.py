@@ -155,9 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raw_msg = data.get("raw", {})
         from_me = raw_msg.get("key", {}).get("fromMe", False)
         if from_me and not entry.options.get(CONF_SELF_MESSAGES, False):
-            _LOGGER.debug(
-                "Ignoring self-message (fromMe) as it's disabled in configuration"
-            )
+            _LOGGER.debug("Ignoring self-message (fromMe) as it's disabled in configuration")
             return
 
         # Whitelist filtering
@@ -193,8 +191,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.async_create_task(client.mark_as_read(number, message_id))
             else:
                 _LOGGER.warning(
-                    "Auto-mark-as-read enabled but missing data. "
-                    "Message ID: %s, Number: %s",
+                    "Auto-mark-as-read enabled but missing data. " "Message ID: %s, Number: %s",
                     message_id,
                     number,
                 )
@@ -217,14 +214,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def get_client_for_account(
-    hass: HomeAssistant, account: str | None
-) -> WhatsAppApiClient:
+def get_client_for_account(hass: HomeAssistant, account: str | None) -> WhatsAppApiClient:
     """Get the correct client based on the account (entry_id or unique ID)."""
     clients: dict[str, WhatsAppApiClient] = {
-        entry_id: data["client"]
-        for entry_id, data in hass.data.get(DOMAIN, {}).items()
-        if "client" in data
+        entry_id: data["client"] for entry_id, data in hass.data.get(DOMAIN, {}).items() if "client" in data
     }
 
     if not clients:
@@ -235,8 +228,7 @@ def get_client_for_account(
         if len(clients) == 1:
             return list(clients.values())[0]
         raise ServiceValidationError(
-            "Multiple WhatsApp accounts found. "
-            "Please specify the 'account' (entry ID or unique ID)."
+            "Multiple WhatsApp accounts found. " "Please specify the 'account' (entry ID or unique ID)."
         )
 
     # Try mapping by entry_id
@@ -325,9 +317,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
             )
         elif service == "send_reaction":
-            await client.send_reaction(
-                data["target"], data["reaction"], data["message_id"]
-            )
+            await client.send_reaction(data["target"], data["reaction"], data["message_id"])
         elif service == "send_document":
             await client.send_document(
                 data["target"],
@@ -356,9 +346,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
         elif service == "edit_message":
-            await client.edit_message(
-                data["target"], data["message_id"], data["message"]
-            )
+            await client.edit_message(data["target"], data["message_id"], data["message"])
         elif service == "send_list":
             await client.send_list(
                 data["target"],
@@ -370,13 +358,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
             )
         elif service == "send_contact":
-            await client.send_contact(
-                data["target"], data["name"], data["contact_number"]
-            )
+            await client.send_contact(data["target"], data["name"], data["contact_number"])
         elif service == "configure_webhook":
-            await client.set_webhook(
-                data["url"], data.get("enabled", True), data.get("token")
-            )
+            await client.set_webhook(data["url"], data.get("enabled", True), data.get("token"))
         elif service == "update_presence":
             await client.set_presence(data["target"], data["presence"])
         elif service == "send_buttons":
@@ -393,9 +377,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         elif service == "search_groups":
             await _handle_search_groups(hass, client, data.get("name_filter", ""))
 
-    async def _handle_search_groups(
-        hass: HomeAssistant, client: WhatsAppApiClient, name_filter: str
-    ) -> None:
+    async def _handle_search_groups(hass: HomeAssistant, client: WhatsAppApiClient, name_filter: str) -> None:
         """Handle search_groups separately to keep generic router cleaner."""
         name_filter = name_filter.lower()
         try:
@@ -434,9 +416,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 "create",
                 {
                     "title": "WhatsApp Group Search Error",
-                    "message": (
-                        f"An error occurred while searching groups: {error_details}"
-                    ),
+                    "message": (f"An error occurred while searching groups: {error_details}"),
                     "notification_id": "whatsapp_group_search_error",
                 },
             )
@@ -616,9 +596,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     presence_schema: dict[vol.Marker, Any] = {
         **s_account,
         vol.Required("target"): cv.string,
-        vol.Required("presence"): vol.In(
-            ["available", "unavailable", "composing", "recording", "paused"]
-        ),
+        vol.Required("presence"): vol.In(["available", "unavailable", "composing", "recording", "paused"]),
     }
     hass.services.async_register(
         DOMAIN,

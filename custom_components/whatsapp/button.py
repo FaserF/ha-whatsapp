@@ -52,9 +52,7 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         my_jid = client.get_my_jid()
 
         if not my_jid:
-            self._results = {
-                "Error": "Could not determine own JID. Is the bot connected?"
-            }
+            self._results = {"Error": "Could not determine own JID. Is the bot connected?"}
             self.async_write_ha_state()
             return
 
@@ -141,16 +139,12 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         """Test sending a text message."""
         return cast(
             str,
-            await self.coordinator.client.send_message(
-                jid, "🤖 WhatsApp Diagnostic: Text Message Test"
-            ),
+            await self.coordinator.client.send_message(jid, "🤖 WhatsApp Diagnostic: Text Message Test"),
         )
 
     async def _test_reaction(self, jid: str, message_id: str) -> str:
         """Test sending a reaction."""
-        return cast(
-            str, await self.coordinator.client.send_reaction(jid, "✅", message_id)
-        )
+        return cast(str, await self.coordinator.client.send_reaction(jid, "✅", message_id))
 
     async def _test_buttons(self, jid: str) -> None:
         """Test sending buttons."""
@@ -189,9 +183,7 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
         """Test sending location."""
         return cast(
             str,
-            await self.coordinator.client.send_location(
-                jid, 48.1351, 11.5820, "Marienplatz", "Munich"
-            ),
+            await self.coordinator.client.send_location(jid, 48.1351, 11.5820, "Marienplatz", "Munich"),
         )
 
     async def _test_delete(self, jid: str) -> str:
