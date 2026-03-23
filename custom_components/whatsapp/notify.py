@@ -163,7 +163,9 @@ class WhatsAppNotificationEntity(
         target_list = target or kwargs.get(ATTR_TARGET) or data.get(ATTR_TARGET)
 
         if not target_list:
-            raise HomeAssistantError("Recipient number is required. Provide it as 'target'.")
+            raise HomeAssistantError(
+                "Recipient number is required. Provide it as 'target'."
+            )
 
         if isinstance(target_list, str):
             target_list = [target_list]
@@ -182,7 +184,8 @@ class WhatsAppNotificationEntity(
 
         if errors:
             raise HomeAssistantError(
-                f"Failed to send WhatsApp message to {len(errors)} recipient(s): " f"{', '.join(r for r, _ in errors)}"
+                f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
+                f"{', '.join(r for r, _ in errors)}"
             )
 
 
@@ -224,7 +227,9 @@ async def async_send_whatsapp_message(
                 "Skipping location message to %s: latitude/longitude missing",
                 recipient,
             )
-            raise HomeAssistantError(f"Skipping location message to {recipient}: latitude/longitude missing")
+            raise HomeAssistantError(
+                f"Skipping location message to {recipient}: latitude/longitude missing"
+            )
         try:
             lat_f = float(lat)
             lon_f = float(lon)
@@ -237,7 +242,8 @@ async def async_send_whatsapp_message(
                 err,
             )
             raise HomeAssistantError(
-                f"Skipping location message to {recipient}: " f"invalid coordinates ({lat}, {lon})"
+                f"Skipping location message to {recipient}: "
+                f"invalid coordinates ({lat}, {lon})"
             ) from err
 
         await client.send_location(
@@ -253,13 +259,24 @@ async def async_send_whatsapp_message(
         # Send reaction: data: { reaction: "...", message_id: "..." }
         react = data["reaction"]
         if not isinstance(react, (str, dict)):
-            raise HomeAssistantError(f"Invalid reaction payload type '{type(react).__name__}'; " "expected str or dict")
+            raise HomeAssistantError(
+                f"Invalid reaction payload type '{type(react).__name__}'; "
+                "expected str or dict"
+            )
         reaction = react if isinstance(react, str) else react.get("reaction")
-        msg_id = react.get("message_id") if isinstance(react, dict) else data.get("message_id")
+        msg_id = (
+            react.get("message_id")
+            if isinstance(react, dict)
+            else data.get("message_id")
+        )
         if not reaction:
-            raise HomeAssistantError("Reaction message failed: missing 'reaction' field")
+            raise HomeAssistantError(
+                "Reaction message failed: missing 'reaction' field"
+            )
         if not msg_id:
-            raise HomeAssistantError("Reaction message failed: missing 'message_id' field")
+            raise HomeAssistantError(
+                "Reaction message failed: missing 'message_id' field"
+            )
 
         await client.send_reaction(recipient, reaction, msg_id)
     elif "image" in data:
@@ -300,7 +317,8 @@ async def async_send_whatsapp_message(
             )
         else:
             _LOGGER.warning(
-                "Skipping buttons message to %s: empty buttons list " "(original data: %s)",
+                "Skipping buttons message to %s: empty buttons list "
+                "(original data: %s)",
                 recipient,
                 data,
             )
@@ -320,15 +338,21 @@ async def async_send_whatsapp_message(
     elif "video" in data:
         # Send video: data: { video: "http://..." }
         url = data["video"]
-        await client.send_video(recipient, url, message, quoted_message_id=quoted, expiration=expiration)
+        await client.send_video(
+            recipient, url, message, quoted_message_id=quoted, expiration=expiration
+        )
     elif "audio" in data:
         # Send audio: data: { audio: "http://..." }
         url = data["audio"]
         ptt = data.get("ptt", False)
-        await client.send_audio(recipient, url, ptt, quoted_message_id=quoted, expiration=expiration)
+        await client.send_audio(
+            recipient, url, ptt, quoted_message_id=quoted, expiration=expiration
+        )
     else:
         # Default text message
-        await client.send_message(recipient, message, quoted_message_id=quoted, expiration=expiration)
+        await client.send_message(
+            recipient, message, quoted_message_id=quoted, expiration=expiration
+        )
 
 
 class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc]
@@ -389,7 +413,8 @@ class WhatsAppNotificationService(BaseNotificationService):  # type: ignore[misc
 
         if errors:
             raise HomeAssistantError(
-                f"Failed to send WhatsApp message to {len(errors)} recipient(s): " f"{', '.join(r for r, _ in errors)}"
+                f"Failed to send WhatsApp message to {len(errors)} recipient(s): "
+                f"{', '.join(r for r, _ in errors)}"
             )
 
 

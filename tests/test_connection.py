@@ -28,10 +28,14 @@ from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 @pytest.fixture  # type: ignore[untyped-decorator]
 def api_client() -> WhatsAppApiClient:
     """Fixture."""
-    return WhatsAppApiClient(host="http://localhost:8066", api_key="test_key", session_id="default")
+    return WhatsAppApiClient(
+        host="http://localhost:8066", api_key="test_key", session_id="default"
+    )
 
 
-def mock_aiohttp_post(status: int = 200, json_data: Any | None = None, text_data: str = "") -> MagicMock:
+def mock_aiohttp_post(
+    status: int = 200, json_data: Any | None = None, text_data: str = ""
+) -> MagicMock:
     """Mock aiohttp post."""
     mock_response = MagicMock()
     mock_response.status = status
@@ -67,7 +71,9 @@ async def test_send_poll(api_client: WhatsAppApiClient) -> None:
     """Test sending a poll message."""
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
-        await api_client.send_poll("12345", "Question?", ["Yes", "No"], expiration=86400)
+        await api_client.send_poll(
+            "12345", "Question?", ["Yes", "No"], expiration=86400
+        )
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["question"] == "Question?"
         assert kwargs["json"]["options"] == ["Yes", "No"]
@@ -80,25 +86,33 @@ async def test_send_media(api_client: WhatsAppApiClient) -> None:
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
         # Image
-        await api_client.send_image("12345", "http://img.jpg", "caption", expiration=3600)
+        await api_client.send_image(
+            "12345", "http://img.jpg", "caption", expiration=3600
+        )
         assert "/send_image" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
 
         # Video
         mock_session.post.reset_mock()
-        await api_client.send_video("12345", "http://vid.mp4", "caption", expiration=3600)
+        await api_client.send_video(
+            "12345", "http://vid.mp4", "caption", expiration=3600
+        )
         assert "/send_video" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
 
         # Document
         mock_session.post.reset_mock()
-        await api_client.send_document("12345", "http://doc.pdf", "file.pdf", "caption", expiration=3600)
+        await api_client.send_document(
+            "12345", "http://doc.pdf", "file.pdf", "caption", expiration=3600
+        )
         assert "/send_document" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
 
         # Audio
         mock_session.post.reset_mock()
-        await api_client.send_audio("12345", "http://aud.mp3", ptt=True, expiration=3600)
+        await api_client.send_audio(
+            "12345", "http://aud.mp3", ptt=True, expiration=3600
+        )
         assert "/send_audio" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
 
@@ -167,7 +181,9 @@ async def test_send_list(api_client: WhatsAppApiClient) -> None:
     """Test sending a list message."""
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
-        await api_client.send_list("12345", "Title", "Text", "Button", [], expiration=604800)
+        await api_client.send_list(
+            "12345", "Title", "Text", "Button", [], expiration=604800
+        )
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["title"] == "Title"
         assert kwargs["json"]["expiration"] == 604800
@@ -207,7 +223,9 @@ async def test_send_location(api_client: WhatsAppApiClient) -> None:
     """Test sending a location."""
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
-        await api_client.send_location("12345", 52.52, 13.40, "Berlin", "Germany", expiration=3600)
+        await api_client.send_location(
+            "12345", 52.52, 13.40, "Berlin", "Germany", expiration=3600
+        )
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["latitude"] == 52.52
         assert kwargs["json"]["expiration"] == 3600

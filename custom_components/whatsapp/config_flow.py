@@ -46,7 +46,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.client: WhatsAppApiClient | None = None
         self.qr_code: str | None = None
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial step."""
         # Check if we are starting fresh (no accounts)
         # If so, we use 'default' as the session_id for better UX
@@ -99,7 +101,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if user_input is None:
                 for candidate in candidates:
                     try:
-                        sock = socket.create_connection((candidate, DEFAULT_PORT), timeout=0.3)
+                        sock = socket.create_connection(
+                            (candidate, DEFAULT_PORT), timeout=0.3
+                        )
                         sock.close()
                         found_host = candidate
                         _LOGGER.debug("Found reachable host: %s", candidate)
@@ -115,14 +119,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     step_id="user",
                     data_schema=vol.Schema(
                         {
-                            vol.Required("host", default=suggested_url): vol.All(str, vol.Length(min=1)),
+                            vol.Required("host", default=suggested_url): vol.All(
+                                str, vol.Length(min=1)
+                            ),
                             vol.Required(
                                 CONF_API_KEY,
                                 default=self.discovery_info.get(CONF_API_KEY) or "",
                             ): vol.All(str, vol.Length(min=1)),
                         }
                     ),
-                    description_placeholders={"setup_url": "https://faserf.github.io/ha-whatsapp/"},
+                    description_placeholders={
+                        "setup_url": "https://faserf.github.io/ha-whatsapp/"
+                    },
                     errors=errors,
                 )
 
@@ -158,13 +166,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("host", default=user_input.get("host")): vol.All(str, vol.Length(min=1)),
-                        vol.Required(CONF_API_KEY, default=user_input.get(CONF_API_KEY)): vol.All(
+                        vol.Required("host", default=user_input.get("host")): vol.All(
                             str, vol.Length(min=1)
                         ),
+                        vol.Required(
+                            CONF_API_KEY, default=user_input.get(CONF_API_KEY)
+                        ): vol.All(str, vol.Length(min=1)),
                     }
                 ),
-                description_placeholders={"addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"},
+                description_placeholders={
+                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                },
                 errors=errors,
             )
         except Exception:
@@ -174,19 +186,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("host", default=user_input.get("host")): vol.All(str, vol.Length(min=1)),
-                        vol.Required(CONF_API_KEY, default=user_input.get(CONF_API_KEY)): vol.All(
+                        vol.Required("host", default=user_input.get("host")): vol.All(
                             str, vol.Length(min=1)
                         ),
+                        vol.Required(
+                            CONF_API_KEY, default=user_input.get(CONF_API_KEY)
+                        ): vol.All(str, vol.Length(min=1)),
                     }
                 ),
-                description_placeholders={"addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"},
+                description_placeholders={
+                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                },
                 errors=errors,
             )
 
         return await self.async_step_scan()
 
-    async def async_step_scan(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_scan(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Display the QR code."""
         if not self.client:
             return self.async_abort(reason="unknown")
@@ -268,7 +286,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="scan",
                 data_schema=vol.Schema({}),
                 description_placeholders={
-                    "qr_image": self.qr_code or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                    "qr_image": self.qr_code
+                    or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
                 },
                 errors={"base": "connection_error"},
             )
@@ -293,7 +312,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
                         await self.client.close()
                         return self.async_create_entry(
-                            title=(f"WhatsApp ({my_number})" if my_number else "WhatsApp"),
+                            title=(
+                                f"WhatsApp ({my_number})" if my_number else "WhatsApp"
+                            ),
                             data={
                                 "session_id": self.session_id,
                                 CONF_URL: self.discovery_info[CONF_URL],
@@ -314,7 +335,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             step_id="scan",
             data_schema=vol.Schema({}),  # No input needed, just "Submit" after scan
             description_placeholders={
-                "qr_image": self.qr_code or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                "qr_image": self.qr_code
+                or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
             },
         )
 
@@ -335,7 +357,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         except ImportError, AttributeError:
             return None
 
-    async def async_step_hassio(self, _user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_hassio(
+        self, _user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle Hass.io discovery."""
         try:
             from homeassistant.components.hassio import AddonState
@@ -382,12 +406,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         except Exception as e:
             _LOGGER.warning("Could not pre-fill addon info: %s", e)
 
-    async def async_step_hassio_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_hassio_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Confirm installation of the official addon."""
         errors: dict[str, str] = {}
         if user_input is not None:
             # Install selected addon
-            slug = ADDON_EDGE_SLUG if user_input.get("version") == "edge" else ADDON_STABLE_SLUG
+            slug = (
+                ADDON_EDGE_SLUG
+                if user_input.get("version") == "edge"
+                else ADDON_STABLE_SLUG
+            )
             addon_manager = await self._async_get_addon_manager(slug)
             try:
                 await addon_manager.async_install_addon()
@@ -413,12 +443,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         return self.async_show_form(
             step_id="hassio_confirm",
             data_schema=vol.Schema(
-                {vol.Required("version", default="stable"): vol.In({"stable": "Stable", "edge": "Edge (Development)"})}
+                {
+                    vol.Required("version", default="stable"): vol.In(
+                        {"stable": "Stable", "edge": "Edge (Development)"}
+                    )
+                }
             ),
             description_placeholders={"addon_name": ADDON_NAME},
         )
 
-    async def async_step_zeroconf(self, discovery_info: config_entries.ZeroconfServiceInfo) -> FlowResult:
+    async def async_step_zeroconf(
+        self, discovery_info: config_entries.ZeroconfServiceInfo
+    ) -> FlowResult:
         """Handle zeroconf discovery."""
         host = discovery_info.host
         port = discovery_info.port
@@ -461,7 +497,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         return await self.async_step_discovery_confirm()
 
-    async def async_step_discovery_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Confirm discovery."""
         if user_input is not None:
             return await self.async_step_user()
@@ -498,7 +536,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): vol.All(int, vol.Range(min=5)),
                 vol.Optional(
                     "mask_sensitive_data",
-                    default=self._config_entry.options.get("mask_sensitive_data", False),
+                    default=self._config_entry.options.get(
+                        "mask_sensitive_data", False
+                    ),
                 ): bool,
                 vol.Optional(
                     CONF_MARK_AS_READ,
@@ -520,7 +560,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
             }
         )
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Manage the options."""
         errors: dict[str, str] = {}
 
@@ -555,7 +597,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 # Update the main config entry data (not options)
                 new_data = self._config_entry.data.copy()
                 new_data[CONF_API_KEY] = new_key
-                self.hass.config_entries.async_update_entry(self._config_entry, data=new_data)
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry, data=new_data
+                )
                 _LOGGER.info("WhatsApp API Key updated successfully via Options Flow")
 
             if user_input.get("reset_session"):

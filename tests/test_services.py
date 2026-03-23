@@ -6,13 +6,14 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_services(hass: HomeAssistant) -> None:
@@ -57,7 +58,9 @@ async def test_services(hass: HomeAssistant) -> None:
             {"target": "12345", "message": "Hello"},
             blocking=True,
         )
-        mock_instance.send_message.assert_awaited_with("12345", "Hello", quoted_message_id=None, expiration=None)
+        mock_instance.send_message.assert_awaited_with(
+            "12345", "Hello", quoted_message_id=None, expiration=None
+        )
 
         # 2. Test send_poll
         await hass.services.async_call(
@@ -70,7 +73,9 @@ async def test_services(hass: HomeAssistant) -> None:
             },
             blocking=True,
         )
-        mock_instance.send_poll.assert_awaited_with("12345", "Q?", ["A", "B"], quoted_message_id=None, expiration=None)
+        mock_instance.send_poll.assert_awaited_with(
+            "12345", "Q?", ["A", "B"], quoted_message_id=None, expiration=None
+        )
 
         # 3. Test send_image
         await hass.services.async_call(

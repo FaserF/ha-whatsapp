@@ -6,14 +6,15 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant  # noqa: E402
-from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_multi_instance_setup(hass: HomeAssistant) -> None:
@@ -35,7 +36,9 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
         ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key1"},
@@ -64,7 +67,9 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
         ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key2"},
@@ -109,7 +114,9 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
             return_value=None,
         ),
     ):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key1"},

@@ -186,4 +186,6 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         except Exception as err:
             _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
-            raise UpdateFailed(f"Unexpected error communicating with API: {err}") from err
+            raise UpdateFailed(
+                f"Unexpected error communicating with API: {err}"
+            ) from err

@@ -6,13 +6,14 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_binary_sensor(hass: HomeAssistant) -> None:
@@ -26,7 +27,9 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
     # Patch the Client Class
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 10, "failed": 2, "connected": True})
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 10, "failed": 2, "connected": True}
+        )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         mock_instance.connect = AsyncMock(return_value=True)
         mock_instance.register_callback = MagicMock()
@@ -47,7 +50,9 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert state.attributes["version"] == "Unknown"
 
         # Simulate disconnect
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 10, "failed": 2, "connected": False})
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 10, "failed": 2, "connected": False}
+        )
         mock_instance.connect = AsyncMock(return_value=False)
 
         # Manually trigger coordinator refresh

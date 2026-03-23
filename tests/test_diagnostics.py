@@ -6,14 +6,15 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
 from custom_components.whatsapp import diagnostics  # noqa: E402
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
@@ -28,12 +29,16 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-        patch("custom_components.whatsapp.diagnostics.async_redact_data") as mock_redact,  # noqa: E501
+        patch(
+            "custom_components.whatsapp.diagnostics.async_redact_data"
+        ) as mock_redact,  # noqa: E501
     ):
         mock_redact.side_effect = redact
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 0, "failed": 0, "connected": True}
+        )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()

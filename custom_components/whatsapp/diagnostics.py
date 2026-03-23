@@ -26,7 +26,9 @@ from .const import DOMAIN
 TO_REDACT = {"api_key", "session_data", "session"}
 
 
-async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+async def async_get_config_entry_diagnostics(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> dict[str, Any]:
     """Return diagnostics for a WhatsApp config entry.
 
     Collects and returns a dictionary that includes:

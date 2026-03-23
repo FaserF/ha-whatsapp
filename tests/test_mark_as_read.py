@@ -7,14 +7,15 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
+
 from custom_components.whatsapp.const import (  # noqa: E402
     CONF_API_KEY,
     CONF_MARK_AS_READ,
     CONF_URL,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant  # noqa: E402
-from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 
 async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
@@ -23,7 +24,9 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+    mock_instance.get_stats = AsyncMock(
+        return_value={"sent": 0, "failed": 0, "connected": True}
+    )
     mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
@@ -38,7 +41,9 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
         # Capture the callback
         callback_capture: Any = None
 
@@ -76,7 +81,9 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+    mock_instance.get_stats = AsyncMock(
+        return_value={"sent": 0, "failed": 0, "connected": True}
+    )
     mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
@@ -91,7 +98,9 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance):
+    with patch(
+        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
+    ):
         callback_capture: Any = None
 
         def register_side_effect(callback: Any) -> None:

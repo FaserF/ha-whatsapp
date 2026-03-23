@@ -28,7 +28,9 @@ from custom_components.whatsapp.notify import WhatsAppNotificationEntity  # noqa
 @pytest.fixture  # type: ignore[untyped-decorator]
 def mock_client() -> Generator[MagicMock, None, None]:
     """Fixture to mock WhatsAppApiClient."""
-    with patch("custom_components.whatsapp.notify.WhatsAppApiClient", autospec=True) as mock:
+    with patch(
+        "custom_components.whatsapp.notify.WhatsAppApiClient", autospec=True
+    ) as mock:
         yield mock
 
 
