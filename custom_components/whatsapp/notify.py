@@ -209,12 +209,14 @@ async def async_send_whatsapp_message(
         poll_data: dict[str, Any] = data["poll"]
         question = poll_data.get("question", message)
         options = poll_data.get("options", [])
+        allow_multiple_responses = poll_data.get("allow_multiple_responses", False)
         await client.send_poll(
             recipient,
             question,
             options,
             quoted_message_id=quoted,
             expiration=expiration,
+            allow_multiple_responses=allow_multiple_responses,
         )
 
     elif "location" in data:

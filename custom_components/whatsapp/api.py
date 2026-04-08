@@ -636,6 +636,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         options: list[str],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        allow_multiple_responses: bool = False,
     ) -> str:
         """Send a poll (with retry)."""
         if not self.is_allowed(number):
@@ -652,6 +653,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 options,
                 quoted_message_id,
                 expiration,
+                allow_multiple_responses,
             ),
         )
 
@@ -662,6 +664,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         options: list[str],
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        allow_multiple_responses: bool = False,
     ) -> str:
         """Internal send poll logic."""
         url = f"{self.host}/send_poll"
@@ -669,6 +672,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "question": question,
             "options": options,
+            "selectableCount": 0 if allow_multiple_responses else 1,
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id

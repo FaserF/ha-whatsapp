@@ -115,6 +115,15 @@ send_poll:
       required: true
       selector:
         object:
+    allow_multiple_responses:
+      name: Allow Multiple Selections
+      description: >
+        If enabled, recipients can select multiple options in the poll.
+        If disabled, the poll is single-choice.
+      example: true
+      default: false
+      selector:
+        boolean:
     quote:
       name: Quote Message ID
       description: >

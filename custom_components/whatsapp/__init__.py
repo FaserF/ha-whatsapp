@@ -305,6 +305,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("options", []),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
+                allow_multiple_responses=data.get("allow_multiple_responses", False),
             )
         elif service == "send_image":
             await client.send_image(
@@ -469,6 +470,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         vol.Required("target"): cv.string,
         vol.Required("question"): cv.string,
         vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("allow_multiple_responses", default=False): cv.boolean,
     }
     hass.services.async_register(
         DOMAIN,
