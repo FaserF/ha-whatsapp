@@ -1,15 +1,19 @@
 {
   "domain": "whatsapp",
   "name": "WhatsApp Homeassistant App",
-  "after_dependencies": ["hassio"],
-  "codeowners": ["@FaserF"],
+  "after_dependencies": [
+    "hassio"
+  ],
+  "codeowners": [
+    "@FaserF"
+  ],
   "config_flow": true,
   "documentation": "https://faserf.github.io/ha-whatsapp/",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues/",
   "requirements": [],
-  "version": "1.4.8-dev",
+  "version": "1.5.0",
   "zeroconf": [
     {
       "name": "whatsapp homeassistant app*",
