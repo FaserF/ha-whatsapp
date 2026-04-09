@@ -114,6 +114,23 @@ data:
     - 'Pizza 🍕'
     - 'Sushi 🍣'
     - 'Burgers 🍔'
+
+#### Single-Choice vs Multi-Choice Polls
+
+By default, polls are single-choice. Use `allow_multiple_responses: true` to allow recipients to select more than one option.
+
+```yaml
+service: whatsapp.send_poll
+data:
+  target: '+491234567890'
+  question: 'Which of these snacks do you like?'
+  options:
+    - 'Popcorn 🍿'
+    - 'Nachos 🧀'
+    - 'Chips 🍟'
+    - 'Chocolate 🍫'
+  allow_multiple_responses: true
+```
 ```
 
 #### Send Buttons (Quick Response)

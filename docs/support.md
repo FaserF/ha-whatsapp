@@ -34,7 +34,7 @@ Donations are completely **voluntary**. This project is a labor of love and will
     <img src="https://img.shields.io/badge/Sponsor%20on-GitHub%20Sponsors-%23EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white" alt="GitHub Sponsors" style="height: 50px;">
   </a>
 
-  <a href="https://paypal.me/FaserF" target="_blank" rel="noopener noreferrer">
+  <a href="https://www.paypal.com/paypalme/FaserF" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Donate%20via-PayPal-%2300457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal" style="height: 50px;">
   </a>
 
@@ -50,7 +50,7 @@ GitHub Sponsors is the best way to support me on a recurring basis. Even a small
 
 Prefer a one-time donation? PayPal is the easiest option.
 
-**[→ Donate via PayPal](https://paypal.me/FaserF)**
+**[→ Donate via PayPal](https://www.paypal.com/paypalme/FaserF)**
 
 ---
 

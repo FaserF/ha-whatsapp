@@ -61,7 +61,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             from homeassistant.components.hassio import is_hassio
 
             is_hassio_env = is_hassio(self.hass)
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             _LOGGER.debug("Hass.io component not found or is_hassio missing")
 
         if (
@@ -354,7 +354,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             from homeassistant.components.hassio import AddonManager
 
             return AddonManager(self.hass, slug, ADDON_NAME)
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             return None
 
     async def async_step_hassio(
@@ -363,7 +363,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Handle Hass.io discovery."""
         try:
             from homeassistant.components.hassio import AddonState
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             return await self.async_step_user()
 
         # Check if either stable or edge is installed

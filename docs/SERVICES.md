@@ -49,7 +49,7 @@ All media services require a **target** and a **url**.
 
 - **question**: The voting topic.
 - **options**: List of strings (Max 12).
-- **allow_multiple**: Optional boolean. Set to `true` to create a multi-choice poll.
+- **allow_multiple_responses**: Optional boolean. Set to `true` to create a multi-choice poll.
 
 ### `whatsapp.send_buttons`
 

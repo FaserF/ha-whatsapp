@@ -77,6 +77,18 @@
         "target": {
           "name": "Target Number",
           "description": "The phone number to send to."
+        },
+        "account": {
+          "name": "Account",
+          "description": "The WhatsApp account to use (Service Instance)."
+        },
+        "quote": {
+          "name": "Quote Message ID",
+          "description": "The ID of a message to quote/reply to."
+        },
+        "expiration": {
+          "name": "Expiration (Seconds)",
+          "description": "Duration after which the message disappears."
         }
       }
     },
@@ -135,6 +147,10 @@
         "ptt": {
           "name": "Voice Note (PTT)",
           "description": "Send as a voice note (waveform) instead of audio (file)."
+        },
+        "account": {
+          "name": "Account",
+          "description": "The WhatsApp account to use (Service Instance)."
         }
       }
     },

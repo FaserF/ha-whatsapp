@@ -108,7 +108,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         try:
             data = json.loads(text)
             return data.get("detail") or data.get("error") or text
-        except json.JSONDecodeError, AttributeError:
+        except (json.JSONDecodeError, AttributeError):
             return text
 
     def is_allowed(self, target: str) -> bool:

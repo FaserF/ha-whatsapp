@@ -81,6 +81,14 @@
         "target": {
           "name": "Zielnummer",
           "description": "Die Telefonnummer, an die gesendet werden soll."
+        },
+        "quote": {
+          "name": "Nachrichten-ID zitieren",
+          "description": "Die ID einer Nachricht, die zitiert oder auf die geantwortet werden soll."
+        },
+        "expiration": {
+          "name": "Ablaufzeit (Sekunden)",
+          "description": "Dauer, nach der die Nachricht verschwindet."
         }
       }
     },
