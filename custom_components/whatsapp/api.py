@@ -76,9 +76,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         session_id: str = "default",
         mask_sensitive_data: bool = False,
         whitelist: list[str] | None = None,
+        config_url: str | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
+        self.config_url = config_url.rstrip("/") if config_url else self.host
         self.api_key = api_key
         self.session_id = session_id
         self.mask_sensitive_data = mask_sensitive_data
@@ -386,10 +388,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Return device information for HA."""
         return {
             "identifiers": {(DOMAIN, self.session_id)},
-            "name": f"HA App ({self.session_id})",
-            "manufacturer": "HA WhatsApp",
+            "name": f"WhatsApp ({self.session_id})",
+            "manufacturer": "WhatsApp",
             "model": "WhatsApp API",
             "sw_version": self.stats.get("version"),
+            "configuration_url": self.config_url,
         }
 
     def get_my_jid(self) -> str | None:

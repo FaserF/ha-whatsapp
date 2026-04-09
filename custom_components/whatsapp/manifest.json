@@ -1,6 +1,6 @@
 {
   "domain": "whatsapp",
-  "name": "WhatsApp Homeassistant App",
+  "name": "WhatsApp",
   "after_dependencies": [
     "hassio"
   ],
@@ -16,7 +16,7 @@
   "version": "1.6.0-dev",
   "zeroconf": [
     {
-      "name": "whatsapp homeassistant app*",
+      "name": "whatsapp*",
       "type": "_ha-whatsapp._tcp.local."
     }
   ]
