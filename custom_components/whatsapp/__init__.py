@@ -206,7 +206,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
         # Automatically mark as read if enabled
-        if entry.options.get(CONF_MARK_AS_READ, True):
+        if entry.options.get(CONF_MARK_AS_READ, False):
             # Extract ID and sender JID from the nested raw data
             # Try to get message_id from 'raw.key.id' or fallback to top-level 'id'
             message_id = raw_msg.get("key", {}).get("id") or data.get("id")

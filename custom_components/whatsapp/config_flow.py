@@ -542,7 +542,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): bool,
                 vol.Optional(
                     CONF_MARK_AS_READ,
-                    default=self._config_entry.options.get(CONF_MARK_AS_READ, True),
+                    default=self._config_entry.options.get(CONF_MARK_AS_READ, False),
                 ): bool,
                 vol.Optional(
                     CONF_RETRY_ATTEMPTS,

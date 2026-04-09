@@ -13,7 +13,7 @@ This table provides a quick overview of what is currently supported by the Whats
 | **Messaging**             |         |                                                            |
 | Send Text                 |   ✅    | Full support including formatting (_bold_, _italic_, etc.) |
 | Receive Text              |   ✅    | Instant push events via Webhook                            |
-| Mark messages as read     |   ✅    | mark all / specific messages as read                       |
+| Mark messages as read     |   ✅    | mark all / specific messages as read via Integration       |
 | Quoting                   |   ✅    | Reply to specific messages using their ID                  |
 | Self-Messaging            |   ✅    | Process messages sent to yourself (Note to Self)           |
 | **Media (Send)**          |         |                                                            |
