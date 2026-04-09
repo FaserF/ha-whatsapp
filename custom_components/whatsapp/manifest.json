@@ -13,7 +13,7 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues/",
   "requirements": [],
-  "version": "1.7.0-dev",
+  "version": "1.5.0",
   "zeroconf": [
     {
       "name": "whatsapp*",
