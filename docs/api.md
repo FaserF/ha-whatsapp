@@ -50,6 +50,7 @@ Media transmission.
 
 - `question`: (String)
 - `options`: (Array of Strings) Max 12.
+- `selectableCount`: (Integer, Optional) Use `1` for single-select polls or `0` for multi-choice polls.
 
 ### `POST /send_location`
 

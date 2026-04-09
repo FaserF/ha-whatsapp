@@ -70,11 +70,17 @@ async def test_services(hass: HomeAssistant) -> None:
                 "target": "12345",
                 "question": "Q?",
                 "options": ["A", "B"],
+                "allow_multiple_responses": True,
             },
             blocking=True,
         )
         mock_instance.send_poll.assert_awaited_with(
-            "12345", "Q?", ["A", "B"], quoted_message_id=None, expiration=None
+            "12345",
+            "Q?",
+            ["A", "B"],
+            quoted_message_id=None,
+            expiration=None,
+            allow_multiple_responses=True,
         )
 
         # 3. Test send_image

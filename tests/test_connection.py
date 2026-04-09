@@ -67,17 +67,41 @@ async def test_send_message(api_client: WhatsAppApiClient) -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]
-async def test_send_poll(api_client: WhatsAppApiClient) -> None:
+async def test_send_poll_one_response(api_client: WhatsAppApiClient) -> None:
     """Test sending a poll message."""
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
         await api_client.send_poll(
-            "12345", "Question?", ["Yes", "No"], expiration=86400
+            "12345",
+            "Question?",
+            ["Yes", "No"],
+            expiration=86400,
+            allow_multiple_responses=False,
         )
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["question"] == "Question?"
         assert kwargs["json"]["options"] == ["Yes", "No"]
         assert kwargs["json"]["expiration"] == 86400
+        assert kwargs["json"]["selectableCount"] == 1
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_poll_multiple_responses(api_client: WhatsAppApiClient) -> None:
+    """Test sending a poll message."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_poll(
+            "12345",
+            "Question?",
+            ["Yes", "No"],
+            expiration=86400,
+            allow_multiple_responses=True,
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["question"] == "Question?"
+        assert kwargs["json"]["options"] == ["Yes", "No"]
+        assert kwargs["json"]["expiration"] == 86400
+        assert kwargs["json"]["selectableCount"] == 0
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]
