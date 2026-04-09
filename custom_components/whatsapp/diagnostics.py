@@ -11,6 +11,9 @@ Attributes redacted:
     * ``api_key`` – The API key used to authenticate with the addon.
     * ``session_data`` – Raw session data that could identify the user.
     * ``session`` – Alternative session-data key.
+    * ``phone_number``, ``my_number`` - Contact identifiers.
+    * ``last_sent_target``, ``last_received_sender`` - Peer identifiers.
+    * ``last_message`` - Content of messages.
 """
 
 from __future__ import annotations
@@ -23,7 +26,16 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-TO_REDACT = {"api_key", "session_data", "session"}
+TO_REDACT = {
+    "api_key",
+    "session_data",
+    "session",
+    "phone_number",
+    "my_number",
+    "last_sent_target",
+    "last_received_sender",
+    "last_message",
+}
 
 
 async def async_get_config_entry_diagnostics(
