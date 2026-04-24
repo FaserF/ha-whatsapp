@@ -369,6 +369,34 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 return ""
         return ""
 
+    async def request_pairing_code(self, phone_number: str) -> str:
+        """Request a pairing code for phone number authentication."""
+        url = f"{self.host}/session/pair"
+        params = {"session_id": self.session_id}
+        payload = {"phone_number": phone_number}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.post(
+                    url,
+                    json=payload,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=15),
+                ) as resp:
+                    if resp.status == 401:
+                        raise WhatsAppAuthError("Invalid API Key")
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return str(data.get("code", ""))
+                    text = await resp.text()
+                    raise HomeAssistantError(f"Failed to request pairing code: {text}")
+            except HomeAssistantError:
+                raise
+            except Exception as e:
+                _LOGGER.error("Failed to request pairing code: %s", e)
+                raise HomeAssistantError(f"Failed to request pairing code: {e}") from e
+
     async def connect(self) -> bool:
         """Check connection and validate Auth (Consolidated with get_stats)."""
         # We now rely on get_stats to update connectivity info
@@ -386,9 +414,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     def get_device_info(self) -> dict[str, Any]:
         """Return device information for HA."""
+        name = f"WhatsApp ({self.session_id})"
+        number = self.stats.get("my_number")
+        if number and number != "Unknown":
+            name = f"WhatsApp ({number})"
+
         return {
             "identifiers": {(DOMAIN, self.session_id)},
-            "name": f"WhatsApp ({self.session_id})",
+            "name": name,
             "manufacturer": "WhatsApp",
             "model": "WhatsApp API",
             "sw_version": self.stats.get("version"),

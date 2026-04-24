@@ -31,7 +31,7 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
 
     _attr_has_entity_name = True
     _attr_translation_key = "diagnostic_test"
-    _attr_entity_registry_enabled_default = True
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:flask-outline"
 
     def __init__(self, coordinator: WhatsAppDataUpdateCoordinator) -> None:

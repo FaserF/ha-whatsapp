@@ -256,6 +256,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             return self.async_abort(reason="connection_error")
 
         if user_input is not None:
+            if user_input.get("use_phone_pairing"):
+                return await self.async_step_phone_pairing()
+
             # User clicked "Submit" (meaning they scanned it)
             try:
                 connected = await self.client.connect()
@@ -284,7 +287,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             self.qr_code = None
             return self.async_show_form(
                 step_id="scan",
-                data_schema=vol.Schema({}),
+                data_schema=vol.Schema(
+                    {
+                        vol.Optional("use_phone_pairing", default=False): bool,
+                    }
+                ),
                 description_placeholders={
                     "qr_image": self.qr_code
                     or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
@@ -333,11 +340,80 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         return self.async_show_form(
             step_id="scan",
-            data_schema=vol.Schema({}),  # No input needed, just "Submit" after scan
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("use_phone_pairing", default=False): bool,
+                }
+            ),  # No input needed, just "Submit" after scan
             description_placeholders={
                 "qr_image": self.qr_code
                 or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
             },
+        )
+
+    async def async_step_phone_pairing(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle phone pairing."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            phone_number = user_input.get("phone_number", "")
+            try:
+                assert self.client is not None
+                code = await self.client.request_pairing_code(phone_number)
+                self.pairing_code = code
+                return await self.async_step_show_pairing_code()
+            except Exception as e:
+                _LOGGER.error("Failed to request pairing code: %s", e)
+                errors["base"] = "connection_error"
+
+        return self.async_show_form(
+            step_id="phone_pairing",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("phone_number"): str,
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_show_pairing_code(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Display the pairing code."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                assert self.client is not None
+                connected = await self.client.connect()
+                if connected:
+                    stats = await self.client.get_stats()
+                    my_number = stats.get("my_number")
+                    if my_number:
+                        await self.async_set_unique_id(my_number)
+                        self._abort_if_unique_id_configured()
+
+                    await self.client.close()
+                    return self.async_create_entry(
+                        title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
+                        data={
+                            "session_id": self.session_id,
+                            CONF_URL: self.discovery_info[CONF_URL],
+                            CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                            "system_id": self.discovery_info.get("system_id"),
+                        },
+                    )
+            except Exception:
+                pass
+            errors["base"] = "connection_error"
+
+        return self.async_show_form(
+            step_id="show_pairing_code",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "pairing_code": getattr(self, "pairing_code", "N/A")
+            },
+            errors=errors if errors else None,
         )
 
     @staticmethod

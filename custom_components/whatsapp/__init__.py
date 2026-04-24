@@ -115,12 +115,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This ensures the link works even when accessing HA from a remote device.
     config_url = addon_url
     if "localhost" in addon_url or "127.0.0.1" in addon_url:
-        from homeassistant.helpers.network import get_url
-        from yarl import URL
-
         try:
+            import homeassistant.helpers.network as network_helper
+            from yarl import URL
+
             # We prefer the external URL if configured, otherwise internal
-            ha_base_url = get_url(hass)
+            ha_base_url = network_helper.get_url(hass)
             ha_host = URL(ha_base_url).host
             if ha_host:
                 config_url = str(URL(addon_url).with_host(ha_host))

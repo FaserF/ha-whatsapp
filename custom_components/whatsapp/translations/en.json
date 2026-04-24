@@ -11,7 +11,21 @@
       },
       "scan": {
         "title": "Scan QR Code",
+        "data": {
+          "use_phone_pairing": "Pair with Phone Number instead"
+        },
         "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\n\n![QR Code]({qr_image})\n\n**Please click Submit after successfully scanning the code.**"
+      },
+      "phone_pairing": {
+        "title": "Pair with Phone Number",
+        "data": {
+          "phone_number": "Phone Number (with country code, e.g. 49151...)"
+        },
+        "description": "Enter your phone number to request a pairing code."
+      },
+      "show_pairing_code": {
+        "title": "Pairing Code",
+        "description": "Enter this pairing code in your WhatsApp mobile app: **{pairing_code}**\n\n**Please click Submit after successfully entering the code.**"
       },
       "hassio_confirm": {
         "title": "Install official Add-on",

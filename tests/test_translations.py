@@ -107,8 +107,7 @@ def test_config_flow_keys_translated() -> None:
     for reason in abort_reasons:
         key = f"config.abort.{reason}"
         assert key in strings_data, (
-            f"Abort reason '{reason}' used in code but missing in "
-            f"translations ({key})"
+            f"Abort reason '{reason}' used in code but missing in translations ({key})"
         )
 
     # 2. Check for error keys
@@ -129,13 +128,13 @@ def test_config_flow_keys_translated() -> None:
     for step in steps:
         if step == "init" and "OptionsFlowHandler" in content:
             # This is options flow
-            assert (
-                "options.step.init.title" in strings_data
-            ), "Options step 'init' missing title"
+            assert "options.step.init.title" in strings_data, (
+                "Options step 'init' missing title"
+            )
         else:
-            assert (
-                f"config.step.{step}.title" in strings_data
-            ), f"Config step '{step}' missing title"
+            assert f"config.step.{step}.title" in strings_data, (
+                f"Config step '{step}' missing title"
+            )
 
 
 def test_hardcoded_strings_in_config_flow() -> None:
@@ -189,7 +188,7 @@ def test_hardcoded_strings_in_config_flow() -> None:
             for m in matches:
                 # Filter out ignored patterns
                 if not any(re.search(p, m) for p in ignore_patterns):
-                    errors.append(f"Line {i+1}: Potentially hardcoded string: '{m}'")
+                    errors.append(f"Line {i + 1}: Potentially hardcoded string: '{m}'")
 
     # Specifically check the known hardcoded strings I identified earlier
     for i, line in enumerate(lines):
@@ -198,9 +197,9 @@ def test_hardcoded_strings_in_config_flow() -> None:
             or '"Waiting for QR' in line
             or '"Scan this code' in line
         ):
-            errors.append(f"Line {i+1}: Hardcoded string found: {line.strip()}")
+            errors.append(f"Line {i + 1}: Hardcoded string found: {line.strip()}")
         if "⚠️ CAUTION" in line:
-            errors.append(f"Line {i+1}: Hardcoded string found: {line.strip()}")
+            errors.append(f"Line {i + 1}: Hardcoded string found: {line.strip()}")
 
     # We allow some for now but want to fail eventually
     if errors:

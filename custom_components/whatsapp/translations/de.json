@@ -11,7 +11,21 @@
       },
       "scan": {
         "title": "QR-Code scannen",
+        "data": {
+          "use_phone_pairing": "Stattdessen mit Telefonnummer koppeln"
+        },
         "description": "Bitte scanne den untenstehenden QR-Code mit deiner WhatsApp-Mobil-App (Verknüpfte Geräte).\n\n![QR Code]({qr_image})\n\n**Bitte klicke nach erfolgreichem Scannen auf Absenden.**"
+      },
+      "phone_pairing": {
+        "title": "Mit Telefonnummer koppeln",
+        "data": {
+          "phone_number": "Telefonnummer (mit Ländercode, z.B. 49151...)"
+        },
+        "description": "Gib deine Telefonnummer ein, um einen Kopplungscode anzufordern."
+      },
+      "show_pairing_code": {
+        "title": "Kopplungscode",
+        "description": "Gib diesen Kopplungscode in deiner WhatsApp-Mobil-App ein: **{pairing_code}**\n\n**Bitte klicke nach erfolgreicher Eingabe des Codes auf Absenden.**"
       },
       "hassio_confirm": {
         "title": "Offizielles Add-on installieren",
