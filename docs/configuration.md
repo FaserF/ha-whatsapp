@@ -19,7 +19,7 @@ These settings control how the integration behaves within Home Assistant.
 | Setting                 | Recommendation | Why use this?                                                                             |
 | :---------------------- | :------------- | :---------------------------------------------------------------------------------------- |
 | **Mark as Read**        | `Enabled`      | Automatically shows blue double-checks (✓✓) on your phone when HA receives a message.     |
-| **Allow Self-Messages** | `Optional`     | Enables "Note to Self" mode. Use your own chat to send commands to HA.                    |
+| **Allow Self-Messages** | `Optional`     | Enables "Note to Self" mode. Also allows triggering HA events from your own messages in **Group Chats**. |
 | **Polling Interval**    | `5 seconds`    | How fast HA checks for new messages. `5` is a good balance between speed and battery/CPU. |
 | **Whitelist**           | `Empty`        | List specific numbers (comma separated) to only allow them to interact with your system.  |
 | **Retry Attempts**      | `2`            | If a message fails (e.g. bad internet), HA tries again automatically.                     |
@@ -37,7 +37,9 @@ These settings control the engine (the WhatsApp browser bridge).
 - **Log Level**: Set to `info` for normal use. Use `debug` only if you encounter problems.
 - **Media Folder**: Set to `/media/whatsapp` to permanently save incoming photos/videos. If left blank, files are deleted after 24h.
 - **Mark Online**: If enabled, your WhatsApp status will show "Online" as long as the App is running.
-- **UI Auth**: Highly recommended if you have exposed the App's port (8066) to the internet.
+- **UI Auth**: Optional password protection for the Web UI.
+  - **Security Layer**: If `UI_Auth` is enabled, the App automatically bypasses the password check when accessed via **Home Assistant Ingress** (trusted).
+  - **External Protection**: If `UI_Auth` is disabled, the App restricts access to private network ranges and Ingress only, blocking external (public) access by default for safety.
 
 ---
 

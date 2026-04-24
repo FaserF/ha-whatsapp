@@ -60,7 +60,7 @@ The integration is secured with a token. The easiest way to get it is via the sp
 1. If the API Key is valid, the integration will ask the App to start a session.
 2. Go back to the **Ingress Web UI**. You should see a **QR Code**.
 3. Open WhatsApp on your phone -> **Linked Devices** -> **Link a Device**.
-4. **Scan the QR Code**.
+4. **Scan the QR Code** or use the **"Pair with phone number"** option in the integration/Web UI if scanning is not possible.
 5. The Web UI should update to **"Device Linked ✅"**.
 6. Go back to the Integration setup and click **Submit**.
 

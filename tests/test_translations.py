@@ -25,7 +25,10 @@ def get_translation_files() -> dict[str, pathlib.Path]:
     }
 
 
-@pytest.mark.parametrize("file_key, file_path", get_translation_files().items())  # type: ignore[untyped-decorator]
+@pytest.mark.parametrize(
+    "file_key, file_path",
+    get_translation_files().items(),
+)  # type: ignore[untyped-decorator]
 def test_translation_file_exists(file_key: str, file_path: pathlib.Path) -> None:
     """Verify that the required translation files exist."""
     assert file_path.exists(), f"Translation file {file_key} ({file_path}) is missing!"

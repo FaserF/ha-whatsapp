@@ -46,6 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: 🏷️ Sync Labels
+        if: github.event_name == 'pull_request'
         uses: actions/labeler@v6
         with:
           repo-token: ${{ github.token }}

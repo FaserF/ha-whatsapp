@@ -83,7 +83,8 @@ Now we connect the components and link your device.
 1. After submitting the API Key, the Integration will verify the connection.
 2. The **Integration Setup Dialog** will now display a **QR Code**.
 3. On your phone, open WhatsApp -> **Linked Devices** -> **Link a Device**.
-4. **Scan the QR code shown in the Integration Dialog**.
+    1. **Option A: QR Code (Standard)**: Scan the QR code shown in the Integration Dialog.
+    2. **Option B: Phone Number (Alternative)**: If scanning is difficult, click the button to pair via phone number. Enter your number (with country code, e.g. `49123...`) and a pairing code will be shown which you can enter in WhatsApp on your phone.
 5. The integration will confirm the connection. Click **Finish**.
 
 ---

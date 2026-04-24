@@ -10,8 +10,8 @@ The integration includes a hidden **Diagnostic Test** button that performs a ser
 
 1. Go to **Settings** → **Devices & Services** → **WhatsApp**.
 2. Click on the **1 device** link.
-3. In the **Entities** list, find the entity called `WhatsApp Diagnostic Test` (it is disabled by default).
-4. **Enable** the entity and wait 30 seconds for HA to activate it.
+3. In the **Entities** list, find the entity called `WhatsApp Diagnostic Test` (it is **disabled by default** to avoid accidental triggers).
+4. **Enable** the entity, wait a few seconds, and then you can use it.
 5. Click **Press** on the button.
 
 ### What it tests
