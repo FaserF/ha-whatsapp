@@ -109,9 +109,10 @@ def test_config_flow_keys_translated() -> None:
     abort_reasons = re.findall(r'async_abort\(reason=["\'](\w+)["\']', content)
     for reason in abort_reasons:
         key = f"config.abort.{reason}"
-        assert (
-            key in strings_data
-        ), f"Abort reason '{reason}' used in code but missing in translations ({key})"
+        msg = (
+            f"Abort reason '{reason}' used in code but missing in translations ({key})"
+        )
+        assert key in strings_data, msg
 
     # 2. Check for error keys
     # errors["base"] = "..." or errors["host"] = "..."
@@ -121,23 +122,20 @@ def test_config_flow_keys_translated() -> None:
         key = f"config.error.{err}"
         # Some might be in options.error
         alt_key = f"options.error.{err}"
-        assert key in strings_data or alt_key in strings_data, (
-            f"Error key '{err}' used in code but missing in "
-            f"translations ({key} or {alt_key})"
-        )
+        msg = f"Error key '{err}' used in code but missing in translations"
+        msg += f" ({key} or {alt_key})"
+        assert key in strings_data or alt_key in strings_data, msg
 
     # 3. Check for step titles/descriptions (implicit by step_id)
     steps = re.findall(r'step_id=["\'](\w+)["\']', content)
     for step in steps:
         if step == "init" and "OptionsFlowHandler" in content:
-            # This is options flow
-            assert (
-                "options.step.init.title" in strings_data
-            ), "Options step 'init' missing title"
+            key = "options.step.init.title"
+            msg = "Options step 'init' missing title"
         else:
-            assert (
-                f"config.step.{step}.title" in strings_data
-            ), f"Config step '{step}' missing title"
+            key = f"config.step.{step}.title"
+            msg = f"Config step '{step}' missing title"
+        assert key in strings_data, msg
 
 
 def test_hardcoded_strings_in_config_flow() -> None:
