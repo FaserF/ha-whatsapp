@@ -493,6 +493,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 ) as resp:
                     if resp.status == 200:
                         return cast(dict[str, Any], await resp.json())
+                    if resp.status == 429:
+                        _LOGGER.debug("Fetch chats rate limited by addon cooldown")
+                    else:
+                        _LOGGER.warning("Fetch chats failed: status %s", resp.status)
             except Exception as e:
                 _LOGGER.error("Failed to fetch chats: %s", e)
         return {"total_chats": 0, "groups": []}
@@ -1616,17 +1620,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
+                    if resp.status == 429:
+                        data = await resp.json()
+                        detail = data.get("detail", "Rate limited")
+                        remaining = data.get("cooldown_remaining", "unknown")
+                        raise HomeAssistantError(f"{detail} (Remaining: {remaining}s)")
                     if resp.status == 200:
                         data = await resp.json()
                         return list(data)
-                    _LOGGER.warning("Groups endpoint returned status %s", resp.status)
-                    return []
+                    raise HomeAssistantError(f"Addon error {resp.status}")
             except HomeAssistantError:
                 raise
             except Exception as e:
                 _LOGGER.error("Error fetching groups from addon: %s", e)
                 return []
-        return []
 
     async def mark_as_read(self, number: str, message_id: str | None = None) -> None:
         """Mark a message (or all messages) as read.
