@@ -70,6 +70,15 @@ Since the App handles the WhatsApp connection logic, several diagnostic tools ar
 - **Massive Automations**: If you send hundreds of messages at once, the connection might drop. Ensure the `Message Send Interval` is set to at least `1000ms`.
 - **Queuing**: If messages arrive with a delay, this is normal behavior of the built-in queue to keep your account safe.
 
+### 5. Poll Votes are empty or "Resolution failed"
+
+This is usually a side effect of WhatsApp's End-to-End Encryption (E2EE).
+
+- **Root Cause**: The bot must have the original "Poll Creation" message in its local memory to decrypt votes. If the bot was offline when the poll was sent, or if it was recently restarted and the poll is old, it can't read the vote.
+- **Fix**: Ensure the bot stays online. If the problem persists for **newly created polls**, try a "Reset Session" in the Addon UI to clear potentially corrupted state.
+- **Limitation**: Votes on polls sent while the bot was disconnected can **never** be resolved.
+{: .important }
+
 ---
 
 ## 📞 Support & Logs

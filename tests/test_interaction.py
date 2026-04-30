@@ -220,7 +220,7 @@ def mock_instance_cm(instance: Any) -> MagicMock:
 async def test_quoted_message_payload() -> None:
     """Verify that quotedMessageId is correctly sent in the payload."""
 
-    def mock_async_create_task(coro):
+    def mock_async_create_task(coro: Any) -> MagicMock:
         if asyncio.iscoroutine(coro):
             coro.close()
         return MagicMock()
@@ -291,7 +291,7 @@ async def test_quoted_message_payload() -> None:
 async def test_buttons_payload() -> None:
     """Verify that buttons are correctly sent in the payload."""
 
-    def mock_async_create_task(coro):
+    def mock_async_create_task(coro: Any) -> MagicMock:
         if asyncio.iscoroutine(coro):
             coro.close()
         return MagicMock()

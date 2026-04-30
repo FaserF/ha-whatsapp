@@ -44,6 +44,14 @@ Native WhatsApp Buttons and Polls are relatively new.
 - They look great on **Android** and **iOS**.
 - They might appear as "text links" or not appear at all on older versions of the **WhatsApp Desktop** app or **WhatsApp Web**.
 
+#### 🗳️ Poll Reaction Limitation
+Due to WhatsApp's End-to-End Encryption (E2EE), poll votes (updates) can only be decrypted if the bot has the original "Poll Creation" message in its local memory.
+
+- **Requirement**: The bot must have been **online** when the poll was sent (or sent the poll itself).
+- **Restart**: If the App (addon) is restarted, it attempts to restore the message store from disk. However, if the store was cleared or the poll is very old (evicted from cache), votes for that poll can no longer be resolved.
+- **Result**: If resolution fails, the automation will receive a generic `[Poll Vote] (Resolution failed...)` message instead of the actual choice.
+{: .important }
+
 ### 4. Group IDs
 
 The integration provides a `Chats` sensor which lists all your participating groups and their corresponding `@g.us` IDs in its attributes. You can also use the `whatsapp.search_groups` service to find IDs for your automations.
