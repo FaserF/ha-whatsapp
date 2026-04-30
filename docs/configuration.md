@@ -40,6 +40,27 @@ These settings control the engine (the WhatsApp browser bridge).
 - **UI Auth**: Optional password protection for the Web UI.
   - **Security Layer**: If `UI_Auth` is enabled, the App automatically bypasses the password check when accessed via **Home Assistant Ingress** (trusted).
   - **External Protection**: If `UI_Auth` is disabled, the App restricts access to private network ranges and Ingress only, blocking external (public) access by default for safety.
+- **Message Send Interval**: (Default: `1000ms`) The time to wait between sending messages. Increase this if you experience connection drops during high message volume.
+- **Group Fetch Interval**: (Default: `300000ms` / 5 minutes) How often the app refreshes the group list from WhatsApp servers.
+- **Group Fetch Cooldown (Error)**: (Default: `60000ms` / 1 minute) The back-off time after a failed group fetch before trying again.
+- **Group Fetch Cooldown (Rate Limit)**: (Default: `900000ms` / 15 minutes) The back-off time applied when WhatsApp explicitly rate-limits the group fetch request.
+
+---
+
+## ⚡ Stability & Rate Limiting
+
+To ensure a reliable connection and avoid being flagged by WhatsApp for spam or automated abuse, the app includes a sophisticated rate-limiting system.
+
+### Message Queueing
+All outgoing operations (sending messages, marking as read, setting presence) are **serialized**. This means if your automations trigger 10 messages at once, the app will queue them and send them one by one with a small delay (`Message Send Interval`). 
+
+This prevents "socket flooding" and ensures that the WhatsApp connection remains stable even during high activity.
+
+### Group Fetch Drosseling
+Fetching the list of all participating groups is an expensive operation. To prevent `rate-overlimit` errors (especially during Home Assistant restarts):
+1. **Cache First**: The app uses an in-memory cache. 
+2. **Strict Intervals**: Groups are only fetched from WhatsApp servers once every 5 minutes by default.
+3. **Automatic Back-off**: If WhatsApp signals a rate limit, the app will automatically stop fetching groups for 15 minutes and use cached data instead.
 
 ---
 

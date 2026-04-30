@@ -109,9 +109,9 @@ def test_config_flow_keys_translated() -> None:
     abort_reasons = re.findall(r'async_abort\(reason=["\'](\w+)["\']', content)
     for reason in abort_reasons:
         key = f"config.abort.{reason}"
-        assert (
-            key in strings_data
-        ), f"Abort reason '{reason}' used in code but missing in translations ({key})"
+        assert key in strings_data, (
+            f"Abort reason '{reason}' used in code but missing in translations ({key})"
+        )
 
     # 2. Check for error keys
     # errors["base"] = "..." or errors["host"] = "..."
@@ -131,13 +131,13 @@ def test_config_flow_keys_translated() -> None:
     for step in steps:
         if step == "init" and "OptionsFlowHandler" in content:
             # This is options flow
-            assert (
-                "options.step.init.title" in strings_data
-            ), "Options step 'init' missing title"
+            assert "options.step.init.title" in strings_data, (
+                "Options step 'init' missing title"
+            )
         else:
-            assert (
-                f"config.step.{step}.title" in strings_data
-            ), f"Config step '{step}' missing title"
+            assert f"config.step.{step}.title" in strings_data, (
+                f"Config step '{step}' missing title"
+            )
 
 
 def test_hardcoded_strings_in_config_flow() -> None:

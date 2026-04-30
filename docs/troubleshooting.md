@@ -64,6 +64,12 @@ Since the App handles the WhatsApp connection logic, several diagnostic tools ar
 
 - This usually happens when sending Buttons or Lists to **very old Android versions** or if the WhatsApp session is in a degraded state. Try restarting the Addon.
 
+### 4. "rate-overlimit" or Connection Drops
+
+- **Frequent Restarts**: If you restart Home Assistant many times in a row, WhatsApp might temporarily block group fetching. The app will automatically cool down for 15 minutes. Use the `Chats` sensor to check the status.
+- **Massive Automations**: If you send hundreds of messages at once, the connection might drop. Ensure the `Message Send Interval` is set to at least `1000ms`.
+- **Queuing**: If messages arrive with a delay, this is normal behavior of the built-in queue to keep your account safe.
+
 ---
 
 ## 📞 Support & Logs
