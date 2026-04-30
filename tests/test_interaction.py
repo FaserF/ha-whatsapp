@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import sys
 import types
 from contextlib import ExitStack
@@ -218,7 +219,14 @@ def mock_instance_cm(instance: Any) -> MagicMock:
 
 async def test_quoted_message_payload() -> None:
     """Verify that quotedMessageId is correctly sent in the payload."""
+
+    def mock_async_create_task(coro):
+        if asyncio.iscoroutine(coro):
+            coro.close()
+        return MagicMock()
+
     hass = MagicMock()
+    hass.async_create_task = MagicMock(side_effect=mock_async_create_task)
     hass.services.async_register.side_effect = mock_register
     hass.config_entries.async_forward_entry_setups = AsyncMock()
 
@@ -238,12 +246,16 @@ async def test_quoted_message_payload() -> None:
 
         with (
             patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.start_polling",
+                side_effect=AsyncMock(),
+            ),
+            patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-                return_value=None,
+                side_effect=AsyncMock(),
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-                side_effect=lambda *_: None,
+                side_effect=AsyncMock(),
             ),
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -278,7 +290,14 @@ async def test_quoted_message_payload() -> None:
 
 async def test_buttons_payload() -> None:
     """Verify that buttons are correctly sent in the payload."""
+
+    def mock_async_create_task(coro):
+        if asyncio.iscoroutine(coro):
+            coro.close()
+        return MagicMock()
+
     hass = MagicMock()
+    hass.async_create_task = MagicMock(side_effect=mock_async_create_task)
     hass.services.async_register.side_effect = mock_register
     hass.config_entries.async_forward_entry_setups = AsyncMock()
 
@@ -298,12 +317,16 @@ async def test_buttons_payload() -> None:
 
         with (
             patch(
+                "custom_components.whatsapp.api.WhatsAppApiClient.start_polling",
+                side_effect=AsyncMock(),
+            ),
+            patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-                return_value=None,
+                side_effect=AsyncMock(),
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-                side_effect=lambda *_: None,
+                side_effect=AsyncMock(),
             ),
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
