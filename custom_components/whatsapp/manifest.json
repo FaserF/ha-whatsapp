@@ -1,6 +1,6 @@
 {
   "domain": "whatsapp",
-  "name": "WhatsApp",
+  "name": "WhatsApp Integration",
   "after_dependencies": [
     "hassio"
   ],
