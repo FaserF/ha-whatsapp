@@ -1,1 +1,374 @@
-
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Подключить интеграцию с WhatsApp",
+        "data": {
+          "host": "Ссылка хоста дополнения",
+          "api_key": "Токен API (из интерфейса дополнения)"
+        },
+        "description": "Введите ссылку вашего дополнения WhatsApp.\n\nТипичные Ссылки:\n- `http://localhost:8066` (Docker/Локально)\n- `http://addon-slug:8066` (Дополнение HA)\n\n[Руководство по настройке]({setup_url})"
+      },
+      "scan": {
+        "title": "Отсканируйте QR-код",
+        "data": {
+          "use_phone_pairing": "Выполнить сопряжение с номером телефона"
+        },
+        "description": "Пожалуйста, отсканируйте приведенный ниже QR-код с помощью мобильного приложения WhatsApp (Связанные устройства).\n\n![QR-код]({qr_image})\n\n**Пожалуйста, нажмите «Отправить» после успешного сканирования кода.**"
+      },
+      "phone_pairing": {
+        "title": "Сопряжение с номером телефона",
+        "data": {
+          "phone_number": "Номер телефона (с кодом страны, например: 49151...)"
+        },
+        "description": "Введите номер телефона, чтобы запросить код сопряжения."
+      },
+      "show_pairing_code": {
+        "title": "Код сопряжения",
+        "description": "Введите этот код сопряжения в мобильном приложении WhatsApp: **{pairing_code}**\n\n**Пожалуйста, нажмите «Отправить» после успешного ввода кода.**"
+      },
+      "hassio_confirm": {
+        "title": "Установить официальное дополнение",
+        "data": {
+          "version": "Версия дополнения"
+        },
+        "description": "Вы хотите установить официальное дополнение WhatsApp? Это рекомендуемый способ использования данной интеграции в Home Assistant OS."
+      },
+      "discovery_confirm": {
+        "title": "Подтвердить обнаружение",
+        "description": "Вы хотите настроить **приложение WhatsApp для Home Assistant (ранее — дополнение)**, обнаруженное по адресу `{host}`?"
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось подключиться к аддону WhatsApp. Пожалуйста, убедитесь, что [аддон WhatsApp]({addon_url}) установлен и запущен.",
+      "invalid_auth": "Неверная аутентификация",
+      "connection_error": "Не подключено к WhatsApp. Пожалуйста, сначала отсканируйте QR-код.",
+      "addon_install_error": "Не удалось установить дополнение WhatsApp. Пожалуйста, проверьте журналы Supervisor.",
+      "rate_limit": "Слишком много запросов. Пожалуйста, подождите 15 минут и попробуйте снова.",
+      "unknown": "Непредвиденная ошибка"
+    },
+    "abort": {
+      "already_configured": "Устройство уже настроено.",
+      "single_instance_allowed": "Допускается только один экземпляр этой интеграции.",
+      "missing_dependency": "Отсутствует зависимость для генерации QR-кода.",
+      "invalid_auth": "Неверная аутентификация",
+      "connection_error": "Ошибка подключения",
+      "unknown": "Непредвиденная ошибка"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Настройки WhatsApp",
+        "data": {
+          "debug_payloads": "Отладочные полезные нагрузки (Регистрировать входящие события)",
+          "polling_interval": "Интервал опроса (секунды)",
+          "mask_sensitive_data": "Маскировка конфиденциальных данных в журналах",
+          "mark_as_read": "Отмечать сообщения как прочитанные (отправлять синие галочки)",
+          "api_key": "Ключ API",
+          "retry_attempts": "Попытки повтора (при сбое)",
+          "whitelist": "Разрешенные пользователи/группы (Номера телефонов или ID групп через запятую. Оставьте пустым, чтобы отключить белый список)",
+          "self_messages": "Обрабатывать сообщения от самого себя",
+          "reset_session": "Сбросить сессию (выйти и очистить данные)"
+        },
+        "description": "⚠️ ВНИМАНИЕ: «Сброс сессии» выполнит выход из системы и удалит данные сессии дополнения."
+      }
+    },
+    "error": {
+      "reset_failed": "Не удалось сбросить сессию. Проверьте логи.",
+      "invalid_auth": "Неверная аутентификация"
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Отправить сообщение",
+      "description": "Отправляет текстовое сообщение на номер WhatsApp.",
+      "fields": {
+        "message": {
+          "name": "Сообщение",
+          "description": "Текст для отправки"
+        },
+        "target": {
+          "name": "Номер телефона для отправки",
+          "description": "Номер телефона для отправки."
+        },
+        "account": {
+          "name": "Аккаунт",
+          "description": "Используемый аккаунт WhatsApp (экземпляр сервиса)"
+        },
+        "quote": {
+          "name": "Идентификатор цитируемого сообщения",
+          "description": "Идентификатор сообщения для цитирования или ответа."
+        },
+        "expiration": {
+          "name": "Срок действия (секунды)",
+          "description": "Продолжительность, по истечении которой сообщение исчезает."
+        }
+      }
+    },
+    "send_document": {
+      "name": "Отправить документ",
+      "description": "Отправляет документ (PDF, Zip, Doc и т. д.) на номер WhatsApp.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "Номер телефона или ID группы для отправки."
+        },
+        "url": {
+          "name": "Ссылка",
+          "description": "Ссылка на адрес отправляемого документа."
+        },
+        "file_name": {
+          "name": "Имя файла",
+          "description": "Необязательное переопределение имени файла."
+        },
+        "message": {
+          "name": "Заголовок",
+          "description": "Необязательная текстовая подпись к документу."
+        }
+      }
+    },
+    "send_video": {
+      "name": "Отправить видео",
+      "description": "Отправляет видеофайл на номер WhatsApp.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "Номер телефона или ID группы для отправки."
+        },
+        "url": {
+          "name": "Ссылка",
+          "description": "Ссылка на адрес видео для отправки."
+        },
+        "message": {
+          "name": "Заголовок",
+          "description": "Необязательная текстовая подпись к видео."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Send Audio",
+      "description": "Sends an audio file or voice note.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number or Group ID to send to."
+        },
+        "url": {
+          "name": "Ссылка",
+          "description": "The URL of the audio file."
+        },
+        "ptt": {
+          "name": "Voice Note (PTT)",
+          "description": "Send as a voice note (waveform) instead of audio (file)."
+        },
+        "account": {
+          "name": "Account",
+          "description": "The WhatsApp account to use (Service Instance)."
+        }
+      }
+    },
+    "revoke_message": {
+      "name": "Revoke Message",
+      "description": "Deletes a sent message for everyone.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to revoke."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Edit Message",
+      "description": "Edits the text of a sent message.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number or Group ID the message was sent to."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to edit."
+        },
+        "message": {
+          "name": "New Text",
+          "description": "The new text content for the message."
+        }
+      }
+    },
+    "send_list": {
+      "name": "Send List Message",
+      "description": "Sends an interactive list (action menu).",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number or Group ID."
+        },
+        "title": {
+          "name": "Title",
+          "description": "The title of the menu."
+        },
+        "text": {
+          "name": "Body Text",
+          "description": "The main body text."
+        },
+        "button_text": {
+          "name": "Button Label",
+          "description": "Text for the menu button (e.g. Menu)."
+        },
+        "sections": {
+          "name": "Sections (JSON)",
+          "description": "The sections and rows (JSON list)."
+        }
+      }
+    },
+    "send_contact": {
+      "name": "Send Contact",
+      "description": "Sends a contact card (VCard).",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number or Group ID."
+        },
+        "name": {
+          "name": "Display Name",
+          "description": "The name of the contact."
+        },
+        "contact_number": {
+          "name": "Contact Number",
+          "description": "The phone number of the contact."
+        }
+      }
+    },
+    "configure_webhook": {
+      "name": "Configure Webhook",
+      "description": "Sets the webhook URL for the Addon to push events to.",
+      "fields": {
+        "url": {
+          "name": "Webhook URL",
+          "description": "The URL to push events to."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Enable or disable the webhook."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Optional security token."
+        }
+      }
+    },
+    "send_reaction": {
+      "name": "Send Reaction",
+      "description": "Reacts to a message with an emoji.",
+      "fields": {
+        "reaction": {
+          "name": "Reaction",
+          "description": "The emoji to react with."
+        },
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The phone number of the chat."
+        },
+        "message_id": {
+          "name": "Message ID",
+          "description": "The ID of the message to react to."
+        }
+      }
+    },
+    "update_presence": {
+      "name": "Update Presence",
+      "description": "Updates your presence status (e.g. typing).",
+      "fields": {
+        "presence": {
+          "name": "Presence",
+          "description": "One of: available, unavailable, composing, recording, paused."
+        },
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The chat to update presence for."
+        }
+      }
+    },
+    "send_buttons": {
+      "name": "Send Buttons",
+      "description": "Sends a message with interactive buttons.",
+      "fields": {
+        "target": {
+          "name": "Номер телефона для отправки.",
+          "description": "The chat to send to."
+        },
+        "message": {
+          "name": "Message",
+          "description": "The main text content."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "List of buttons defined as objects with id and displayText."
+        },
+        "footer": {
+          "name": "Footer",
+          "description": "Optional footer text."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sent": {
+        "name": "Messages Sent"
+      },
+      "received": {
+        "name": "Messages Received"
+      },
+      "failed": {
+        "name": "Messages Failed"
+      },
+      "uptime": {
+        "name": "Uptime"
+      },
+      "version": {
+        "name": "WhatsApp Version"
+      },
+      "phone_number": {
+        "name": "Phone Number"
+      },
+      "chats": {
+        "name": "Chats"
+      }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connection"
+      }
+    },
+    "button": {
+      "diagnostic_test": {
+        "name": "Diagnostic Test"
+      }
+    },
+    "notify": {
+      "whatsapp": {
+        "name": "WhatsApp Integration"
+      }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Connection to WhatsApp Addon failed",
+      "description": "The integration cannot reach the WhatsApp Addon at the configured URL. Please ensure the Addon is running and the URL is correct.\n\nError: {error}"
+    },
+    "session_expired": {
+      "title": "WhatsApp session expired",
+      "description": "Your WhatsApp session is no longer active or was terminated on the phone. Please re-pair your device via the Addon Web UI."
+    },
+    "connection_error_baileys": {
+      "title": "WhatsApp connection interrupted",
+      "description": "The WhatsApp Addon is experiencing connection issues (likely a known Baileys library bug). The addon is automatically retrying. No action is needed — this issue will resolve itself once the connection is re-established."
+    }
+  }
+}
