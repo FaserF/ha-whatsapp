@@ -147,172 +147,172 @@
       }
     },
     "send_audio": {
-      "name": "Send Audio",
-      "description": "Sends an audio file or voice note.",
+      "name": "Отправить аудио",
+      "description": "Отправляет аудиофайл или голосовое сообщение.",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number or Group ID to send to."
+          "description": "Номер телефона или ID группы для отправки."
         },
         "url": {
           "name": "Ссылка",
-          "description": "The URL of the audio file."
+          "description": "Ссылка на адрес аудиофайла."
         },
         "ptt": {
-          "name": "Voice Note (PTT)",
-          "description": "Send as a voice note (waveform) instead of audio (file)."
+          "name": "Голосовое сообщение (Режим «Нажми и говори»)",
+          "description": "Отправить как голосовое сообщение (волна) вместо аудио (файл)."
         },
         "account": {
-          "name": "Account",
-          "description": "The WhatsApp account to use (Service Instance)."
+          "name": "Аккаунт",
+          "description": "Используемый аккаунт WhatsApp (экземпляр сервиса)"
         }
       }
     },
     "revoke_message": {
-      "name": "Revoke Message",
-      "description": "Deletes a sent message for everyone.",
+      "name": "Отозвать сообщение",
+      "description": "Удалить отправленное сообщение для всех.",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number or Group ID the message was sent to."
+          "description": "Номер телефона или ID группы, на который было отправлено сообщение."
         },
         "message_id": {
-          "name": "Message ID",
-          "description": "The ID of the message to revoke."
+          "name": "Идентификатор сообщения",
+          "description": "Идентификатор сообщения для отзыва."
         }
       }
     },
     "edit_message": {
-      "name": "Edit Message",
-      "description": "Edits the text of a sent message.",
+      "name": "Редактировать сообщение",
+      "description": "Редактирует текст отправленного сообщения.",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number or Group ID the message was sent to."
+          "description": "Номер телефона или ID группы, на который было отправлено сообщение."
         },
         "message_id": {
-          "name": "Message ID",
-          "description": "The ID of the message to edit."
+          "name": "Идентификатор сообщения",
+          "description": "Идентификатор сообщения для редактирования."
         },
         "message": {
-          "name": "New Text",
-          "description": "The new text content for the message."
+          "name": "Новый текст",
+          "description": "Новое текстовое содержимое сообщения."
         }
       }
     },
     "send_list": {
-      "name": "Send List Message",
-      "description": "Sends an interactive list (action menu).",
+      "name": "Отправить сообщение списку",
+      "description": "Отправляет интерактивный список (меню действий).",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number or Group ID."
+          "description": "Номер телефона или ID группы."
         },
         "title": {
-          "name": "Title",
-          "description": "The title of the menu."
+          "name": "Заголовок",
+          "description": "Название меню"
         },
         "text": {
-          "name": "Body Text",
-          "description": "The main body text."
+          "name": "Основной текст",
+          "description": "Основной текст"
         },
         "button_text": {
-          "name": "Button Label",
-          "description": "Text for the menu button (e.g. Menu)."
+          "name": "Надпись на кнопке",
+          "description": "Текст для кнопки меню (например: Меню)"
         },
         "sections": {
-          "name": "Sections (JSON)",
-          "description": "The sections and rows (JSON list)."
+          "name": "Разделы (JSON)",
+          "description": "Секции и строки (список JSON)."
         }
       }
     },
     "send_contact": {
-      "name": "Send Contact",
-      "description": "Sends a contact card (VCard).",
+      "name": "Отправить контакт",
+      "description": "Отправляет контактную карточку (vCard).",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number or Group ID."
+          "description": "Номер телефона или ID группы."
         },
         "name": {
-          "name": "Display Name",
-          "description": "The name of the contact."
+          "name": "Отображаемое имя",
+          "description": "Имя контакта"
         },
         "contact_number": {
-          "name": "Contact Number",
-          "description": "The phone number of the contact."
+          "name": "Контактный номер",
+          "description": "Номер телефона контактного лица"
         }
       }
     },
     "configure_webhook": {
-      "name": "Configure Webhook",
-      "description": "Sets the webhook URL for the Addon to push events to.",
+      "name": "Настроить веб-хук",
+      "description": "Устанавливает ссылку веб-хука, на который дополнение будет отправлять события.",
       "fields": {
         "url": {
-          "name": "Webhook URL",
-          "description": "The URL to push events to."
+          "name": "Ссылка веб-хука",
+          "description": "Ссылка для отправки событий"
         },
         "enabled": {
-          "name": "Enabled",
-          "description": "Enable or disable the webhook."
+          "name": "Включено",
+          "description": "Включить или отключить веб-хук."
         },
         "token": {
-          "name": "Token",
-          "description": "Optional security token."
+          "name": "Токен",
+          "description": "Необязательный токен безопасности"
         }
       }
     },
     "send_reaction": {
-      "name": "Send Reaction",
-      "description": "Reacts to a message with an emoji.",
+      "name": "Отправить реакцию",
+      "description": "Реагирует на сообщение эмодзи.",
       "fields": {
         "reaction": {
-          "name": "Reaction",
-          "description": "The emoji to react with."
+          "name": "Реакция",
+          "description": "Эмодзи для реакции"
         },
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The phone number of the chat."
+          "description": "Номер телефона чата"
         },
         "message_id": {
-          "name": "Message ID",
-          "description": "The ID of the message to react to."
+          "name": "Идентификатор сообщения",
+          "description": "Идентификатор сообщения, на которое нужно отреагировать."
         }
       }
     },
     "update_presence": {
-      "name": "Update Presence",
-      "description": "Updates your presence status (e.g. typing).",
+      "name": "Обновить статус",
+      "description": "Обновляет ваш статус присутствия (например, «печатает»).",
       "fields": {
         "presence": {
-          "name": "Presence",
-          "description": "One of: available, unavailable, composing, recording, paused."
+          "name": "Присутствие",
+          "description": "Одно из значений: доступен, недоступен, набирает текст, записывает, на паузе."
         },
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The chat to update presence for."
+          "description": "Чат, для которого обновляется статус присутствия."
         }
       }
     },
     "send_buttons": {
-      "name": "Send Buttons",
-      "description": "Sends a message with interactive buttons.",
+      "name": "Кнопки отправки",
+      "description": "Отправляет сообщение с интерактивными кнопками.",
       "fields": {
         "target": {
           "name": "Номер телефона для отправки.",
-          "description": "The chat to send to."
+          "description": "Чат для отправки"
         },
         "message": {
-          "name": "Message",
-          "description": "The main text content."
+          "name": "Сообщение",
+          "description": "Основное текстовое содержание"
         },
         "buttons": {
-          "name": "Buttons",
-          "description": "List of buttons defined as objects with id and displayText."
+          "name": "Кнопки",
+          "description": "Список кнопок, определенных как объекты с ID и отображаемым текстом."
         },
         "footer": {
-          "name": "Footer",
-          "description": "Optional footer text."
+          "name": "Футер",
+          "description": "Необязательный текст футера."
         }
       }
     }
@@ -320,55 +320,55 @@
   "entity": {
     "sensor": {
       "sent": {
-        "name": "Messages Sent"
+        "name": "Отправленные сообщения"
       },
       "received": {
-        "name": "Messages Received"
+        "name": "Полученные сообщения"
       },
       "failed": {
-        "name": "Messages Failed"
+        "name": "Сообщения не отправлены"
       },
       "uptime": {
-        "name": "Uptime"
+        "name": "Время безотказной работы"
       },
       "version": {
-        "name": "WhatsApp Version"
+        "name": "Версия WhatsApp"
       },
       "phone_number": {
-        "name": "Phone Number"
+        "name": "Номер телефона"
       },
       "chats": {
-        "name": "Chats"
+        "name": "Чаты"
       }
     },
     "binary_sensor": {
       "connection": {
-        "name": "Connection"
+        "name": "Соединение"
       }
     },
     "button": {
       "diagnostic_test": {
-        "name": "Diagnostic Test"
+        "name": "Диагностический тест"
       }
     },
     "notify": {
       "whatsapp": {
-        "name": "WhatsApp Integration"
+        "name": "Интеграция с WhatsApp"
       }
     }
   },
   "issues": {
     "connection_failed": {
-      "title": "Connection to WhatsApp Addon failed",
-      "description": "The integration cannot reach the WhatsApp Addon at the configured URL. Please ensure the Addon is running and the URL is correct.\n\nError: {error}"
+      "title": "Не удалось подключиться к аддону WhatsApp.",
+      "description": "Интеграция не может подключиться к аддону WhatsApp по настроенной ссылке. Пожалуйста, убедитесь, что аддон запущен, а ссылка указана верно.\n\nОшибка: {error}"
     },
     "session_expired": {
-      "title": "WhatsApp session expired",
-      "description": "Your WhatsApp session is no longer active or was terminated on the phone. Please re-pair your device via the Addon Web UI."
+      "title": "Срок действия сеанса WhatsApp истек",
+      "description": "Ваша сессия WhatsApp больше не активна или была завершена на телефоне. Пожалуйста, выполните повторное сопряжение устройства через веб-интерфейс дополнения."
     },
     "connection_error_baileys": {
-      "title": "WhatsApp connection interrupted",
-      "description": "The WhatsApp Addon is experiencing connection issues (likely a known Baileys library bug). The addon is automatically retrying. No action is needed — this issue will resolve itself once the connection is re-established."
+      "title": "Соединение с WhatsApp прервано",
+      "description": "В дополнении WhatsApp наблюдаются проблемы с подключением (вероятно, известный баг библиотеки Baileys). Дополнение автоматически выполняет повторную попытку. Никаких действий не требуется — проблема разрешится сама собой, как только соединение будет восстановлено."
     }
   }
 }
