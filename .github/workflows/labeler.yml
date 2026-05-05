@@ -1,0 +1,20 @@
+name: Labeler
+
+on:
+  pull_request_target:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: 🏷️ Sync Labels
+        uses: actions/labeler@v6
+        with:
+          repo-token: ${{ github.token }}
+          sync-labels: true

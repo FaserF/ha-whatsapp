@@ -13,7 +13,7 @@
 
 | Component                | Version                                                                                                                                                                                                                                                                               | Status     |
 | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------- |
-| **App (Stable)**         | [![App Version](https://img.shields.io/github/v/release/FaserF/hassio-addons?filter=whatsapp&label=App&style=flat-square)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)                                                                                              | engine     |
+| **App (Stable)**         | [![App Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fmaster%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=App&style=flat-square&color=blue)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)                                                                                              | engine     |
 | **App (Edge)**           | [![App Edge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FFaserF%2Fhassio-addons%2Fedge%2Fwhatsapp%2Fconfig.yaml&query=%24.version&label=Edge&style=flat-square&color=orange)](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp) | engine-dev |
 | **Integration (Stable)** | [![Integration Stable](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?style=flat-square&label=Stable)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                                                    | interface  |
 | **Integration (Beta)**   | [![Integration Beta](https://img.shields.io/github/v/release/FaserF/ha-whatsapp?include_prereleases&style=flat-square&label=Beta&color=orange)](https://github.com/FaserF/ha-whatsapp/releases)                                                                                       | testing    |
@@ -81,6 +81,7 @@
 - **🛡️ Native Control**: Built-in commands (`ha-app-*`) to check status, restart, or run diagnostics directly via WhatsApp.
 - **🔔 Admin Alerts**: Proactive system notifications for WhatsApp loss/restore and HA Core/Integration updates.
 - **🌍 Localization**: Full native support for English and German (DE/EN).
+  - *Note: Official support is only guaranteed for EN + DE. Russian (RU) translations are provided as a community contribution by [vlad36N](https://github.com/vlad36N) via [#43](https://github.com/FaserF/ha-whatsapp/pull/43).*
 
 ---
 

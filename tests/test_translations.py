@@ -18,11 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 def get_translation_files() -> dict[str, pathlib.Path]:
     """Return a list of translation files to check."""
-    return {
+    files = {
         "strings": COMPONENT_DIR / "strings.json",
-        "en": TRANSLATIONS_DIR / "en.json",
-        "de": TRANSLATIONS_DIR / "de.json",
     }
+    for file in TRANSLATIONS_DIR.glob("*.json"):
+        files[file.stem] = file
+    return files
 
 
 @pytest.mark.parametrize(
@@ -55,37 +56,39 @@ def flatten_dict(
 
 
 def test_translation_consistency() -> None:
-    """Verify that all keys in strings.json are present in en.json and de.json."""
+    """Verify that all keys in strings.json are present in translation files."""
     files = get_translation_files()
 
-    # Skip if files don't exist (handled by other test)
-    if not all(p.exists() for p in files.values()):
-        pytest.skip("Missing translation files, skipping consistency test.")
+    if not files["strings"].exists():
+        pytest.skip("strings.json missing")
 
     strings_data: dict[str, Any] = flatten_dict(load_json(files["strings"]))
-    en_data: dict[str, Any] = flatten_dict(load_json(files["en"]))
-    de_data: dict[str, Any] = flatten_dict(load_json(files["de"]))
-
     strings_keys = set(strings_data.keys())
-    en_keys = set(en_data.keys())
-    de_keys = set(de_data.keys())
-
-    # 1. Check if en.json matches strings.json
-    missing_in_en = strings_keys - en_keys
-
-    # 2. Check if de.json matches strings.json (or en.json)
-    missing_in_de = strings_keys - de_keys
 
     errors: list[str] = []
-    if missing_in_en:
-        errors.append(
-            f"Keys in strings.json missing in en.json: {sorted(missing_in_en)}"
-        )
-    if missing_in_de:
-        errors.append(
-            f"Keys in strings.json missing in de.json: {sorted(missing_in_de)}"
-        )
+    warnings: list[str] = []
 
+    for lang, path in files.items():
+        if lang == "strings":
+            continue
+
+        data: dict[str, Any] = flatten_dict(load_json(path))
+        keys = set(data.keys())
+        missing_keys = strings_keys - keys
+
+        if missing_keys:
+            msg = f"Keys in strings.json missing in {lang}.json: {sorted(missing_keys)}"
+            if lang in ["en", "de"]:
+                errors.append(msg)
+            else:
+                warnings.append(msg)
+
+    # Log warnings for community translations
+    if warnings:
+        for warning in warnings:
+            _LOGGER.warning(warning)
+
+    # Fail for official translations (EN/DE)
     assert not errors, "\n".join(errors)
 
 
