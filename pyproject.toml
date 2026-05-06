@@ -14,7 +14,7 @@ python = "^3.12"
 pytest = "^9.0.0"
 pytest-homeassistant-custom-component = "^0.13"
 ruff = "^0.15.0"
-mypy = "^1.0"
+mypy = "^2.0.0"
 black = "^26.0.0"
 
 [build-system]
