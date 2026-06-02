@@ -29,9 +29,25 @@ This project uses **Baileys**, which simulates a **WhatsApp Web** client. It doe
 
 ## 📦 Technical Limitations
 
-### 1. One Session per App
+### 1. One Session per App & Multi-Account Support
 
-Currently, one instance of the WhatsApp Home Assistant App can only be paired with **one** phone number at a time. If you need to manage multiple numbers, you would need to run multiple App instances (if supported by your environment).
+Currently, one instance of the WhatsApp Home Assistant App can only be paired with **one** phone number at a time. If you need to manage multiple numbers, you must run multiple App instances (if supported by your environment).
+
+#### 📱 How to run a second/dedicated WhatsApp number for Home Assistant
+Most users do not want to use their primary WhatsApp number for Home Assistant notifications. If you want to use a separate/dedicated number (e.g., using a second SIM card, eSIM, or landline number) without uninstalling your main WhatsApp, you can use the following methods:
+
+1. **WhatsApp Business (Recommended & Easiest)**:
+   You can download the official **WhatsApp Business** app from the Google Play Store or Apple App Store. It can run side-by-side with your standard WhatsApp app on the same phone. Register your second number on WhatsApp Business, pair it with the Home Assistant Add-on via QR code, and you are done.
+2. **Work Profiles & App Cloners (Android)**:
+   If you want to run a second copy of standard WhatsApp, you can use a Work Profile app like **[Island](https://play.google.com/store/apps/details?id=com.oasisfeng.island)** or **Shelter**. These apps create an isolated sandbox/work profile on your phone, letting you install and run a second, completely separate instance of WhatsApp.
+3. **Manufacturer Dual Apps**:
+   Many Android phone manufacturers include a built-in feature to clone apps (e.g., Samsung's *Dual Messenger*, OnePlus's *Parallel Apps*, or Xiaomi's *Dual Apps*). Search your phone settings for these options to easily clone WhatsApp.
+
+> **💡 Sim Card / Activation Note**
+> You only need the physical SIM card (or eSIM) inside a phone during the initial SMS activation of WhatsApp. Once the second WhatsApp account is activated on your phone and paired with Home Assistant, the SIM card does not need to stay inside the phone. However, the WhatsApp app on the phone must remain active.
+> {: .tip }
+
+---
 
 ### 2. Media Uploads
 
@@ -50,7 +66,7 @@ Due to WhatsApp's End-to-End Encryption (E2EE), poll votes (updates) can only be
 - **Requirement**: The bot must have been **online** when the poll was sent (or sent the poll itself).
 - **Restart**: If the App (addon) is restarted, it attempts to restore the message store from disk. However, if the store was cleared or the poll is very old (evicted from cache), votes for that poll can no longer be resolved.
 - **Result**: If resolution fails, the automation will receive a generic `[Poll Vote] (Resolution failed...)` message instead of the actual choice.
-{: .important }
+- {: .important }
 
 ### 4. Group IDs
 
@@ -62,13 +78,16 @@ The integration provides a `Chats` sensor which lists all your participating gro
 
 ---
 
-## 🔄 Interaction with other Clients
+## 🔄 Interaction with other Clients & Disconnection Rules
 
-Since this App acts as a "Linked Device":
+Since this App acts as a "Linked Device" (similar to WhatsApp Web or Desktop):
 
 - You can still use WhatsApp on your phone as usual.
 - Messages sent by the App will appear in your chat history on your phone.
-- If you log out "All Devices" from your phone, the App will also be disconnected.
+- **The 14-Day Inactivity Rule**: WhatsApp requires your main device (the phone where WhatsApp is registered) to connect to the internet **at least once every 14 days**. If your phone is offline or has no internet connection for more than 14 days, WhatsApp will automatically log out all linked devices (including this Home Assistant App).
+- **Device Switches & Re-registration**: If you switch your phone, reinstall WhatsApp on your phone, or re-register WhatsApp (e.g. using a different number or resetting the device), WhatsApp immediately revokes all current linked device sessions. You will need to re-scan the QR code to pair the Home Assistant App again.
+- If you manually select "Log out" from the linked devices list on your phone, the App will be disconnected immediately.
+
 
 ---
 
