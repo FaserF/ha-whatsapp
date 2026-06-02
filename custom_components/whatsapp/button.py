@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import WhatsAppDataUpdateCoordinator
+from .coordinator import WhatsAppDataUpdateCoordinator as WACoordinator
 
 
 async def async_setup_entry(
@@ -21,21 +21,21 @@ async def async_setup_entry(
 ) -> None:
     """Set up the WhatsApp button platform."""
     data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
+    coordinator: WACoordinator = data["coordinator"]
     async_add_entities([WhatsAppTestButton(coordinator)])
 
 
-class WhatsAppTestButton(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], ButtonEntity
-):  # type: ignore[misc]
+class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # type: ignore
     """Diagnostic button for WhatsApp integration."""
+
+    coordinator: WACoordinator
 
     _attr_has_entity_name = True
     _attr_translation_key = "diagnostic_test"
     _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:flask-outline"
 
-    def __init__(self, coordinator: WhatsAppDataUpdateCoordinator) -> None:
+    def __init__(self, coordinator: WACoordinator) -> None:
         """Initialize the button."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_diagnostic_test"
