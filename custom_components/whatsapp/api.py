@@ -294,7 +294,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     url,
                     headers=headers,
                     params=params,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -319,7 +319,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     url,
                     headers=headers,
                     params=params,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
@@ -456,7 +456,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     url,
                     headers=headers,
                     params=params,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 401:
                         _LOGGER.error(
@@ -497,7 +497,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     url,
                     headers=headers,
                     params=params,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 200:
                         return cast(dict[str, Any], await resp.json())
@@ -516,7 +516,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             try:
                 async with session.get(
                     url,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 200:
                         return cast(dict[str, Any], await resp.json())
