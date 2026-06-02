@@ -10,9 +10,11 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow, FlowResult
+from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import WhatsAppApiClient
 from .const import (
@@ -48,7 +50,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         # Check if we are starting fresh (no accounts)
         # If so, we use 'default' as the session_id for better UX
@@ -58,7 +60,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # Check if we are running in Hass.io
         is_hassio_env = False
         try:
-            from homeassistant.components.hassio import is_hassio
+            from homeassistant.components.hassio import (
+                is_hassio,  # type: ignore[attr-defined]
+            )
 
             is_hassio_env = is_hassio(self.hass)
         except (ImportError, AttributeError):
@@ -70,7 +74,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             and not self.context.get("hassio_checked")
             and not self.discovery_info.get(CONF_URL)
         ):
-            self.context["hassio_checked"] = True
+            self.context["hassio_checked"] = True  # type: ignore[typeddict-unknown-key]
             return await self.async_step_hassio()
 
         # Support multiple instances
@@ -204,7 +208,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def async_step_scan(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Display the QR code."""
         if not self.client:
             return self.async_abort(reason="unknown")
@@ -353,7 +357,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def async_step_phone_pairing(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle phone pairing."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -379,7 +383,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def async_step_show_pairing_code(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Display the pairing code."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -429,13 +433,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         try:
             from homeassistant.components.hassio import AddonManager
 
-            return AddonManager(self.hass, slug, ADDON_NAME)
+            return AddonManager(self.hass, _LOGGER, slug, ADDON_NAME)
         except (ImportError, AttributeError):
             return None
 
-    async def async_step_hassio(
+    async def async_step_hassio(  # type: ignore[override]
         self, _user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle Hass.io discovery."""
         try:
             from homeassistant.components.hassio import AddonState
@@ -484,7 +488,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
     async def async_step_hassio_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Confirm installation of the official addon."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -529,8 +533,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
 
     async def async_step_zeroconf(
-        self, discovery_info: config_entries.ZeroconfServiceInfo
-    ) -> FlowResult:
+        self, discovery_info: ZeroconfServiceInfo
+    ) -> ConfigFlowResult:  # type: ignore[override]
         """Handle zeroconf discovery."""
         host = discovery_info.host
         port = discovery_info.port
@@ -568,14 +572,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             {
                 "title_placeholders": {"host": suggested_url},
                 "hassio_checked": True,  # Avoid jumping to Hassio install step
-            }
+            }  # type: ignore[typeddict-item]
         )
 
         return await self.async_step_discovery_confirm()
 
     async def async_step_discovery_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Confirm discovery."""
         if user_input is not None:
             return await self.async_step_user()
@@ -638,7 +642,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage the options."""
         errors: dict[str, str] = {}
 
