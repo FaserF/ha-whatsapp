@@ -39,7 +39,9 @@ async def test_repair_flow_reconnect_success() -> None:
     with (
         patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
-        patch("custom_components.whatsapp.repairs.ir.async_delete_issue") as mock_delete_issue,
+        patch(
+            "custom_components.whatsapp.repairs.ir.async_delete_issue"
+        ) as mock_delete_issue,
     ):
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
@@ -57,6 +59,4 @@ async def test_repair_flow_reconnect_success() -> None:
         assert result["type"] == FlowResultType.CREATE_ENTRY
 
         # Verify issue is cleared
-        mock_delete_issue.assert_called_with(
-            hass, DOMAIN, "connection_failed"
-        )
+        mock_delete_issue.assert_called_with(hass, DOMAIN, "connection_failed")
