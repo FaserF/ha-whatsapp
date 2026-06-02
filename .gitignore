@@ -16,3 +16,4 @@ test_api_isolated_v2.py
 test_api_signature.py
 /.mypy_cache
 *.log
+uv.lock

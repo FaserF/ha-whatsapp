@@ -353,6 +353,12 @@ def _build_ha_stub_modules() -> None:
         async_entries_for_config_entry=MagicMock(),
     )
 
+    # homeassistant.helpers.device_registry
+    _stub(
+        "homeassistant.helpers.device_registry",
+        DeviceInfo=dict,
+    )
+
     # homeassistant.helpers.issue_registry
     ir_mod = _stub(
         "homeassistant.helpers.issue_registry",
@@ -421,6 +427,7 @@ def _build_ha_stub_modules() -> None:
     ]
     ha.helpers.config_validation = cv_mod
     ha.helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]
+    ha.helpers.device_registry = sys.modules["homeassistant.helpers.device_registry"]
     ha.helpers.issue_registry = ir_mod
     ha.helpers.entity_platform = platform_mod
     ha.helpers.typing = sys.modules["homeassistant.helpers.typing"]
