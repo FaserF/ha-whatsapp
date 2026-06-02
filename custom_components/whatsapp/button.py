@@ -25,10 +25,10 @@ async def async_setup_entry(
     async_add_entities([WhatsAppTestButton(coordinator)])
 
 
-class WhatsAppTestButton(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator], ButtonEntity
-):  # type: ignore[misc]
+class WhatsAppTestButton(CoordinatorEntity[WhatsAppDataUpdateCoordinator], ButtonEntity):  # type: ignore
     """Diagnostic button for WhatsApp integration."""
+
+    coordinator: WhatsAppDataUpdateCoordinator
 
     _attr_has_entity_name = True
     _attr_translation_key = "diagnostic_test"
