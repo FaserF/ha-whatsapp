@@ -32,7 +32,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
     to add more sophisticated multi-step flows for specific issue types.
     """
 
-    def __init__(self, issue_id: str | None = None) -> None:
+    def __init__(self, issue_id: str) -> None:
         """Initialize."""
         super().__init__()
         self.issue_id = issue_id
@@ -67,8 +67,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
         if user_input is not None:
             # Clear the issue
             if self.issue_id:
-                issue_reg = ir.async_get(self.hass)
-                issue_reg.async_delete_issue(DOMAIN, self.issue_id)
+                ir.async_delete_issue(self.hass, DOMAIN, self.issue_id)
             return self.async_create_entry(title="", data={})
 
         return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}))

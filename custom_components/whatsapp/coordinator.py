@@ -45,6 +45,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
     automatically whenever new data is fetched.
     """
 
+    client: WhatsAppApiClient
+
     def __init__(
         self,
         hass: HomeAssistant,

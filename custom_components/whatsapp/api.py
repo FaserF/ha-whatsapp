@@ -30,6 +30,7 @@ from typing import Any, cast
 
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 
@@ -215,7 +216,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     def _normalize_url(self, url: str) -> str:
         """Prepend HA base URL to relative URLs starting with '/'."""
-        if url and url.startswith("/") and not url.startswith("//") and self.ha_base_url:
+        if (
+            url
+            and url.startswith("/")
+            and not url.startswith("//")
+            and self.ha_base_url
+        ):
             return f"{self.ha_base_url.rstrip('/')}{url}"
         return url
 
@@ -420,21 +426,21 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Return the reason for the last disconnection, if any."""
         return self._disconnect_reason
 
-    def get_device_info(self) -> dict[str, Any]:
+    def get_device_info(self) -> DeviceInfo:
         """Return device information for HA."""
         name = f"WhatsApp ({self.session_id})"
         number = self.stats.get("my_number")
         if number and number != "Unknown":
             name = f"WhatsApp ({number})"
 
-        return {
-            "identifiers": {(DOMAIN, self.session_id)},
-            "name": name,
-            "manufacturer": "WhatsApp",
-            "model": "WhatsApp API",
-            "sw_version": self.stats.get("version"),
-            "configuration_url": self.config_url,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.session_id)},
+            name=name,
+            manufacturer="WhatsApp",
+            model="WhatsApp API",
+            sw_version=self.stats.get("version"),
+            configuration_url=self.config_url,
+        )
 
     def get_my_jid(self) -> str | None:
         """Return the JID for the current session."""

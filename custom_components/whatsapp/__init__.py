@@ -49,7 +49,7 @@ _SERVICES_REGISTERED = False
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
-    getattr(Platform, "BUTTON", "button"),
+    Platform.BUTTON,
     Platform.NOTIFY,
     Platform.SENSOR,
 ]
@@ -116,6 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ha_base_url = None
     try:
         import homeassistant.helpers.network as network_helper
+
         ha_base_url = network_helper.get_url(hass)
     except Exception:  # pylint: disable=broad-except
         _LOGGER.debug("Could not resolve HA URL", exc_info=True)

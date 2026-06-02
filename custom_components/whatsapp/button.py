@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from typing import cast
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -26,7 +25,9 @@ async def async_setup_entry(
     async_add_entities([WhatsAppTestButton(coordinator)])
 
 
-class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
+class WhatsAppTestButton(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator], ButtonEntity
+):  # type: ignore[misc]
     """Diagnostic button for WhatsApp integration."""
 
     _attr_has_entity_name = True
@@ -139,18 +140,13 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
 
     async def _test_text(self, jid: str) -> str:
         """Test sending a text message."""
-        return cast(
-            str,
-            await self.coordinator.client.send_message(
-                jid, "🤖 WhatsApp Diagnostic: Text Message Test"
-            ),
+        return await self.coordinator.client.send_message(
+            jid, "🤖 WhatsApp Diagnostic: Text Message Test"
         )
 
     async def _test_reaction(self, jid: str, message_id: str) -> str:
         """Test sending a reaction."""
-        return cast(
-            str, await self.coordinator.client.send_reaction(jid, "✅", message_id)
-        )
+        return await self.coordinator.client.send_reaction(jid, "✅", message_id)
 
     async def _test_buttons(self, jid: str) -> None:
         """Test sending buttons."""
@@ -187,11 +183,8 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
 
     async def _test_location(self, jid: str) -> str:
         """Test sending location."""
-        return cast(
-            str,
-            await self.coordinator.client.send_location(
-                jid, 48.1351, 11.5820, "Marienplatz", "Munich"
-            ),
+        return await self.coordinator.client.send_location(
+            jid, 48.1351, 11.5820, "Marienplatz", "Munich"
         )
 
     async def _test_delete(self, jid: str) -> str:
@@ -203,4 +196,4 @@ class WhatsAppTestButton(CoordinatorEntity, ButtonEntity):  # type: ignore[misc]
             raise ValueError("Failed to get message ID for deletion test")
         # For diagnostic, let's just wait 2s to simulate.
         await asyncio.sleep(2)
-        return cast(str, await self.coordinator.client.revoke_message(jid, msg_id))
+        return await self.coordinator.client.revoke_message(jid, msg_id)
