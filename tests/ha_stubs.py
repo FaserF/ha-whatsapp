@@ -359,6 +359,20 @@ def _build_ha_stub_modules() -> None:
         DeviceInfo=dict,
     )
 
+    # homeassistant.helpers.service_info.zeroconf
+    _stub(
+        "homeassistant.helpers.service_info.zeroconf",
+        ZeroconfServiceInfo=MagicMock,
+    )
+
+    # homeassistant.components.hassio
+    _stub(
+        "homeassistant.components.hassio",
+        is_hassio=lambda _: False,
+        AddonManager=MagicMock,
+        AddonState=MagicMock(NOT_INSTALLED="not_installed"),
+    )
+
     # homeassistant.helpers.issue_registry
     ir_mod = _stub(
         "homeassistant.helpers.issue_registry",
@@ -400,6 +414,7 @@ def _build_ha_stub_modules() -> None:
         ConfigEntry=object,
         ConfigFlow=ConfigFlow,
         OptionsFlow=OptionsFlow,
+        ConfigFlowResult=dict,
         SOURCE_USER="user",
         SOURCE_REAUTH="reauth",
     )
@@ -428,6 +443,10 @@ def _build_ha_stub_modules() -> None:
     ha.helpers.config_validation = cv_mod
     ha.helpers.entity_registry = sys.modules["homeassistant.helpers.entity_registry"]
     ha.helpers.device_registry = sys.modules["homeassistant.helpers.device_registry"]
+    ha.helpers.service_info = _stub("homeassistant.helpers.service_info")
+    ha.helpers.service_info.zeroconf = sys.modules[
+        "homeassistant.helpers.service_info.zeroconf"
+    ]
     ha.helpers.issue_registry = ir_mod
     ha.helpers.entity_platform = platform_mod
     ha.helpers.typing = sys.modules["homeassistant.helpers.typing"]
@@ -435,6 +454,7 @@ def _build_ha_stub_modules() -> None:
     components = _stub("homeassistant.components")
     ha.components = components
     components.notify = sys.modules["homeassistant.components.notify"]
+    components.hassio = sys.modules["homeassistant.components.hassio"]
 
     # components.binary_sensor / sensor
     _stub(
