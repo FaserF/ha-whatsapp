@@ -113,14 +113,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Resolve localhost/127.0.0.1 for the 'Visit' button to the HA URL if possible
     # This ensures the link works even when accessing HA from a remote device.
+    ha_base_url = None
+    try:
+        import homeassistant.helpers.network as network_helper
+        ha_base_url = network_helper.get_url(hass)
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.debug("Could not resolve HA URL", exc_info=True)
+
     config_url = addon_url
-    if "localhost" in addon_url or "127.0.0.1" in addon_url:
+    if ("localhost" in addon_url or "127.0.0.1" in addon_url) and ha_base_url:
         try:
-            import homeassistant.helpers.network as network_helper
             from yarl import URL
 
-            # We prefer the external URL if configured, otherwise internal
-            ha_base_url = network_helper.get_url(hass)
             ha_host = URL(ha_base_url).host
             if ha_host:
                 config_url = str(URL(addon_url).with_host(ha_host))
@@ -139,6 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         mask_sensitive_data=mask_sensitive_data,
         whitelist=whitelist,
         config_url=config_url,
+        ha_base_url=ha_base_url,
     )
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)

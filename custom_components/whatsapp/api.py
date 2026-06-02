@@ -77,10 +77,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         mask_sensitive_data: bool = False,
         whitelist: list[str] | None = None,
         config_url: str | None = None,
+        ha_base_url: str | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
         self.config_url = config_url.rstrip("/") if config_url else self.host
+        self.ha_base_url = ha_base_url
         self.api_key = api_key
         self.session_id = session_id
         self.mask_sensitive_data = mask_sensitive_data
@@ -210,6 +212,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     def _mask(self, text: str) -> str:
         """Deprecated: use mask()."""
         return self.mask(text)
+
+    def _normalize_url(self, url: str) -> str:
+        """Prepend HA base URL to relative URLs starting with '/'."""
+        if url and url.startswith("/") and not url.startswith("//") and self.ha_base_url:
+            return f"{self.ha_base_url.rstrip('/')}{url}"
+        return url
 
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
@@ -789,7 +797,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/send_image"
         payload: dict[str, Any] = {
             "number": number,
-            "url": image_url,
+            "url": self._normalize_url(image_url),
             "caption": caption,
         }
         if quoted_message_id is not None:
@@ -872,7 +880,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         api_url = f"{self.host}/send_document"
         payload: dict[str, Any] = {
             "number": number,
-            "url": url,
+            "url": self._normalize_url(url),
             "fileName": file_name,
             "caption": caption,
         }
@@ -939,7 +947,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         api_url = f"{self.host}/send_video"
         payload: dict[str, Any] = {
             "number": number,
-            "url": url,
+            "url": self._normalize_url(url),
             "caption": caption,
         }
         if quoted_message_id is not None:
@@ -1016,7 +1024,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         api_url = f"{self.host}/send_audio"
         payload: dict[str, Any] = {
             "number": number,
-            "url": url,
+            "url": self._normalize_url(url),
             "ptt": ptt,
         }
         if quoted_message_id is not None:
