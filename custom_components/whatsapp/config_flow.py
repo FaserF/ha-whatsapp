@@ -60,8 +60,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # Check if we are running in Hass.io
         is_hassio_env = False
         try:
-            from homeassistant.components.hassio import (
-                is_hassio,  # type: ignore[attr-defined]
+            from homeassistant.components.hassio import (  # type: ignore[attr-defined]
+                is_hassio,
             )
 
             is_hassio_env = is_hassio(self.hass)
