@@ -119,10 +119,11 @@ async def test_send_media(api_client: WhatsAppApiClient) -> None:
         # Video
         mock_session.post.reset_mock()
         await api_client.send_video(
-            "12345", "http://vid.mp4", "caption", expiration=3600
+            "12345", "http://vid.mp4", "caption", expiration=3600, seconds=45
         )
         assert "/send_video" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+        assert mock_session.post.call_args[1]["json"]["seconds"] == 45
 
         # Document
         mock_session.post.reset_mock()
@@ -135,10 +136,11 @@ async def test_send_media(api_client: WhatsAppApiClient) -> None:
         # Audio
         mock_session.post.reset_mock()
         await api_client.send_audio(
-            "12345", "http://aud.mp3", ptt=True, expiration=3600
+            "12345", "http://aud.mp3", ptt=True, expiration=3600, seconds=90
         )
         assert "/send_audio" in mock_session.post.call_args[0][0]
         assert mock_session.post.call_args[1]["json"]["expiration"] == 3600
+        assert mock_session.post.call_args[1]["json"]["seconds"] == 90
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]

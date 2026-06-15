@@ -922,6 +922,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        seconds: int | None = None,
     ) -> str:
         """Send a video (with retry)."""
         if not self.is_allowed(number):
@@ -938,6 +939,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 caption,
                 quoted_message_id,
                 expiration,
+                seconds,
             ),
         )
 
@@ -948,6 +950,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        seconds: int | None = None,
     ) -> str:
         """Internal send video logic."""
         api_url = f"{self.host}/send_video"
@@ -960,6 +963,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             payload["quotedMessageId"] = quoted_message_id
         if expiration is not None:
             payload["expiration"] = expiration
+        if seconds is not None:
+            payload["seconds"] = seconds
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (
@@ -999,6 +1004,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ptt: bool = False,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        seconds: int | None = None,
     ) -> str:
         """Send audio (with retry)."""
         if not self.is_allowed(number):
@@ -1015,6 +1021,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 ptt,
                 quoted_message_id,
                 expiration,
+                seconds,
             ),
         )
 
@@ -1025,6 +1032,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ptt: bool = False,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        seconds: int | None = None,
     ) -> str:
         """Internal send audio logic."""
         api_url = f"{self.host}/send_audio"
@@ -1037,6 +1045,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             payload["quotedMessageId"] = quoted_message_id
         if expiration is not None:
             payload["expiration"] = expiration
+        if seconds is not None:
+            payload["seconds"] = seconds
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
         async with (

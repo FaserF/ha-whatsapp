@@ -257,6 +257,7 @@ async def test_services(hass: HomeAssistant) -> None:
             "Caption",
             quoted_message_id=None,
             expiration=None,
+            seconds=None,
         )
 
         # 15. Test send_audio
@@ -271,5 +272,10 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_audio.assert_awaited_with(
-            "12345", "http://audio.mp3", True, quoted_message_id=None, expiration=None
+            "12345",
+            "http://audio.mp3",
+            True,
+            quoted_message_id=None,
+            expiration=None,
+            seconds=None,
         )

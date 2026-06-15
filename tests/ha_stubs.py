@@ -344,6 +344,7 @@ def _build_ha_stub_modules() -> None:
         ensure_list=list,
         boolean=bool,
         match_all=lambda x: x,
+        positive_int=int,
     )
 
     # homeassistant.helpers.entity_registry

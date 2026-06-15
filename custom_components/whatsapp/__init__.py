@@ -374,6 +374,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
+                seconds=data.get("seconds"),
             )
         elif service == "send_audio":
             await client.send_audio(
@@ -382,6 +383,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("ptt", False),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
+                seconds=data.get("seconds"),
             )
         elif service == "revoke_message":
             await client.revoke_message(data["target"], data["message_id"])
@@ -537,6 +539,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
         vol.Optional("message"): cv.string,
+        vol.Optional("seconds"): cv.positive_int,
     }
     hass.services.async_register(
         DOMAIN,
@@ -549,6 +552,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         vol.Required("target"): cv.string,
         vol.Required("url"): cv.string,
         vol.Optional("ptt", default=False): cv.boolean,
+        vol.Optional("seconds"): cv.positive_int,
     }
     hass.services.async_register(
         DOMAIN,
