@@ -220,7 +220,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return url
         # /config/www/ is the filesystem path; HA serves it at /local/
         if url.startswith("/config/www/"):
-            url = "/local/" + url[len("/config/www/"):]
+            url = "/local/" + url[len("/config/www/") :]
         if url.startswith("/") and self.ha_base_url:
             return f"{self.ha_base_url.rstrip('/')}{url}"
         return url
