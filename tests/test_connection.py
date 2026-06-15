@@ -267,6 +267,38 @@ async def test_self_chat_bypass(api_client: WhatsAppApiClient) -> None:
     assert api_client.is_allowed("22222") is False
 
 
+def test_normalize_url(api_client: WhatsAppApiClient) -> None:
+    """Test URL normalization and /config/www/ translation."""
+    api_client.ha_base_url = "http://homeassistant.local:8123"
+
+    # Test remapping of local filesystem paths
+    assert (
+        api_client._normalize_url("/config/www/image.jpg")
+        == "http://homeassistant.local:8123/local/image.jpg"
+    )
+
+    # Test that existing /local/ paths work normally
+    assert (
+        api_client._normalize_url("/local/image.jpg")
+        == "http://homeassistant.local:8123/local/image.jpg"
+    )
+
+    # Test full URLs are unchanged
+    assert (
+        api_client._normalize_url("http://example.com/image.jpg")
+        == "http://example.com/image.jpg"
+    )
+
+    # Test protocol-relative URLs are unchanged
+    assert (
+        api_client._normalize_url("//example.com/image.jpg")
+        == "//example.com/image.jpg"
+    )
+
+    # Test empty or None URL
+    assert api_client._normalize_url("") == ""
+
+
 if __name__ == "__main__":
     import asyncio
 

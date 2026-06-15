@@ -216,12 +216,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     def _normalize_url(self, url: str) -> str:
         """Prepend HA base URL to relative URLs starting with '/'."""
-        if (
-            url
-            and url.startswith("/")
-            and not url.startswith("//")
-            and self.ha_base_url
-        ):
+        if not url or url.startswith("//"):
+            return url
+        # /config/www/ is the filesystem path; HA serves it at /local/
+        if url.startswith("/config/www/"):
+            url = "/local/" + url[len("/config/www/"):]
+        if url.startswith("/") and self.ha_base_url:
             return f"{self.ha_base_url.rstrip('/')}{url}"
         return url
 
