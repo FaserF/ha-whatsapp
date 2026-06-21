@@ -1,516 +1,268 @@
+---
 name: Release
 
-on:
+"on":
   workflow_dispatch:
     inputs:
-      help:
-        description: |
-          ℹ️ QUICK HELP - HOW VERSIONING WORKS:
-          --------------------------------------
-          The version is ALWAYS calculated from the ABSOLUTE LATEST tag.
-          (Including Betas/Nightlies).
-
-          TARGET       | TYPE   | BUMP  | RESULT
-          -------------|--------|-------|-------
-          Next Beta    | Beta   | none  | 1.1.0b0 -> 1.1.0b1
-          New Stable   | Stable | none  | 1.1.0b0 -> 1.1.0
-          New Patch    | Stable | patch | 1.1.0 -> 1.1.1
-          New Minor    | Stable | minor | 1.1.1 -> 1.2.0
-
-          1. RELEASE TYPE:
-             • Stable: Tags X.Y.Z.
-             • Beta: Tags X.Y.ZbN (Increments N automatically).
-
-          2. AUTO-BUMP TYPE:
-             • Applied to the latest tag (e.g. 1.1.0b0).
-             • 'none' means: Keep the same Major.Minor.Patch series.
-        required: false
-        type: boolean
-        default: true
       release_type:
-        description: 'Which type of release to create?'
+        description: "Type of release (stable, beta, nightly)"
         required: true
-        default: 'stable'
+        default: "beta"
         type: choice
         options:
-          - beta
           - stable
+          - beta
           - nightly
-          - App_sync
-          - manual
-      bump_type:
-        description: 'How should the version be incremented from the last tag?'
-        required: true
-        default: 'patch'
+      bump_level:
+        description: "Bump Level (SemVer only: major, minor, patch)"
+        required: false
+        default: "patch"
         type: choice
         options:
-          - none
           - patch
           - minor
           - major
-      manual_version:
-        description: 'Manual Version (only for Manual release type, e.g. 1.2.3b5)'
+      version_override:
+        description: "Manually override new version (e.g. 1.2.3 or 2026.6.2b1). Leave empty to use automatic calculation."
         required: false
         type: string
-      empty_release:
-        description: 'Generate empty release (Addon-only changes)?'
-        required: false
-        type: boolean
-        default: false
-      base_tag_override:
-        description: 'Override Base Tag for Changelog (e.g. v1.4.0)'
-        required: false
-        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-release
+  cancel-in-progress: true
 
 jobs:
-  release:
+  versioning:
+    name: Determine Version
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
-      pull-requests: read
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag: ${{ steps.get_version.outputs.tag }}
+      is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
+      release_body: ${{ steps.get_version.outputs.release_body }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
-      - name: Determine Release Parameters
-        id: params
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Calculate Version and Release Details
+        id: get_version
+        shell: bash
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          BUMP_LEVEL: ${{ inputs.bump_level }}
+          VERSION_OVERRIDE: ${{ inputs.version_override }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          RELEASE_TYPE="${{ inputs.release_type || 'auto' }}"
-          BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
+          python .github/scripts/calculate_release_details.py
 
-          # If triggered by schedule, force nightly (pre-release)
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            RELEASE_TYPE="nightly"
-            echo "📅 Scheduled run: Forcing release type to nightly"
-          fi
+      - name: Upload Release Body
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-body
+          path: release_body.md
 
-          # Get BASE_VERSION from the absolute latest tag (including betas).
-          # Robust sort handling both 'v1.4.0' and '1.4.2' by stripping 'v' for comparison.
-          LATEST_TAG=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -V | tail -n 1)
-          # Note: LATEST_TAG here is cleaned. We check if the actual tag had a 'v'.
-          if git rev-parse "v$LATEST_TAG" >/dev/null 2>&1; then
-            REAL_LATEST_TAG="v$LATEST_TAG"
-          else
-            REAL_LATEST_TAG="$LATEST_TAG"
-          fi
-          echo "ℹ️ Absolute latest tag found: $REAL_LATEST_TAG"
-          LATEST_TAG="$REAL_LATEST_TAG"
-
-          if [[ -z "$LATEST_TAG" ]]; then
-            # No tags exist at all, start from 1.0.0
-            BASE_VERSION="1.0.0"
-            echo "ℹ️ No tags found, starting from $BASE_VERSION"
-          else
-            # Strip 'v' and everything after b or .dev to get the core X.Y.Z
-            CLEAN_VERSION="${LATEST_TAG#v}"
-            CLEAN_VERSION="${CLEAN_VERSION%%b*}"
-            CLEAN_VERSION="${CLEAN_VERSION%%.dev*}"
-            BASE_VERSION="$CLEAN_VERSION"
-            echo "ℹ️ Derived BASE_VERSION from latest tag: $LATEST_TAG -> $BASE_VERSION"
-          fi
-
-          # Handle manual bump override from workflow_dispatch
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-             IFS='.' read -r major minor patch <<< "$BASE_VERSION"
-             if [[ "$BUMP_TYPE" == "minor" ]]; then
-                 BASE_VERSION="${major}.$((minor + 1)).0"
-                 echo "ℹ️ Manual Minor Bump: Adjusted Base Version to $BASE_VERSION"
-             elif [[ "$BUMP_TYPE" == "major" ]]; then
-                 BASE_VERSION="$((major + 1)).0.0"
-                 echo "ℹ️ Manual Major Bump: Adjusted Base Version to $BASE_VERSION"
-             elif [[ "$BUMP_TYPE" == "patch" ]]; then
-                 BASE_VERSION="${major}.${minor}.$((patch + 1))"
-                 echo "ℹ️ Manual Patch Bump: Adjusted Base Version to $BASE_VERSION"
-             else
-                 echo "ℹ️ No bump requested (none): Staying on $BASE_VERSION"
-             fi
-          fi
-
-          VERSION="$BASE_VERSION"
-          SHOULD_RELEASE="false"
-          PRERELEASE="false"
-
-          echo "Base Version (after bump check): $BASE_VERSION"
-          echo "Release Type: $RELEASE_TYPE"
-
-          if [[ "$RELEASE_TYPE" == "auto" ]]; then
-            # Auto mode is triggered by manifest.json push - check if we should release
-            MANIFEST_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
-            if [[ "$MANIFEST_VERSION" != *"-dev"* ]] && [[ "$MANIFEST_VERSION" != *"b"* ]]; then
-              # Manifest has a stable version, release it
-              VERSION="$MANIFEST_VERSION"
-              SHOULD_RELEASE="true"
-              PRERELEASE="false"
-            elif [[ "$MANIFEST_VERSION" == *"b"* ]]; then
-              VERSION="$MANIFEST_VERSION"
-              SHOULD_RELEASE="true"
-              PRERELEASE="true"
-            else
-              echo "Auto mode: Skipping release for dev version $MANIFEST_VERSION"
-            fi
-
-          elif [[ "$RELEASE_TYPE" == "stable" ]]; then
-            # Parse Major.Minor from Base Version
-            IFS='.' read -r major minor patch <<< "$BASE_VERSION"
-
-            # Find highest existing STABLE tag for this Major.Minor version (exclude betas/devs)
-            HIGHEST_TAG=$(git tag -l "v${major}.${minor}.*" "${major}.${minor}.*" | grep -vE 'b[0-9]+|\.dev' | sed 's/^v//' | sort -V | tail -n 1)
-            # Restore v if needed for existence check
-            if git rev-parse "v$HIGHEST_TAG" >/dev/null 2>&1; then
-              HIGHEST_TAG="v$HIGHEST_TAG"
-            fi
-
-            if [[ -n "$HIGHEST_TAG" ]]; then
-              # Extract patch from highest tag (v1.0.1 -> 1)
-              HIGHEST_VERSION=${HIGHEST_TAG#v}
-              IFS='.' read -r h_major h_minor h_patch <<< "$HIGHEST_VERSION"
-
-              # If existing tag is >= manifest version, we simply increment the highest found patch
-              if (( h_patch >= patch )); then
-                 NEW_PATCH=$((h_patch + 1))
-                 VERSION="${major}.${minor}.${NEW_PATCH}"
-                 echo "ℹ️ Existing tag v$BASE_VERSION (or higher) found. Auto-incrementing to $VERSION"
-              else
-                 # Manifest is already higher (e.g. 1.0.2 vs 1.0.1)
-                 VERSION="$BASE_VERSION"
-              fi
-            else
-              # No existing tags for this minor version
-              VERSION="$BASE_VERSION"
-            fi
-
-            SHOULD_RELEASE="true"
-            PRERELEASE="false"
-
-          elif [[ "$RELEASE_TYPE" == "beta" ]]; then
-             # Always look for the next logical beta tag for the calculated BASE_VERSION
-             LAST_BETA=$(git tag -l "v${BASE_VERSION}b*" "${BASE_VERSION}b*" | sed 's/^v//' | sort -V | tail -n 1)
-             if git rev-parse "v$LAST_BETA" >/dev/null 2>&1; then
-               LAST_BETA="v$LAST_BETA"
-             fi
-
-             if [[ -z "$LAST_BETA" ]]; then
-                 # No beta exists for this base, start at b0
-                 VERSION="${BASE_VERSION}b0"
-             else
-                 # Increment last beta (e.g. v1.0.1b0 -> 1.0.1b1)
-                 B_NUM=$(echo "$LAST_BETA" | sed 's/.*b//')
-                 VERSION="${BASE_VERSION}b$((B_NUM + 1))"
-             fi
-
-             SHOULD_RELEASE="true"
-             PRERELEASE="true"
-
-          elif [[ "$RELEASE_TYPE" == "nightly" ]]; then
-            # Nightly releases should follow the pattern: X.Y.Z.dev<date>
-            DATE_TAG=$(date +'%Y%m%d')
-            VERSION="${BASE_VERSION}.dev${DATE_TAG}"
-            SHOULD_RELEASE="true"
-            PRERELEASE="true"
-
-          elif [[ "$RELEASE_TYPE" == "manual" ]]; then
-            if [[ -z "${{ inputs.manual_version }}" ]]; then
-              echo "Error: Manual version is required for 'manual' release type"
-              exit 1
-            fi
-            VERSION="${{ inputs.manual_version }}"
-            SHOULD_RELEASE="true"
-            PRERELEASE="false"
-            if [[ "$VERSION" == *"b"* ]] || [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"nightly"* ]]; then
-              PRERELEASE="true"
-            fi
-          elif [[ "$RELEASE_TYPE" == "App_sync" ]]; then
-            echo "🔄 Syncing version from App repository..."
-            App_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
-
-            # Fetch config and extract version
-            REMOTE_VERSION=$(curl -s "$App_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
-
-            if [[ -z "$REMOTE_VERSION" ]]; then
-               echo "❌ Failed to fetch version from App config!"
-               exit 1
-            fi
-
-            VERSION="$REMOTE_VERSION"
-            SHOULD_RELEASE="true"
-            PRERELEASE="false" # Sync implies stable release
-            echo "✅ Fetched version: $VERSION"
-          fi
-
-          echo "Final Version: $VERSION"
-
-          # Check if tag already exists to prevent accidental overwrites
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "⚠️ Tag v$VERSION already exists."
-            if [[ "$RELEASE_TYPE" != "manual" ]]; then
-               echo "⛔ $RELEASE_TYPE mode: Aborting release to avoid overwriting existing tag."
-               SHOULD_RELEASE="false"
-            else
-               echo "⚠️ Manual mode: Proceeding (will update existing tag)."
-            fi
-          fi
-
-          echo "Should Release: $SHOULD_RELEASE"
-          echo "Prerelease: $PRERELEASE"
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
-          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-          echo "empty_release=${{ inputs.empty_release || 'false' }}" >> $GITHUB_OUTPUT
-          echo "base_tag_override=${{ inputs.base_tag_override || '' }}" >> $GITHUB_OUTPUT
-
-      - name: Prepare Release Version (Update Manifest)
-        if: steps.params.outputs.should_release == 'true'
+      - name: Prepare Initial Draft Body
+        shell: bash
         run: |
-            MANIFEST_VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
-            TARGET_VERSION="${{ steps.params.outputs.version }}"
+          cp release_body.md initial_draft_body.md
 
-            if [[ "$MANIFEST_VERSION" != "$TARGET_VERSION" ]]; then
-              echo "Updating manifest version from $MANIFEST_VERSION to $TARGET_VERSION..."
-              jq --arg v "$TARGET_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
-              mv tmp.json custom_components/whatsapp/manifest.json
+      - name: Check and Delete Existing Draft Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.get_version.outputs.tag }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+        shell: bash
+        run: |
+          # Use gh api to find existing draft release
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
+          if [ -n "$release_id" ]; then
+            gh api -X DELETE "repos/$REPO/releases/$release_id"
+            git push --delete origin "$TAG" 2>/dev/null || true
+          fi
 
-              # Commit the change so the release tag points to a commit with the correct version
-              git config user.name "github-actions[bot]"
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-              git add custom_components/whatsapp/manifest.json
-              git commit -m "chore: release version $TARGET_VERSION"
-              git push
-              echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
-            else
-              echo "Manifest version already correct: $MANIFEST_VERSION"
-              echo "NEW_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
-            fi
+      - name: Create Initial Draft Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.get_version.outputs.tag }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+          IS_PRERELEASE: ${{ steps.get_version.outputs.is_prerelease }}
+        shell: bash
+        run: |
+          prerelease_arg=""
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            prerelease_arg="--prerelease"
+          fi
+          gh release create "$TAG" \
+            --title "Release $VERSION" \
+            --notes-file "initial_draft_body.md" \
+            --draft \
+            $prerelease_arg
 
-      - name: Create release archive
-        if: steps.params.outputs.should_release == 'true'
+  sync-version:
+    name: Sync Repository Version
+    needs: versioning
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Configure Git and pull latest
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }}
+
+      - name: Update Files
+        shell: bash
+        run: |
+          python .github/scripts/version_manager.py bump --type ${{ inputs.release_type }} --level ${{ inputs.bump_level }} --override "${{ inputs.version_override }}"
+
+      - name: Commit and Push
+        run: |
+          git add custom_components/whatsapp/manifest.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: release version ${{ needs.versioning.outputs.version }} [skip ci]"
+            git push origin HEAD:${{ github.ref_name }} || (git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }})
+          fi
+
+      - name: Download Release Body
+        uses: actions/download-artifact@v8
+        with:
+          name: release-body
+
+      - name: Update Draft Status (Zipping Integration)
+        shell: bash
+        run: |
+          cp release_body.md updated_draft_body.md
+
+      - name: Update Draft Release on GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.versioning.outputs.tag }}
+          VERSION: ${{ needs.versioning.outputs.version }}
+          IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
+        shell: bash
+        run: |
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
+          if [ -n "$release_id" ]; then
+            gh api -X PATCH "repos/$REPO/releases/$release_id" \
+              -f tag_name="$TAG" \
+              -f name="Release $VERSION" \
+              -f body_path="updated_draft_body.md" \
+              -F draft=true \
+              -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
+          fi
+
+  gh-release:
+    needs: [versioning, sync-version]
+    if: always() && needs.versioning.result == 'success' && needs.sync-version.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Zip Component
         run: |
           cd custom_components
           zip -r ../whatsapp.zip whatsapp
+          cd ..
 
-      - name: 📝 Determine Base Tag for Changelog
-        if: steps.params.outputs.should_release == 'true'
-        id: base_tag
-        env:
-          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_TYPE="${{ steps.params.outputs.release_type }}"
-          echo "ℹ️ Release type: $RELEASE_TYPE"
-
-          if [[ "${{ steps.params.outputs.prerelease }}" == "false" ]]; then
-            # Releasing STABLE: Compare against the last tag that matches v*.*.* (excluding betas/devs)
-            STABLE_TAGS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" "[0-9]*.[0-9]*.[0-9]*" | grep -vE "b[0-9]|\.dev[0-9]" | sed 's/^v//' | sort -urV || true)
-            echo "ℹ️ Found stable tags: $STABLE_TAGS"
-
-            CURRENT_VER="${{ steps.params.outputs.version }}"
-            OVERRIDE="${{ steps.params.outputs.base_tag_override }}"
-
-            if [[ -n "$OVERRIDE" ]]; then
-              echo "🔍 Using manual base_tag override: $OVERRIDE"
-              echo "base_tag=$OVERRIDE" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-
-            FOUND_TAG=""
-            for t in $STABLE_TAGS; do
-              # Skip the version we are currently releasing
-              if [[ "$t" == "$CURRENT_VER" ]]; then
-                echo "⏭️ Skipping current version: $t"
-                continue
-              fi
-
-              CHECK_TAG="$t"
-              if git rev-parse "v$t" >/dev/null 2>&1; then
-                CHECK_TAG="v$t"
-              fi
-
-              echo "🔍 Checking release: $CHECK_TAG"
-              # Check if release body contains the addon-only marker
-              RELEASE_BODY=$(gh release view "$CHECK_TAG" --json body -q .body 2>/dev/null || echo "")
-
-              # Robust check using both unique hidden marker and the text description to catch older releases
-              if echo "$RELEASE_BODY" | grep -q -E "<!-- sync-release -->|HA App \(Addon\) only changes"; then
-                echo "⏭️ Skipping empty sync release: $CHECK_TAG (marker found)"
-              else
-                FOUND_TAG="$CHECK_TAG"
-                echo "✅ Found last 'real' stable release: $FOUND_TAG"
-                break
-              fi
-            done
-
-            if [[ -z "$FOUND_TAG" ]]; then
-               # Fallback: if all were empty or none found, use the absolute latest stable (skipping current)
-               echo "⚠️ No 'real' stable release found in history, using fallback logic..."
-               FOUND_TAG=$(echo "$STABLE_TAGS" | grep -v "^$CURRENT_VER$" | head -n 1 || true)
-               if [[ -n "$FOUND_TAG" ]]; then
-                 if git rev-parse "v$FOUND_TAG" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
-               fi
-            fi
-
-            echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
-            echo "✅ FINAL BASE TAG: $FOUND_TAG"
-          else
-            # Releasing BETA/NIGHTLY: Compare against the absolute last tag
-            ALL_TAGS=$(git tag -l "[v0-9]*" | sed 's/^v//' | sort -rV || true)
-            CURRENT_VER="${{ steps.params.outputs.version }}"
-            FOUND_TAG=""
-            for t in $ALL_TAGS; do
-              if [[ "$t" == "$CURRENT_VER" ]]; then
-                continue
-              fi
-              FOUND_TAG="$t"
-              if git rev-parse "v$t" >/dev/null 2>&1; then FOUND_TAG="v$FOUND_TAG"; fi
-              break
-            done
-            echo "base_tag=$FOUND_TAG" >> $GITHUB_OUTPUT
-            echo "✅ FINAL BASE TAG: $FOUND_TAG"
-            echo "🔍 Comparing prerelease against last tag: $FOUND_TAG"
-          fi
-
-          if [[ -z "$FOUND_TAG" ]]; then
-             echo "⚠️ No previous tags found. Changelog will cover all commits."
-          fi
-
-      - name: 📝 Build Changelog
-        if: steps.params.outputs.should_release == 'true' && steps.params.outputs.empty_release == 'false'
-        id: build_changelog
-        shell: python
-        env:
-          FROM_TAG: ${{ steps.base_tag.outputs.base_tag }}
-          REPO_URL: https://github.com/${{ github.repository }}
-        run: |
-          import os, subprocess, re
-          from_tag = os.environ.get("FROM_TAG")
-          repo_url = os.environ.get("REPO_URL")
-
-          # Get commits since from_tag for current directory
-          # If no from_tag, get all commits
-          if from_tag:
-              cmd = ["git", "log", f"{from_tag}..HEAD", "--pretty=format:%H|%h|%s", "--", "."]
-          else:
-              cmd = ["git", "log", "--pretty=format:%H|%h|%s", "--", "."]
-
-          try:
-              commits = subprocess.check_output(cmd, text=True).strip().split("\n")
-          except Exception as e:
-              print(f"Error getting commits: {e}")
-              commits = []
-
-          cats = {
-              "✨ Features": [],
-              "🐛 Bug Fixes": [],
-              "📦 Dependencies": [],
-              "🔧 Maintenance & CI": [],
-              "📝 Documentation": [],
-              "🧪 Tests": [],
-              "🚀 Other": []
-          }
-
-          for line in commits:
-              if not line or "|" not in line: continue
-              fh, sh, sub = line.split("|", 2)
-              sl = sub.lower()
-
-              # Skip release commits and merge commits
-              if any(x in sl for x in ["chore: release", "chore: bump", "merge ", "[skip ci]"]):
-                  continue
-
-              # Linkify PR numbers: "subject (#123)" -> "subject ([#123](.../pull/123))"
-              sub = re.sub(r"\(#(\d+)\)", rf"([#\1]({repo_url}/pull/\1))", sub)
-              entry = f"- {sub} ([{sh}]({repo_url}/commit/{fh}))"
-
-              if re.match(r"^(feat|add|new)", sl): cats["✨ Features"].append(entry)
-              elif re.match(r"^(fix|bug|patch|fixed|fixes)", sl): cats["🐛 Bug Fixes"].append(entry)
-              elif re.match(r"^(deps|dep|update|bump|renovate|⬆️)", sl): cats["📦 Dependencies"].append(entry)
-              elif re.match(r"^(chore|ci|workflow|config|ruff)", sl): cats["🔧 Maintenance & CI"].append(entry)
-              elif re.match(r"^(docs|documentation)", sl): cats["📝 Documentation"].append(entry)
-              elif re.match(r"^(test|pytest)", sl): cats["🧪 Tests"].append(entry)
-              else: cats["🚀 Other"].append(entry)
-
-          changelog = "⚠️ **IMPORTANT**: This integration requires the corresponding Home Assistant App to be updated. Please ensure you are running the latest version of the [WhatsApp HA App (Add-on)](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n## Changelog\n\n"
-          has_content = False
-
-          # Use fixed order for categories
-          for title in ["✨ Features", "🐛 Bug Fixes", "📦 Dependencies", "🔧 Maintenance & CI", "📝 Documentation", "🧪 Tests", "🚀 Other"]:
-              items = cats[title]
-              if items:
-                  changelog += f"### {title}\n"
-                  for item in items:
-                      changelog += f"{item}\n"
-                  changelog += "\n"
-                  has_content = True
-
-          if not has_content:
-              changelog += "No significant changes in this release."
-
-          with open("CHANGELOG_BODY.md", "w", encoding="utf-8") as f:
-              f.write(changelog)
-
-      - name: 📝 Set Empty Changelog
-        if: steps.params.outputs.should_release == 'true' && steps.params.outputs.empty_release == 'true'
-        id: empty_changelog
-        run: |
-          cat <<EOF > EMPTY_CHANGELOG.md
-          ## ℹ️ Sync Release <!-- sync-release -->
-
-          HA App (Addon) only changes, no changes on integration side.
-
-          This release is only to stay in sync with the HA App addon version. For more details on the latest HA App (Addon) changes, please visit the [Addon repository](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).
-
-          An overview of all versions can be found on the [documentation page](https://faserf.github.io/ha-whatsapp/).
-          EOF
+      - name: Download Release Body Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: release-body
 
       - name: Create GitHub Release
-        if: steps.params.outputs.should_release == 'true'
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: v${{ steps.params.outputs.version }}
-          name: v${{ steps.params.outputs.version }}${{ steps.params.outputs.empty_release == 'true' && ' - HA App (Addon) only changes' || '' }}
-          body_path: ${{ steps.params.outputs.empty_release == 'true' && 'EMPTY_CHANGELOG.md' || 'CHANGELOG_BODY.md' }}
-          prerelease: ${{ steps.params.outputs.prerelease }}
-          files: whatsapp.zip
-          target_commitish: ${{ env.NEW_SHA }}
-
-      - name: Bump to next dev version
-        # Run dev bump for auto, stable, and beta to prevent re-release issues.
-        if: steps.params.outputs.should_release == 'true' && (steps.params.outputs.release_type == 'auto' || steps.params.outputs.release_type == 'stable' || steps.params.outputs.release_type == 'beta')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.versioning.outputs.tag }}
+          VERSION: ${{ needs.versioning.outputs.version }}
+          IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
-          VERSION=$(jq -r '.version' custom_components/whatsapp/manifest.json)
-          BUMP_TYPE="${{ steps.params.outputs.bump_type }}"
-
-          # Clean version
-          CLEAN_VERSION="${VERSION%%b*}"
-          CLEAN_VERSION="${CLEAN_VERSION%%.dev*}"
-          CLEAN_VERSION="${CLEAN_VERSION%%-*}"
-
-          # Parse major.minor.patch
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_VERSION"
-
-          # For beta releases, just increment patch (e.g., 1.1.0b0 -> 1.1.1-dev)
-          # For stable/auto releases, respect BUMP_TYPE.
-          if [[ "${{ steps.params.outputs.release_type }}" == "beta" ]]; then
-            NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
-          elif [[ "$BUMP_TYPE" == "major" ]]; then
-            NEXT_VERSION="$((MAJOR + 1)).0.0-dev"
-          elif [[ "$BUMP_TYPE" == "minor" ]]; then
-            NEXT_VERSION="${MAJOR}.$((MINOR + 1)).0-dev"
+          # Find existing draft release
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
+          
+          # Set prerelease argument
+          prerelease_arg=""
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            prerelease_arg="--prerelease"
+          fi
+          
+          if [ -n "$release_id" ]; then
+            # Update the existing draft release to publish it
+            gh api -X PATCH "repos/$REPO/releases/$release_id" \
+              -f tag_name="$TAG" \
+              -f name="Release $VERSION" \
+              -f body_path="release_body.md" \
+              -F draft=false \
+              -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
+              
+            # Upload the assets to the published release
+            gh release upload "$TAG" whatsapp.zip --clobber
           else
-            NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+            # Create a brand new release if no draft exists
+            gh release create "$TAG" \
+              --title "Release $VERSION" \
+              --notes-file "release_body.md" \
+              $prerelease_arg \
+              whatsapp.zip
+          fi
+ 
+      - name: Post-Release Dev Bump
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }}
+          NEW_DEV=$(python .github/scripts/version_manager.py bump --type dev --level patch)
+          if ! git diff --quiet; then
+            git commit -am "chore(dev): bump to $NEW_DEV [skip ci]"
+            git push origin HEAD:${{ github.ref_name }} || (git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }})
           fi
 
-          echo "Bumping version from $VERSION to $NEXT_VERSION ($BUMP_TYPE)"
-
-          # Update manifest.json
-          jq --arg v "$NEXT_VERSION" '.version = $v' custom_components/whatsapp/manifest.json > tmp.json
-          mv tmp.json custom_components/whatsapp/manifest.json
-          # Commit and push
-          git add custom_components/whatsapp/manifest.json
-          git commit -m "chore: bump to dev version $NEXT_VERSION [skip ci]"
-          git push
+  cleanup-release:
+    needs: [versioning, sync-version, gh-release]
+    if: always() && needs.versioning.result == 'success' && (needs.sync-version.result == 'failure' || needs.gh-release.result == 'failure' || cancelled())
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete Draft Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.versioning.outputs.tag }}
+        shell: bash
+        run: |
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'") | select(.draft==true) | .id')
+          if [ -n "$release_id" ]; then
+            gh api -X DELETE "repos/$REPO/releases/$release_id"
+            gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          fi
