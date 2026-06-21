@@ -1,0 +1,109 @@
+name: Hassio Addon Bug Report
+description: Report a bug specific to the WhatsApp Home Assistant Addon (not the integration itself)
+title: '[Bug][Addon]: '
+labels: ['bug', 'triage', 'addon']
+assignees:
+  - FaserF
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for bugs related to the **[WhatsApp Hassio Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** (Docker container, startup issues, addon configuration).
+
+        For bugs with the **Home Assistant integration** (sensors, entities), use the regular Bug Report template instead.
+
+        Before submitting:
+        - 📋 [Existing issues](https://github.com/FaserF/ha-whatsapp/issues)
+        - 📖 [Addon Documentation](https://github.com/FaserF/hassio-addons/blob/master/whatsapp/DOCS.md)
+
+  - type: input
+    id: addon_version
+    attributes:
+      label: Addon Version
+      description: Which version of the WhatsApp Addon are you running?
+      placeholder: e.g. 1.6.0
+    validations:
+      required: true
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration Version (if also installed)
+      placeholder: v1.0.0
+    validations:
+      required: false
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant Version
+      description: |
+        [![Open your Home Assistant instance and show your Home Assistant version information.](https://my.home-assistant.io/badges/info.svg)](https://my.home-assistant.io/redirect/info/)
+      placeholder: 2025.6.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ha_install_type
+    attributes:
+      label: Home Assistant Installation Type
+      options:
+        - Home Assistant OS
+        - Home Assistant Container
+        - Home Assistant Supervised
+        - Home Assistant Core
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: System Architecture
+      description: What architecture is your Home Assistant host running on?
+      options:
+        - amd64 (x86_64)
+        - aarch64 (ARM 64-bit, e.g. Raspberry Pi 4)
+        - armv7 (ARM 32-bit)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_category
+    attributes:
+      label: Issue Category
+      options:
+        - Addon fails to start
+        - WhatsApp QR code / session login
+        - Webhook not working
+        - Media sending / receiving
+        - Addon configuration option
+        - Performance / memory issue
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: addon_config
+    attributes:
+      label: Addon Configuration (sanitized)
+      description: Paste your addon configuration here. Remove any sensitive values (passwords, tokens).
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the addon issue
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Addon log output
+      description: Please paste the addon log output here (available in the Addon → Log tab in HA).
+      render: shell
+    validations:
+      required: true
