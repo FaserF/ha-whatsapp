@@ -1,39 +1,40 @@
-name: Feature request
+name: Feature Request
 description: Suggest an idea for this integration
-title: "[Feature Request]: "
 labels: ["enhancement"]
-assignees:
-  - FaserF
 body:
   - type: markdown
     attributes:
       value: |
-        This feature request request form is for feature requests only!
-
-        If you have a bug or issue request, please use the bug report template!
+        Thanks for your interest in improving the WhatsApp integration!
   - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      placeholder: I'm always frustrated when...
     validations:
       required: true
-    attributes:
-      label: The request
-      description: >-
-        A clear and concise description of what you want to happen.
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
-  - type: markdown
-    attributes:
-      value: |
-        # Details
   - type: textarea
+    id: solution
     attributes:
-      label: Is your feature request related to a problem?
-      render: txt
-      description: >-
-        A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+      placeholder: I would like the integration to...
+    validations:
+      required: true
   - type: textarea
+    id: alternatives
     attributes:
-      label: Additional information
-      description: >
-        If you have any additional information for us, use the field below.
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+      placeholder: I considered using...
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.
+      placeholder: Here is a screenshot of...
+    validations:
+      required: false
