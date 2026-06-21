@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import glob
-import json
 import os
 import re
 import subprocess
+import json
+import glob
 from datetime import datetime
 
 
@@ -38,7 +38,7 @@ def main():
     manifest_path = manifest_files[0]
     domain = os.path.basename(os.path.dirname(manifest_path))
 
-    with open(manifest_path, encoding="utf-8") as f:
+    with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
 
     friendly_name = manifest.get("name", domain)
@@ -49,10 +49,11 @@ def main():
         if os.path.exists("docs"):
             docs_url = f"https://{owner}.github.io/{repo_name}/"
         else:
-            if repo:
-                docs_url = f"https://github.com/{repo}"
-            else:
-                docs_url = f"https://github.com/faserf/{repo_name}"
+            docs_url = (
+                f"https://github.com/{repo}"
+                if repo
+                else f"https://github.com/faserf/{repo_name}"
+            )
 
     # Calculate version via version_manager
     bump_args = [
@@ -122,10 +123,7 @@ def main():
 
     # Count commits
     total_commit_count = 0
-    if changelog_from:
-        count_range = f"{changelog_from}..HEAD"
-    else:
-        count_range = "HEAD"
+    count_range = f"{changelog_from}..HEAD" if changelog_from else "HEAD"
 
     commit_count_raw = run_git(["rev-list", "--count", count_range])
     if commit_count_raw.isdigit():
@@ -272,6 +270,8 @@ def main():
         f"| **Channel** | {rtype} |",
         f"| **Released** | {released_at} |",
         f"| **Commits included** | {total_commit_count} — {changelog_label} |",
+        f"| **Downloads (this release)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/{tag}/{domain}.zip?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases/tag/{tag}) |",
+        f"| **Downloads (total)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/total?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases) |",
         "",
         "---",
         "",

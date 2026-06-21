@@ -13,6 +13,10 @@ permissions:
   security-events: write
   actions: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-ci
+  cancel-in-progress: true
+
 jobs:
   lint-test:
     name: Lint & Test
@@ -24,18 +28,17 @@ jobs:
         uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.14.6'
-          cache: "pip"
 
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements_test.txt ]; then pip install -r requirements_test.txt; fi
-          pip install ruff mypy pyyaml pytest pytest-asyncio pytest-cov homeassistant paramiko aiohttp
+          pip install ruff mypy pyyaml pytest pytest-asyncio pytest-cov homeassistant paramiko aiohttp pytest-homeassistant-custom-component beautifulsoup4
 
       - name: Validate JSON/YAML
         run: |
           python -c "import json, glob; [json.load(open(f, encoding='utf-8-sig')) for f in glob.glob('**/*.json', recursive=True)]"
-          python -c "import yaml, glob; yaml.add_multi_constructor('tag:yaml.org,2002:python/name:', lambda loader, suffix, node: None, Loader=yaml.SafeLoader); [yaml.safe_load(open(f, encoding='utf-8-sig')) for f in glob.glob('**/*.yaml', recursive=True) + glob.glob('**/*.yml', recursive=True)]"
+          python -c "import yaml, glob; yaml.add_multi_constructor('tag:yaml.org,2002:python/name:', lambda loader, suffix, node: None, Loader=yaml.SafeLoader); yaml.add_multi_constructor('!', lambda loader, suffix, node: None, Loader=yaml.SafeLoader); [yaml.safe_load(open(f, encoding='utf-8-sig')) for f in glob.glob('**/*.yaml', recursive=True) + glob.glob('**/*.yml', recursive=True)]"
 
       - name: Check Integration Structure
         run: |
@@ -55,6 +58,7 @@ jobs:
           commit_message: "style: auto-fix and format with Ruff [skip ci]"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          push_options: "--force"
 
       - name: Run Mypy
         run: |
@@ -65,7 +69,7 @@ jobs:
         run: |
           if [ -d tests ]; then
             DOMAIN=$(python -c "import json, glob; print(json.load(open(glob.glob('custom_components/*/manifest.json')[0]))['domain'])")
-            pytest --cov="custom_components.$DOMAIN" --cov-report=xml
+            PYTHONPATH=. pytest --cov="custom_components.$DOMAIN" --cov-report=xml
           else
             echo "No tests directory found, skipping."
             echo "<?xml version='1.0' ?><coverage></coverage>" > coverage.xml
