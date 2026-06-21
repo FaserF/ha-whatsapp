@@ -1,5 +1,5 @@
 name: Report an issue
-description: Report an issue with the db-infoscreen Integration
+description: Report an issue with the whatsapp Integration
 title: "[Bug]: "
 labels: ["bug"]
 assignees:
@@ -56,7 +56,7 @@ body:
       label: What version of this Integration has the issue?
       placeholder: 
       description: >
-        The version from the release page you are using. Latest version can be found here: https://github.com/FaserF/ha-db_infoscreen/releases/latest
+        The version from the release page you are using. Latest version can be found here: https://github.com/FaserF/ha-whatsapp/releases/latest
   - type: input
     id: station_name
     validations:
