@@ -1,40 +1,64 @@
 name: Feature Request
-description: Suggest an idea for this integration
-labels: ["enhancement"]
+description: Suggest an idea for the WhatsApp integration
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
+assignees:
+  - FaserF
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for your interest in improving the WhatsApp integration!
+        Thanks for taking the time to fill out this feature request!
+
+        Before submitting, please check:
+        - 📋 [Existing feature requests](https://github.com/FaserF/ha-whatsapp/issues?q=is%3Aissue+label%3Aenhancement)
+        - 📖 [Documentation](https://github.com/FaserF/ha-whatsapp/blob/master/README.md)
+        - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=ha_whatsapp) in Home Assistant
+
   - type: textarea
-    id: problem
+    id: description
     attributes:
       label: Is your feature request related to a problem? Please describe.
-      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
-      placeholder: I'm always frustrated when...
+      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when...
     validations:
       required: true
+
   - type: textarea
     id: solution
     attributes:
       label: Describe the solution you'd like
       description: A clear and concise description of what you want to happen.
-      placeholder: I would like the integration to...
     validations:
       required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      description: Which area of the integration does this feature relate to?
+      options:
+        - Sending messages (text/media)
+        - Receiving messages / webhooks
+        - Group chat support
+        - Phone number / contact handling
+        - Hassio Addon integration
+        - Configuration / options
+        - Other
+    validations:
+      required: true
+
   - type: textarea
     id: alternatives
     attributes:
       label: Describe alternatives you've considered
       description: A clear and concise description of any alternative solutions or features you've considered.
-      placeholder: I considered using...
     validations:
       required: false
+
   - type: textarea
     id: context
     attributes:
       label: Additional context
-      description: Add any other context or screenshots about the feature request here.
-      placeholder: Here is a screenshot of...
+      description: Add any other context, screenshots, or use-case examples about the feature request here.
     validations:
       required: false

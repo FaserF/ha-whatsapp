@@ -1,35 +1,76 @@
 name: Bug Report
-description: Create a report to help us improve
-labels: ["bug"]
+description: Create a report to help us improve the WhatsApp integration
+title: '[Bug]: '
+labels: ['bug', 'triage']
+assignees:
+  - FaserF
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+
+        Before submitting, please check:
+        - 📋 [Existing issues](https://github.com/FaserF/ha-whatsapp/issues)
+        - 📖 [Documentation](https://github.com/FaserF/ha-whatsapp/blob/master/README.md)
+        - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=ha_whatsapp) in Home Assistant
+
   - type: input
-    id: ha-version
-    attributes:
-      label: Home Assistant Core Version
-      description: What version of Home Assistant Core are you running?
-      placeholder: 202X.X.X
-    validations:
-      required: true
-  - type: input
-    id: integration-version
+    id: version
     attributes:
       label: Integration Version
-      description: What version of the integration are you running?
-      placeholder: X.X.X
+      description: Which version of this integration are you using?
+      placeholder: v1.0.0
     validations:
       required: true
-  - type: textarea
-    id: what-happened
+
+  - type: input
+    id: ha_version
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
+      label: Home Assistant Version
+      description: Which version of Home Assistant Core are you running?
+      placeholder: 2025.6.0
     validations:
       required: true
+
+  - type: input
+    id: addon_version
+    attributes:
+      label: WhatsApp Addon Version (if used)
+      description: If you are using the [WhatsApp Addon](https://github.com/FaserF/hassio-addons/tree/master/whatsapp), which version?
+      placeholder: 1.6.0
+    validations:
+      required: false
+
+  - type: dropdown
+    id: setup_type
+    attributes:
+      label: Setup Type
+      description: How are you running the WhatsApp backend?
+      options:
+        - Hassio Addon (FaserF/hassio-addons)
+        - External server / self-hosted
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: phone_number
+    attributes:
+      label: Phone Number Format (optional)
+      description: What format are you using for phone numbers (e.g. international with + or without)?
+      placeholder: e.g. +49123456789 or 49123456789
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
   - type: textarea
     id: steps
     attributes:
@@ -38,23 +79,34 @@ body:
       placeholder: |
         1. Go to '...'
         2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
+        3. See error
     validations:
       required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
   - type: textarea
     id: diagnostics
     attributes:
       label: Diagnostic Information
-      description: Please provide the diagnostic information for the integration. You can download this from the integration page in Home Assistant.
+      description: |
+        Please provide the diagnostic information for the integration.
+        You can download this from the [Integration page](https://my.home-assistant.io/redirect/integration/?domain=ha_whatsapp) → ⋮ → Download diagnostics.
       render: yaml
     validations:
       required: false
+
   - type: textarea
     id: logs
     attributes:
-      label: Logs
-      description: Please copy and paste any relevant logs here.
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. Enable debug logging for this integration if possible.
       render: shell
     validations:
       required: false
