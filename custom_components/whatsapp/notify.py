@@ -226,26 +226,21 @@ async def async_send_whatsapp_message(
         lon = loc.get("longitude")
         if lat is None or lon is None:
             _LOGGER.error(
-                "Skipping location message to %s: latitude/longitude missing",
-                recipient,
+                "Skipping location message: latitude/longitude missing"
             )
             raise HomeAssistantError(
-                f"Skipping location message to {recipient}: latitude/longitude missing"
+                "Skipping location message: latitude/longitude missing"
             )
         try:
             lat_f = float(lat)
             lon_f = float(lon)
         except (ValueError, TypeError) as err:
             _LOGGER.error(
-                "Skipping location message to %s: invalid coordinates (%s, %s): %s",
-                recipient,
-                lat,
-                lon,
+                "Skipping location message: invalid coordinates: %s",
                 err,
             )
             raise HomeAssistantError(
-                f"Skipping location message to {recipient}: "
-                f"invalid coordinates ({lat}, {lon})"
+                "Skipping location message: invalid coordinates"
             ) from err
 
         await client.send_location(
