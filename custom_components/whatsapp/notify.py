@@ -225,7 +225,9 @@ async def async_send_whatsapp_message(
         lat = loc.get("latitude")
         lon = loc.get("longitude")
         if lat is None or lon is None:
-            _LOGGER.error("Skipping location message: latitude/longitude missing")
+            _LOGGER.error(
+                "Skipping location message: latitude/longitude missing"
+            )
             raise HomeAssistantError(
                 "Skipping location message: latitude/longitude missing"
             )
