@@ -54,14 +54,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: phone_number
-    attributes:
-      label: Phone Number Format (optional)
-      description: What format are you using for phone numbers (e.g. international with + or without)?
-      placeholder: e.g. +49123456789 or 49123456789
-    validations:
-      required: false
 
   - type: textarea
     id: description

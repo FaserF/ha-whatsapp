@@ -59,7 +59,7 @@ body:
     id: architecture
     attributes:
       label: System Architecture
-      description: What architecture is your Home Assistant host running on?
+      description: What architecture is your Home Assistant host running on? (Do NOT share sensitive passwords, credentials, or public API keys. Use example.com or 192.168.1.1 instead.)
       options:
         - amd64 (x86_64)
         - aarch64 (ARM 64-bit, e.g. Raspberry Pi 4)
