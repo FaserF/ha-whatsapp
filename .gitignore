@@ -17,3 +17,8 @@ test_api_signature.py
 /.mypy_cache
 *.log
 uv.lock
+
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.pyc
