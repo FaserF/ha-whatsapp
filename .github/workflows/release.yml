@@ -214,7 +214,8 @@ jobs:
 
       - name: 📦 Zip Component
         run: |
-          zip -r whatsapp.zip custom_components/whatsapp
+          cd custom_components/whatsapp
+          zip -r ../../whatsapp.zip .
 
       - name: Download Release Body Artifact
         uses: actions/download-artifact@v8
