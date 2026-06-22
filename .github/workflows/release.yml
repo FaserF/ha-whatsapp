@@ -155,12 +155,12 @@ jobs:
         run: |
           python .github/scripts/version_manager.py bump --type ${{ github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta') }} --level ${{ github.event.inputs.bump_level || 'patch' }} --override "${{ github.event.inputs.version_override || '' }}"
 
-          - name: Update Placeholders and Datenschutz in Templates
-            shell: bash
-            run: |
-              if [ -f .github/scripts/update_templates.py ]; then
-                python .github/scripts/update_templates.py "${{ needs.versioning.outputs.version }}"
-              fi
+      - name: Update Placeholders in Templates
+        shell: bash
+        run: |
+          if [ -f .github/scripts/update_templates.py ]; then
+            python .github/scripts/update_templates.py "${{ needs.versioning.outputs.version }}"
+          fi
 
       - name: Commit and Push
         run: |
@@ -233,13 +233,13 @@ jobs:
         run: |
           # Find existing draft release
           release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
-          
+
           # Set prerelease argument
           prerelease_arg=""
           if [ "$IS_PRERELEASE" = "true" ]; then
             prerelease_arg="--prerelease"
           fi
-          
+
           if [ -n "$release_id" ]; then
             # Update the existing draft release to publish it
             gh api -X PATCH "repos/$REPO/releases/$release_id" \
@@ -248,7 +248,7 @@ jobs:
               -f body_path="release_body.md" \
               -F draft=false \
               -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
-              
+
             # Upload the assets to the published release
             gh release upload "$TAG" whatsapp.zip --clobber
           else
@@ -260,7 +260,7 @@ jobs:
               $prerelease_arg \
               whatsapp.zip
           fi
- 
+
       - name: Post-Release Dev Bump
         run: |
           git config --global user.name "github-actions[bot]"
@@ -270,7 +270,7 @@ jobs:
           git fetch --tags
           NEW_DEV=$(python .github/scripts/version_manager.py bump --type dev --level patch)
 
-          - name: Update Placeholders and Datenschutz in Templates
+          - name: Update Placeholders in Templates
             shell: bash
             run: |
               if [ -f .github/scripts/update_templates.py ]; then
