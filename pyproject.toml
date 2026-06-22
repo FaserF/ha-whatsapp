@@ -29,6 +29,10 @@ target-version = "py312"
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20", "RET", "SIM", "ARG"]
 ignore = ["D203", "D213"]
 
+[tool.ruff.lint.per-file-ignores]
+".github/scripts/*.py" = ["T201", "E501", "SIM102"]
+"scripts/*.py" = ["T201", "E501", "SIM102"]
+
 [tool.mypy]
 explicit_package_bases = true
 python_version = "3.14"
