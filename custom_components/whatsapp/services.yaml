@@ -360,6 +360,14 @@ send_video:
           mode: box
           min: 0
           max: 7776000
+    seconds:
+      name: Duration (Seconds)
+      description: Optional duration of the video clip in seconds.
+      example: 33
+      selector:
+        number:
+          mode: box
+          min: 1
 
 send_audio:
   name: Send Audio
@@ -429,6 +437,14 @@ send_audio:
           mode: box
           min: 0
           max: 7776000
+    seconds:
+      name: Duration (Seconds)
+      description: Optional duration of the audio clip in seconds.
+      example: 33
+      selector:
+        number:
+          mode: box
+          min: 1
 
 send_location:
   name: Send Location
