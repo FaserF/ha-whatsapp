@@ -3,6 +3,7 @@
 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="100" alt="WhatsApp Logo">
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![Downloads (Current release)](https://img.shields.io/github/downloads/FaserF/ha-whatsapp/latest/whatsapp.zip?label=Downloads%20(Current%20release)&style=flat-square)](https://github.com/FaserF/ha-whatsapp/releases)
 [![GitHub Release](https://img.shields.io/github/v/release/FaserF/ha-whatsapp.svg)](https://github.com/FaserF/ha-whatsapp/releases)
 
 > Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required. 🚀
