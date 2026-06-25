@@ -193,6 +193,7 @@ jobs:
           if [ -n "$release_id" ]; then
             gh api -X PATCH "repos/$REPO/releases/$release_id" \
               -f tag_name="$TAG" \
+              -f target_commitish="${{ github.ref_name }}" \
               -f name="Release $VERSION" \
               -f body_path="updated_draft_body.md" \
               -F draft=true \
@@ -244,6 +245,7 @@ jobs:
             # Update the existing draft release to publish it
             gh api -X PATCH "repos/$REPO/releases/$release_id" \
               -f tag_name="$TAG" \
+              -f target_commitish="${{ github.ref_name }}" \
               -f name="Release $VERSION" \
               -f body_path="release_body.md" \
               -F draft=false \
