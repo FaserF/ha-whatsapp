@@ -40,7 +40,7 @@
 ---
 
 > [!CAUTION]
-> **Legal Disclaimer / Haftungsausschluss**
+> **Legal Disclaimer**
 >
 > Using this integration may violate WhatsApp's **[Terms of Service](https://www.whatsapp.com/legal/terms-of-service/)**. WhatsApp explicitly prohibits unauthorized automated or bulk messaging.
 >
