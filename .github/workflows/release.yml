@@ -29,6 +29,11 @@ on:
         description: "Manually override new version (e.g. 1.2.3 or 2026.6.2b1). Leave empty to use automatic calculation."
         required: false
         type: string
+      empty_release:
+        description: "Generate empty release (Addon-only changes)?"
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -74,6 +79,7 @@ jobs:
           RELEASE_TYPE: ${{ github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta') }}
           BUMP_LEVEL: ${{ github.event.inputs.bump_level || 'patch' }}
           VERSION_OVERRIDE: ${{ inputs.version_override }}
+          EMPTY_RELEASE: ${{ github.event.inputs.empty_release || 'false' }}
           REPO: ${{ github.repository }}
           OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
