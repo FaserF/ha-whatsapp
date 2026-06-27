@@ -44,6 +44,7 @@ These settings control the engine (the WhatsApp browser bridge).
 - **Group Fetch Interval**: (Default: `300000ms` / 5 minutes) How often the app refreshes the group list from WhatsApp servers.
 - **Group Fetch Cooldown (Error)**: (Default: `60000ms` / 1 minute) The back-off time after a failed group fetch before trying again.
 - **Group Fetch Cooldown (Rate Limit)**: (Default: `900000ms` / 15 minutes) The back-off time applied when WhatsApp explicitly rate-limits the group fetch request.
+- **Reject Unauthorized**: (Default: `Enabled`) Set to `false` to disable SSL/TLS certificate validation when fetching media URLs or calling APIs (useful for self-signed SSL setups, e.g. with Frigate).
 
 ---
 
