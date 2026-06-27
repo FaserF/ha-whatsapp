@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: "Type of release (stable, beta, nightly)"
+        description: "Type of release (stable, beta, nightly, app_sync)"
         required: true
         default: "beta"
         type: choice
@@ -13,6 +13,7 @@ on:
           - stable
           - beta
           - nightly
+          - app_sync
 
       bump_level:
         description: "Bump Level (SemVer only: major, minor, patch)"
@@ -77,6 +78,19 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          if [[ "${{ github.event.inputs.release_type }}" == "app_sync" ]]; then
+            echo "🔄 Syncing version from App repository..."
+            APP_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
+            REMOTE_VERSION=$(curl -s "$APP_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
+            if [[ -z "$REMOTE_VERSION" ]]; then
+               echo "❌ Failed to fetch version from App config!"
+               exit 1
+            fi
+            export VERSION_OVERRIDE="$REMOTE_VERSION"
+            export RELEASE_TYPE="stable"
+            export EMPTY_RELEASE="true"
+            echo "✅ Syncing to version: $VERSION_OVERRIDE"
+          fi
           python .github/scripts/calculate_release_details.py
 
       - name: Upload Release Body

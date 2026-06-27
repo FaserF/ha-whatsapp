@@ -131,7 +131,14 @@ def main():
 
     # Generate Changelog
     changelog_md = ""
-    if os.path.exists("scripts/generate_changelog.py"):
+    if os.environ.get("EMPTY_RELEASE") == "true":
+        changelog_md = (
+            "## ℹ️ Sync Release\n\n"
+            "HA App (Addon) only changes, no changes on integration side.\n\n"
+            "This release is only to stay in sync with the HA App addon version. For more details on the latest HA App (Addon) changes, please visit the [Addon repository](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).\n\n"
+            "An overview of all versions can be found on the [documentation page](https://faserf.github.io/ha-whatsapp/)."
+        )
+    elif os.path.exists("scripts/generate_changelog.py"):
         try:
             changelog_md = (
                 subprocess.check_output(
