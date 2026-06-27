@@ -14,13 +14,15 @@ Setting up the WhatsApp integration is a two-step process: installing the **App*
 
 The App handles the heavy lifting of connecting to WhatsApp.
 
+### Option A: Home Assistant Addon (Recommended for HAOS/Supervised)
+
 1. **Add the Repository**: Click the button below to add the App repository to your Home Assistant.
 
 <div class="btn-myha-wrapper">
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Repository</span></a>
 </div>
 
-1. **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
+2. **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
 > **TIP:**
 > **Using Home Assistant OS / Supervisor?** You can skip manual addon installation! The integration will offer to install the official Addon (Stable or Edge) automatically during the config flow setup.
@@ -29,10 +31,50 @@ The App handles the heavy lifting of connecting to WhatsApp.
   <a href="https://my.home-assistant.io/redirect/supervisor_store/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">App Dashboard</span></a>
 </div>
 
-1. **Start & Get Token**:
+3. **Start & Get Token**:
    - Ensure `log_level` is set to `info` in the **Configuration** tab.
    - **Start** the App.
    - Open the **Web UI** and look for the **API Token** (hidden behind "Show API Key"). **Copy this token** for the next step.
+
+### Option B: Standalone Docker (For Home Assistant Container/Docker-only users)
+
+If you run Home Assistant inside a Docker container (without Supervisor), you can deploy the WhatsApp Gateway using our standalone Docker image.
+
+Run the container using `docker compose`:
+
+```yaml
+services:
+  whatsapp-gateway:
+    image: ghcr.io/faserf/whatsappgateway:latest
+    container_name: whatsapp-gateway
+    restart: unless-stopped
+    ports:
+      - "8066:8066"
+    volumes:
+      - ./data:/data
+      - ./media:/media
+    environment:
+      - PORT=8066
+      - DATA_DIR=/data
+      - MEDIA_FOLDER=/media
+      - LOG_LEVEL=info
+      # - API_TOKEN=your_secure_token_here
+```
+
+Or run via Docker CLI:
+
+```bash
+docker run -d \
+  --name whatsapp-gateway \
+  --restart unless-stopped \
+  -p 8066:8066 \
+  -v ./data:/data \
+  -v ./media:/media \
+  -e PORT=8066 \
+  ghcr.io/faserf/whatsappgateway:latest
+```
+
+After starting, navigate to `http://YOUR_SERVER_IP:8066` on your web browser to access the Web UI and retrieve/set your **API Token** (under "Show API Key"). Copy this token.
 
 ---
 

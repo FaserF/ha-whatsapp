@@ -33,12 +33,10 @@ The integration is secured with a token. The easiest way to get it is via the sp
 
 ### 1. Get Token & Check Status
 
-1. Start the **WhatsApp Home Assistant App**.
-2. Click **"Open Web UI"** (Ingress).
-   - _Tip: If you see "Checking Status...", just give it a second!_
-3. You will see a Status Badge and (eventually) a QR Code.
-4. Click **"Show API Key"** to reveal your token.
-5. **Copy this token**. 🔑
+- **Home Assistant Addon**: Start the **WhatsApp Home Assistant App** and click **"Open Web UI"** (Ingress).
+- **Standalone Docker**: Start the container, and open your web browser to `http://YOUR_SERVER_IP:8066`.
+- Click **"Show API Key"** to reveal your token.
+- **Copy this token**. 🔑
 
 ### 2. Add Integration in Home Assistant
 
