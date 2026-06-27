@@ -42,7 +42,7 @@ graph LR
 
 ## 📦 Step 1: Install Rocket.Chat Private App
 
-1. **Download the Bridge App**: [Download whatsapp-rocketchat-bridge.zip](https://raw.githubusercontent.com/FaserF/hassio-addons/refs/heads/master/whatsapp-rocketchat-bridge.zip)
+1. **Download the Bridge App**: [Download whatsapp-rocketchat-bridge.zip](https://github.com/FaserF/hassio-addons/raw/refs/heads/master/whatsapp/rocketchat-app/whatsapp-rocketchat-bridge.zip)
 2. Log in to your **Rocket.Chat Administration**.
 3. Navigate to **Workspace** > **Apps**.
 4. Click **Upload App** and select the `.zip` file you downloaded.
