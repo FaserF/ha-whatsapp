@@ -261,29 +261,56 @@ def main():
     )
 
     released_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " UTC"
-    body_parts = [
-        f"# {friendly_name} {version}  {channel_badge}",
-        "",
-        prerelease_note,
-        "## 📋 What's Changed",
-        "",
-        changelog_md,
-        "",
-        "## 📊 Release Details",
-        "",
-        "| | |",
-        "|---|---|",
-        f"| **Version** | `{version}` |",
-        f"| **Channel** | {rtype} |",
-        f"| **Released** | {released_at} |",
-        f"| **Commits included** | {total_commit_count} — {changelog_label} |",
-        f"| **Downloads (this release)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/{tag}/{domain}.zip?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases/tag/{tag}) |",
-        f"| **Downloads (total)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/total?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases) |",
-        "",
-        "---",
-        "",
-        f"*📖 [Documentation]({docs_url})  ·  🐛 [Report an Issue](https://github.com/{repo}/issues/new/choose)  ·  📦 [All Releases](https://github.com/{repo}/releases)*",
-    ]
+    if os.environ.get("EMPTY_RELEASE") == "true":
+        body_parts = [
+            f"# {friendly_name} {version} (Sync)  {channel_badge}",
+            "",
+            "## ℹ️ Sync Release",
+            "",
+            "HA App (Addon) only changes, no changes on integration side.",
+            "",
+            "This release is only to stay in sync with the HA App addon version. For more details on the latest HA App (Addon) changes, please visit the [Addon repository](https://github.com/FaserF/hassio-addons/tree/master/whatsapp).",
+            "",
+            "An overview of all versions can be found on the [documentation page](https://faserf.github.io/ha-whatsapp/).",
+            "",
+            "## 📊 Release Details",
+            "",
+            "| | |",
+            "|---|---|",
+            f"| **Version** | `{version}` |",
+            f"| **Channel** | {rtype} |",
+            f"| **Released** | {released_at} |",
+            f"| **Downloads (this release)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/{tag}/{domain}.zip?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases/tag/{tag}) |",
+            f"| **Downloads (total)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/total?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases) |",
+            "",
+            "---",
+            "",
+            f"*📖 [Documentation]({docs_url})  ·  🐛 [Report an Issue](https://github.com/{repo}/issues/new/choose)  ·  📦 [All Releases](https://github.com/{repo}/releases)*",
+        ]
+    else:
+        body_parts = [
+            f"# {friendly_name} {version}  {channel_badge}",
+            "",
+            prerelease_note,
+            "## 📋 What's Changed",
+            "",
+            changelog_md,
+            "",
+            "## 📊 Release Details",
+            "",
+            "| | |",
+            "|---|---|",
+            f"| **Version** | `{version}` |",
+            f"| **Channel** | {rtype} |",
+            f"| **Released** | {released_at} |",
+            f"| **Commits included** | {total_commit_count} — {changelog_label} |",
+            f"| **Downloads (this release)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/{tag}/{domain}.zip?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases/tag/{tag}) |",
+            f"| **Downloads (total)** | [![Downloads](https://img.shields.io/github/downloads/{owner}/{repo_name}/total?style=flat-square&logo=github)](https://github.com/{owner}/{repo_name}/releases) |",
+            "",
+            "---",
+            "",
+            f"*📖 [Documentation]({docs_url})  ·  🐛 [Report an Issue](https://github.com/{repo}/issues/new/choose)  ·  📦 [All Releases](https://github.com/{repo}/releases)*",
+        ]
 
     body = "\n".join(body_parts)
     with open("release_body.md", "w", encoding="utf-8") as f:
@@ -296,6 +323,10 @@ def main():
             f.write(f"version={version}\n")
             f.write(f"tag={tag}\n")
             f.write(f"is_prerelease={is_prerelease}\n")
+            title = f"Release {version}"
+            if os.environ.get("EMPTY_RELEASE") == "true":
+                title += " (Sync)"
+            f.write(f"title={title}\n")
             import uuid
 
             delimiter = f"gh_release_{uuid.uuid4().hex}"

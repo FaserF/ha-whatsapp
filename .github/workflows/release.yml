@@ -62,6 +62,7 @@ jobs:
       tag: ${{ steps.get_version.outputs.tag }}
       is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
       release_body: ${{ steps.get_version.outputs.release_body }}
+      title: ${{ steps.get_version.outputs.title }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -141,7 +142,7 @@ jobs:
           fi
           gh release create "$TAG" \
             --target "${{ github.ref_name }}" \
-            --title "Release $VERSION" \
+            --title "${{ steps.get_version.outputs.title }}" \
             --notes-file "initial_draft_body.md" \
             --draft \
             $prerelease_arg
@@ -249,11 +250,12 @@ jobs:
           REPO: ${{ github.repository }}
           TAG: ${{ needs.versioning.outputs.tag }}
           VERSION: ${{ needs.versioning.outputs.version }}
+          TITLE: ${{ needs.versioning.outputs.release_title }}
           IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
         shell: bash
         run: |
           # Find existing draft release
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="'$TITLE'") | select(.draft==true) | .id')
 
           # Set prerelease argument
           prerelease_arg=""
@@ -266,7 +268,7 @@ jobs:
             gh api -X PATCH "repos/$REPO/releases/$release_id" \
               -f tag_name="$TAG" \
               -f target_commitish="${{ github.ref_name }}" \
-              -f name="Release $VERSION" \
+              -f name="$TITLE" \
               -f body_path="release_body.md" \
               -F draft=false \
               -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
@@ -277,7 +279,7 @@ jobs:
             # Create a brand new release if no draft exists
             gh release create "$TAG" \
               --target "${{ github.ref_name }}" \
-              --title "Release $VERSION" \
+              --title "$TITLE" \
               --notes-file "release_body.md" \
               $prerelease_arg \
               whatsapp.zip
