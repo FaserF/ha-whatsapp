@@ -84,6 +84,21 @@ This is usually a side effect of WhatsApp's End-to-End Encryption (E2EE).
 - **Limitation**: Votes on polls sent while the bot was disconnected can **never** be resolved.
 {: .important }
 
+### 6. WhatsApp Account Suspended / Banned
+
+Since the Addon uses an unofficial API client (Baileys), WhatsApp's automated spam-detection algorithms can temporarily or permanently suspend your account if it detects spammy behavior.
+
+**Symptoms**:
+- Your WhatsApp client suddenly disconnects and the Supervisor log shows `loggedOut`.
+- When opening WhatsApp on your phone, you see a message saying "This account is not allowed to use WhatsApp".
+
+**Prevention & Mitigation**:
+- **Warming up**: Use an established number with real chat history. Do not use freshly registered SIM cards for bots.
+- **Save Contacts**: Only message users who have your bot's number saved in their address book.
+- **Automation Delays**: Never send rapid burst messages. Put `delay` actions (5–10s) in Home Assistant automations between consecutive message steps.
+- **Appeal**: If banned, you can usually request a review directly inside the official WhatsApp app. In most cases, first-time suspensions are restored within 24 hours.
+{: .warning }
+
 ---
 
 ## 📞 Support & Logs
