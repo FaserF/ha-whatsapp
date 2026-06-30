@@ -271,6 +271,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
             # If verification failed (not connected), show error and let user retry
             self.qr_code = None
+            for _i in range(5):
+                try:
+                    self.qr_code = await self.client.get_qr_code()
+                    if self.qr_code:
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(1)
+
+            transparent_placeholder = (
+                "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAAL"
+                "AAAAAABAAEAAAIBRAA7"
+            )
+
+            errors = {}
+            if not self.qr_code:
+                errors["base"] = "qr_timeout"
+            else:
+                errors["base"] = "connection_error"
+
             return self.async_show_form(
                 step_id="scan",
                 data_schema=vol.Schema(
@@ -279,10 +299,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     }
                 ),
                 description_placeholders={
-                    "qr_image": self.qr_code
-                    or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                    "qr_image": self.qr_code or transparent_placeholder,
                 },
-                errors={"base": "connection_error"},
+                errors=errors,
             )
 
         # Get QR Code (Base64 data URI)
@@ -308,10 +327,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     pass
                 await asyncio.sleep(1)
 
+        transparent_placeholder = (
+            "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAAL"
+            "AAAAAABAAEAAAIBRAA7"
+        )
+
+        errors = {}
         if not self.qr_code:
-            # If still no QR code, show a "Waiting" placeholder or instructions
-            # to retry.
-            pass
+            errors["base"] = "qr_timeout"
 
         return self.async_show_form(
             step_id="scan",
@@ -321,9 +344,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 }
             ),  # No input needed, just "Submit" after scan
             description_placeholders={
-                "qr_image": self.qr_code
-                or "https://via.placeholder.com/300x300.png?text=Waiting+for+QR+Code...",
+                "qr_image": self.qr_code or transparent_placeholder,
             },
+            errors=errors,
         )
 
     async def async_step_phone_pairing(

@@ -49,6 +49,7 @@
       "connection_error": "Nicht mit WhatsApp verbunden. Bitte scanne zuerst den QR-Code.",
       "addon_install_error": "Installation des WhatsApp-Addons fehlgeschlagen. Bitte prüfe die Supervisor-Logs.",
       "rate_limit": "Zu viele Anfragen. Bitte warte 15 Minuten und versuche es erneut.",
+      "qr_timeout": "Die Generierung des QR-Codes dauerte zu lange oder schlug fehl. Bitte überprüfe die Addon-Protokolle, stelle sicher, dass es online ist, und klicke auf Absenden, um es erneut zu versuchen.",
       "unknown": "Unerwarteter Fehler"
     },
     "abort": {
