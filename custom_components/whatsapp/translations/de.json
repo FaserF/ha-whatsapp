@@ -37,6 +37,10 @@
       "discovery_confirm": {
         "title": "Entdeckung bestätigen",
         "description": "Möchtest du die **WhatsApp Homeassistant App (ehem. Add-on)** unter `{host}` einrichten?"
+      },
+      "account_warning": {
+        "title": "Wichtiger Sicherheitshinweis",
+        "description": "⚠️ **Sperrung des WhatsApp-Kontos verhindern**\n\n{warning_message}\n\nWeitere Details findest du im [GitHub Issue #59]({issue_url}) sowie in der [Fehlerbehebungs-Dokumentation]({docs_url})."
       }
     },
     "error": {

@@ -225,16 +225,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     await self.async_set_unique_id(my_number)
                     self._abort_if_unique_id_configured()
 
-                await self.client.close()
-                return self.async_create_entry(
-                    title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
-                    data={
-                        "session_id": self.session_id,
-                        CONF_URL: self.discovery_info[CONF_URL],
-                        CONF_API_KEY: self.discovery_info[CONF_API_KEY],
-                        "system_id": self.discovery_info.get("system_id"),
-                    },
-                )
+                return await self.async_check_and_create_entry(my_number)
         except AbortFlow:
             raise
         except Exception as e:
@@ -273,16 +264,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         await self.async_set_unique_id(my_number)
                         self._abort_if_unique_id_configured()
 
-                    await self.client.close()
-                    return self.async_create_entry(
-                        title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
-                        data={
-                            "session_id": self.session_id,
-                            CONF_URL: self.discovery_info[CONF_URL],
-                            CONF_API_KEY: self.discovery_info[CONF_API_KEY],
-                            "system_id": self.discovery_info.get("system_id"),
-                        },
-                    )
+                    return await self.async_check_and_create_entry(my_number)
 
             except Exception:
                 pass
@@ -321,18 +303,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                             await self.async_set_unique_id(my_number)
                             self._abort_if_unique_id_configured()
 
-                        await self.client.close()
-                        return self.async_create_entry(
-                            title=(
-                                f"WhatsApp ({my_number})" if my_number else "WhatsApp"
-                            ),
-                            data={
-                                "session_id": self.session_id,
-                                CONF_URL: self.discovery_info[CONF_URL],
-                                CONF_API_KEY: self.discovery_info[CONF_API_KEY],
-                                "system_id": self.discovery_info.get("system_id"),
-                            },
-                        )
+                        return await self.async_check_and_create_entry(my_number)
                 except Exception:
                     pass
                 await asyncio.sleep(1)
@@ -397,16 +368,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         await self.async_set_unique_id(my_number)
                         self._abort_if_unique_id_configured()
 
-                    await self.client.close()
-                    return self.async_create_entry(
-                        title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
-                        data={
-                            "session_id": self.session_id,
-                            CONF_URL: self.discovery_info[CONF_URL],
-                            CONF_API_KEY: self.discovery_info[CONF_API_KEY],
-                            "system_id": self.discovery_info.get("system_id"),
-                        },
-                    )
+                    return await self.async_check_and_create_entry(my_number)
             except Exception:
                 pass
             errors["base"] = "connection_error"
@@ -588,6 +550,94 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             step_id="discovery_confirm",
             description_placeholders={"host": self.discovery_info[CONF_URL]},
             data_schema=vol.Schema({}),
+        )
+
+    async def async_check_and_create_entry(self, my_number: str | None) -> ConfigFlowResult:
+        """Check if account is new/inactive and transition to warning step, or create entry directly."""
+        show_warning = False
+        show_fallback = False
+
+        try:
+            stats = await self.client.get_stats()
+            chat_count = stats.get("chat_count")
+            if chat_count is None:
+                show_fallback = True
+            elif int(chat_count) <= 1:
+                show_warning = True
+        except Exception as e:
+            _LOGGER.debug("Failed to retrieve chat/message stats: %s", e)
+            show_fallback = True
+
+        if self.client:
+            await self.client.close()
+
+        if show_warning or show_fallback:
+            self.context["my_number"] = my_number
+            self.context["warning_type"] = "fallback" if show_fallback else "new_account"
+            return await self.async_step_account_warning()
+
+        return self.async_create_entry(
+            title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
+            data={
+                "session_id": self.session_id,
+                CONF_URL: self.discovery_info[CONF_URL],
+                CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                "system_id": self.discovery_info.get("system_id"),
+            },
+        )
+
+    async def async_step_account_warning(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show a warning for new WhatsApp accounts to prevent bans."""
+        if user_input is not None:
+            my_number = self.context.get("my_number")
+            return self.async_create_entry(
+                title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
+                data={
+                    "session_id": self.session_id,
+                    CONF_URL: self.discovery_info[CONF_URL],
+                    CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                    "system_id": self.discovery_info.get("system_id"),
+                },
+            )
+
+        warning_type = self.context.get("warning_type", "new_account")
+        lang = self.hass.config.language
+
+        if warning_type == "fallback":
+            if lang == "de":
+                warning_msg = (
+                    "Die Integration konnte das Alter oder den Nachrichtenverlauf deines WhatsApp-Kontos nicht überprüfen (Chat-Liste nicht bereit oder alte Addon-Version).\n\n"
+                    "**HINWEIS:** Wenn es sich um ein brandneues WhatsApp-Konto handelt, verwende es bitte einige Tage lang nicht in der Integration, um eine Sperrung zu vermeiden. Sende zuerst ein paar normale Nachrichten über deine mobile App. Wenn du ein etabliertes Konto verwendest, kannst du diesen Hinweis ignorieren."
+                )
+            else:
+                warning_msg = (
+                    "The integration was unable to verify the age or message history of your WhatsApp account (chat list not ready or old addon version).\n\n"
+                    "**NOTE:** If this is a brand-new WhatsApp account, please do not use it in the integration for a few days to avoid a suspension. First, send a few normal messages to groups or direct chats on your mobile app to build reputation. If you are using an established account, you can safely ignore this warning."
+                )
+        else:
+            if lang == "de":
+                warning_msg = (
+                    "Dein WhatsApp-Konto scheint brandneu oder inaktiv zu sein (keine Chats oder Nachrichten gefunden).\n\n"
+                    "**WICHTIG:** Meta geht sehr streng gegen neue Konten und Verknüpfungen vor. Wenn du ein neues Konto sofort für automatisierte Nachrichten verwendest, wird es höchstwahrscheinlich gesperrt.\n\n"
+                    "**Empfehlung:** Nutze dieses Konto einige Tage lang nicht in der Integration. Schreibe zuerst einige normale Nachrichten in Gruppen oder Direktchats über deine mobile WhatsApp-App, um eine positive Reputation aufzubauen."
+                )
+            else:
+                warning_msg = (
+                    "Your WhatsApp account appears to be brand-new or inactive (no recent chats or messages detected).\n\n"
+                    "**IMPORTANT:** Meta is extremely strict with new accounts and links. Using a new account for automated messages immediately will likely get your account suspended/banned.\n\n"
+                    "**Recommendation:** Do not use this account in the integration for a few days. First, write some normal direct messages or group chats using your WhatsApp mobile app to build up a positive reputation."
+                )
+
+        return self.async_show_form(
+            step_id="account_warning",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "warning_message": warning_msg,
+                "issue_url": "https://github.com/FaserF/ha-whatsapp/issues/59",
+                "docs_url": "https://faserf.github.io/ha-whatsapp/troubleshooting.html#6-whatsapp-account-suspended--banned",
+            },
         )
 
 
