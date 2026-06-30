@@ -559,6 +559,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         show_warning = False
         show_fallback = False
 
+        if not self.client:
+            return self.async_abort(reason="unknown")
+
         try:
             stats = await self.client.get_stats()
             chat_count = stats.get("chat_count")
@@ -574,9 +577,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             await self.client.close()
 
         if show_warning or show_fallback:
-            self.context["my_number"] = my_number
+            self.context["my_number"] = my_number  # type: ignore[typeddict-unknown-key]
             wtype = "fallback" if show_fallback else "new_account"
-            self.context["warning_type"] = wtype
+            self.context["warning_type"] = wtype  # type: ignore[typeddict-unknown-key]
             return await self.async_step_account_warning()
 
         return self.async_create_entry(
