@@ -552,7 +552,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             data_schema=vol.Schema({}),
         )
 
-    async def async_check_and_create_entry(self, my_number: str | None) -> ConfigFlowResult:
+    async def async_check_and_create_entry(
+        self, my_number: str | None
+    ) -> ConfigFlowResult:
         """Check if account is new/inactive and transition to warning step, or create entry directly."""
         show_warning = False
         show_fallback = False
@@ -573,7 +575,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         if show_warning or show_fallback:
             self.context["my_number"] = my_number
-            self.context["warning_type"] = "fallback" if show_fallback else "new_account"
+            self.context["warning_type"] = (
+                "fallback" if show_fallback else "new_account"
+            )
             return await self.async_step_account_warning()
 
         return self.async_create_entry(
