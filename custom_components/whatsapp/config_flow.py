@@ -552,10 +552,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             data_schema=vol.Schema({}),
         )
 
-    async def async_check_and_create_entry(
+    async def async_check_and_create_entry(  # noqa: E501
         self, my_number: str | None
     ) -> ConfigFlowResult:
-        """Check if account is new/inactive and transition to warning step, or create entry directly."""
+        """Check account activity; show warning step if new/inactive."""
         show_warning = False
         show_fallback = False
 
@@ -575,9 +575,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         if show_warning or show_fallback:
             self.context["my_number"] = my_number
-            self.context["warning_type"] = (
-                "fallback" if show_fallback else "new_account"
-            )
+            wtype = "fallback" if show_fallback else "new_account"
+            self.context["warning_type"] = wtype
             return await self.async_step_account_warning()
 
         return self.async_create_entry(
@@ -612,35 +611,66 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if warning_type == "fallback":
             if lang == "de":
                 warning_msg = (
-                    "Die Integration konnte das Alter oder den Nachrichtenverlauf deines WhatsApp-Kontos nicht überprüfen (Chat-Liste nicht bereit oder alte Addon-Version).\n\n"
-                    "**HINWEIS:** Wenn es sich um ein brandneues WhatsApp-Konto handelt, verwende es bitte einige Tage lang nicht in der Integration, um eine Sperrung zu vermeiden. Sende zuerst ein paar normale Nachrichten über deine mobile App. Wenn du ein etabliertes Konto verwendest, kannst du diesen Hinweis ignorieren."
+                    "Die Integration konnte das Alter oder den Nachrichtenverlauf"
+                    " deines WhatsApp-Kontos nicht überprüfen"
+                    " (Chat-Liste nicht bereit oder alte Addon-Version).\n\n"
+                    "**HINWEIS:** Wenn es sich um ein brandneues WhatsApp-Konto"
+                    " handelt, verwende es bitte einige Tage lang nicht in der"
+                    " Integration, um eine Sperrung zu vermeiden. Sende zuerst ein"
+                    " paar normale Nachrichten über deine mobile App. Wenn du ein"
+                    " etabliertes Konto verwendest, kannst du diesen Hinweis"
+                    " ignorieren."
                 )
             else:
                 warning_msg = (
-                    "The integration was unable to verify the age or message history of your WhatsApp account (chat list not ready or old addon version).\n\n"
-                    "**NOTE:** If this is a brand-new WhatsApp account, please do not use it in the integration for a few days to avoid a suspension. First, send a few normal messages to groups or direct chats on your mobile app to build reputation. If you are using an established account, you can safely ignore this warning."
+                    "The integration was unable to verify the age or message"
+                    " history of your WhatsApp account"
+                    " (chat list not ready or old addon version).\n\n"
+                    "**NOTE:** If this is a brand-new WhatsApp account, please do"
+                    " not use it in the integration for a few days to avoid a"
+                    " suspension. First, send a few normal messages to groups or"
+                    " direct chats on your mobile app to build reputation. If you"
+                    " are using an established account, you can safely ignore this"
+                    " warning."
                 )
         else:
             if lang == "de":
                 warning_msg = (
-                    "Dein WhatsApp-Konto scheint brandneu oder inaktiv zu sein (keine Chats oder Nachrichten gefunden).\n\n"
-                    "**WICHTIG:** Meta geht sehr streng gegen neue Konten und Verknüpfungen vor. Wenn du ein neues Konto sofort für automatisierte Nachrichten verwendest, wird es höchstwahrscheinlich gesperrt.\n\n"
-                    "**Empfehlung:** Nutze dieses Konto einige Tage lang nicht in der Integration. Schreibe zuerst einige normale Nachrichten in Gruppen oder Direktchats über deine mobile WhatsApp-App, um eine positive Reputation aufzubauen."
+                    "Dein WhatsApp-Konto scheint brandneu oder inaktiv zu sein"
+                    " (keine Chats oder Nachrichten gefunden).\n\n"
+                    "**WICHTIG:** Meta geht sehr streng gegen neue Konten und"
+                    " Verknüpfungen vor. Wenn du ein neues Konto sofort für"
+                    " automatisierte Nachrichten verwendest, wird es"
+                    " höchstwahrscheinlich gesperrt.\n\n"
+                    "**Empfehlung:** Nutze dieses Konto einige Tage lang nicht in"
+                    " der Integration. Schreibe zuerst einige normale Nachrichten"
+                    " in Gruppen oder Direktchats über deine mobile WhatsApp-App,"
+                    " um eine positive Reputation aufzubauen."
                 )
             else:
                 warning_msg = (
-                    "Your WhatsApp account appears to be brand-new or inactive (no recent chats or messages detected).\n\n"
-                    "**IMPORTANT:** Meta is extremely strict with new accounts and links. Using a new account for automated messages immediately will likely get your account suspended/banned.\n\n"
-                    "**Recommendation:** Do not use this account in the integration for a few days. First, write some normal direct messages or group chats using your WhatsApp mobile app to build up a positive reputation."
+                    "Your WhatsApp account appears to be brand-new or inactive"
+                    " (no recent chats or messages detected).\n\n"
+                    "**IMPORTANT:** Meta is extremely strict with new accounts and"
+                    " links. Using a new account for automated messages immediately"
+                    " will likely get your account suspended/banned.\n\n"
+                    "**Recommendation:** Do not use this account in the integration"
+                    " for a few days. First, write some normal direct messages or"
+                    " group chats using your WhatsApp mobile app to build up a"
+                    " positive reputation."
                 )
 
+        docs_url = (
+            "https://faserf.github.io/ha-whatsapp/troubleshooting.html"
+            "#6-whatsapp-account-suspended--banned"
+        )
         return self.async_show_form(
             step_id="account_warning",
             data_schema=vol.Schema({}),
             description_placeholders={
                 "warning_message": warning_msg,
                 "issue_url": "https://github.com/FaserF/ha-whatsapp/issues/59",
-                "docs_url": "https://faserf.github.io/ha-whatsapp/troubleshooting.html#6-whatsapp-account-suspended--banned",
+                "docs_url": docs_url,
             },
         )
 
