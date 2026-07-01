@@ -531,6 +531,52 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 _LOGGER.debug("Health check failed: %s", e)
                 return {"status": "unreachable", "details": str(e)}
 
+    async def get_dashboard(self) -> dict[str, Any]:
+        """Fetch dashboard data from the Addon (includes passkeyDetected)."""
+        url = f"{self.host}/api/dashboard"
+        params = {"session_id": self.session_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status == 200:
+                        return cast(dict[str, Any], await resp.json())
+                    _LOGGER.debug("Dashboard fetch returned status %s", resp.status)
+            except Exception as e:
+                _LOGGER.debug("Failed to fetch dashboard: %s", e)
+        return {}
+
+    async def get_passkey_status(self) -> dict[str, Any]:
+        """Poll the /passkey/status endpoint during the passkey ceremony waiting step.
+
+        Returns a dict with keys:
+            passkeyDetected (bool): Ceremony still active.
+            passkeyWaiting (bool): Waiting for phone approval.
+            isConnected (bool): Session connected (ceremony complete).
+        """
+        url = f"{self.host}/passkey/status"
+        params = {"session_id": self.session_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=8),
+                ) as resp:
+                    if resp.status == 200:
+                        return cast(dict[str, Any], await resp.json())
+                    _LOGGER.debug("Passkey status returned %s", resp.status)
+            except Exception as e:
+                _LOGGER.debug("Passkey status fetch failed: %s", e)
+        return {"passkeyDetected": False, "passkeyWaiting": False, "isConnected": False}
+
     async def get_debug_info(self) -> dict[str, Any]:
         """Fetch full debug report from the addon."""
         url = f"{self.host}/api/debug/download"

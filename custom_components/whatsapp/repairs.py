@@ -10,6 +10,9 @@ Currently implemented issues:
     * ``session_expired`` – The addon is running but the WhatsApp QR
       session has been revoked / logged out.  The repair flow instructs
       the user to re-scan the QR code via the integration's config flow.
+    * ``passkey_required`` – WhatsApp is enforcing a passkey ceremony
+      during device linking.  The repair flow explains Option 1 (remove
+      passkey on phone) and mentions the experimental Baileys fork.
 
 All other unknown issues fall back to a generic :class:`ConfirmRepairFlow`.
 """
@@ -96,6 +99,6 @@ async def async_setup_repair_flow(
         back to a simple :class:`~homeassistant.components.repairs.ConfirmRepairFlow`
         for unknown issues.
     """
-    if issue_id in ("session_expired", "connection_error_baileys"):
+    if issue_id in ("session_expired", "connection_error_baileys", "passkey_required"):
         return WhatsAppRepairFlow(issue_id)
     return ConfirmRepairFlow()

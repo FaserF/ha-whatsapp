@@ -265,6 +265,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             except Exception:
                 pass
 
+            # Check if the addon detected a passkey ceremony before concluding error
+            try:
+                dashboard = await self.client.get_dashboard()
+                if dashboard.get("passkeyDetected"):
+                    return await self.async_step_passkey_warning()
+            except Exception:
+                pass
+
             # If verification failed (not connected), show error and let user retry
             self.qr_code = None
             for _i in range(5):
@@ -340,6 +348,83 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             description_placeholders={
                 "qr_image": self.qr_code or transparent_placeholder,
             },
+            errors=errors,
+        )
+
+    async def async_step_passkey_warning(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show passkey warning and let the user choose how to proceed.
+
+        Option 1 (default): Instruct user to disable passkey on phone, then retry.
+        Option 2 (checkbox): Attempt the experimental passkey ceremony — go to waiting step.
+        """
+        if user_input is not None:
+            if user_input.get("continue_with_passkey"):
+                # User chose Option 2: go to the waiting/approval screen
+                return await self.async_step_passkey_waiting()
+            # User acknowledged Option 1 — abort with instructions
+            return self.async_abort(reason="passkey_remove_required")
+
+        return self.async_show_form(
+            step_id="passkey_warning",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("continue_with_passkey", default=False): bool,
+                }
+            ),
+            description_placeholders={
+                "baileys_issue_url": "https://github.com/WhiskeySockets/Baileys/issues/2672",
+                "qiua_fork_url": "https://github.com/Qiua/Baileys/commit/210740666c5e24a88e53dab7f19329bb336e1525",
+                "baileys_pr_url": "https://github.com/WhiskeySockets/Baileys/pull/2676",
+            },
+        )
+
+    async def async_step_passkey_waiting(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Waiting screen while the passkey ceremony completes on the phone.
+
+        Polls /passkey/status every 3 seconds for up to 120 seconds.
+        If connected → finishes setup.
+        If still waiting → shows the form again with a status message.
+        If timed out or still not connected after form submit → lets the user
+        go back to passkey_warning or abort.
+        """
+        if not self.client:
+            return self.async_abort(reason="unknown")
+
+        errors: dict[str, str] = {}
+
+        # Poll the addon a few times before deciding the answer
+        for _i in range(40):  # up to ~120 seconds (40 × 3s)
+            try:
+                status = await self.client.get_passkey_status()
+                if status.get("isConnected"):
+                    # Passkey ceremony succeeded — complete the setup
+                    _LOGGER.info("Passkey ceremony completed — WhatsApp connected")
+                    stats = await self.client.get_stats()
+                    my_number = stats.get("my_number")
+                    if my_number:
+                        await self.async_set_unique_id(my_number)
+                    return await self.async_create_flow_entry(my_number)
+                if not status.get("passkeyWaiting") and not status.get("passkeyDetected"):
+                    # Ceremony no longer active (e.g. timed out on addon side)
+                    errors["base"] = "passkey_timeout"
+                    break
+            except Exception as e:
+                _LOGGER.debug("Passkey status poll error: %s", e)
+
+            await asyncio.sleep(3)
+
+        if not errors:
+            # Ran through all retries without connecting
+            errors["base"] = "passkey_timeout"
+
+        # Show the waiting form again (with error) so user can retry or abort
+        return self.async_show_form(
+            step_id="passkey_waiting",
+            data_schema=vol.Schema({}),
             errors=errors,
         )
 

@@ -124,6 +124,13 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             stats = await self.client.get_stats()
             connected = stats.get("connected", False)
 
+            # 2b. Fetch dashboard for passkey detection (lightweight, best-effort)
+            dashboard: dict[str, Any] = {}
+            try:
+                dashboard = await self.client.get_dashboard()
+            except Exception as dash_err:
+                _LOGGER.debug("Dashboard fetch skipped: %s", dash_err)
+
             chats = {"total_chats": 0, "groups": []}
             if connected:
                 try:
@@ -132,7 +139,22 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                     _LOGGER.debug("Failed to fetch chats: %s", chat_err)
 
             # Differentiated disconnect handling:
-            if not connected:
+            passkey_detected = dashboard.get("passkeyDetected", False)
+            if passkey_detected:
+                # Passkey ceremony active — surface a specific, actionable repair issue.
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    "passkey_required",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="passkey_required",
+                    learn_more_url="https://github.com/WhiskeySockets/Baileys/issues/2672",
+                )
+                ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
+                ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
+            elif not connected:
+                ir.async_delete_issue(self.hass, DOMAIN, "passkey_required")
                 reason = stats.get("disconnect_reason")
                 if reason == "logged_out":
                     ir.async_create_issue(
@@ -158,6 +180,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             else:
                 ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
                 ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
+                ir.async_delete_issue(self.hass, DOMAIN, "passkey_required")
 
             # Always delete connection issue if we successfully reached this point
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
