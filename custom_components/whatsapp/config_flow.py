@@ -87,8 +87,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # Auto-discovery attempt: Scan candidates
         suggested_url = f"http://localhost:{DEFAULT_PORT}"
 
-        if self.discovery_info and self.discovery_info.get("host"):
-            suggested_url = str(self.discovery_info["host"])
+        if self.discovery_info and (
+            self.discovery_info.get("host") or self.discovery_info.get(CONF_URL)
+        ):
+            suggested_url = str(
+                self.discovery_info.get("host") or self.discovery_info.get(CONF_URL)
+            )
         else:
             candidates = [
                 "localhost",
@@ -252,6 +256,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if user_input.get("use_phone_pairing"):
                 return await self.async_step_phone_pairing()
 
+            if user_input.get("request_new_qr"):
+                # Force restart the session on the addon side to get a fresh QR code
+                try:
+                    await self.client.delete_session()
+                    await self.client.start_session()
+                except Exception as e:
+                    _LOGGER.error("Failed to regenerate session for new QR: %s", e)
+                self.qr_code = None
+                await asyncio.sleep(2)
+                return await self.async_step_scan()
+
             # User clicked "Submit" (meaning they scanned it)
             try:
                 connected = await self.client.connect()
@@ -299,6 +314,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 step_id="scan",
                 data_schema=vol.Schema(
                     {
+                        vol.Optional("request_new_qr", default=False): bool,
                         vol.Optional("use_phone_pairing", default=False): bool,
                     }
                 ),
@@ -342,6 +358,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             step_id="scan",
             data_schema=vol.Schema(
                 {
+                    vol.Optional("request_new_qr", default=False): bool,
                     vol.Optional("use_phone_pairing", default=False): bool,
                 }
             ),  # No input needed, just "Submit" after scan
@@ -408,7 +425,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     if my_number:
                         await self.async_set_unique_id(my_number)
                     return await self.async_create_flow_entry(my_number)
-                if not status.get("passkeyWaiting") and not status.get("passkeyDetected"):
+                if not status.get("passkeyWaiting") and not status.get(
+                    "passkeyDetected"
+                ):
                     # Ceremony no longer active (e.g. timed out on addon side)
                     errors["base"] = "passkey_timeout"
                     break

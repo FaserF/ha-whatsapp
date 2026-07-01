@@ -12,6 +12,7 @@
       "scan": {
         "title": "Scan QR Code",
         "data": {
+          "request_new_qr": "Request new QR Code",
           "use_phone_pairing": "Pair with Phone Number instead"
         },
         "description": "Please scan the QR code below with your WhatsApp mobile app (Linked Devices).\n\n![QR Code]({qr_image})\n\n**Please click Submit after successfully scanning the code.**"
