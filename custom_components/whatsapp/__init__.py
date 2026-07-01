@@ -219,7 +219,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             number = data.get("sender")  # Full JID (e.g. 123456789@s.whatsapp.net)
 
             if message_id and number:
-                hass.async_create_task(client.mark_as_read(number, message_id))
+
+                async def _safe_mark_as_read(
+                    _number: str, _message_id: str
+                ) -> None:
+                    """Call mark_as_read and swallow any exception to avoid
+
+                    'Task exception was never retrieved' log spam when the addon
+                    is under load or a request times out.
+                    """
+                    try:
+                        await client.mark_as_read(_number, _message_id)
+                    except Exception as _exc:  # noqa: BLE001
+                        _LOGGER.warning(
+                            "Auto-mark-as-read failed for %s (msg %s): %s",
+                            client.mask(_number),
+                            _message_id,
+                            _exc,
+                        )
+
+                hass.async_create_task(_safe_mark_as_read(number, message_id))
             else:
                 _LOGGER.warning(
                     "Auto-mark-as-read enabled but missing data. "
