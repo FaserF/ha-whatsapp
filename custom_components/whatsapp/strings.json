@@ -397,7 +397,7 @@
     },
     "passkey_required": {
       "title": "WhatsApp Passkey Required — Action Needed",
-      "description": "WhatsApp is requiring a **passkey verification** after QR scan. This is a [known limitation](https://github.com/WhiskeySockets/Baileys/issues/2672) of the Baileys library. The session cannot complete pairing until resolved.\n\n**Fix:** Open WhatsApp on your phone → **Settings → Account → Passkeys → Remove all passkeys**. Then restart the session via the Addon dashboard or re-run the integration setup."
+      "description": "WhatsApp is requiring a **passkey verification** after QR scan. This is a [known limitation]({baileys_issue_url}) of the Baileys library. The session cannot complete pairing until resolved.\n\n**Fix:** Open WhatsApp on your phone → **Settings → Account → Passkeys → Remove all passkeys**. Then restart the session via the Addon dashboard or re-run the integration setup."
     }
   }
 }

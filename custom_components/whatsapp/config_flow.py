@@ -694,7 +694,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 chats = await self.client.get_chats()
                 total_chats = int(chats.get("total_chats") or 0)
-                if total_chats > 2:
+                initial_chats_received = bool(
+                    chats.get("initial_chats_received") or False
+                )
+                _LOGGER.debug(
+                    "Safety warning check: total_chats = %s, initial_received = %s",
+                    total_chats,
+                    initial_chats_received,
+                )
+                if initial_chats_received:
+                    if total_chats > 2:
+                        break
+                    show_warning = True
                     break
             except Exception as e:
                 _LOGGER.debug("Failed to retrieve chat history count: %s", e)
@@ -702,7 +713,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 break
             await asyncio.sleep(1)
         else:
-            show_warning = True
+            # Timeout reached. Fall back to current chat count check.
+            try:
+                chats = await self.client.get_chats()
+                total_chats = int(chats.get("total_chats") or 0)
+                if total_chats <= 2:
+                    show_warning = True
+            except Exception:
+                show_fallback = True
 
         if self.client:
             await self.client.close()

@@ -149,6 +149,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                     is_fixable=False,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="passkey_required",
+                    translation_placeholders={
+                        "baileys_issue_url": "https://github.com/WhiskeySockets/Baileys/issues/2672"
+                    },
                     learn_more_url="https://github.com/WhiskeySockets/Baileys/issues/2672",
                 )
                 ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
