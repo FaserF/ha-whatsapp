@@ -374,7 +374,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Show passkey warning and let the user choose how to proceed.
 
         Option 1 (default): Instruct user to disable passkey on phone, then retry.
-        Option 2 (checkbox): Attempt the experimental passkey ceremony — go to waiting step.
+        Option 2 (checkbox): Attempt the experimental passkey ceremony
+        — go to waiting step.
         """
         if user_input is not None:
             if user_input.get("continue_with_passkey"):
@@ -398,7 +399,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
 
     async def async_step_passkey_waiting(
-        self, user_input: dict[str, Any] | None = None
+        self, _user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Waiting screen while the passkey ceremony completes on the phone.
 

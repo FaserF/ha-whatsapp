@@ -220,9 +220,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             if message_id and number:
 
-                async def _safe_mark_as_read(
-                    _number: str, _message_id: str
-                ) -> None:
+                async def _safe_mark_as_read(_number: str, _message_id: str) -> None:
                     """Call mark_as_read and swallow any exception to avoid
 
                     'Task exception was never retrieved' log spam when the addon
