@@ -65,7 +65,10 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
             "content": "Hello",
         }
 
+        import asyncio
+
         callback_capture(msg_data)
+        await asyncio.sleep(0.01)
         await hass.async_block_till_done()
 
         # Verify mark_as_read was called

@@ -161,12 +161,32 @@ class ConfigFlow:
 
     def __init__(self) -> None:
         self.hass: Any = None
+        self.context: dict[str, Any] = {}
 
-    def async_show_form(self, step_id: str, **_kwargs: Any) -> dict[str, Any]:
-        return {"type": "form", "step_id": step_id}
+    def async_show_form(self, step_id: str, **kwargs: Any) -> dict[str, Any]:
+        return {"type": "form", "step_id": step_id, "errors": kwargs.get("errors")}
 
     def async_create_entry(self, title: str, data: Any) -> dict[str, Any]:
         return {"type": "create_entry", "title": title, "data": data, "version": 1}
+
+    def async_abort(
+        self, reason: str, description_placeholders: Any = None
+    ) -> dict[str, Any]:
+        return {
+            "type": "abort",
+            "reason": reason,
+            "description_placeholders": description_placeholders,
+        }
+
+    async def async_set_unique_id(
+        self, unique_id: str, *, _raise_on_progress: bool = True
+    ) -> Any:
+        return unique_id
+
+    def _abort_if_unique_id_configured(
+        self, *, updates: Any = None, reload_on_update: bool = True
+    ) -> None:
+        pass
 
 
 class OptionsFlow:

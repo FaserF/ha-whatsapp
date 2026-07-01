@@ -122,25 +122,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 if found_host:
                     suggested_url = f"http://{found_host}:{DEFAULT_PORT}"
 
-            if user_input is None:
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Required("host", default=suggested_url): vol.All(
-                                str, vol.Length(min=1)
-                            ),
-                            vol.Required(
-                                CONF_API_KEY,
-                                default=self.discovery_info.get(CONF_API_KEY) or "",
-                            ): vol.All(str, vol.Length(min=1)),
-                        }
-                    ),
-                    description_placeholders={
-                        "setup_url": "https://faserf.github.io/ha-whatsapp/"
-                    },
-                    errors=errors,
-                )
+        if user_input is None:
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("host", default=suggested_url): vol.All(
+                            str, vol.Length(min=1)
+                        ),
+                        vol.Required(
+                            CONF_API_KEY,
+                            default=self.discovery_info.get(CONF_API_KEY) or "",
+                        ): vol.All(str, vol.Length(min=1)),
+                    }
+                ),
+                description_placeholders={
+                    "setup_url": "https://faserf.github.io/ha-whatsapp/"
+                },
+                errors=errors,
+            )
 
         # If we reach here, user_input must be set
         assert user_input is not None
@@ -264,7 +264,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 except Exception as e:
                     _LOGGER.error("Failed to regenerate session for new QR: %s", e)
                 self.qr_code = None
-                await asyncio.sleep(2)
+                await asyncio.sleep(5)
                 return await self.async_step_scan()
 
             # User clicked "Submit" (meaning they scanned it)
@@ -327,7 +327,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # Get QR Code (Base64 data URI)
         if not self.qr_code:
             # Retry fetching multiple times
-            for _i in range(5):  # Try for ~5 seconds
+            for _i in range(15):  # Try for ~15 seconds
                 try:
                     self.qr_code = await self.client.get_qr_code()
                     if self.qr_code:
@@ -559,6 +559,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         break
 
             self.discovery_info["host"] = f"http://{host}:{port}"
+            self.discovery_info[CONF_URL] = f"http://{host}:{port}"
 
             # Also check for api_key in options
             if addon_info.options and (api_key := addon_info.options.get(CONF_API_KEY)):
@@ -663,12 +664,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Confirm discovery."""
+        url = self.discovery_info.get(CONF_URL) or self.discovery_info.get("host") or ""
         if user_input is not None:
-            return await self.async_step_user()
+            return await self.async_step_user(
+                {
+                    "host": url,
+                    CONF_API_KEY: self.discovery_info.get(CONF_API_KEY) or "",
+                }
+            )
 
         return self.async_show_form(
             step_id="discovery_confirm",
-            description_placeholders={"host": self.discovery_info[CONF_URL]},
+            description_placeholders={"host": url},
             data_schema=vol.Schema({}),
         )
 
@@ -708,11 +715,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 return await self.async_step_account_warning_fallback()
             return await self.async_step_account_warning()
 
+        url = self.discovery_info.get(CONF_URL) or self.discovery_info.get("host") or ""
         return self.async_create_entry(
             title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
             data={
                 "session_id": self.session_id,
-                CONF_URL: self.discovery_info[CONF_URL],
+                CONF_URL: url,
                 CONF_API_KEY: self.discovery_info[CONF_API_KEY],
                 "system_id": self.discovery_info.get("system_id"),
             },
@@ -736,11 +744,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Display safety warnings before completing setup."""
         if user_input is not None:
             my_number = self.context.get("my_number")
+            url = (
+                self.discovery_info.get(CONF_URL)
+                or self.discovery_info.get("host")
+                or ""
+            )
             return self.async_create_entry(
                 title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
                 data={
                     "session_id": self.session_id,
-                    CONF_URL: self.discovery_info[CONF_URL],
+                    CONF_URL: url,
                     CONF_API_KEY: self.discovery_info[CONF_API_KEY],
                     "system_id": self.discovery_info.get("system_id"),
                 },

@@ -82,6 +82,16 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.states = MagicMock()
     hass.states.get = MagicMock(side_effect=get_state)
     hass.states.async_set_state = MagicMock(side_effect=async_set_state)
+
+    def async_create_task(coro: Any, name: str | None = None) -> Any:
+        import asyncio
+        import inspect
+
+        if inspect.iscoroutine(coro):
+            return asyncio.create_task(coro, name=name)
+        return coro
+
+    hass.async_create_task = MagicMock(side_effect=async_create_task)
     hass.async_block_till_done = AsyncMock()
 
     hass.bus = ha_stubs.Bus()

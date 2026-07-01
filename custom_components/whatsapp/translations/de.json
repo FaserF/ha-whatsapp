@@ -109,9 +109,223 @@
       "name": "Nachricht senden",
       "description": "Sendet eine Textnachricht an eine WhatsApp-Nummer.",
       "fields": {
+        "message": {
+          "name": "Nachricht",
+          "description": "Der zu sendende Text."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die gesendet werden soll."
+        },
         "account": {
           "name": "Konto",
-          "description": "Die WhatsApp-Konto-ID (nur erforderlich bei mehreren Konten)."
+          "description": "Das zu verwendende WhatsApp-Konto (Service-Instanz)."
+        },
+        "quote": {
+          "name": "Zitierte Nachricht-ID",
+          "description": "Die ID einer Nachricht, auf die geantwortet/zitiert werden soll."
+        },
+        "expiration": {
+          "name": "Ablaufzeit (Sekunden)",
+          "description": "Dauer, nach der die Nachricht wieder verschwindet."
+        }
+      }
+    },
+    "send_document": {
+      "name": "Dokument senden",
+      "description": "Sendet ein Dokument (PDF, Zip, Doc usw.) an eine WhatsApp-Nummer.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL des zu sendenden Dokuments."
+        },
+        "file_name": {
+          "name": "Dateiname",
+          "description": "Optionaler Dateiname."
+        },
+        "message": {
+          "name": "Bildunterschrift",
+          "description": "Optionaler Text zum Dokument."
+        }
+      }
+    },
+    "send_video": {
+      "name": "Video senden",
+      "description": "Sendet eine Videodatei an eine WhatsApp-Nummer.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL des zu sendenden Videos."
+        },
+        "message": {
+          "name": "Bildunterschrift",
+          "description": "Optionaler Text zum Video."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Audio senden",
+      "description": "Sendet eine Audiodatei oder Sprachnachricht.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Die URL der Audiodatei."
+        },
+        "ptt": {
+          "name": "Sprachnachricht (PTT)",
+          "description": "Als Sprachnachricht anstelle einer Audiodatei senden."
+        },
+        "account": {
+          "name": "Konto",
+          "description": "Das zu verwendende WhatsApp-Konto."
+        }
+      }
+    },
+    "revoke_message": {
+      "name": "Nachricht zurückrufen",
+      "description": "Löscht eine gesendete Nachricht für alle.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+        },
+        "message_id": {
+          "name": "Nachricht-ID",
+          "description": "Die ID der zurückzurufenden Nachricht."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Nachricht bearbeiten",
+      "description": "Bearbeitet den Text einer gesendeten Nachricht.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID, an die die Nachricht gesendet wurde."
+        },
+        "message_id": {
+          "name": "Nachricht-ID",
+          "description": "Die ID der zu bearbeitenden Nachricht."
+        },
+        "message": {
+          "name": "Neuer Text",
+          "description": "Der neue Textinhalt der Nachricht."
+        }
+      }
+    },
+    "send_list": {
+      "name": "Listen-Nachricht senden",
+      "description": "Sendet eine interaktive Liste (Aktionsmenü).",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Der Titel des Menüs."
+        },
+        "text": {
+          "name": "Haupttext",
+          "description": "Der Haupttext."
+        },
+        "button_text": {
+          "name": "Button-Label",
+          "description": "Text für den Menü-Button (z. B. Menü)."
+        },
+        "sections": {
+          "name": "Sektionen (JSON)",
+          "description": "Die Sektionen und Zeilen als JSON-Liste."
+        }
+      }
+    },
+    "send_contact": {
+      "name": "Kontakt senden",
+      "description": "Sendet eine Visitenkarte (VCard).",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "name": {
+          "name": "Anzeigename",
+          "description": "Der Name des Kontakts."
+        },
+        "contact_number": {
+          "name": "Kontaktnummer",
+          "description": "Die Telefonnummer des Kontakts."
+        }
+      }
+    },
+    "configure_webhook": {
+      "name": "Webhook konfigurieren",
+      "description": "Richtet die Webhook-URL ein, an die das Addon Ereignisse sendet.",
+      "fields": {
+        "url": {
+          "name": "Webhook-URL",
+          "description": "Die URL für den Webhook."
+        },
+        "enabled": {
+          "name": "Aktiviert",
+          "description": "Aktiviert oder deaktiviert den Webhook."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Optionaler Sicherheits-Token."
+        }
+      }
+    },
+    "send_reaction": {
+      "name": "Reaktion senden",
+      "description": "Reagiert auf eine Nachricht mit einem Emoji.",
+      "fields": {
+        "reaction": {
+          "name": "Reaktion",
+          "description": "Das Emoji für die Reaktion."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Die Telefonnummer des Chats."
+        },
+        "message_id": {
+          "name": "Nachricht-ID",
+          "description": "Die ID der Nachricht, auf die reagiert werden soll."
+        }
+      }
+    },
+    "update_presence": {
+      "name": "Status aktualisieren",
+      "description": "Aktualisiert deinen Anwesenheitsstatus (z. B. schreibt...).",
+      "fields": {
+        "presence": {
+          "name": "Status",
+          "description": "Einer von: available, unavailable, composing, recording, paused."
+        },
+        "target": {
+          "name": "Zielnummer",
+          "description": "Der Chat, für den der Status aktualisiert werden soll."
+        }
+      }
+    },
+    "send_buttons": {
+      "name": "Buttons senden",
+      "description": "Sendet eine Nachricht mit interaktiven Buttons.",
+      "fields": {
+        "target": {
+          "name": "Zielnummer",
+          "description": "Der Chat, an den gesendet werden soll."
         },
         "message": {
           "name": "Nachricht",
@@ -119,7 +333,7 @@
         },
         "buttons": {
           "name": "Buttons",
-          "description": "Liste von Buttons als Objekte: [id: 1, displayText: Ja]."
+          "description": "Liste von Buttons, definiert als Objekte mit id und displayText."
         },
         "footer": {
           "name": "Fußzeile",
