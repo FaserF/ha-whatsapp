@@ -147,11 +147,11 @@ jobs:
             --draft \
             $prerelease_arg
 
-  sync-version:
-    name: Sync Repository Version
+  release:
+    name: Sync, Zip, and Publish Release
     needs: versioning
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -171,7 +171,7 @@ jobs:
           git reset --hard HEAD
           git pull --rebase origin ${{ github.ref_name }}
 
-      - name: Update Files
+      - name: Update Files (Bump Version)
         shell: bash
         run: |
           python .github/scripts/version_manager.py bump --type ${{ github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta') }} --level ${{ github.event.inputs.bump_level || 'patch' }} --override "${{ github.event.inputs.version_override || '' }}"
@@ -183,7 +183,12 @@ jobs:
             python .github/scripts/update_templates.py "${{ needs.versioning.outputs.version }}"
           fi
 
-      - name: Commit and Push
+      - name: 📦 Zip Component
+        run: |
+          cd custom_components/whatsapp
+          zip -r ../../whatsapp.zip .
+
+      - name: Commit and Push Bumped Files
         run: |
           git add custom_components/*/manifest.json .github/ISSUE_TEMPLATE/*.yml .github/ISSUE_TEMPLATE/*.yaml 2>/dev/null || true
           if ! git diff --staged --quiet; then
@@ -191,66 +196,18 @@ jobs:
             git push origin HEAD:${{ github.ref_name }} || (git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }})
           fi
 
-      - name: Download Release Body
-        uses: actions/download-artifact@v8
-        with:
-          name: release-body
-
-      - name: Update Draft Status (Zipping Integration)
-        shell: bash
-        run: |
-          cp release_body.md updated_draft_body.md
-
-      - name: Update Draft Release on GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          TAG: ${{ needs.versioning.outputs.tag }}
-          VERSION: ${{ needs.versioning.outputs.version }}
-          IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
-        shell: bash
-        run: |
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
-          if [ -n "$release_id" ]; then
-            gh api -X PATCH "repos/$REPO/releases/$release_id" \
-              -f tag_name="$TAG" \
-              -f target_commitish="${{ github.ref_name }}" \
-              -f name="Release $VERSION" \
-              -f body_path="updated_draft_body.md" \
-              -F draft=true \
-              -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
-          fi
-
-  gh-release:
-    needs: [versioning, sync-version]
-    if: always() && needs.versioning.result == 'success' && needs.sync-version.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 0
-
-      - name: 📦 Zip Component
-        run: |
-          cd custom_components/whatsapp
-          zip -r ../../whatsapp.zip .
-
       - name: Download Release Body Artifact
         uses: actions/download-artifact@v8
         with:
           name: release-body
 
-      - name: Create GitHub Release
+      - name: Create / Publish GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           TAG: ${{ needs.versioning.outputs.tag }}
           VERSION: ${{ needs.versioning.outputs.version }}
-          TITLE: ${{ needs.versioning.outputs.release_title }}
+          TITLE: ${{ needs.versioning.outputs.title }}
           IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
         shell: bash
         run: |
@@ -303,8 +260,8 @@ jobs:
           fi
 
   cleanup-release:
-    needs: [versioning, sync-version, gh-release]
-    if: always() && needs.versioning.result == 'success' && (needs.sync-version.result == 'failure' || needs.gh-release.result == 'failure' || cancelled())
+    needs: [versioning, release]
+    if: always() && needs.versioning.result == 'success' && (needs.release.result == 'failure' || cancelled())
     runs-on: ubuntu-latest
     permissions:
       contents: write
