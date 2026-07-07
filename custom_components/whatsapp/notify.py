@@ -131,12 +131,6 @@ class WhatsAppNotificationEntity(
         self._attr_unique_id = f"{entry.entry_id}_notify"
         self._attr_device_info = coordinator.client.get_device_info()
 
-    @property  # type: ignore[misc]
-    def state(self) -> str:
-        """Return the state of the entity."""
-        connected = bool(self.coordinator.data.get("connected", False))
-        return "online" if connected else "offline"
-
     async def async_send_message(  # type: ignore[override]
         self,
         message: str = "",
