@@ -212,7 +212,7 @@ jobs:
         shell: bash
         run: |
           # Find existing draft release
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="'$TITLE'") | select(.draft==true) | .id')
+          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name==env.TAG or .name==env.TITLE) | select(.draft==true) | .id')
 
           # Set prerelease argument
           prerelease_arg=""
