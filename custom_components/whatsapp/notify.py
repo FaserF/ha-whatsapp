@@ -187,7 +187,8 @@ class WhatsAppNotificationEntity(
                 f"{', '.join(r for r, _ in errors)}"
             )
 
-        self._async_record_notification()
+        if hasattr(self, "_async_record_notification"):
+            self._async_record_notification()
 
 
 async def async_send_whatsapp_message(
