@@ -132,14 +132,6 @@ class WhatsAppNotificationEntity(
         self._attr_device_info = coordinator.client.get_device_info()
 
     @property
-    def state(self) -> str | None:
-        """Return the state of the entity, filtering out legacy states."""
-        val = super().state
-        if val in ("online", "offline"):
-            return None
-        return val
-
-    @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return bool(self.coordinator.data.get("connected", False))
