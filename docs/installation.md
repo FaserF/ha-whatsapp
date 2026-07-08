@@ -45,7 +45,7 @@ Run the container using `docker compose`:
 ```yaml
 services:
   whatsapp-gateway:
-    image: ghcr.io/faserf/hassio-addons/whatsapp-gw:latest
+    image: ghcr.io/faserf/whatsapp-gw:latest
     container_name: whatsapp-gateway
     restart: unless-stopped
     ports:
@@ -71,7 +71,7 @@ docker run -d \
   -v ./data:/data \
   -v ./media:/media \
   -e PORT=8066 \
-  ghcr.io/faserf/hassio-addons/whatsapp-gw:latest
+  ghcr.io/faserf/whatsapp-gw:latest
 ```
 
 After starting, navigate to `http://YOUR_SERVER_IP:8066` on your web browser to access the Web UI and retrieve/set your **API Token** (under "Show API Key"). Copy this token.
