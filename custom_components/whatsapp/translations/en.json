@@ -340,6 +340,48 @@
           "description": "Optional footer text."
         }
       }
+    },
+    "send_event": {
+      "name": "Send Event",
+      "description": "Sends an interactive WhatsApp Group Event message.",
+      "fields": {
+        "account": {
+          "name": "Account",
+          "description": "The WhatsApp account to use."
+        },
+        "target": {
+          "name": "Target Number / Group ID",
+          "description": "The phone number or Group ID."
+        },
+        "name": {
+          "name": "Event Name",
+          "description": "The title/name of the event."
+        },
+        "description": {
+          "name": "Description",
+          "description": "Additional details or description of the event."
+        },
+        "date": {
+          "name": "Date & Time",
+          "description": "The start date and time of the event (ISO format)."
+        },
+        "location": {
+          "name": "Location",
+          "description": "The location name or address."
+        },
+        "join_link": {
+          "name": "Join Link",
+          "description": "An optional video or voice call link."
+        },
+        "is_canceled": {
+          "name": "Is Canceled",
+          "description": "Set to true if the event has been canceled."
+        },
+        "expiration": {
+          "name": "Expiration (Seconds)",
+          "description": "Duration after which the message disappears."
+        }
+      }
     }
   },
   "entity": {

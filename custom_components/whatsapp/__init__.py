@@ -67,6 +67,7 @@ _SERVICES = [
     "send_contact",
     "configure_webhook",
     "send_location",
+    "send_event",
     "send_reaction",
     "update_presence",
     "send_buttons",
@@ -371,6 +372,17 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+        elif service == "send_event":
+            await client.send_event(
+                data["target"],
+                data["name"],
+                description=data.get("description"),
+                date=data.get("date"),
+                location=data.get("location"),
+                join_link=data.get("join_link"),
+                is_canceled=data.get("is_canceled", False),
+                expiration=data.get("expiration"),
+            )
         elif service == "send_reaction":
             await client.send_reaction(
                 data["target"], data["reaction"], data["message_id"]
@@ -652,6 +664,23 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_location",
         _handle_service,
         schema=vol.Schema(loc_schema),
+    )
+    event_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("name"): cv.string,
+        vol.Optional("description"): cv.string,
+        vol.Optional("date"): cv.string,
+        vol.Optional("location"): vol.Any(cv.string, dict),
+        vol.Optional("join_link"): cv.string,
+        vol.Optional("is_canceled"): cv.boolean,
+        vol.Optional("expiration"): cv.positive_int,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "send_event",
+        _handle_service,
+        schema=vol.Schema(event_schema),
     )
     react_schema: dict[vol.Marker, Any] = {
         **s_account,

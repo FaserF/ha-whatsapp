@@ -340,6 +340,48 @@
           "description": "Optionaler Text unten."
         }
       }
+    },
+    "send_event": {
+      "name": "Event senden",
+      "description": "Sendet eine interaktive WhatsApp-Gruppeneinladung.",
+      "fields": {
+        "account": {
+          "name": "Konto",
+          "description": "Das zu verwendende WhatsApp-Konto."
+        },
+        "target": {
+          "name": "Zielnummer / Gruppen-ID",
+          "description": "Die Telefonnummer oder Gruppen-ID."
+        },
+        "name": {
+          "name": "Event-Name",
+          "description": "Der Titel/Name der Veranstaltung."
+        },
+        "description": {
+          "name": "Beschreibung",
+          "description": "Zusätzliche Details oder Beschreibung der Veranstaltung."
+        },
+        "date": {
+          "name": "Datum & Uhrzeit",
+          "description": "Das Startdatum und die Uhrzeit der Veranstaltung (ISO-Format)."
+        },
+        "location": {
+          "name": "Ort",
+          "description": "Der Name des Ortes oder die Adresse."
+        },
+        "join_link": {
+          "name": "Teilnahmelink",
+          "description": "Ein optionaler Video- oder Sprachanruflink."
+        },
+        "is_canceled": {
+          "name": "Ist storniert",
+          "description": "Auf true setzen, wenn das Event abgesagt wurde."
+        },
+        "expiration": {
+          "name": "Ablaufzeit (Sekunden)",
+          "description": "Dauer, nach der die Nachricht verschwindet."
+        }
+      }
     }
   },
   "entity": {

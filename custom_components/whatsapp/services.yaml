@@ -532,6 +532,78 @@ send_location:
           min: 0
           max: 7776000
 
+send_event:
+  name: Send Event
+  description: >
+    Sends an interactive WhatsApp Group Event message to a chat or group.
+    Group members can RSVP directly inside WhatsApp.
+  fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: The phone number or Group ID to send the event to.
+      example: "123456789@g.us"
+      required: true
+      selector:
+        text:
+    name:
+      name: Event Name
+      description: The title/name of the event.
+      example: "Squash - Tuesday evening"
+      required: true
+      selector:
+        text:
+    description:
+      name: Description
+      description: Additional details or description of the event.
+      example: "Court 1 booked from 20:00 to 21:00"
+      selector:
+        text:
+          multiline: true
+    date:
+      name: Date & Time
+      description: The start date and time of the event (ISO format).
+      example: "2026-07-22T20:00:00"
+      selector:
+        text:
+    location:
+      name: Location
+      description: The location name or address of the event.
+      example: "SquashCity Amsterdam"
+      selector:
+        text:
+    join_link:
+      name: Join Link
+      description: An optional video or voice call link to join the event.
+      example: "https://call.whatsapp.com/video/example"
+      selector:
+        text:
+    is_canceled:
+      name: Is Canceled
+      description: Set to true if the event has been canceled.
+      example: false
+      default: false
+      selector:
+        boolean:
+    expiration:
+      name: Expiration (Seconds)
+      description: >
+        Duration after which the message disappears (Disappearing Messages).
+      example: 86400
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 7776000
+
 send_contact:
   name: Send Contact (vCard)
   description: >

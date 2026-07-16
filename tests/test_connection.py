@@ -258,6 +258,20 @@ async def test_send_location(api_client: WhatsAppApiClient) -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_event(api_client: WhatsAppApiClient) -> None:
+    """Test sending an event."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_event(
+            "12345", "Squash", description="Fun", date="2026-07-22T20:00:00", location="Amsterdam", expiration=3600
+        )
+        _, kwargs = mock_session.post.call_args
+        assert kwargs["json"]["name"] == "Squash"
+        assert kwargs["json"]["location"] == "Amsterdam"
+        assert kwargs["json"]["expiration"] == 3600
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_self_chat_bypass(api_client: WhatsAppApiClient) -> None:
     """Test that the bot can always message itself even if not in whitelist."""
     api_client.whitelist = ["11111"]  # Current whitelist doesn't include 12345

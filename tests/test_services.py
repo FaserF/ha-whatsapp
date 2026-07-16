@@ -35,6 +35,7 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.send_image = AsyncMock()
         mock_instance.send_poll = AsyncMock()
         mock_instance.send_location = AsyncMock()
+        mock_instance.send_event = AsyncMock()
         mock_instance.send_reaction = AsyncMock()
         mock_instance.send_buttons = AsyncMock()
         mock_instance.set_presence = AsyncMock()
@@ -112,6 +113,23 @@ async def test_services(hass: HomeAssistant) -> None:
         )
         mock_instance.send_location.assert_awaited_with(
             "12345", 1.0, 2.0, "Loc", None, quoted_message_id=None, expiration=None
+        )
+
+        # 4b. Test send_event
+        await hass.services.async_call(
+            DOMAIN,
+            "send_event",
+            {
+                "target": "12345",
+                "name": "Squash",
+                "description": "Fun",
+                "date": "2026-07-22T20:00:00",
+                "location": "Amsterdam",
+            },
+            blocking=True,
+        )
+        mock_instance.send_event.assert_awaited_with(
+            "12345", "Squash", description="Fun", date="2026-07-22T20:00:00", location="Amsterdam", join_link=None, is_canceled=False, expiration=None
         )
 
         # 5. Test send_reaction
