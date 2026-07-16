@@ -129,7 +129,14 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.send_event.assert_awaited_with(
-            "12345", "Squash", description="Fun", date="2026-07-22T20:00:00", location="Amsterdam", join_link=None, is_canceled=False, expiration=None
+            "12345",
+            "Squash",
+            description="Fun",
+            date="2026-07-22T20:00:00",
+            location="Amsterdam",
+            join_link=None,
+            is_canceled=False,
+            expiration=None,
         )
 
         # 5. Test send_reaction

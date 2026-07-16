@@ -263,7 +263,12 @@ async def test_send_event(api_client: WhatsAppApiClient) -> None:
     mock_session = mock_aiohttp_post()
     with patch("aiohttp.ClientSession", return_value=mock_session):
         await api_client.send_event(
-            "12345", "Squash", description="Fun", date="2026-07-22T20:00:00", location="Amsterdam", expiration=3600
+            "12345",
+            "Squash",
+            description="Fun",
+            date="2026-07-22T20:00:00",
+            location="Amsterdam",
+            expiration=3600,
         )
         _, kwargs = mock_session.post.call_args
         assert kwargs["json"]["name"] == "Squash"
