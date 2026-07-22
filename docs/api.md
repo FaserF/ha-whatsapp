@@ -126,6 +126,15 @@ Returns: `{ "status": "scanning", "qr": "data:image/png..." }`
 
 Returns an array of all participating Group objects.
 
+### `GET /contacts`
+
+Returns an array of all contacts cached from the paired phone: `[ { id, name, notify, verified_name, img_url } ]`.
+
+### `POST /contacts/check`
+
+Checks if a number exists on WhatsApp and whether it is in contacts. Body: `{ "number": "4917..." }`. Returns: `{ "number": "...", "jid": "...", "exists": bool, "in_contacts": bool, "name": str|null, "notify": str|null }`.
+
 ### `GET /health`
 
 Standard healthcheck. **No Token required.**
+

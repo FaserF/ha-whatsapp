@@ -1064,3 +1064,42 @@ mark_as_read:
       example: "3EB0B8A7C2E4F6789ABCDE"
       selector:
         text:
+
+get_contacts:
+  name: Get Contacts
+  description: >
+    Retrieves the list of contacts cached from your paired phone.
+    Returns response data containing contact details (name, notify, JID).
+  fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
+
+check_number:
+  name: Check Number
+  description: >
+    Checks if a phone number exists on WhatsApp and whether it is saved in your paired phone's contacts.
+    Returns response data with 'exists', 'in_contacts', 'name', 'notify', and 'jid'.
+  fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
+    number:
+      name: Phone Number
+      description: >
+        The phone number to check (with country code).
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+

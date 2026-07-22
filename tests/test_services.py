@@ -47,6 +47,8 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.send_document = AsyncMock()
         mock_instance.send_video = AsyncMock()
         mock_instance.send_audio = AsyncMock()
+        mock_instance.get_contacts = AsyncMock(return_value=[{"id": "123@s.whatsapp.net", "name": "John"}])
+        mock_instance.check_number = AsyncMock(return_value={"number": "12345", "exists": True, "in_contacts": True})
 
         # Setup
         await hass.config_entries.async_setup(entry.entry_id)
@@ -304,3 +306,21 @@ async def test_services(hass: HomeAssistant) -> None:
             expiration=None,
             seconds=None,
         )
+
+        # 16. Test get_contacts
+        await hass.services.async_call(
+            DOMAIN,
+            "get_contacts",
+            {},
+            blocking=True,
+        )
+        mock_instance.get_contacts.assert_awaited_once()
+
+        # 17. Test check_number
+        await hass.services.async_call(
+            DOMAIN,
+            "check_number",
+            {"number": "12345"},
+            blocking=True,
+        )
+        mock_instance.check_number.assert_awaited_with("12345")

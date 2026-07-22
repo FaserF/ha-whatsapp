@@ -88,6 +88,14 @@ Finds Group IDs. Results appear in **HA Notifications (🔔)**.
 
 Mark specific `message_id` or whole `target` chat as read.
 
+### `whatsapp.get_contacts`
+
+Retrieves the list of cached contacts from your paired phone. Supports returning response data (`contacts` list).
+
+### `whatsapp.check_number`
+
+Checks if a phone number (`number`) is registered on WhatsApp and whether it exists in your paired phone's contacts list. Returns response data (`exists`, `in_contacts`, `name`, `notify`, `jid`).
+
 ### `whatsapp.configure_webhook`
 
 `url`, `enabled`, and optional security `token`.

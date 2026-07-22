@@ -28,7 +28,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import ServiceValidationError
 
 from .api import WhatsAppApiClient
@@ -327,7 +327,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     if _SERVICES_REGISTERED:
         return
 
-    async def _handle_service(call: ServiceCall) -> None:
+    async def _handle_service(call: ServiceCall) -> Any:
         """General service handler for routing."""
         account = call.data.get("account")
         client = get_client_for_account(hass, account)
@@ -453,6 +453,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             await client.mark_as_read(data["target"], data.get("message_id"))
         elif service == "search_groups":
             await _handle_search_groups(hass, client, data.get("name_filter", ""))
+        elif service == "get_contacts":
+            contacts = await client.get_contacts()
+            return {"contacts": contacts}
+        elif service == "check_number":
+            return await client.check_number(data["number"])
+        return None
 
     async def _handle_search_groups(
         hass: HomeAssistant, client: WhatsAppApiClient, name_filter: str
@@ -740,6 +746,27 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "mark_as_read",
         _handle_service,
         schema=vol.Schema(mark_as_read_schema),
+    )
+    get_contacts_schema: dict[vol.Marker, Any] = {
+        **s_account,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "get_contacts",
+        _handle_service,
+        schema=vol.Schema(get_contacts_schema),
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    check_number_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("number"): cv.string,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "check_number",
+        _handle_service,
+        schema=vol.Schema(check_number_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     _SERVICES_REGISTERED = True

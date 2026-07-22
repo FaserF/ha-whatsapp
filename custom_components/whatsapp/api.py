@@ -1833,3 +1833,51 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 text_content = await resp.text()
                 error_msg = self._extract_error(text_content)
                 raise HomeAssistantError(f"Failed to mark message as read: {error_msg}")
+
+    async def get_contacts(self) -> list[dict[str, Any]]:
+        """Fetch all contacts from the paired phone stored in the addon cache."""
+        url = f"{self.host}/contacts"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params={"session_id": self.session_id},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status == 401:
+                        raise HomeAssistantError("Invalid API Key")
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return list(data)
+                    raise HomeAssistantError(f"Addon error {resp.status}")
+            except HomeAssistantError:
+                raise
+            except Exception as e:
+                _LOGGER.error("Error fetching contacts from addon: %s", e)
+                return []
+
+    async def check_number(self, number: str) -> dict[str, Any]:
+        """Check if phone number exists on WhatsApp & paired phone contacts."""
+        url = f"{self.host}/contacts/check"
+        payload = {"number": number}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                result: dict[str, Any] = await resp.json()
+                return result
+            text_content = await resp.text()
+            error_msg = self._extract_error(text_content)
+            raise HomeAssistantError(f"Failed to check number: {error_msg}")
