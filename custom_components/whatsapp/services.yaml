@@ -1069,7 +1069,8 @@ get_contacts:
   name: Get Contacts
   description: >
     Retrieves the list of contacts cached from your paired phone.
-    Returns response data containing contact details (name, notify, JID).
+    Returns response data with contact details (id/JID, name from phonebook, notify/pushName, verified_name).
+    Note: 'notify' is populated when contacts send a message, 'verified_name' is for Business accounts only.
   fields:
     account:
       name: Account

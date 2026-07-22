@@ -92,6 +92,11 @@ Mark specific `message_id` or whole `target` chat as read.
 
 Retrieves the list of cached contacts from your paired phone. Supports returning response data (`contacts` list).
 
+*Note on fields:*
+- `name`: Contact name from your phone's address book.
+- `notify`: WhatsApp push name set by the contact (populated when they send a message).
+- `verified_name`: Only populated for official WhatsApp Business accounts (otherwise `null`).
+- `img_url`: Profile picture URL (defaults to `null` to avoid rate limits).
 ### `whatsapp.check_number`
 
 Checks if a phone number (`number`) is registered on WhatsApp and whether it exists in your paired phone's contacts list. Returns response data (`exists`, `in_contacts`, `name`, `notify`, `jid`).
