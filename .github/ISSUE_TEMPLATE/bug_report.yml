@@ -29,7 +29,7 @@ body:
     attributes:
       label: Home Assistant Version
       description: Which version of Home Assistant Core are you running?
-      placeholder: 2026.7.2
+      placeholder: 2026.7.3
     validations:
       required: true
 
