@@ -133,6 +133,7 @@ def mock_register(
     service: str,
     handler: Any,
     schema: Any = None,  # noqa: ARG001
+    **_kwargs: Any,
 ) -> None:
     if domain == "whatsapp":
         handlers[service] = handler

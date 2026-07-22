@@ -28,6 +28,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
         return_value={"sent": 0, "failed": 0, "connected": True}
     )
     mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
+    mock_instance.get_dashboard = AsyncMock(return_value={})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
     mock_instance.start_session = AsyncMock(return_value=None)
