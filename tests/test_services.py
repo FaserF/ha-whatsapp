@@ -47,8 +47,12 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.send_document = AsyncMock()
         mock_instance.send_video = AsyncMock()
         mock_instance.send_audio = AsyncMock()
-        mock_instance.get_contacts = AsyncMock(return_value=[{"id": "123@s.whatsapp.net", "name": "John"}])
-        mock_instance.check_number = AsyncMock(return_value={"number": "12345", "exists": True, "in_contacts": True})
+        mock_instance.get_contacts = AsyncMock(
+            return_value=[{"id": "123@s.whatsapp.net", "name": "John"}]
+        )
+        mock_instance.check_number = AsyncMock(
+            return_value={"number": "12345", "exists": True, "in_contacts": True}
+        )
 
         # Setup
         await hass.config_entries.async_setup(entry.entry_id)
