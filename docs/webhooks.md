@@ -99,9 +99,10 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/webhook', methods=['POST'])
+
+@app.route("/webhook", methods=["POST"])
 def whatsapp_webhook():
-    token = request.headers.get('X-Webhook-Token')
+    token = request.headers.get("X-Webhook-Token")
     if token != "your_secret_token_here":
         return "Unauthorized", 401
 
@@ -109,7 +110,8 @@ def whatsapp_webhook():
     print(f"New message from {data['sender']}: {data['content']}")
     return jsonify({"status": "received"})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(port=5000)
 ```
 
