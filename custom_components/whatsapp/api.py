@@ -411,6 +411,25 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 _LOGGER.error("Failed to request pairing code: %s", e)
                 raise HomeAssistantError(f"Failed to request pairing code: {e}") from e
 
+    async def get_status(self) -> dict[str, Any]:
+        """Fetch connection status from /status endpoint."""
+        url = f"{self.host}/status"
+        params = {"session_id": self.session_id}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status == 200:
+                        return cast(dict[str, Any], await resp.json())
+            except Exception as e:
+                _LOGGER.debug("Failed to fetch status: %s", e)
+        return {}
+
     async def connect(self) -> bool:
         """Check connection and validate Auth (Consolidated with get_stats)."""
         # We now rely on get_stats to update connectivity info
@@ -480,7 +499,19 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         data: dict[str, Any] = await resp.json()
                         self.stats.update(data)
                         # Also update connectivity bit
-                        self._connected = bool(data.get("connected", False))
+                        if "connected" in data:
+                            self._connected = bool(data.get("connected", False))
+                        else:
+                            # Fallback check to /status if connected field missing
+                            try:
+                                status_res = await self.get_status()
+                                self._connected = bool(
+                                    status_res.get("connected", False)
+                                )
+                            except Exception:
+                                self._connected = bool(
+                                    self.stats.get("connected", False)
+                                )
                         self._disconnect_reason = data.get("disconnect_reason")
                         return self.stats
             except WhatsAppAuthError:

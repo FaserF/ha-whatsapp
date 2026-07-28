@@ -66,6 +66,12 @@ class ServiceCall:
         self.data = data or {}
 
 
+class SupportsResponse:
+    NONE = 0
+    OPTIONAL = 1
+    ONLY = 2
+
+
 class Bus:
     def __init__(self) -> None:
         self.async_fire = MagicMock()
@@ -334,6 +340,7 @@ def _build_ha_stub_modules() -> None:
         HomeAssistant=object,
         callback=lambda f: f,
         ServiceCall=ServiceCall,
+        SupportsResponse=SupportsResponse,
         Bus=Bus,
     )
 

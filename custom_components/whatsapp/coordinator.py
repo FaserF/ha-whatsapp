@@ -122,7 +122,18 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
             # 2. Fetch full stats (Requires Auth and fully started service)
             stats = await self.client.get_stats()
-            connected = stats.get("connected", False)
+            connected = bool(stats.get("connected", False))
+            if not connected:
+                # Double-check via client's status if get_stats returned connected=False
+                try:
+                    status_info = await self.client.get_status()
+                    if status_info.get("connected") is True:
+                        connected = True
+                        stats["connected"] = True
+                except Exception as status_err:
+                    _LOGGER.debug("Status fallback check failed: %s", status_err)
+
+            self._connected = connected
 
             # 2b. Fetch dashboard for passkey detection (lightweight, best-effort)
             dashboard: dict[str, Any] = {}

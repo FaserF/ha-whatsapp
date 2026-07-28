@@ -44,6 +44,7 @@ def mock_client() -> MagicMock:
     client.close = AsyncMock()
     client.mark_as_read = MagicMock(return_value=None)
     client.get_dashboard = AsyncMock(return_value={})
+    client.get_status = AsyncMock(return_value={"connected": True})
     client.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     return client
 
