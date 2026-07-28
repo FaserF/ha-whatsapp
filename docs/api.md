@@ -144,6 +144,7 @@ Returns an array of all contacts cached from the paired phone: `[ { id, name, no
 - `notify`: Push name set by contact (populated when they message).
 - `verified_name`: Business accounts only (otherwise `null`).
 - `img_url`: Profile picture URL (defaults to `null`).
+
 ### `POST /contacts/check`
 
 Checks if a number exists on WhatsApp and whether it is in contacts. Body/Query: `{ "number": "4917..." }` or `phone`. Returns: `{ "number": "...", "jid": "...", "exists": bool, "in_contacts": bool, "name": str|null, "notify": str|null, "verified_name": str|null }`.
@@ -153,4 +154,3 @@ Checks if a number exists on WhatsApp and whether it is in contacts. Body/Query:
 ### `GET /health`
 
 Standard healthcheck. **No Token required.**
-

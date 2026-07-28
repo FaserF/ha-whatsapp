@@ -57,7 +57,7 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 | Environment Variable | Default | Type | Description |
 | :--- | :--- | :--- | :--- |
 | `PORT` | `8066` | Integer | HTTP port for the web interface and REST API. |
-| `API_TOKEN` | *Auto-generated* | String | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted. |
+| `API_TOKEN` | _Auto-generated_ | String | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted. |
 | `LOG_LEVEL` | `info` | String | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`, `fatal`). |
 | `WELCOME_MESSAGE_ENABLED` | `true` | Boolean | Send a role-aware welcome greeting when a new contact sends their first direct message. |
 | `ADMIN_NOTIFICATIONS_ENABLED` | `true` | Boolean | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates. |
@@ -86,13 +86,16 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 To ensure a reliable connection and avoid being flagged by WhatsApp for spam or automated abuse, the app includes a sophisticated rate-limiting system.
 
 ### Message Queueing
-All outgoing operations (sending messages, marking as read, setting presence) are **serialized**. This means if your automations trigger 10 messages at once, the app will queue them and send them one by one with a small delay (`Message Send Interval`). 
+
+All outgoing operations (sending messages, marking as read, setting presence) are **serialized**. This means if your automations trigger 10 messages at once, the app will queue them and send them one by one with a small delay (`Message Send Interval`).
 
 This prevents "socket flooding" and ensures that the WhatsApp connection remains stable even during high activity.
 
 ### Group Fetch Drosseling
+
 Fetching the list of all participating groups is an expensive operation. To prevent `rate-overlimit` errors (especially during Home Assistant restarts):
-1. **Cache First**: The app uses an in-memory cache. 
+
+1. **Cache First**: The app uses an in-memory cache.
 2. **Strict Intervals**: Groups are only fetched from WhatsApp servers once every 5 minutes by default.
 3. **Automatic Back-off**: If WhatsApp signals a rate limit, the app will automatically stop fetching groups for 15 minutes and use cached data instead.
 

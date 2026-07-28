@@ -34,6 +34,7 @@ This project uses **Baileys**, which simulates a **WhatsApp Web** client. It doe
 Currently, one instance of the WhatsApp Home Assistant App can only be paired with **one** phone number at a time. If you need to manage multiple numbers, you must run multiple App instances (if supported by your environment).
 
 #### 📱 How to run a second/dedicated WhatsApp number for Home Assistant
+
 Most users do not want to use their primary WhatsApp number for Home Assistant notifications. If you want to use a separate/dedicated number (e.g., using a second SIM card, eSIM, or landline number) without uninstalling your main WhatsApp, you can use the following methods:
 
 1. **WhatsApp Business (Recommended & Easiest)**:
@@ -61,6 +62,7 @@ Native WhatsApp Buttons and Polls are relatively new.
 - They might appear as "text links" or not appear at all on older versions of the **WhatsApp Desktop** app or **WhatsApp Web**.
 
 #### 🗳️ Poll Reaction Limitation
+
 Due to WhatsApp's End-to-End Encryption (E2EE), poll votes (updates) can only be decrypted if the bot has the original "Poll Creation" message in its local memory.
 
 - **Requirement**: The bot must have been **online** when the poll was sent (or sent the poll itself).
@@ -74,6 +76,7 @@ The integration provides a `Chats` sensor which lists all your participating gro
 
 > **Warning**
 > **Privacy Mode Warning**: If you enable "Mask Sensitive Data" in the options, Group IDs will also be masked in the logs. You **must disable** masking temporarily if you are trying to find out a Group ID through logs, although using the sensor/service is recommended.
+>
 ### 5. Passkey Verification Requirement
 
 WhatsApp sometimes requires **passkey verification** (biometrics, PIN, or pattern check on your registered phone) during linked-device setup. Since this is an unofficial client, the native passkey handshake is not fully stable.
@@ -93,7 +96,6 @@ Since this App acts as a "Linked Device" (similar to WhatsApp Web or Desktop):
 - **The 14-Day Inactivity Rule**: WhatsApp requires your main device (the phone where WhatsApp is registered) to connect to the internet **at least once every 14 days**. If your phone is offline or has no internet connection for more than 14 days, WhatsApp will automatically log out all linked devices (including this Home Assistant App).
 - **Device Switches & Re-registration**: If you switch your phone, reinstall WhatsApp on your phone, or re-register WhatsApp (e.g. using a different number or resetting the device), WhatsApp immediately revokes all current linked device sessions. You will need to re-scan the QR code to pair the Home Assistant App again.
 - If you manually select "Log out" from the linked devices list on your phone, the App will be disconnected immediately.
-
 
 ---
 

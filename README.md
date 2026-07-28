@@ -302,7 +302,7 @@ data:
 
 #### 5. Send Buttons 🔘
 
-_Note: Button support varies by WhatsApp version._
+*Note: Button support varies by WhatsApp version.*
 
 <details>
 <summary>Click to show YAML examples</summary>

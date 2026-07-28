@@ -65,6 +65,7 @@ All media services require a **target** and a **url**.
 ### `whatsapp.send_event`
 
 Sends a WhatsApp Event invitation.
+
 - **name**: **(Required)** Event title.
 - **description**: Optional event details.
 - **date**: Start time (ISO timestamp or Unix timestamp).
@@ -103,6 +104,7 @@ Mark specific `message_id` or whole `target` chat as read.
 Retrieves the list of cached contacts from your paired phone. Supports returning response data (`contacts` list).
 
 *Note on fields & Sync:*
+
 - **Contact Sync**: Baileys syncs contacts asynchronously on startup (`contacts.set`/`contacts.upsert`). If a contact hasn't synced yet, `in_contacts` or `name` might be `null` initially.
 - `name`: Contact name from your phone's address book.
 - `notify`: WhatsApp push name set by the contact (automatically populated when they send a message).
@@ -114,6 +116,7 @@ Retrieves the list of cached contacts from your paired phone. Supports returning
 Checks if a phone number (`number`) is registered on WhatsApp and whether it exists in your paired phone's contacts list. Returns response data (`exists`, `in_contacts`, `name`, `notify`, `jid`).
 
 *Tips for Number Formatting:*
+
 - Supports international format with or without leading `+` / `00` (e.g. `491761234567`, `+491761234567`, `00491761234567`).
 - Matching logic automatically strips country prefixes and leading zeros to perform a suffix match (minimum 7 digits), ensuring reliable matching regardless of local vs international format in your address book.
 

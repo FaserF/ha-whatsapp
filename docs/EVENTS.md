@@ -10,7 +10,7 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 
 | Field           | Type   | Description                                                                          |
 | :-------------- | :----- | :----------------------------------------------------------------------------------- |
-| `type`          | string | **(New)** The interaction type: `chat`, `poll_update`, `button_reply`, `list_reply`. |
+| `type`          | string | The interaction type: `chat`, `poll_update`, `event`, `button_reply`, `list_reply`. |
 | `sender`        | string | The full JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`).                     |
 | `sender_number` | string | Clean numeric part of the sender (e.g., `49123456789`).                              |
 | `content`       | string | The text body or selected button/row text.                                           |

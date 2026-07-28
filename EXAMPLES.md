@@ -131,7 +131,6 @@ data:
     - 'Chocolate 🍫'
   allow_multiple_responses: true
 ```
-```
 
 #### Send Buttons (Quick Response)
 

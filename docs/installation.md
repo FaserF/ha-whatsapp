@@ -22,7 +22,7 @@ The App handles the heavy lifting of connecting to WhatsApp.
   <a href="https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FFaserF%2Fhassio-addons" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Repository</span></a>
 </div>
 
-2. **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
+1. **Install the App**: Navigate to the store, search for **WhatsApp**, and click **Install**.
 
 > **TIP:**
 > **Using Home Assistant OS / Supervisor?** You can skip manual addon installation! The integration will offer to install the official Addon (Stable or Edge) automatically during the config flow setup.
@@ -31,7 +31,7 @@ The App handles the heavy lifting of connecting to WhatsApp.
   <a href="https://my.home-assistant.io/redirect/supervisor_store/" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">App Dashboard</span></a>
 </div>
 
-3. **Start & Get Token**:
+1. **Start & Get Token**:
    - Ensure `log_level` is set to `info` in the **Configuration** tab.
    - **Start** the App.
    - Open the **Web UI** and look for the **API Token** (hidden behind "Show API Key"). **Copy this token** for the next step.
@@ -127,7 +127,7 @@ Now we connect the components and link your device.
 3. On your phone, open WhatsApp -> **Linked Devices** -> **Link a Device**.
     1. **Option A: QR Code (Standard)**: Scan the QR code shown in the Integration Dialog.
     2. **Option B: Phone Number (Alternative)**: If scanning is difficult, click the button to pair via phone number. Enter your number (with country code, e.g. `49123...`) and a pairing code will be shown which you can enter in WhatsApp on your phone.
-5. The integration will confirm the connection. Click **Finish**.
+4. The integration will confirm the connection. Click **Finish**.
 
 ---
 

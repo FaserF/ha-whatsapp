@@ -89,23 +89,28 @@ This is usually a side effect of WhatsApp's End-to-End Encryption (E2EE).
 Since the Addon uses an unofficial API client (Baileys), WhatsApp's automated spam-detection algorithms can temporarily or permanently suspend your account if it detects spammy behavior.
 
 **Symptoms**:
+
 - Your WhatsApp client suddenly disconnects and the Supervisor log shows `loggedOut`.
 - When opening WhatsApp on your phone, you see a message saying "This account is not allowed to use WhatsApp".
 
 **Prevention & Mitigation**:
+
 - **Warming up**: Use an established number with real chat history. Do not use freshly registered SIM cards for bots.
 - **Save Contacts**: Only message users who have your bot's number saved in their address book.
 - **Automation Delays**: Never send rapid burst messages. Put `delay` actions (5–10s) in Home Assistant automations between consecutive message steps.
 - **Appeal**: If banned, you can usually request a review directly inside the official WhatsApp app. In most cases, first-time suspensions are restored within 24 hours.
+
 ### 7. WhatsApp Passkey Required (Verification Ceremony)
 
 During pairing or re-connection, WhatsApp might enforce a **passkey verification** prompt on your phone (a security measure after QR scan). This is a known limitation of the underlying Baileys library.
 
 **Symptoms**:
+
 - The config flow shows a **🔑 WhatsApp Passkey Detected** screen.
 - A repairs issue is created in Home Assistant stating "WhatsApp Passkey Required — Action Needed".
 
 **Fixes**:
+
 - **Option 1 (Recommended):** Open WhatsApp on your phone → **Settings → Account → Passkeys**, tap **Remove all passkeys**, then retry.
 - **Option 2 (Experimental):** Check the **Approve passkey on phone (experimental)** box in the config flow, then approve the prompt sent to your phone within 2 minutes.
 {: .tip }
