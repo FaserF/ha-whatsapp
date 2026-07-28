@@ -48,6 +48,39 @@ These settings control the engine (the WhatsApp browser bridge).
 
 ---
 
+## 🐳 Standalone Docker Environment Variables
+
+When running the App as a standalone Docker container (outside Home Assistant OS), **every single setting** can be configured via environment variables.
+
+> **NOTE:** **Case Insensitive**: Environment variables are evaluated case-insensitively. You can use uppercase (`WELCOME_MESSAGE_ENABLED`), lowercase (`welcome_message_enabled`), or camelCase. Boolean values accept `true`/`false`, `1`/`0`, or `yes`/`no`.
+
+| Environment Variable | Default | Type | Description |
+| :--- | :--- | :--- | :--- |
+| `PORT` | `8066` | Integer | HTTP port for the web interface and REST API. |
+| `API_TOKEN` | *Auto-generated* | String | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted. |
+| `LOG_LEVEL` | `info` | String | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`, `fatal`). |
+| `WELCOME_MESSAGE_ENABLED` | `true` | Boolean | Send a role-aware welcome greeting when a new contact sends their first direct message. |
+| `ADMIN_NOTIFICATIONS_ENABLED` | `true` | Boolean | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates. |
+| `ADMIN_NUMBERS` | `""` | String | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
+| `MARK_ONLINE` | `false` | Boolean | Keep WhatsApp online status active continuously while container runs. |
+| `MASK_SENSITIVE_DATA` | `false` | Boolean | Mask phone numbers and message content in log outputs. |
+| `UI_AUTH_ENABLED` | `false` | Boolean | Enable HTTP Basic Auth for Web UI access. |
+| `UI_AUTH_PASSWORD` | `""` | String | Password for Web UI access (Username is always `admin`). |
+| `MEDIA_FOLDER` | `""` | String | Path to directory for permanent media storage. |
+| `WEBHOOK_ENABLED` | `false` | Boolean | Enable forwarding of incoming messages to an HTTP Webhook. |
+| `WEBHOOK_URL` | `""` | String | Full Webhook endpoint URL. |
+| `WEBHOOK_TOKEN` | `""` | String | Secret token sent in `X-Webhook-Token` header. |
+| `SEND_MESSAGE_TIMEOUT` | `25000` | Integer | Timeout (in ms) for message delivery confirmation. |
+| `KEEP_ALIVE_INTERVAL` | `30000` | Integer | Interval (in ms) for connection keep-alive checks. |
+| `MESSAGE_SEND_INTERVAL` | `1000` | Integer | Delay (in ms) between enqueued outgoing messages. |
+| `GROUP_FETCH_INTERVAL` | `300000` | Integer | Interval (in ms) between automatic group list refreshes. |
+| `GROUP_FETCH_COOLDOWN_ON_ERROR` | `60000` | Integer | Back-off delay (in ms) after failed group fetch attempt. |
+| `GROUP_FETCH_COOLDOWN_ON_RATE_LIMIT` | `900000` | Integer | Back-off delay (in ms) when WhatsApp rate-limits group fetching. |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | `1` | String/Int | Set to `0` to disable SSL certificate validation for external media/webhooks. |
+| `RESET_SESSION` | `false` | Boolean | **Danger!** Set to `true` to force logout and delete session data on startup. |
+
+---
+
 ## ⚡ Stability & Rate Limiting
 
 To ensure a reliable connection and avoid being flagged by WhatsApp for spam or automated abuse, the app includes a sophisticated rate-limiting system.
