@@ -52,6 +52,16 @@ Media transmission.
 - `options`: (Array of Strings) Max 12.
 - `selectableCount`: (Integer, Optional) Use `1` for single-select polls or `0` for multi-choice polls.
 
+### `POST /send_event`
+
+- `target` / `number`: (String) Target phone number or JID.
+- `name`: (String) Event title.
+- `description`: (String, Optional) Event description.
+- `date` / `startTime`: (String/Int, Optional) ISO 8601 string or Unix timestamp.
+- `location`: (String/Object, Optional) Location title string or object.
+- `joinLink`: (String, Optional) Meeting link URL.
+- `isCanceled`: (Boolean, Optional)
+
 ### `POST /send_location`
 
 - `latitude`: (Float)
@@ -136,7 +146,9 @@ Returns an array of all contacts cached from the paired phone: `[ { id, name, no
 - `img_url`: Profile picture URL (defaults to `null`).
 ### `POST /contacts/check`
 
-Checks if a number exists on WhatsApp and whether it is in contacts. Body: `{ "number": "4917..." }`. Returns: `{ "number": "...", "jid": "...", "exists": bool, "in_contacts": bool, "name": str|null, "notify": str|null }`.
+Checks if a number exists on WhatsApp and whether it is in contacts. Body/Query: `{ "number": "4917..." }` or `phone`. Returns: `{ "number": "...", "jid": "...", "exists": bool, "in_contacts": bool, "name": str|null, "notify": str|null, "verified_name": str|null }`.
+
+- Automatic normalization strips leading zeros (`00` / `0`) and country codes for robust suffix matching (min 7 digits) against phonebook contacts.
 
 ### `GET /health`
 
