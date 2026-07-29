@@ -199,6 +199,23 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             # Always delete connection issue if we successfully reached this point
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
 
+            # Dynamically update device registry sw_version with live version
+            version = stats.get("version")
+            if version and version != "Unknown" and self.config_entry:
+                try:
+                    from homeassistant.helpers import device_registry as dr
+
+                    dev_reg = dr.async_get(self.hass)
+                    device = dev_reg.async_get_device(
+                        identifiers={(DOMAIN, self.session_id)}
+                    )
+                    if device and device.sw_version != version:
+                        dev_reg.async_update_device(device.id, sw_version=version)
+                except Exception as dr_err:
+                    _LOGGER.debug(
+                        "Failed to update device registry version: %s", dr_err
+                    )
+
             return {
                 "connected": connected,
                 "status": status,
