@@ -84,7 +84,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self.host = host.rstrip("/")
         self.config_url = config_url.rstrip("/") if config_url else self.host
         self.ha_base_url = ha_base_url
-        self.api_key = api_key
+        self.api_key = api_key.strip() if api_key else None
         self.session_id = session_id
         self.mask_sensitive_data = mask_sensitive_data
         self.whitelist = whitelist or []

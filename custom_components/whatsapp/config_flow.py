@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import socket
 import uuid
 from typing import Any
 
@@ -107,12 +106,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
             # Only scan if we are NOT submitting (first load)
             if user_input is None:
+                loop = asyncio.get_running_loop()
                 for candidate in candidates:
                     try:
-                        sock = socket.create_connection(
-                            (candidate, DEFAULT_PORT), timeout=0.3
+                        _, writer = await asyncio.wait_for(
+                            loop.open_connection(candidate, DEFAULT_PORT),
+                            timeout=0.3,
                         )
-                        sock.close()
+                        writer.close()
+                        await writer.wait_closed()
                         found_host = candidate
                         _LOGGER.debug("Found reachable host: %s", candidate)
                         break
@@ -144,12 +146,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         # If we reach here, user_input must be set
         assert user_input is not None
+        clean_api_key = str(user_input[CONF_API_KEY]).strip()
         self.discovery_info[CONF_URL] = user_input["host"]
-        self.discovery_info[CONF_API_KEY] = user_input[CONF_API_KEY]
+        self.discovery_info[CONF_API_KEY] = clean_api_key
 
         self.client = WhatsAppApiClient(
             host=str(user_input["host"]),
-            api_key=str(user_input[CONF_API_KEY]),
+            api_key=clean_api_key,
             session_id=self.session_id,
         )
 
