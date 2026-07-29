@@ -207,7 +207,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
                     dev_reg = dr.async_get(self.hass)
                     device = dev_reg.async_get_device(
-                        identifiers={(DOMAIN, self.session_id)}
+                        identifiers={(DOMAIN, self.client.session_id)}
                     )
                     if device and device.sw_version != version:
                         dev_reg.async_update_device(device.id, sw_version=version)

@@ -106,11 +106,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
             # Only scan if we are NOT submitting (first load)
             if user_input is None:
-                loop = asyncio.get_running_loop()
                 for candidate in candidates:
                     try:
                         _, writer = await asyncio.wait_for(
-                            loop.open_connection(candidate, DEFAULT_PORT),
+                            asyncio.open_connection(candidate, DEFAULT_PORT),
                             timeout=0.3,
                         )
                         writer.close()
