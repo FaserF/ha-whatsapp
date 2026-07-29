@@ -128,10 +128,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if not self.discovery_info.get(CONF_API_KEY):
                 try:
                     import os
-                    data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+
+                    data_dir = (
+                        "/data" if not os.name == "nt" else os.path.resolve("data")
+                    )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
-                        with open(token_file, "r", encoding="utf-8") as f:
+                        with open(token_file, encoding="utf-8") as f:
                             tok = f.read().strip()
                             if tok:
                                 self.discovery_info[CONF_API_KEY] = tok
@@ -174,7 +177,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             await self.client.connect()
             # connect() now raises Exception if not 200 OK or invalid auth
         except HomeAssistantError as e:
-            from .api import WhatsAppRateLimitError, WhatsAppAuthError
+            from .api import WhatsAppAuthError, WhatsAppRateLimitError
 
             error_msg = str(e)
             _LOGGER.error("Config Flow Validation Error: %s", error_msg)
@@ -292,13 +295,20 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 if connected:
                     stats = await self.client.get_stats()
                     my_number = stats.get("my_number")
-                    entry_title = my_number if (my_number and my_number != "Unknown") else f"WhatsApp ({self.session_id})"
+                    entry_title = (
+                        my_number
+                        if (my_number and my_number != "Unknown")
+                        else f"WhatsApp ({self.session_id})"
+                    )
                     await self.async_set_unique_id(self.session_id)
-                    return self.async_create_entry(title=entry_title, data={
-                        "host": self.client.host,
-                        CONF_API_KEY: self.client.api_key,
-                        "session_id": self.session_id,
-                    })
+                    return self.async_create_entry(
+                        title=entry_title,
+                        data={
+                            "host": self.client.host,
+                            CONF_API_KEY: self.client.api_key,
+                            "session_id": self.session_id,
+                        },
+                    )
             except Exception as e:
                 _LOGGER.error("Error creating entry on submit: %s", e)
                 pass
