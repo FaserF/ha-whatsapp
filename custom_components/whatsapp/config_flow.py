@@ -457,10 +457,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         """Handle phone pairing."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            phone_number = user_input.get("phone_number", "")
+            raw_phone = user_input.get("phone_number", "").strip()
+            # Clean all non-digit characters
+            digits = "".join(filter(str.isdigit, raw_phone))
+            # Handle European national trunk zero e.g. 490151... -> 49151...
+            import re
+
+            clean_phone = re.sub(
+                r"^(49|43|41|33|44|31|32|34|39|48)0(\d{8,})$", r"\1\2", digits
+            )
+            # Handle local German/EU zero prefix e.g. 0151... -> 49151...
+            if clean_phone.startswith("0") and not clean_phone.startswith("00"):
+                clean_phone = f"49{clean_phone[1:]}"
+            elif clean_phone.startswith("00"):
+                clean_phone = clean_phone[2:]
+
             try:
                 assert self.client is not None
-                code = await self.client.request_pairing_code(phone_number)
+                code = await self.client.request_pairing_code(clean_phone)
                 self.pairing_code = code
                 return await self.async_step_show_pairing_code()
             except Exception as e:
@@ -856,7 +870,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
         if user_input is not None:
             # Handle API Key Update
-            new_key = user_input.get(CONF_API_KEY)
+            raw_key = user_input.get(CONF_API_KEY)
+            new_key = raw_key.strip() if isinstance(raw_key, str) else raw_key
             current_key = self._config_entry.data.get(CONF_API_KEY)
 
             if new_key and new_key != current_key:
