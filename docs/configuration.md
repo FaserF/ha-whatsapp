@@ -75,6 +75,8 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 | `WEBHOOK_URL` | `""` | String | Full Webhook endpoint URL. |
 | `WEBHOOK_TOKEN` | `""` | String | Secret token sent in `X-Webhook-Token` header. |
 | `SEND_MESSAGE_TIMEOUT` | `25000` | Integer | Timeout (in ms) for message delivery confirmation. |
+| `MEDIA_UPLOAD_TIMEOUT` | `60000` | Integer | Timeout (in ms) for media upload/sending. |
+| `MEDIA_RETENTION_DAYS` | `7` | Integer | Auto-delete saved media files older than N days (set to 0 to disable). |
 | `KEEP_ALIVE_INTERVAL` | `30000` | Integer | Interval (in ms) for connection keep-alive checks. |
 | `MESSAGE_SEND_INTERVAL` | `1000` | Integer | Delay (in ms) between enqueued outgoing messages. |
 | `GROUP_FETCH_INTERVAL` | `300000` | Integer | Interval (in ms) between automatic group list refreshes. |

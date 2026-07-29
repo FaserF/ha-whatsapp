@@ -13,6 +13,7 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 | `type`          | string | The interaction type: `chat`, `poll_update`, `event`, `button_reply`, `list_reply`. |
 | `sender`        | string | The full JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`).                     |
 | `sender_number` | string | Clean numeric part of the sender (e.g., `49123456789`).                              |
+| `sender_name`   | string | Display name or push name of the sender (e.g., `John Doe`).                          |
 | `content`       | string | The text body or selected button/row text.                                           |
 | `selected_id`   | string | **(Special)** The ID of the clicked button or list row.                              |
 | `vote`          | list   | **(Special)** For `poll_update`, a list of selected options.                         |
