@@ -205,6 +205,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "status_details": details,
                 "stats": stats,
                 "chats": chats,
+                "dashboard": dashboard,
             }
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
             # Create issue for connection failure (Addon unreachable or Auth)

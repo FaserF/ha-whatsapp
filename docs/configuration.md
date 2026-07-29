@@ -26,6 +26,10 @@ These settings control how the integration behaves within Home Assistant.
 | **Mask Sensitive Data** | `Enabled`      | Partially hides phone numbers in HA logs (important if you share logs online).            |
 | **Reset Session**       | `Disabled`     | **Danger!** Only use this if you want to completely log out and delete all local data.    |
 
+### Binary Sensors
+
+- **`binary_sensor.whatsapp_connection`**: `on` (connected) or `off` (disconnected). Exposes attributes such as `version`, `phone_number`, `addon_status`, `passkey_required` (boolean), and messaging statistics.
+
 ---
 
 ## ⚙️ App Options

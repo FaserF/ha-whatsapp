@@ -52,25 +52,7 @@ class WhatsAppConnectionSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     BinarySensorEntity,  # type: ignore[misc]
 ):
-    """Binary sensor that indicates whether the WhatsApp session is connected.
-
-    Device class:
-    :attr:`~homeassistant.components.binary_sensor.BinarySensorDeviceClass.CONNECTIVITY`.
-
-    State:
-        ``on``:  The WhatsApp session is active and authenticated.
-        ``off``: The session has been disconnected or the addon is unreachable.
-
-    Extra state attributes:
-        * ``version`` – Addon version string.
-        * ``phone_number`` – Registered WhatsApp phone number.
-        * ``uptime_seconds`` – Addon uptime in seconds.
-        * ``total_sent`` – Total messages sent since last restart.
-        * ``total_received`` – Total messages received since last restart.
-        * ``total_failed`` – Total failed send attempts since last restart.
-        * ``last_message_sent`` – Content of the last successfully sent message.
-        * ``last_message_target`` – Recipient of the last sent message.
-    """
+    """Binary sensor that indicates whether the WhatsApp session is connected."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_has_entity_name = True
@@ -80,13 +62,7 @@ class WhatsAppConnectionSensor(
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
     ) -> None:
-        """Initialise the binary sensor entity.
-
-        Args:
-            coordinator: The data coordinator for this config entry.
-            entry: Config entry used to derive the unique entity ID and
-                device-info identifiers.
-        """
+        """Initialise the binary sensor entity."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_connection"
         self._attr_device_info = coordinator.client.get_device_info()
@@ -100,11 +76,13 @@ class WhatsAppConnectionSensor(
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         stats = self.coordinator.data.get("stats", {})
+        dashboard = self.coordinator.data.get("dashboard", {})
         return {
             "version": stats.get("version", "Unknown"),
             "phone_number": stats.get("my_number", "Unknown"),
             "addon_status": self.coordinator.data.get("status"),
             "addon_status_details": self.coordinator.data.get("status_details"),
+            "passkey_required": bool(dashboard.get("passkeyDetected", False)),
             "last_update": stats.get("start_time"),
             "uptime_seconds": stats.get("uptime", 0),
             "total_sent": stats.get("sent", 0),
@@ -118,3 +96,4 @@ class WhatsAppConnectionSensor(
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added."""
         return True
+

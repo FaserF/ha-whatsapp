@@ -32,6 +32,11 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_status = AsyncMock(return_value={"connected": True})
+        mock_instance.get_chats = AsyncMock(
+            return_value={"total_chats": 0, "groups": []}
+        )
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
         mock_instance.start_session = AsyncMock(return_value=None)
@@ -53,6 +58,7 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         mock_instance.get_stats = AsyncMock(
             return_value={"sent": 10, "failed": 2, "connected": False}
         )
+        mock_instance.get_status = AsyncMock(return_value={"connected": False})
         mock_instance.connect = AsyncMock(return_value=False)
 
         # Manually trigger coordinator refresh
@@ -62,3 +68,6 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
 
         state = hass.states.get("binary_sensor.whatsapp")
         assert state.state == "off"
+
+        assert state.attributes["passkey_required"] is False
+
