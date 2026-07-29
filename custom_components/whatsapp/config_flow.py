@@ -124,6 +124,20 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     suggested_url = f"http://{found_host}:{DEFAULT_PORT}"
 
         if user_input is None:
+            # If CONF_API_KEY is missing from discovery_info, attempt to read token from local disk
+            if not self.discovery_info.get(CONF_API_KEY):
+                try:
+                    import os
+                    data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+                    token_file = os.path.join(data_dir, ".api_token")
+                    if os.path.exists(token_file):
+                        with open(token_file, "r", encoding="utf-8") as f:
+                            tok = f.read().strip()
+                            if tok:
+                                self.discovery_info[CONF_API_KEY] = tok
+                except Exception:
+                    pass
+
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -160,15 +174,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             await self.client.connect()
             # connect() now raises Exception if not 200 OK or invalid auth
         except HomeAssistantError as e:
-            from .api import WhatsAppRateLimitError
+            from .api import WhatsAppRateLimitError, WhatsAppAuthError
 
             error_msg = str(e)
             _LOGGER.error("Config Flow Validation Error: %s", error_msg)
 
-            if isinstance(e, WhatsAppRateLimitError):
-                errors["base"] = "rate_limit"
-            elif "Invalid API Key" in error_msg:
+            if isinstance(e, WhatsAppAuthError) or "Invalid API Key" in error_msg:
                 errors["base"] = "invalid_auth"
+            elif isinstance(e, WhatsAppRateLimitError):
+                errors["base"] = "rate_limit"
             else:
                 errors["base"] = "cannot_connect"
 
@@ -185,7 +199,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     }
                 ),
                 description_placeholders={
-                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                    "setup_url": "https://faserf.github.io/ha-whatsapp/"
                 },
                 errors=errors,
             )
@@ -205,7 +219,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     }
                 ),
                 description_placeholders={
-                    "addon_url": "https://github.com/FaserF/hassio-addons/tree/master/whatsapp"
+                    "setup_url": "https://faserf.github.io/ha-whatsapp/"
                 },
                 errors=errors,
             )
@@ -241,8 +255,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if not self.qr_code:
                 # Trigger session start on addon side (Lazy Init)
                 await self.client.start_session()
-                await asyncio.sleep(2)
-                self.qr_code = await self.client.get_qr_code()
+                for _ in range(5):
+                    await asyncio.sleep(2)
+                    self.qr_code = await self.client.get_qr_code()
+                    if self.qr_code:
+                        break
         except ImportError:
             return self.async_abort(reason="missing_dependency")
         except HomeAssistantError as e:
@@ -275,11 +292,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 if connected:
                     stats = await self.client.get_stats()
                     my_number = stats.get("my_number")
-                    if my_number:
-                        await self.async_set_unique_id(my_number)
-                    return await self.async_create_flow_entry(my_number)
-
-            except Exception:
+                    entry_title = my_number if (my_number and my_number != "Unknown") else f"WhatsApp ({self.session_id})"
+                    await self.async_set_unique_id(self.session_id)
+                    return self.async_create_entry(title=entry_title, data={
+                        "host": self.client.host,
+                        CONF_API_KEY: self.client.api_key,
+                        "session_id": self.session_id,
+                    })
+            except Exception as e:
+                _LOGGER.error("Error creating entry on submit: %s", e)
                 pass
 
             # Check if the addon detected a passkey ceremony before concluding error

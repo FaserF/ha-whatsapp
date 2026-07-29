@@ -375,14 +375,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                                 "Addon reports already connected, no QR code needed"
                             )
                             return ""
-                        if status == "waiting":
+                        if qr:
+                            return str(qr)
+                        if status in ("waiting", "waiting_for_qr"):
                             # QR not yet generated
                             _LOGGER.debug("Addon is still generating QR code")
                             return ""
-                        # status == "scanning" means QR is available
-                        return str(qr) if qr else ""
-                    _LOGGER.warning("QR endpoint returned status %s", resp.status)
-                    return ""
+                        _LOGGER.warning("QR endpoint returned status %s", resp.status)
+                        return ""
             except HomeAssistantError:
                 raise
             except Exception as e:
@@ -431,8 +431,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     params=params,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
+                    if resp.status == 401:
+                        raise WhatsAppAuthError("Invalid API Key")
                     if resp.status == 200:
                         return cast(dict[str, Any], await resp.json())
+            except WhatsAppAuthError:
+                raise
             except Exception as e:
                 _LOGGER.debug("Failed to fetch status: %s", e)
         return {}
