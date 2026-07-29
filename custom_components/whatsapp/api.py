@@ -192,6 +192,13 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         # Clean all non-digit characters for further analysis
         clean_number = "".join(filter(str.isdigit, target))
 
+        # Handle European national trunk zero e.g. 490176... -> 49176...
+        import re
+
+        clean_number = re.sub(
+            r"^(49|43|41|33|44|31|32|34|39|48)0(\d{8,})$", r"\1\2", clean_number
+        )
+
         # Modern group IDs are typically 16-20 digits (much longer than phone numbers)
         # E.164 phone numbers are max 15 digits (including country code)
         if len(clean_number) >= 16:
