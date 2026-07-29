@@ -96,4 +96,3 @@ class WhatsAppConnectionSensor(
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added."""
         return True
-

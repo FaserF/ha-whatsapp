@@ -14,9 +14,7 @@ def test_jid_normalization() -> None:
     assert client.ensure_jid("+49123456789") == "49123456789@s.whatsapp.net"
     assert client.ensure_jid("  49123456789  ") == "49123456789@s.whatsapp.net"
     assert client.ensure_jid("0151 12345678") == "015112345678@s.whatsapp.net"
-    assert (
-        client.ensure_jid("+49 (0)151 12345678") == "4915112345678@s.whatsapp.net"
-    )
+    assert client.ensure_jid("+49 (0)151 12345678") == "4915112345678@s.whatsapp.net"
 
     # Groups
     assert client.ensure_jid("12345-6789") == "12345-6789@g.us"

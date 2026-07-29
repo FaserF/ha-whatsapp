@@ -70,4 +70,3 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert state.state == "off"
 
         assert state.attributes["passkey_required"] is False
-
