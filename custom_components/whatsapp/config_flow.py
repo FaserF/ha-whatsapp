@@ -131,7 +131,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 try:
                     import os
 
-                    data_dir = "/data" if os.name != "nt" else os.path.resolve("data")
+                    data_dir = (
+                        "/data" if os.name != "nt" else os.path.abspath("data")
+                    )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
                         with open(token_file, encoding="utf-8") as f:
@@ -249,7 +251,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     "User requested logout of existing session to pair a new phone"
                 )
                 try:
-                    await self.client.logout()
+                    await self.client.delete_session()
                 except Exception as e:
                     _LOGGER.warning("Logout failed during reconnect choice: %s", e)
                 self.qr_code = None
@@ -279,7 +281,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                                     label="Log out & pair a new phone (Scan QR)",
                                 ),
                             ],
-                            mode=selector.SelectSelectorMode.RADIO,
+                            mode=selector.SelectSelectorMode.LIST,
                         )
                     )
                 }
@@ -684,7 +686,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 try:
                     import os
 
-                    data_dir = "/data" if os.name != "nt" else os.path.resolve("data")
+                    data_dir = (
+                        "/data" if os.name != "nt" else os.path.abspath("data")
+                    )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
                         with open(token_file, encoding="utf-8") as f:
@@ -801,7 +805,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 import os
 
-                data_dir = "/data" if os.name != "nt" else os.path.resolve("data")
+                data_dir = (
+                    "/data" if os.name != "nt" else os.path.abspath("data")
+                )
                 token_file = os.path.join(data_dir, ".api_token")
                 if os.path.exists(token_file):
                     with open(token_file, encoding="utf-8") as f:
