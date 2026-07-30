@@ -223,12 +223,16 @@ class WhatsAppChatsSensor(
     @property
     def native_value(self) -> int:
         """Return the total number of chats."""
+        if not self.coordinator.data:
+            return 0
         chats_data = self.coordinator.data.get("chats", {})
         return int(chats_data.get("total_chats", 0))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes (lists all groups)."""
+        if not self.coordinator.data:
+            return {"groups": []}
         chats_data = self.coordinator.data.get("chats", {})
         return {
             "groups": chats_data.get("groups", []),
