@@ -118,6 +118,28 @@ Media transmission.
 
 ---
 
+### `POST /api/sessions/purge`
+
+Purges all inactive, stale, or un-connected sessions from memory and disk storage `/data/sessions`. Protected against purging active, connecting, or QR-scanning sessions.
+
+---
+
+## 🤖 WhatsApp Control Commands (`ha-app-*`)
+
+Send these commands directly as WhatsApp text messages to the paired bot (requires number to be in `admin_numbers` for protected commands):
+
+- `ha-app-ping`: Connectivity check ("Pong!").
+- `ha-app-getid`: Returns current Chat ID / Group JID.
+- `ha-app-status`: Comprehensive system status report (HA Core, OS, Uptime).
+- `ha-app-errors` (or `ha-app-issues`): **Filtered real-time error & warning diagnostic report.**
+- `ha-app-diagnose` (or `ha-app-diag`): Interactive diagnostic test across message features.
+- `ha-app-logs`: Retrieves recent connection event log entries.
+- `ha-app-restart`: Restarts WhatsApp daemon.
+- `ha-app-stats`: Displays message statistics.
+- `ha-app-help`: Lists all available commands.
+
+---
+
 ## 📊 Connection & Info
 
 ### `GET /status`

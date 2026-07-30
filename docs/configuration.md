@@ -26,9 +26,20 @@ These settings control how the integration behaves within Home Assistant.
 | **Mask Sensitive Data** | `Enabled`      | Partially hides phone numbers in HA logs (important if you share logs online).            |
 | **Reset Session**       | `Disabled`     | **Danger!** Only use this if you want to completely log out and delete all local data.    |
 
-### Binary Sensors
+### Multi-Account Support (Multiple WhatsApp Numbers)
 
-- **`binary_sensor.whatsapp_connection`**: `on` (connected) or `off` (disconnected). Exposes attributes such as `version`, `phone_number`, `addon_status`, `passkey_required` (boolean), and messaging statistics.
+You can pair and manage **multiple distinct WhatsApp accounts** (with different phone numbers) through the same Addon instance. 
+
+- **Independent Config Entries**: Each paired account gets its own Home Assistant config entry and unique `session_id`.
+- **Targeting Accounts in Automations**: Services accept the optional `account` parameter (e.g. `account: "49159..."` or entry ID). If you only have one account, `account` is optional.
+- **Existing Session Detection**: If an active session already exists during setup, Home Assistant will prompt you to either use the active session or log out to pair a new phone.
+
+### System Maintenance Controls
+
+In the Addon Dashboard Web-UI under **System Maintenance**:
+- **Restart Daemon**: Restarts the WhatsApp connection without deleting credentials.
+- **Clean Inactive Sessions**: Purges disconnected or stale session directories from disk to free up resources.
+- **Hard Reset / Logout**: Logs out WhatsApp and deletes all local session credentials.
 
 ---
 
