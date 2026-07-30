@@ -563,14 +563,28 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     timeout=aiohttp.ClientTimeout(total=20),
                 ) as resp:
                     if resp.status == 200:
-                        return cast(dict[str, Any], await resp.json())
+                        raw_data = await resp.json()
+                        if isinstance(raw_data, list):
+                            groups = [
+                                c
+                                for c in raw_data
+                                if isinstance(c, dict)
+                                and "@g.us" in c.get("jid", "")
+                            ]
+                            return {
+                                "total_chats": len(raw_data),
+                                "groups": groups,
+                                "initial_chats_received": True,
+                            }
+                        if isinstance(raw_data, dict):
+                            return raw_data
                     if resp.status == 429:
                         _LOGGER.debug("Fetch chats rate limited by addon cooldown")
                     else:
                         _LOGGER.warning("Fetch chats failed: status %s", resp.status)
             except Exception as e:
                 _LOGGER.error("Failed to fetch chats: %s", e)
-        return {"total_chats": 0, "groups": []}
+        return {"total_chats": 0, "groups": [], "initial_chats_received": False}
 
     async def get_health(self) -> dict[str, Any]:
         """Fetch health status from the Addon."""

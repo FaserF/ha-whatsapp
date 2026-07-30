@@ -842,9 +842,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     total_chats,
                     initial_chats_received,
                 )
-                if initial_chats_received:
-                    if total_chats > 2:
-                        break
+                if total_chats > 0:
+                    show_warning = False
+                    show_fallback = False
+                    break
+
+                if initial_chats_received and total_chats == 0:
                     show_warning = True
                     break
             except Exception as e:
@@ -857,8 +860,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 chats = await self.client.get_chats()
                 total_chats = int(chats.get("total_chats") or 0)
-                if total_chats <= 2:
+                if total_chats == 0:
                     show_warning = True
+                else:
+                    show_fallback = False
             except Exception:
                 show_fallback = True
 
