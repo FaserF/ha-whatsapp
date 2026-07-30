@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import selector
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import WhatsAppApiClient
@@ -229,6 +230,60 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         return await self.async_step_scan()
 
+    async def async_step_already_connected(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Present choice when an existing active WhatsApp session is detected."""
+        if not self.client:
+            return self.async_abort(reason="unknown")
+
+        try:
+            stats = await self.client.get_stats()
+            my_number = stats.get("my_number") or "Unknown"
+        except Exception:
+            my_number = "Unknown"
+
+        if user_input is not None:
+            action = user_input.get("action")
+            if action == "reconnect_new":
+                _LOGGER.info("User requested logout of existing session to pair a new phone")
+                try:
+                    await self.client.logout()
+                except Exception as e:
+                    _LOGGER.warning("Logout failed during reconnect choice: %s", e)
+                self.qr_code = None
+                return await self.async_step_scan()
+            else:
+                _LOGGER.info("User confirmed using existing WhatsApp session (%s)", my_number)
+                if my_number and my_number != "Unknown":
+                    await self.async_set_unique_id(my_number)
+                return await self.async_create_flow_entry(my_number)
+
+        return self.async_show_form(
+            step_id="already_connected",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("action", default="use_existing"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(
+                                    value="use_existing",
+                                    label=f"Use active session ({my_number})",
+                                ),
+                                selector.SelectOptionDict(
+                                    value="reconnect_new",
+                                    label="Log out & pair a new phone (Scan QR)",
+                                ),
+                            ],
+                            mode=selector.SelectSelectorMode.RADIO,
+                        )
+                    )
+                }
+            ),
+            description_placeholders={"phone_number": my_number},
+        )
+
+
     async def async_step_scan(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -241,12 +296,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             is_connected = await self.client.connect()
             _LOGGER.debug("Connect check result: %s", is_connected)
             if is_connected:
-                _LOGGER.info("Already connected to WhatsApp, skipping QR scan")
-                stats = await self.client.get_stats()
-                my_number = stats.get("my_number")
-                if my_number:
-                    await self.async_set_unique_id(my_number)
-                return await self.async_create_flow_entry(my_number)
+                _LOGGER.info("Already connected to WhatsApp, presenting choice step")
+                return await self.async_step_already_connected()
         except AbortFlow:
             raise
         except Exception as e:
@@ -290,28 +341,41 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 return await self.async_step_scan()
 
             # User clicked "Submit" (meaning they scanned it)
+            # Poll connection status for up to 30 seconds.
+            # WhatsApp performs a rapid stream restart (515) right after QR scan,
+            # and initial key/message sync may take up to 20-30 seconds depending on device.
+            for _attempt in range(30):
+                try:
+                    if await self.client.connect():
+                        _LOGGER.info("Connected to WhatsApp after QR scan submission")
+                        stats = await self.client.get_stats()
+                        my_number = stats.get("my_number")
+                        if my_number:
+                            await self.async_set_unique_id(my_number)
+                        else:
+                            await self.async_set_unique_id(self.session_id)
+                        return await self.async_create_flow_entry(my_number)
+                except AbortFlow:
+                    raise
+                except Exception as poll_err:
+                    _LOGGER.debug("Polling connection status after scan submission: %s", poll_err)
+                await asyncio.sleep(1)
+
+            # Final safety check: query stats directly in case socket is connected but connect() was transient
             try:
-                connected = await self.client.connect()
-                if connected:
-                    stats = await self.client.get_stats()
+                stats = await self.client.get_stats()
+                if stats.get("connected") or stats.get("my_number"):
+                    _LOGGER.info("Stats confirm connection after QR scan submission")
                     my_number = stats.get("my_number")
-                    entry_title = (
-                        my_number
-                        if (my_number and my_number != "Unknown")
-                        else f"WhatsApp ({self.session_id})"
-                    )
-                    await self.async_set_unique_id(self.session_id)
-                    return self.async_create_entry(
-                        title=entry_title,
-                        data={
-                            CONF_URL: self.client.host,
-                            CONF_API_KEY: self.client.api_key,
-                            CONF_SESSION_ID: self.session_id,
-                        },
-                    )
-            except Exception as e:
-                _LOGGER.error("Error creating entry on submit: %s", e)
-                pass
+                    if my_number:
+                        await self.async_set_unique_id(my_number)
+                    else:
+                        await self.async_set_unique_id(self.session_id)
+                    return await self.async_create_flow_entry(my_number)
+            except AbortFlow:
+                raise
+            except Exception as stats_err:
+                _LOGGER.debug("Final stats safety check failed: %s", stats_err)
 
             # Check if the addon detected a passkey ceremony before concluding error
             try:
@@ -809,13 +873,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 return await self.async_step_account_warning_fallback()
             return await self.async_step_account_warning()
 
-        url = self.discovery_info.get(CONF_URL) or self.discovery_info.get("host") or ""
+        url = (
+            self.discovery_info.get(CONF_URL)
+            or self.discovery_info.get("host")
+            or (self.client.host if self.client else "http://localhost:8066")
+        )
+        api_key = (
+            self.discovery_info.get(CONF_API_KEY)
+            or (self.client.api_key if self.client else "")
+        )
         return self.async_create_entry(
             title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
             data={
                 "session_id": self.session_id,
                 CONF_URL: url,
-                CONF_API_KEY: self.discovery_info[CONF_API_KEY],
+                CONF_API_KEY: api_key,
                 "system_id": self.discovery_info.get("system_id"),
             },
         )

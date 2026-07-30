@@ -57,6 +57,13 @@
       "passkey_waiting": {
         "title": "Waiting for Passkey Approval",
         "description": "## 🔑 Approve the Passkey on Your Phone\n\nWhatsApp has sent a passkey request to your phone. Please complete the following steps:\n\n1. Open **WhatsApp** on your phone\n2. Look for a **passkey prompt** or notification\n3. Tap **Approve** / use your biometric or PIN\n4. Wait — this screen will advance automatically once the connection is confirmed\n\n> The integration is polling for the connection result. This may take up to **2 minutes**.\n> If nothing happens, click **Submit** to check the current status."
+      },
+      "already_connected": {
+        "title": "Existing Session Found",
+        "data": {
+          "action": "How would you like to proceed?"
+        },
+        "description": "An active WhatsApp session was found for **{phone_number}**.\n\nYou can use this existing session or log out to pair a different phone."
       }
     },
     "error": {
