@@ -24,7 +24,11 @@ async def test_get_chats_rate_limit() -> None:
         # get_chats should return empty data on 429 instead of raising an error
         # so that the coordinator can continue with cached or empty data.
         result = await client.get_chats()
-        assert result == {"total_chats": 0, "groups": []}
+        assert result == {
+            "total_chats": 0,
+            "groups": [],
+            "initial_chats_received": False,
+        }
 
 
 async def test_get_groups_rate_limit() -> None:
@@ -62,7 +66,11 @@ async def test_get_chats_generic_error() -> None:
 
     with patch("aiohttp.ClientSession.get", return_value=mock_response):
         result = await client.get_chats()
-        assert result == {"total_chats": 0, "groups": []}
+        assert result == {
+            "total_chats": 0,
+            "groups": [],
+            "initial_chats_received": False,
+        }
 
 
 async def test_get_groups_generic_error() -> None:

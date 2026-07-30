@@ -57,6 +57,13 @@
       "passkey_waiting": {
         "title": "Warten auf Passkey-Freigabe",
         "description": "## 🔑 Passkey auf dem Telefon freigeben\n\nWhatsApp hat eine Passkey-Anforderung an dein Telefon gesendet. Bitte führe die folgenden Schritte aus:\n\n1. Öffne **WhatsApp** auf deinem Telefon\n2. Suche nach einer **Passkey-Aufforderung** oder Benachrichtigung\n3. Tippe auf **Freigeben** / verwende Biometrie oder PIN\n4. Warte — dieser Bildschirm wird automatisch fortfahren, sobald die Verbindung bestätigt wurde\n\n> Die Integration fragt das Verbindungsergebnis ab. Dies kann bis zu **2 Minuten** dauern.\n> Falls nichts passiert, klicke auf **Absenden**, um den aktuellen Status zu prüfen."
+      },
+      "already_connected": {
+        "title": "Bestehende Sitzung gefunden",
+        "data": {
+          "action": "Wie möchtest du fortfahren?"
+        },
+        "description": "Eine aktive WhatsApp-Sitzung für **{phone_number}** wurde gefunden.\n\nDu kannst diese bestehende Sitzung verwenden oder dich abmelden, um ein anderes Telefon zu koppeln."
       }
     },
     "error": {
