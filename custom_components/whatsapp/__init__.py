@@ -73,6 +73,8 @@ _SERVICES = [
     "send_buttons",
     "search_groups",
     "mark_as_read",
+    "get_contacts",
+    "check_number",
 ]
 
 
@@ -102,7 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         initial coordinator refresh fails.
     """
 
-    addon_url = entry.data.get(CONF_URL, "http://localhost:8066")
+    addon_url = entry.data.get(CONF_URL) or entry.data.get("host") or "http://localhost:8066"
     api_key = entry.data.get(CONF_API_KEY)
     mask_sensitive_data = entry.options.get("mask_sensitive_data", False)
     whitelist_str = entry.options.get(CONF_WHITELIST, "")

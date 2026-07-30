@@ -22,14 +22,14 @@ from typing import Any
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
 
-from .api import WhatsAppApiClient
+from .api import WhatsAppApiClient, WhatsAppAuthError
 from .const import CONF_POLLING_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -224,6 +224,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "chats": chats,
                 "dashboard": dashboard,
             }
+        except WhatsAppAuthError as err:
+            _LOGGER.error("Authentication failed during polling: %s", err)
+            raise ConfigEntryAuthFailed("Invalid API Key for WhatsApp Addon") from err
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
             # Create issue for connection failure (Addon unreachable or Auth)
             ir.async_create_issue(

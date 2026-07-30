@@ -258,11 +258,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             if not self.qr_code:
                 # Trigger session start on addon side (Lazy Init)
                 await self.client.start_session()
-                for _ in range(5):
-                    await asyncio.sleep(2)
+                for _ in range(10):
                     self.qr_code = await self.client.get_qr_code()
                     if self.qr_code:
                         break
+                    await asyncio.sleep(1)
         except ImportError:
             return self.async_abort(reason="missing_dependency")
         except HomeAssistantError as e:
@@ -304,9 +304,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     return self.async_create_entry(
                         title=entry_title,
                         data={
-                            "host": self.client.host,
+                            CONF_URL: self.client.host,
                             CONF_API_KEY: self.client.api_key,
-                            "session_id": self.session_id,
+                            CONF_SESSION_ID: self.session_id,
                         },
                     )
             except Exception as e:
@@ -384,7 +384,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
 
         errors = {}
-        if not self.qr_code:
+        if user_input is not None and not self.qr_code:
             errors["base"] = "qr_timeout"
 
         return self.async_show_form(
@@ -608,9 +608,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             self.discovery_info["host"] = f"http://{host}:{port}"
             self.discovery_info[CONF_URL] = f"http://{host}:{port}"
 
-            # Also check for api_key in options
+            # Also check for api_key in options or read from /data/.api_token
             if addon_info.options and (api_key := addon_info.options.get(CONF_API_KEY)):
                 self.discovery_info[CONF_API_KEY] = api_key
+            else:
+                try:
+                    import os
+                    data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+                    token_file = os.path.join(data_dir, ".api_token")
+                    if os.path.exists(token_file):
+                        with open(token_file, "r", encoding="utf-8") as f:
+                            tok = f.read().strip()
+                            if tok:
+                                self.discovery_info[CONF_API_KEY] = tok
+                except Exception:
+                    pass
 
             _LOGGER.debug("Pre-filled addon info: %s", self.discovery_info)
         except Exception as e:
@@ -712,11 +724,28 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     ) -> ConfigFlowResult:
         """Confirm discovery."""
         url = self.discovery_info.get(CONF_URL) or self.discovery_info.get("host") or ""
+        
+        # Always attempt to resolve API key from discovery_info or local token file
+        api_key = self.discovery_info.get(CONF_API_KEY) or ""
+        if not api_key:
+            try:
+                import os
+                data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+                token_file = os.path.join(data_dir, ".api_token")
+                if os.path.exists(token_file):
+                    with open(token_file, "r", encoding="utf-8") as f:
+                        tok = f.read().strip()
+                        if tok:
+                            api_key = tok
+                            self.discovery_info[CONF_API_KEY] = tok
+            except Exception:
+                pass
+
         if user_input is not None:
             return await self.async_step_user(
                 {
                     "host": url,
-                    CONF_API_KEY: self.discovery_info.get(CONF_API_KEY) or "",
+                    CONF_API_KEY: api_key,
                 }
             )
 

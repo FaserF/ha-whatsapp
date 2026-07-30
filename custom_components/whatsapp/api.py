@@ -312,13 +312,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     if resp.status == 401:
                         raise HomeAssistantError("Invalid API Key")
                     if resp.status != 200:
-                        _LOGGER.error("Start session failed: %s", resp.status)
-                        # We don't raise here strictly to allow "already started" flows?
-                        # But 401 must raise.
+                        body_text = await resp.text()
+                        _LOGGER.error(
+                            "Start session failed for session %s (HTTP %s): %s",
+                            self.session_id,
+                            resp.status,
+                            body_text,
+                        )
+                        raise HomeAssistantError(
+                            f"Start session failed (HTTP {resp.status}): {body_text}"
+                        )
             except HomeAssistantError:
                 raise
             except Exception as e:
-                _LOGGER.error("Failed to start session: %s", e)
+                _LOGGER.error("Failed to start session %s: %s", self.session_id, e)
                 raise HomeAssistantError(f"Failed to start session: {e}") from e
 
     async def delete_session(self) -> None:
@@ -358,7 +365,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 401:
-                        raise HomeAssistantError("Invalid API Key")
+                        raise WhatsAppAuthError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
                         status = data.get("status", "")
@@ -381,9 +388,11 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                             # QR not yet generated
                             _LOGGER.debug("Addon is still generating QR code")
                             return ""
-                        _LOGGER.warning("QR endpoint returned status %s", resp.status)
+                        _LOGGER.warning("QR endpoint payload status: %s", status)
                         return ""
-            except HomeAssistantError:
+                    _LOGGER.warning("QR endpoint returned HTTP status %s", resp.status)
+                    return ""
+            except (HomeAssistantError, WhatsAppAuthError):
                 raise
             except Exception as e:
                 _LOGGER.error("Error fetching QR from addon: %s", e)
@@ -525,7 +534,13 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                                 )
                         self._disconnect_reason = data.get("disconnect_reason")
                         return self.stats
-            except WhatsAppAuthError:
+                    _LOGGER.warning(
+                        "Stats fetch received unexpected HTTP status %s for session %s",
+                        resp.status,
+                        self.session_id,
+                    )
+                    self._connected = False
+            except (WhatsAppAuthError, WhatsAppRateLimitError):
                 self._connected = False
                 raise
             except Exception as e:
