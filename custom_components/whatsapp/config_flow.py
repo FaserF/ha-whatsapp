@@ -246,24 +246,29 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if user_input is not None:
             action = user_input.get("action")
             if action == "reconnect_new":
-                _LOGGER.info("User requested logout of existing session to pair a new phone")
+                _LOGGER.info(
+                    "User requested logout of existing session to pair a new phone"
+                )
                 try:
                     await self.client.logout()
                 except Exception as e:
                     _LOGGER.warning("Logout failed during reconnect choice: %s", e)
                 self.qr_code = None
                 return await self.async_step_scan()
-            else:
-                _LOGGER.info("User confirmed using existing WhatsApp session (%s)", my_number)
-                if my_number and my_number != "Unknown":
-                    await self.async_set_unique_id(my_number)
-                return await self.async_create_flow_entry(my_number)
+            _LOGGER.info(
+                "User confirmed using existing WhatsApp session (%s)", my_number
+            )
+            if my_number and my_number != "Unknown":
+                await self.async_set_unique_id(my_number)
+            return await self.async_create_flow_entry(my_number)
 
         return self.async_show_form(
             step_id="already_connected",
             data_schema=vol.Schema(
                 {
-                    vol.Required("action", default="use_existing"): selector.SelectSelector(
+                    vol.Required(
+                        "action", default="use_existing"
+                    ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[
                                 selector.SelectOptionDict(
@@ -282,7 +287,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             ),
             description_placeholders={"phone_number": my_number},
         )
-
 
     async def async_step_scan(
         self, user_input: dict[str, Any] | None = None
@@ -358,7 +362,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 except AbortFlow:
                     raise
                 except Exception as poll_err:
-                    _LOGGER.debug("Polling connection status after scan submission: %s", poll_err)
+                    _LOGGER.debug(
+                        "Polling connection status after scan submission: %s", poll_err
+                    )
                 await asyncio.sleep(1)
 
             # Final safety check: query stats directly in case socket is connected but connect() was transient
@@ -678,10 +684,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             else:
                 try:
                     import os
-                    data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+
+                    data_dir = (
+                        "/data" if not os.name == "nt" else os.path.resolve("data")
+                    )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
-                        with open(token_file, "r", encoding="utf-8") as f:
+                        with open(token_file, encoding="utf-8") as f:
                             tok = f.read().strip()
                             if tok:
                                 self.discovery_info[CONF_API_KEY] = tok
@@ -788,16 +797,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     ) -> ConfigFlowResult:
         """Confirm discovery."""
         url = self.discovery_info.get(CONF_URL) or self.discovery_info.get("host") or ""
-        
+
         # Always attempt to resolve API key from discovery_info or local token file
         api_key = self.discovery_info.get(CONF_API_KEY) or ""
         if not api_key:
             try:
                 import os
+
                 data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
                 token_file = os.path.join(data_dir, ".api_token")
                 if os.path.exists(token_file):
-                    with open(token_file, "r", encoding="utf-8") as f:
+                    with open(token_file, encoding="utf-8") as f:
                         tok = f.read().strip()
                         if tok:
                             api_key = tok
@@ -883,9 +893,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             or self.discovery_info.get("host")
             or (self.client.host if self.client else "http://localhost:8066")
         )
-        api_key = (
-            self.discovery_info.get(CONF_API_KEY)
-            or (self.client.api_key if self.client else "")
+        api_key = self.discovery_info.get(CONF_API_KEY) or (
+            self.client.api_key if self.client else ""
         )
         return self.async_create_entry(
             title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",

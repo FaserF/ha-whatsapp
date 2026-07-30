@@ -568,8 +568,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                             groups = [
                                 c
                                 for c in raw_data
-                                if isinstance(c, dict)
-                                and "@g.us" in c.get("jid", "")
+                                if isinstance(c, dict) and "@g.us" in c.get("jid", "")
                             ]
                             return {
                                 "total_chats": len(raw_data),
