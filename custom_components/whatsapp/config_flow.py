@@ -125,13 +125,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     suggested_url = f"http://{found_host}:{DEFAULT_PORT}"
 
         if user_input is None:
-            # If CONF_API_KEY is missing from discovery_info, attempt to read token from local disk
+            # If CONF_API_KEY is missing from discovery_info,
+            # attempt to read token from local disk
             if not self.discovery_info.get(CONF_API_KEY):
                 try:
                     import os
 
                     data_dir = (
-                        "/data" if not os.name == "nt" else os.path.resolve("data")
+                        "/data" if os.name != "nt" else os.path.resolve("data")
                     )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
