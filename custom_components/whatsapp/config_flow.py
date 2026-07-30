@@ -346,7 +346,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             # User clicked "Submit" (meaning they scanned it)
             # Poll connection status for up to 30 seconds.
             # WhatsApp performs a rapid stream restart (515) right after QR scan,
-            # and initial key/message sync may take up to 20-30 seconds depending on device.
+            # and initial key/message sync may take up to 20-30 seconds.
             for _attempt in range(30):
                 try:
                     if await self.client.connect():
@@ -366,7 +366,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     )
                 await asyncio.sleep(1)
 
-            # Final safety check: query stats directly in case socket is connected but connect() was transient
+            # Final safety check: query stats directly if connect() was transient
             try:
                 stats = await self.client.get_stats()
                 if stats.get("connected") or stats.get("my_number"):
@@ -685,7 +685,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                     import os
 
                     data_dir = (
-                        "/data" if not os.name == "nt" else os.path.resolve("data")
+                        "/data" if os.name != "nt" else os.path.resolve("data")
                     )
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
@@ -803,7 +803,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 import os
 
-                data_dir = "/data" if not os.name == "nt" else os.path.resolve("data")
+                data_dir = (
+                    "/data" if os.name != "nt" else os.path.resolve("data")
+                )
                 token_file = os.path.join(data_dir, ".api_token")
                 if os.path.exists(token_file):
                     with open(token_file, encoding="utf-8") as f:

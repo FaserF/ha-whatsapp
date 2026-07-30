@@ -70,18 +70,19 @@ class WhatsAppConnectionSensor(
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on (connected)."""
-        return bool(self.coordinator.data.get("connected", False))
+        return bool((self.coordinator.data or {}).get("connected", False))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        stats = self.coordinator.data.get("stats", {})
-        dashboard = self.coordinator.data.get("dashboard", {})
+        data = self.coordinator.data or {}
+        stats = data.get("stats", {})
+        dashboard = data.get("dashboard", {})
         return {
             "version": stats.get("version", "Unknown"),
             "phone_number": stats.get("my_number", "Unknown"),
-            "addon_status": self.coordinator.data.get("status"),
-            "addon_status_details": self.coordinator.data.get("status_details"),
+            "addon_status": data.get("status"),
+            "addon_status_details": data.get("status_details"),
             "passkey_required": bool(dashboard.get("passkeyDetected", False)),
             "last_update": stats.get("start_time"),
             "uptime_seconds": stats.get("uptime", 0),

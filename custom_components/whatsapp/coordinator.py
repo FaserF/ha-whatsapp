@@ -65,6 +65,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         """
         self.client = client
         self.entry = entry
+        self._connected: bool = False
 
         polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 30)
         super().__init__(

@@ -107,7 +107,7 @@ class WhatsAppStatSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        stats = self.coordinator.data.get("stats", {})
+        stats = (self.coordinator.data or {}).get("stats", {})
         if self._stat_key == "sent":
             return {
                 "last_message": stats.get("last_sent_message"),
@@ -140,7 +140,7 @@ class WhatsAppStatSensor(
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        stats = self.coordinator.data.get("stats", {})
+        stats = (self.coordinator.data or {}).get("stats", {})
         return int(stats.get(self._stat_key, 0))
 
 
@@ -185,13 +185,13 @@ class WhatsAppUptimeSensor(
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        stats = self.coordinator.data.get("stats", {})
+        stats = (self.coordinator.data or {}).get("stats", {})
         return int(stats.get("uptime", 0))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        stats = self.coordinator.data.get("stats", {})
+        stats = (self.coordinator.data or {}).get("stats", {})
         return {
             "version": stats.get("version", "Unknown"),
             "phone_number": stats.get("my_number", "Unknown"),
