@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ha-whatsapp"
-version = "1.7.6-dev0"
+version = "1.8.1-dev0"
 description = "Home Assistant WhatsApp Integration"
 authors = ["FaserF"]
 readme = "README.md"
