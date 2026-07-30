@@ -684,9 +684,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                 try:
                     import os
 
-                    data_dir = (
-                        "/data" if os.name != "nt" else os.path.resolve("data")
-                    )
+                    data_dir = "/data" if os.name != "nt" else os.path.resolve("data")
                     token_file = os.path.join(data_dir, ".api_token")
                     if os.path.exists(token_file):
                         with open(token_file, encoding="utf-8") as f:
@@ -803,9 +801,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             try:
                 import os
 
-                data_dir = (
-                    "/data" if os.name != "nt" else os.path.resolve("data")
-                )
+                data_dir = "/data" if os.name != "nt" else os.path.resolve("data")
                 token_file = os.path.join(data_dir, ".api_token")
                 if os.path.exists(token_file):
                     with open(token_file, encoding="utf-8") as f:

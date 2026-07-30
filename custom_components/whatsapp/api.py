@@ -681,9 +681,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -814,9 +812,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -897,9 +893,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -980,9 +974,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1052,9 +1044,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1136,9 +1126,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1218,9 +1206,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1274,9 +1260,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1334,9 +1318,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1422,9 +1404,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1512,9 +1492,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1604,9 +1582,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1689,9 +1665,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1761,9 +1735,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         url = f"{self.host}/set_presence"
         payload = {"number": target_jid, "presence": presence}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -1798,9 +1770,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         return cast(
             str,
             await self._send_with_retry(
@@ -1909,9 +1879,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
         if not target_jid:
-            raise HomeAssistantError(
-                f"Could not parse valid JID from target: {number}"
-            )
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
         url = f"{self.host}/mark_as_read"
         payload: dict[str, Any] = {"number": target_jid}
         if message_id:
