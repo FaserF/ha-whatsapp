@@ -128,7 +128,10 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 # Double-check via client's status if get_stats returned connected=False
                 try:
                     status_info = await self.client.get_status()
-                    if status_info.get("connected") is True:
+                    if (
+                        isinstance(status_info, dict)
+                        and status_info.get("connected") is True
+                    ):
                         connected = True
                         stats["connected"] = True
                 except Exception as status_err:
@@ -139,7 +142,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             # 2b. Fetch dashboard for passkey detection (lightweight, best-effort)
             dashboard: dict[str, Any] = {}
             try:
-                dashboard = await self.client.get_dashboard()
+                raw_dash = await self.client.get_dashboard()
+                if isinstance(raw_dash, dict):
+                    dashboard = raw_dash
             except Exception as dash_err:
                 _LOGGER.debug("Dashboard fetch skipped: %s", dash_err)
 

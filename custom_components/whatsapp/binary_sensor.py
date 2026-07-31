@@ -83,7 +83,9 @@ class WhatsAppConnectionSensor(
             "phone_number": stats.get("my_number", "Unknown"),
             "addon_status": data.get("status"),
             "addon_status_details": data.get("status_details"),
-            "passkey_required": bool(dashboard.get("passkeyDetected", False)),
+            "passkey_required": bool(dashboard.get("passkeyDetected", False))
+            if isinstance(dashboard, dict)
+            else False,
             "last_update": stats.get("start_time"),
             "uptime_seconds": stats.get("uptime", 0),
             "total_sent": stats.get("sent", 0),
