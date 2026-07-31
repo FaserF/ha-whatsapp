@@ -31,9 +31,14 @@ def build_changelog(commits, url):
             continue
         sub = re.sub(r"\(#(\d+)\)", rf"([#\1]({url}/pull/\1))", sub)
         entry = f"- {sub} ([{sh}]({url}/commit/{fh}))"
-        if re.match(r"^(feat|add|added|adding|new|feature|i18n|translation|✨)", sl) or "translation" in sl:
+        if (
+            re.match(r"^(feat|add|added|adding|new|feature|i18n|translation|✨)", sl)
+            or "translation" in sl
+        ):
             cats["✨ Features"].append(entry)
-        elif re.match(r"^(fix|fixing|fixed|fixes|bug|patch|repair|resolve|resolved|🐛)", sl):
+        elif re.match(
+            r"^(fix|fixing|fixed|fixes|bug|patch|repair|resolve|resolved|🐛)", sl
+        ):
             cats["🐛 Bug Fixes"].append(entry)
         elif re.match(r"^(deps|dep|update|bump|renovate|📦|⬆️)", sl):
             cats["📦 Dependencies"].append(entry)
