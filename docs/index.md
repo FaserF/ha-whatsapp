@@ -179,6 +179,11 @@ graph TD
 
 ---
 
+> **🤖 AI-Assisted Development**: Both the WhatsApp Integration and the WhatsApp Addon are developed, maintained, and continuously optimized with the assistance of modern Artificial Intelligence (AI) coding tools and pair-programming agents.
+{: .note }
+
+---
+
 _Maintained by [FaserF](https://github.com/FaserF)_.
 
 > This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp Inc. or any of its subsidiaries or its affiliates.

@@ -134,9 +134,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     is_hassio_env = False
     try:
-        from homeassistant.components.hassio import is_hassio
+        from homeassistant.components.hassio import (
+            is_hassio,  # type: ignore[attr-defined]
+        )
 
-        is_hassio_env = is_hassio(hass)
+        is_hassio_env = bool(is_hassio(hass))
     except (ImportError, AttributeError):
         pass
 
