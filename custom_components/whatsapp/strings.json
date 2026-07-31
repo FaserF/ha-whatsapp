@@ -69,6 +69,7 @@
     "error": {
       "cannot_connect": "Failed to connect to the WhatsApp Addon. Please ensure the [WhatsApp Addon]({addon_url}) is installed and running.",
       "invalid_auth": "Invalid authentication",
+      "invalid_api_key_format": "The API Token must be 8 to 128 alphanumeric characters (a-z, A-Z, 0-9, _, -).",
       "connection_error": "Not connected to WhatsApp. Please scan the QR code first.",
       "addon_install_error": "Failed to install the WhatsApp Add-on. Please check the Supervisor logs.",
       "rate_limit": "Too many requests. Please wait 15 minutes and try again.",
@@ -108,7 +109,8 @@
     },
     "error": {
       "reset_failed": "Failed to reset session. Check logs.",
-      "invalid_auth": "Invalid authentication"
+      "invalid_auth": "Invalid authentication",
+      "invalid_api_key_format": "The API Token must be 8 to 128 alphanumeric characters (a-z, A-Z, 0-9, _, -)."
     }
   },
   "services": {

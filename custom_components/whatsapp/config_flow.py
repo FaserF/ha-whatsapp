@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import uuid
 from typing import Any
 
@@ -151,7 +152,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
                         vol.Required(
                             CONF_API_KEY,
                             default=self.discovery_info.get(CONF_API_KEY) or "",
-                        ): vol.All(str, vol.Length(min=1)),
+                        ): selector.TextSelector(
+                            selector.TextSelectorConfig(
+                                type=selector.TextSelectorType.PASSWORD
+                            )
+                        ),
                     }
                 ),
                 description_placeholders={
@@ -163,6 +168,30 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         # If we reach here, user_input must be set
         assert user_input is not None
         clean_api_key = str(user_input[CONF_API_KEY]).strip()
+        if not re.match(r"^[a-zA-Z0-9_\-]{8,128}$", clean_api_key):
+            errors["base"] = "invalid_api_key_format"
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("host", default=user_input.get("host")): vol.All(
+                            str, vol.Length(min=1)
+                        ),
+                        vol.Required(
+                            CONF_API_KEY, default=user_input.get(CONF_API_KEY)
+                        ): selector.TextSelector(
+                            selector.TextSelectorConfig(
+                                type=selector.TextSelectorType.PASSWORD
+                            )
+                        ),
+                    }
+                ),
+                description_placeholders={
+                    "setup_url": "https://faserf.github.io/ha-whatsapp/"
+                },
+                errors=errors,
+            )
+
         self.discovery_info[CONF_URL] = user_input["host"]
         self.discovery_info[CONF_API_KEY] = clean_api_key
 
@@ -969,7 +998,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 vol.Required(
                     CONF_API_KEY,
                     default=self._config_entry.data.get(CONF_API_KEY),
-                ): str,
+                ): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+                ),
                 vol.Optional(
                     "debug_payloads",
                     default=self._config_entry.options.get("debug_payloads", False),
@@ -1017,6 +1048,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
             current_key = self._config_entry.data.get(CONF_API_KEY)
 
             if new_key and new_key != current_key:
+                if not re.match(r"^[a-zA-Z0-9_\-]{8,128}$", new_key):
+                    errors["base"] = "invalid_api_key_format"
+                    return self.async_show_form(
+                        step_id="init",
+                        data_schema=self._get_schema(),
+                        errors=errors,
+                    )
+
                 # Validate new key
                 host = self._config_entry.data.get(CONF_URL, "")
                 test_client = WhatsAppApiClient(host=host, api_key=new_key)
