@@ -52,6 +52,7 @@ These settings control the engine (the WhatsApp browser bridge).
 - **Log Level**: Set to `info` for normal use. Use `debug` only if you encounter problems.
 - **Media Folder**: Set to `/media/whatsapp` to permanently save incoming photos/videos. If left blank, files are deleted after 24h.
 - **Mark Online**: If enabled, your WhatsApp status will show "Online" as long as the App is running.
+- **Sync Full History**: (Default: `false`) Set to `true` to synchronize full historical chats and message history from WhatsApp upon initial pairing or reconnection. *Note: Increases RAM, bandwidth, and initial load time.*
 - **UI Auth**: Optional password protection for the Web UI.
   - **Security Layer**: If `UI_Auth` is enabled, the App automatically bypasses the password check when accessed via **Home Assistant Ingress** (trusted).
   - **External Protection**: If `UI_Auth` is disabled, the App restricts access to private network ranges and Ingress only, blocking external (public) access by default for safety.
@@ -78,6 +79,7 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 | `ADMIN_NOTIFICATIONS_ENABLED` | `true` | Boolean | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates. |
 | `ADMIN_NUMBERS` | `""` | String | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
 | `MARK_ONLINE` | `false` | Boolean | Keep WhatsApp online status active continuously while container runs. |
+| `SYNC_FULL_HISTORY` | `false` | Boolean | Synchronize full chat history upon pairing or reconnecting. |
 | `MASK_SENSITIVE_DATA` | `false` | Boolean | Mask phone numbers and message content in log outputs. |
 | `UI_AUTH_ENABLED` | `false` | Boolean | Enable HTTP Basic Auth for Web UI access. |
 | `UI_AUTH_PASSWORD` | `""` | String | Password for Web UI access (Username is always `admin`). |

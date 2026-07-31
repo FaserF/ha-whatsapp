@@ -248,9 +248,6 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         if self._polling_task:
             return
 
-        if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
-            self._owns_session = True
         self._polling_task = asyncio.create_task(self._poll_loop(interval))
         _LOGGER.debug("Started polling loop with interval %ss", interval)
 
@@ -262,10 +259,6 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             with contextlib.suppress(asyncio.CancelledError):
                 await task
             self._polling_task = None
-
-        if self._owns_session and self._session and not self._session.closed:
-            await self._session.close()
-            self._session = None
         _LOGGER.debug("Stopped polling loop")
 
     async def _poll_loop(self, interval: int) -> None:
@@ -276,23 +269,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
         while True:
             try:
-                if not self._session or self._session.closed:
-                    self._session = aiohttp.ClientSession()
-
-                async with self._session.get(
-                    url,
-                    headers=headers,
-                    params=params,
-                    timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
+                async with (
+                    self._get_session() as session,
+                    session.get(
+                        url,
+                        headers=headers,
+                        params=params,
+                        timeout=aiohttp.ClientTimeout(total=10),
+                    ) as resp,
+                ):
                     if resp.status == 200:
                         events = await resp.json()
                         if isinstance(events, list) and self._callback:
                             for event in events:
-                                # Mask sensitive data if needed (debug logging)
                                 if _LOGGER.isEnabledFor(logging.DEBUG):
-                                    # Optionally mask deep structure here if strictly
-                                    # required
                                     _LOGGER.debug("Received event: %s", events)
                                 self._callback(event)
                     elif resp.status == 401:
