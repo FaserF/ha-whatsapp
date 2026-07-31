@@ -304,11 +304,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 5)
     await client.start_polling(interval=polling_interval)
 
-    # Automatically try to start the session on HA startup/load
-    # This ensures that the addon starts working without manual intervention
-    entry.async_create_background_task(
-        hass, client.start_session(), name="whatsapp_start_session"
-    )
+    if hasattr(entry, "async_create_background_task"):
+        entry.async_create_background_task(
+            hass, client.start_session(), name="whatsapp_start_session"
+        )
+    elif hasattr(hass, "async_create_task"):
+        hass.async_create_task(client.start_session(), name="whatsapp_start_session")
 
     # Register services globally
     await async_setup_services(hass)

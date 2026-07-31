@@ -296,6 +296,15 @@ class MockConfigEntry:
     def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
 
+    def async_create_background_task(
+        self, hass: Any, target: Any, name: str | None = None
+    ) -> Any:
+        if hasattr(hass, "async_create_task"):
+            return hass.async_create_task(target, name=name)
+        import asyncio
+
+        return asyncio.create_task(target)
+
     def add_update_listener(self, _func: Callable[..., Any]) -> Callable[[], None]:
         return lambda: None
 
