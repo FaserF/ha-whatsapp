@@ -116,8 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     session_id = entry.data.get("session_id", "default")
 
-    # Resolve localhost/127.0.0.1 for the 'Visit' button to the HA URL if possible
-    # This ensures the link works even when accessing HA from a remote device.
+    # Resolve internal container IPs/hostnames for the 'Visit' button
     ha_base_url = None
     try:
         import homeassistant.helpers.network as network_helper
@@ -127,7 +126,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Could not resolve HA URL", exc_info=True)
 
     config_url = addon_url
-    if ("localhost" in addon_url or "127.0.0.1" in addon_url) and ha_base_url:
+
+    is_internal_host = any(
+        pattern in addon_url.lower()
+        for pattern in ("localhost", "127.0.0.1", "172.", "7da084a7", "supervisor")
+    )
+
+    is_hassio_env = False
+    try:
+        from homeassistant.components.hassio import is_hassio
+
+        is_hassio_env = is_hassio(hass)
+    except (ImportError, AttributeError):
+        pass
+
+    if is_hassio_env and is_internal_host:
+        slug = (
+            "7da084a7_whatsapp_edge"
+            if "edge" in addon_url.lower()
+            else "7da084a7_whatsapp"
+        )
+        config_url = f"/hassio/ingress/{slug}"
+    elif is_internal_host and ha_base_url:
         try:
             from yarl import URL
 
@@ -142,9 +162,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception:  # pylint: disable=broad-except
             _LOGGER.debug("Could not resolve HA URL for Visit button", exc_info=True)
 
-    from homeassistant.helpers.aiohttp_client import async_get_clientsession
+    session = None
+    try:
+        from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    session = async_get_clientsession(hass)
+        session = async_get_clientsession(hass)
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.debug("Could not resolve HA aiohttp clientsession")
+
     client = WhatsAppApiClient(
         host=addon_url,
         api_key=api_key,
