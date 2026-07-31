@@ -80,7 +80,10 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
 
     # 2. Update Integration Version placeholder to the new version (always use clean stable version without dev/beta suffixes)
     clean_version = re.sub(
-        r"[-._]?(?:dev|b|beta|rc|alpha).*$", "", integration_version, flags=re.IGNORECASE
+        r"[-._]?(?:dev|b|beta|rc|alpha).*$",
+        "",
+        integration_version,
+        flags=re.IGNORECASE,
     )
     if not clean_version.startswith("v") and "." in clean_version:
         clean_version = "v" + clean_version
