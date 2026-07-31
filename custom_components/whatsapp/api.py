@@ -27,6 +27,7 @@ import contextlib
 import json
 import logging
 import re
+from collections.abc import AsyncGenerator
 from typing import Any, cast
 
 import aiohttp
@@ -80,6 +81,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         whitelist: list[str] | None = None,
         config_url: str | None = None,
         ha_base_url: str | None = None,
+        session: aiohttp.ClientSession | None = None,
     ) -> None:
         """Initialize the API client."""
         self.host = host.rstrip("/")
@@ -107,7 +109,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
-        self._session: aiohttp.ClientSession | None = None
+        self._session: aiohttp.ClientSession | None = session
+        self._owns_session: bool = session is None
 
     def _extract_error(self, text: str) -> str:
         """Extract a clean error message from a JSON response."""
@@ -231,12 +234,23 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return f"{self.ha_base_url.rstrip('/')}{url}"
         return url
 
+    @contextlib.asynccontextmanager
+    async def _get_session(self) -> AsyncGenerator[aiohttp.ClientSession, None]:
+        """Get HTTP session, reusing self._session if open."""
+        if self._session and not self._session.closed:
+            yield self._session
+        else:
+            async with aiohttp.ClientSession() as session:
+                yield session
+
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
         if self._polling_task:
             return
 
-        self._session = aiohttp.ClientSession()
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+            self._owns_session = True
         self._polling_task = asyncio.create_task(self._poll_loop(interval))
         _LOGGER.debug("Started polling loop with interval %ss", interval)
 
@@ -249,9 +263,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 await task
             self._polling_task = None
 
-        session = self._session
-        if session:
-            await session.close()
+        if self._owns_session and self._session and not self._session.closed:
+            await self._session.close()
             self._session = None
         _LOGGER.debug("Stopped polling loop")
 
@@ -793,9 +806,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         return None
 
     async def close(self) -> None:
-        """Close session."""
-        if self._session and not self._session.closed:
+        """Close session if owned."""
+        if self._owns_session and self._session and not self._session.closed:
             await self._session.close()
+            self._session = None
         await self.stop_polling()
 
     async def send_poll(

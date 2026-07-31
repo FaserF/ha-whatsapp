@@ -64,30 +64,45 @@ async def async_setup_entry(
     # 1. Add modern NotifyEntity
     async_add_entities([WhatsAppNotificationEntity(client, entry, coordinator)])
 
-    # 2. Register legacy notify service (notify.whatsapp)
-    # This provides a service 'notify.whatsapp' for YAML users.
-    service = WhatsAppNotificationService(client)
+    # 2. Register legacy notify service (notify.whatsapp) if not already registered
+    if not hass.services.has_service("notify", "whatsapp"):
 
-    async def async_notify_service(call: Any) -> None:
-        """Handle the legacy notify service call."""
-        await service.async_send_message(
-            message=call.data.get(ATTR_MESSAGE, ""),
-            target=call.data.get(ATTR_TARGET),
-            data=call.data.get(ATTR_DATA),
+        async def async_notify_service(call: Any) -> None:
+            """Handle the legacy notify service call with multi-account routing."""
+            account = call.data.get("account")
+            client_to_use = client
+            if account:
+                try:
+                    from . import get_client_for_account
+
+                    client_to_use = get_client_for_account(hass, account)
+                except Exception:
+                    _LOGGER.warning(
+                        "Could not resolve account '%s' for notify service, "
+                        "using default",
+                        account,
+                    )
+
+            service_inst = WhatsAppNotificationService(client_to_use)
+            await service_inst.async_send_message(
+                message=call.data.get(ATTR_MESSAGE, ""),
+                target=call.data.get(ATTR_TARGET),
+                data=call.data.get(ATTR_DATA),
+            )
+
+        hass.services.async_register(
+            "notify",
+            "whatsapp",
+            async_notify_service,
+            schema=vol.Schema(
+                {
+                    vol.Required(ATTR_MESSAGE): cv.string,
+                    vol.Optional(ATTR_TARGET): vol.All(cv.ensure_list, [cv.string]),
+                    vol.Optional(ATTR_DATA): dict,
+                    vol.Optional("account"): cv.string,
+                }
+            ),
         )
-
-    hass.services.async_register(
-        "notify",
-        "whatsapp",
-        async_notify_service,
-        schema=vol.Schema(
-            {
-                vol.Required(ATTR_MESSAGE): cv.string,
-                vol.Optional(ATTR_TARGET): vol.All(cv.ensure_list, [cv.string]),
-                vol.Optional(ATTR_DATA): dict,
-            }
-        ),
-    )
 
 
 class WhatsAppNotificationEntity(

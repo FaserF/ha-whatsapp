@@ -219,6 +219,7 @@ class WhatsAppChatsSensor(
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_chats"
         self._attr_device_info = coordinator.client.get_device_info()
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self) -> int:

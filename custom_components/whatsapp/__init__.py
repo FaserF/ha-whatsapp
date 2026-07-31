@@ -142,6 +142,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception:  # pylint: disable=broad-except
             _LOGGER.debug("Could not resolve HA URL for Visit button", exc_info=True)
 
+    from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+    session = async_get_clientsession(hass)
     client = WhatsAppApiClient(
         host=addon_url,
         api_key=api_key,
@@ -150,6 +153,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         whitelist=whitelist,
         config_url=config_url,
         ha_base_url=ha_base_url,
+        session=session,
     )
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
@@ -216,6 +220,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Firing WhatsApp event: %s", data)
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
 
+        # Check for interactive button / template response
+        raw_msg_msg = raw_msg.get("message", {})
+        button_id = None
+        if "buttonsResponseMessage" in raw_msg_msg:
+            button_id = raw_msg_msg["buttonsResponseMessage"].get("selectedButtonId")
+        elif "listResponseMessage" in raw_msg_msg:
+            reply = raw_msg_msg["listResponseMessage"].get("singleSelectReply", {})
+            button_id = reply.get("selectedRowId")
+        elif "templateButtonReplyMessage" in raw_msg_msg:
+            button_id = raw_msg_msg["templateButtonReplyMessage"].get("selectedId")
+
+        if button_id:
+            button_data = {**data, "button_id": button_id}
+            _LOGGER.debug("Firing WhatsApp button event: %s", button_data)
+            hass.bus.async_fire("whatsapp_button_pressed", button_data)
+
         # Automatically mark as read if enabled
         if entry.options.get(CONF_MARK_AS_READ, False):
             # Extract ID and sender JID from the nested raw data
@@ -241,7 +261,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                             _exc,
                         )
 
-                hass.async_create_task(_safe_mark_as_read(number, message_id))
+                entry.async_create_background_task(
+                    hass,
+                    _safe_mark_as_read(number, message_id),
+                    name="whatsapp_mark_as_read",
+                )
             else:
                 _LOGGER.warning(
                     "Auto-mark-as-read enabled but missing data. "
@@ -256,7 +280,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Automatically try to start the session on HA startup/load
     # This ensures that the addon starts working without manual intervention
-    hass.async_create_task(client.start_session())
+    entry.async_create_background_task(
+        hass, client.start_session(), name="whatsapp_start_session"
+    )
 
     # Register services globally
     await async_setup_services(hass)
