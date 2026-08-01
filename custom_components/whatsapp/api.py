@@ -843,6 +843,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/send_poll"
         payload: dict[str, Any] = {
             "number": number,
+            "name": question,
             "question": question,
             "options": options,
             "selectableCount": 0 if allow_multiple_responses else 1,
