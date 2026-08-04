@@ -47,17 +47,8 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        # Find connectivity binary sensor
-        states = hass.states.async_all("binary_sensor")
-        state = next(
-            (
-                s
-                for s in states
-                if s.attributes.get("device_class") == "connectivity"
-                or "total_sent" in s.attributes
-            ),
-            None,
-        )
+        # The state should be 'on' because mock_instance.connect() returned True
+        state = hass.states.get("binary_sensor.whatsapp")
         assert state
         assert state.state == "on"
         assert state.attributes["total_sent"] == 10
@@ -76,31 +67,14 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         await data["coordinator"].async_refresh()
         await hass.async_block_till_done()
 
-        states = hass.states.async_all("binary_sensor")
-        state = next(
-            (
-                s
-                for s in states
-                if s.attributes.get("device_class") == "connectivity"
-                or "total_sent" in s.attributes
-            ),
-            None,
-        )
+        state = hass.states.get("binary_sensor.whatsapp")
         assert state
         assert state.state == "off"
 
         assert state.attributes["passkey_required"] is False
 
         # Check moderation status binary sensor
-        mod_state = next(
-            (
-                s
-                for s in states
-                if s.attributes.get("device_class") == "safety"
-                or "managed_groups_count" in s.attributes
-            ),
-            None,
-        )
+        mod_state = hass.states.get("binary_sensor.whatsapp_moderation_status")
         if mod_state:
             assert mod_state.state == "off"
             assert "managed_groups_count" in mod_state.attributes

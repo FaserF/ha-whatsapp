@@ -259,7 +259,13 @@ def mock_add_entities(
                 else:
                     entity.entity_id = f"sensor.whatsapp_messages_{stat}"
             elif domain == "binary_sensor":
-                entity.entity_id = "binary_sensor.whatsapp"
+                key = getattr(entity, "_attr_translation_key", None) or getattr(
+                    entity, "translation_key", None
+                )
+                if key and key != "connection":
+                    entity.entity_id = f"binary_sensor.whatsapp_{key}"
+                else:
+                    entity.entity_id = "binary_sensor.whatsapp"
             elif hasattr(entity, "translation_key") and entity.translation_key:
                 entity.entity_id = f"{domain}.whatsapp_{entity.translation_key}"
             elif hasattr(entity, "name") and entity.name:

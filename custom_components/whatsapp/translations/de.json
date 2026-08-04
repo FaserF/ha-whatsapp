@@ -417,7 +417,7 @@
         "name": "Chats"
       },
       "moderation_warnings": {
-        "name": "Aktive Benutzer-Warnungen"
+        "name": "Aktive Moderations-Verwarnungen"
       },
       "moderation_raid_status": {
         "name": "Anti-Raid Schutz-Status"
