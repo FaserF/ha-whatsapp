@@ -1955,3 +1955,687 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             text_content = await resp.text()
             error_msg = self._extract_error(text_content)
             raise HomeAssistantError(f"Failed to check number: {error_msg}")
+
+    async def create_group(
+        self, subject: str, participants: list[str]
+    ) -> dict[str, Any]:
+        """Create a new WhatsApp group."""
+        url = f"{self.host}/groups/create"
+        payload = {"subject": subject, "participants": participants}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to create group: {self._extract_error(text)}"
+            )
+
+    async def get_group_info(self, group_jid: str) -> dict[str, Any]:
+        """Get group metadata and participant details."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/info"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to get group info: {self._extract_error(text)}"
+            )
+
+    async def add_group_participants(
+        self, group_jid: str, participants: list[str]
+    ) -> dict[str, Any]:
+        """Add participants to a group."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/participants/add"
+        payload = {"number": jid, "participants": participants}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to add group participants: {self._extract_error(text)}"
+            )
+
+    async def remove_group_participants(
+        self, group_jid: str, participants: list[str]
+    ) -> dict[str, Any]:
+        """Remove participants from a group."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/participants/remove"
+        payload = {"number": jid, "participants": participants}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to remove group participants: {self._extract_error(text)}"
+            )
+
+    async def promote_group_participants(
+        self, group_jid: str, participants: list[str]
+    ) -> dict[str, Any]:
+        """Promote group participants to admin."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/participants/promote"
+        payload = {"number": jid, "participants": participants}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to promote participants: {self._extract_error(text)}"
+            )
+
+    async def demote_group_participants(
+        self, group_jid: str, participants: list[str]
+    ) -> dict[str, Any]:
+        """Demote group admins to regular participants."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/participants/demote"
+        payload = {"number": jid, "participants": participants}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to demote participants: {self._extract_error(text)}"
+            )
+
+    async def leave_group(self, group_jid: str) -> dict[str, Any]:
+        """Leave a group."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/leave"
+        payload = {"number": jid}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to leave group: {self._extract_error(text)}"
+            )
+
+    async def update_group_subject(
+        self, group_jid: str, subject: str
+    ) -> dict[str, Any]:
+        """Update group subject/title."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/subject"
+        payload = {"number": jid, "subject": subject}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update group subject: {self._extract_error(text)}"
+            )
+
+    async def update_group_description(
+        self, group_jid: str, description: str
+    ) -> dict[str, Any]:
+        """Update group description."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/description"
+        payload = {"number": jid, "description": description}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update group description: {self._extract_error(text)}"
+            )
+
+    async def update_group_settings(
+        self,
+        group_jid: str,
+        announce: bool | None = None,
+        locked: bool | None = None,
+    ) -> dict[str, Any]:
+        """Update group settings (announcement mode, locked info)."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/settings"
+        payload: dict[str, Any] = {"number": jid}
+        if announce is not None:
+            payload["announce"] = announce
+        if locked is not None:
+            payload["locked"] = locked
+
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update group settings: {self._extract_error(text)}"
+            )
+
+    async def get_group_invite_code(self, group_jid: str) -> dict[str, Any]:
+        """Fetch group invite code and link."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/invite_code"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to get invite code: {self._extract_error(text)}"
+            )
+
+    async def revoke_group_invite_code(self, group_jid: str) -> dict[str, Any]:
+        """Revoke existing group invite code and issue a new one."""
+        jid = self.ensure_jid(group_jid)
+        url = f"{self.host}/groups/revoke_invite"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to revoke invite code: {self._extract_error(text)}"
+            )
+
+    async def join_group_via_invite(self, code: str) -> dict[str, Any]:
+        """Join a group using an invite code/link."""
+        url = f"{self.host}/groups/join"
+        payload = {"code": code}
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to join group via invite: {self._extract_error(text)}"
+            )
+
+    async def get_profile_picture(self, target: str) -> str | None:
+        """Fetch profile picture URL for a contact or group."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/contacts/profile_picture"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                data = await resp.json()
+                return cast(str | None, data.get("profile_picture_url"))
+            return None
+
+    async def get_contact_about(self, target: str) -> dict[str, Any]:
+        """Fetch status/about message of a contact."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/contacts/about"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to get contact status/about: {self._extract_error(text)}"
+            )
+
+    async def block_contact(self, target: str) -> dict[str, Any]:
+        """Block a contact."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/contacts/block"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to block contact: {self._extract_error(text)}"
+            )
+
+    async def unblock_contact(self, target: str) -> dict[str, Any]:
+        """Unblock a contact."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/contacts/unblock"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unblock contact: {self._extract_error(text)}"
+            )
+
+    async def star_message(
+        self, target: str, message_id: str, star: bool = True
+    ) -> dict[str, Any]:
+        """Star or unstar a specific message."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/star_message" if star else f"{self.host}/unstar_message"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "messageId": message_id, "star": star},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to star/unstar message: {self._extract_error(text)}"
+            )
+
+    async def unstar_message(self, target: str, message_id: str) -> dict[str, Any]:
+        """Unstar a specific message."""
+        return await self.star_message(target, message_id, star=False)
+
+    async def pin_message(
+        self, target: str, message_id: str, duration: int = 86400
+    ) -> dict[str, Any]:
+        """Pin a message in a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/pin_message"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "messageId": message_id, "duration": duration},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to pin message: {self._extract_error(text)}"
+            )
+
+    async def unpin_message(self, target: str, message_id: str) -> dict[str, Any]:
+        """Unpin a message in a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/unpin_message"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "messageId": message_id},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unpin message: {self._extract_error(text)}"
+            )
+
+    async def forward_message(
+        self, source_target: str, message_id: str, destination_target: str
+    ) -> dict[str, Any]:
+        """Forward an existing message to another chat."""
+        src_jid = self.ensure_jid(source_target)
+        dst_jid = self.ensure_jid(destination_target)
+        url = f"{self.host}/forward_message"
+        payload = {
+            "number": src_jid,
+            "messageId": message_id,
+            "targetNumber": dst_jid,
+        }
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to forward message: {self._extract_error(text)}"
+            )
+
+    async def send_status(
+        self,
+        message: str | None = None,
+        url: str | None = None,
+        caption: str | None = None,
+    ) -> dict[str, Any]:
+        """Post a text or media status/story to WhatsApp."""
+        api_url = f"{self.host}/send_status"
+        payload: dict[str, Any] = {}
+        if message:
+            payload["message"] = message
+        if url:
+            payload["url"] = self._normalize_url(url)
+        if caption:
+            payload["caption"] = caption
+
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                api_url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to post status: {self._extract_error(text)}"
+            )
+
+    async def archive_chat(self, target: str) -> dict[str, Any]:
+        """Archive a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/archive"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to archive chat: {self._extract_error(text)}"
+            )
+
+    async def unarchive_chat(self, target: str) -> dict[str, Any]:
+        """Unarchive a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/unarchive"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unarchive chat: {self._extract_error(text)}"
+            )
+
+    async def mute_chat(
+        self, target: str, duration_ms: int = 8 * 3600 * 1000
+    ) -> dict[str, Any]:
+        """Mute a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/mute"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "durationMs": duration_ms},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to mute chat: {self._extract_error(text)}"
+            )
+
+    async def unmute_chat(self, target: str) -> dict[str, Any]:
+        """Unmute a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/unmute"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unmute chat: {self._extract_error(text)}"
+            )
