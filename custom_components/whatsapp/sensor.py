@@ -25,11 +25,42 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_registry import (
+    RegistryEntryDisabler,
+)
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_entity_registry,
+)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
+
+
+def _moderation_active(coordinator_data: dict[str, object] | None) -> bool:
+    """Return True if moderation is globally or group-level active.
+
+    Used by all moderation entities to decide whether they should be
+    enabled in the entity registry.  Moderation is considered active when:
+
+    * ``global_enabled`` is ``True`` in the moderation config, **or**
+    * At least one group has ``enabled: true`` in its per-group config.
+
+    Args:
+        coordinator_data: The latest data dict from the coordinator,
+            or ``None`` when no data is available yet.
+
+    Returns:
+        ``True`` if moderation is in active use, ``False`` otherwise.
+    """
+    if not coordinator_data:
+        return False
+    mod: dict[str, object] = coordinator_data.get("moderation", {})  # type: ignore[assignment]
+    if mod.get("global_enabled"):
+        return True
+    groups: dict[str, object] = mod.get("groups", {})  # type: ignore[assignment]
+    return any(isinstance(cfg, dict) and cfg.get("enabled") for cfg in groups.values())
 
 
 async def async_setup_entry(
@@ -259,11 +290,17 @@ class WhatsAppModerationWarningsSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     SensorEntity,  # type: ignore[misc]
 ):
-    """Sensor reporting active user warnings across all groups."""
+    """Sensor reporting active user warnings across all groups.
+
+    Disabled by default and automatically activated in the entity registry
+    as soon as moderation becomes active (globally or for any group).
+    It is disabled again when moderation is fully turned off.
+    """
 
     _attr_has_entity_name = True
     _attr_translation_key = "moderation_warnings"
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
@@ -272,6 +309,23 @@ class WhatsAppModerationWarningsSensor(
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_moderation_warnings"
         self._attr_device_info = coordinator.client.get_device_info()
+
+    def _sync_registry_enabled(self) -> None:
+        """Enable or disable this entity in the registry based on moderation state."""
+        if self.hass is None or self.registry_entry is None:
+            return
+        active = _moderation_active(self.coordinator.data)
+        if self.registry_entry.disabled != (not active):
+            er = async_get_entity_registry(self.hass)
+            er.async_update_entity(
+                self.entity_id,
+                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
+            )
+
+    def _handle_coordinator_update(self) -> None:
+        """React to coordinator data updates; sync registry enabled state first."""
+        self._sync_registry_enabled()
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> int:
@@ -292,10 +346,16 @@ class WhatsAppModerationRaidStatusSensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     SensorEntity,  # type: ignore[misc]
 ):
-    """Sensor reporting total groups with Anti-Raid shield active."""
+    """Sensor reporting total groups with Anti-Raid shield active.
+
+    Disabled by default and automatically activated in the entity registry
+    as soon as moderation becomes active (globally or for any group).
+    It is disabled again when moderation is fully turned off.
+    """
 
     _attr_has_entity_name = True
     _attr_translation_key = "moderation_raid_status"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
@@ -304,6 +364,23 @@ class WhatsAppModerationRaidStatusSensor(
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_moderation_raid_status"
         self._attr_device_info = coordinator.client.get_device_info()
+
+    def _sync_registry_enabled(self) -> None:
+        """Enable or disable this entity in the registry based on moderation state."""
+        if self.hass is None or self.registry_entry is None:
+            return
+        active = _moderation_active(self.coordinator.data)
+        if self.registry_entry.disabled != (not active):
+            er = async_get_entity_registry(self.hass)
+            er.async_update_entity(
+                self.entity_id,
+                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
+            )
+
+    def _handle_coordinator_update(self) -> None:
+        """React to coordinator data updates; sync registry enabled state first."""
+        self._sync_registry_enabled()
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> str:

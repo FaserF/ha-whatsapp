@@ -20,10 +20,17 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_registry import (
+    RegistryEntryDisabler,
+)
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_entity_registry,
+)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .sensor import _moderation_active
 
 
 async def async_setup_entry(
@@ -112,11 +119,17 @@ class WhatsAppModerationStatusBinarySensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     BinarySensorEntity,  # type: ignore[misc]
 ):
-    """Binary sensor indicating global WhatsApp moderation engine status."""
+    """Binary sensor indicating global WhatsApp moderation engine status.
+
+    Disabled by default and automatically activated in the entity registry
+    as soon as moderation becomes active (globally or for any group).
+    It is disabled again when moderation is fully turned off.
+    """
 
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
     _attr_translation_key = "moderation_status"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
@@ -125,6 +138,23 @@ class WhatsAppModerationStatusBinarySensor(
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_moderation_status"
         self._attr_device_info = coordinator.client.get_device_info()
+
+    def _sync_registry_enabled(self) -> None:
+        """Enable or disable this entity in the registry based on moderation state."""
+        if self.hass is None or self.registry_entry is None:
+            return
+        active = _moderation_active(self.coordinator.data)
+        if self.registry_entry.disabled != (not active):
+            er = async_get_entity_registry(self.hass)
+            er.async_update_entity(
+                self.entity_id,
+                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
+            )
+
+    def _handle_coordinator_update(self) -> None:
+        """React to coordinator data updates; sync registry enabled state first."""
+        self._sync_registry_enabled()
+        super()._handle_coordinator_update()
 
     @property
     def is_on(self) -> bool:
