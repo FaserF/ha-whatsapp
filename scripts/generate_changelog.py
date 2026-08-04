@@ -244,7 +244,7 @@ def main():
             if any(
                 w in msg_lower
                 for w in ["general fix", "small fix", "bug fix", "fixes", "fixed"]
-            ):
+            ) or re.search(r"\bfix(es|ed)?\b", msg_lower):
                 bucket = "fix"
             elif any(
                 w in msg_lower
@@ -279,8 +279,9 @@ def main():
                     "adds feature",
                     "new feature",
                     "add support",
+                    "introduce",
                 ]
-            ):
+            ) or msg_lower.startswith(("add ", "adds ", "expose ", "exposed ")):
                 bucket = "feat"
             elif any(
                 w in msg_lower for w in ["security", "vulnerability", "cve", "auth"]
@@ -293,6 +294,9 @@ def main():
                 or "cleanup" in msg_lower
                 or "clean up" in msg_lower
                 or "improve" in msg_lower
+                or msg_lower.startswith(
+                    ("filter ", "use ", "remove ", "avoid ", "robust ")
+                )
             ):
                 bucket = "refactor"
             elif any(w in msg_lower for w in ["doc", "readme", "wiki", "guide"]):
