@@ -7,8 +7,9 @@ from ha_stubs import _build_ha_stub_modules
 _build_ha_stub_modules()
 
 import pytest
-from custom_components.whatsapp.api import WhatsAppApiClient
 from homeassistant.exceptions import HomeAssistantError
+
+from custom_components.whatsapp.api import WhatsAppApiClient
 
 
 @pytest.mark.asyncio
