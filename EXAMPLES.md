@@ -201,6 +201,60 @@ data:
   # Omit message_id to mark ALL unread messages in this chat as read.
 ```
 
+#### Group Management Examples
+
+```yaml
+# Create a new group
+service: whatsapp.create_group
+data:
+  subject: "Home Automation Alerts"
+  participants:
+    - "+491701234567"
+    - "+491707654321"
+
+# Add participant to existing group
+service: whatsapp.add_group_participant
+data:
+  target: "120363040000000000@g.us"
+  participants:
+    - "+491709998887"
+
+# Update group settings (Announcement mode: only admins can message)
+service: whatsapp.update_group_settings
+data:
+  target: "120363040000000000@g.us"
+  announce: true
+```
+
+#### Advanced Chat Actions
+
+```yaml
+# Pin a message in chat for 24h
+service: whatsapp.pin_message
+data:
+  target: "+491234567890"
+  message_id: "BAE5CCF5A..."
+  duration: 86400
+
+# Star a message
+service: whatsapp.star_message
+data:
+  target: "+491234567890"
+  message_id: "BAE5CCF5A..."
+
+# Post a Status update (Story)
+service: whatsapp.send_status
+data:
+  message: "Home Assistant is back online! 🟢"
+
+# Mute chat notifications for 8 hours
+service: whatsapp.mute_chat
+data:
+  target: "+491234567890"
+  duration_ms: 28800000
+```
+
+
 ---
 
 ## 🚀 Modern Notify Service (`notify.send_message`)
