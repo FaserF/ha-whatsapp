@@ -1599,4 +1599,133 @@ unmute_chat:
       selector:
         text:
 
+get_channel_info:
+  name: Get Channel Info
+  description: Fetches metadata for a WhatsApp Channel (Newsletter) via JID or invite code.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Channel JID
+      description: Channel JID (e.g. 120363000000000000@newsletter).
+      selector:
+        text:
+    code:
+      name: Invite Code
+      description: Channel invite link or code.
+      selector:
+        text:
+
+follow_channel:
+  name: Follow Channel
+  description: Follows a WhatsApp Channel (Newsletter).
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Channel JID
+      description: Channel JID to follow.
+      required: true
+      selector:
+        text:
+
+unfollow_channel:
+  name: Unfollow Channel
+  description: Unfollows a WhatsApp Channel (Newsletter).
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Channel JID
+      description: Channel JID to unfollow.
+      required: true
+      selector:
+        text:
+
+mute_channel:
+  name: Mute Channel
+  description: Mutes notifications for a WhatsApp Channel.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Channel JID
+      description: Channel JID to mute.
+      required: true
+      selector:
+        text:
+
+unmute_channel:
+  name: Unmute Channel
+  description: Unmutes notifications for a WhatsApp Channel.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Channel JID
+      description: Channel JID to unmute.
+      required: true
+      selector:
+        text:
+
+add_chat_label:
+  name: Add Chat Label
+  description: Adds a WhatsApp Business label to a chat.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: Chat to label.
+      required: true
+      selector:
+        text:
+    label_id:
+      name: Label ID
+      description: ID of the label to add.
+      required: true
+      selector:
+        text:
+
+remove_chat_label:
+  name: Remove Chat Label
+  description: Removes a WhatsApp Business label from a chat.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: Chat to remove label from.
+      required: true
+      selector:
+        text:
+    label_id:
+      name: Label ID
+      description: ID of the label to remove.
+      required: true
+      selector:
+        text:
+
+
 

@@ -2639,3 +2639,176 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to unmute chat: {self._extract_error(text)}"
             )
+
+    async def get_channel_info(self, target_or_code: str) -> dict[str, Any]:
+        """Fetch metadata for a WhatsApp Channel (Newsletter)."""
+        url = f"{self.host}/channels/info"
+        payload = (
+            {"code": target_or_code}
+            if not target_or_code.endswith("@newsletter")
+            and not target_or_code.isdigit()
+            else {"number": self.ensure_jid(target_or_code)}
+        )
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to get channel info: {self._extract_error(text)}"
+            )
+
+    async def follow_channel(self, target: str) -> dict[str, Any]:
+        """Follow a WhatsApp Channel (Newsletter)."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/channels/follow"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to follow channel: {self._extract_error(text)}"
+            )
+
+    async def unfollow_channel(self, target: str) -> dict[str, Any]:
+        """Unfollow a WhatsApp Channel (Newsletter)."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/channels/unfollow"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unfollow channel: {self._extract_error(text)}"
+            )
+
+    async def mute_channel(self, target: str) -> dict[str, Any]:
+        """Mute a WhatsApp Channel (Newsletter)."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/channels/mute"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to mute channel: {self._extract_error(text)}"
+            )
+
+    async def unmute_channel(self, target: str) -> dict[str, Any]:
+        """Unmute a WhatsApp Channel (Newsletter)."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/channels/unmute"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to unmute channel: {self._extract_error(text)}"
+            )
+
+    async def add_chat_label(self, target: str, label_id: str) -> dict[str, Any]:
+        """Add a Business label to a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/labels/add_to_chat"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "labelId": label_id},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to add label: {self._extract_error(text)}"
+            )
+
+    async def remove_chat_label(self, target: str, label_id: str) -> dict[str, Any]:
+        """Remove a Business label from a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/labels/remove_from_chat"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid, "labelId": label_id},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to remove label: {self._extract_error(text)}"
+            )

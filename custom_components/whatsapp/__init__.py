@@ -99,6 +99,13 @@ _SERVICES = [
     "unarchive_chat",
     "mute_chat",
     "unmute_chat",
+    "get_channel_info",
+    "follow_channel",
+    "unfollow_channel",
+    "mute_channel",
+    "unmute_channel",
+    "add_chat_label",
+    "remove_chat_label",
 ]
 
 
@@ -615,6 +622,22 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "unmute_chat":
             return await client.unmute_chat(data["target"])
+        elif service == "get_channel_info":
+            return await client.get_channel_info(
+                data.get("target") or data.get("code") or ""
+            )
+        elif service == "follow_channel":
+            return await client.follow_channel(data["target"])
+        elif service == "unfollow_channel":
+            return await client.unfollow_channel(data["target"])
+        elif service == "mute_channel":
+            return await client.mute_channel(data["target"])
+        elif service == "unmute_channel":
+            return await client.unmute_channel(data["target"])
+        elif service == "add_chat_label":
+            return await client.add_chat_label(data["target"], data["label_id"])
+        elif service == "remove_chat_label":
+            return await client.remove_chat_label(data["target"], data["label_id"])
         return None
 
     async def _handle_search_groups(
@@ -1147,6 +1170,61 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "unmute_chat",
         _handle_service,
         schema=vol.Schema(target_only_schema),
+    )
+
+    channel_info_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Optional("target"): cv.string,
+        vol.Optional("code"): cv.string,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "get_channel_info",
+        _handle_service,
+        schema=vol.Schema(channel_info_schema),
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "follow_channel",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "unfollow_channel",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "mute_channel",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "unmute_channel",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+
+    chat_label_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Required("label_id"): cv.string,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "add_chat_label",
+        _handle_service,
+        schema=vol.Schema(chat_label_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "remove_chat_label",
+        _handle_service,
+        schema=vol.Schema(chat_label_schema),
     )
 
     _SERVICES_REGISTERED = True
