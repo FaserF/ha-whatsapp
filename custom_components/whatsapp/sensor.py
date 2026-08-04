@@ -62,6 +62,8 @@ async def async_setup_entry(
             WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppUptimeSensor(coordinator, entry),
             WhatsAppChatsSensor(coordinator, entry),
+            WhatsAppModerationWarningsSensor(coordinator, entry),
+            WhatsAppModerationRaidStatusSensor(coordinator, entry),
         ]
     )
 
@@ -251,3 +253,67 @@ class WhatsAppChatsSensor(
             ]
             return {"groups": groups}
         return {"groups": []}
+
+
+class WhatsAppModerationWarningsSensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SensorEntity,  # type: ignore[misc]
+):
+    """Sensor reporting active user warnings across all groups."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "moderation_warnings"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_moderation_warnings"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def native_value(self) -> int:
+        """Return the total number of active user warnings across groups."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        groups = mod.get("groups", {})
+        total = 0
+        for group in groups.values():
+            user_warns = group.get("warnings", {}).get("user_warns", {})
+            for warns in user_warns.values():
+                if isinstance(warns, list):
+                    total += len(warns)
+        return total
+
+
+class WhatsAppModerationRaidStatusSensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SensorEntity,  # type: ignore[misc]
+):
+    """Sensor reporting total groups with Anti-Raid shield active."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "moderation_raid_status"
+
+    def __init__(
+        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_moderation_raid_status"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def native_value(self) -> str:
+        """Return status string for anti-raid shield."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        groups = mod.get("groups", {})
+        active_raid_groups = 0
+        for group in groups.values():
+            antispam = group.get("antispam", {})
+            if antispam.get("anti_raid", {}).get("enabled"):
+                active_raid_groups += 1
+        return f"{active_raid_groups} Active Shield(s)"

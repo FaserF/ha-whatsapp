@@ -415,11 +415,20 @@
       },
       "chats": {
         "name": "Chats"
+      },
+      "moderation_warnings": {
+        "name": "Active User Warnings"
+      },
+      "moderation_raid_status": {
+        "name": "Anti-Raid Shield Status"
       }
     },
     "binary_sensor": {
       "connection": {
         "name": "Connection"
+      },
+      "moderation_status": {
+        "name": "Rose & Aegis Moderation Engine"
       }
     },
     "button": {

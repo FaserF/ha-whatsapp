@@ -45,7 +45,12 @@ async def async_setup_entry(
     """
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: WhatsAppDataUpdateCoordinator = data["coordinator"]
-    async_add_entities([WhatsAppConnectionSensor(coordinator, entry)])
+    async_add_entities(
+        [
+            WhatsAppConnectionSensor(coordinator, entry),
+            WhatsAppModerationStatusBinarySensor(coordinator, entry),
+        ]
+    )
 
 
 class WhatsAppConnectionSensor(
@@ -101,3 +106,41 @@ class WhatsAppConnectionSensor(
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added."""
         return True
+
+
+class WhatsAppModerationStatusBinarySensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    BinarySensorEntity,  # type: ignore[misc]
+):
+    """Binary sensor indicating global Rose & Aegis moderation engine status."""
+
+    _attr_device_class = BinarySensorDeviceClass.SAFETY
+    _attr_has_entity_name = True
+    _attr_translation_key = "moderation_status"
+
+    def __init__(
+        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialise the moderation status binary sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_moderation_status"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if global moderation is enabled."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        return bool(mod.get("global_enabled", False))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return moderation attributes."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        groups = mod.get("groups", {})
+        return {
+            "global_enabled": mod.get("global_enabled", False),
+            "managed_groups_count": len(groups),
+            "federations_count": len(mod.get("federations", [])),
+        }

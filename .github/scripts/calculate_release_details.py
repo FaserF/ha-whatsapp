@@ -260,6 +260,22 @@ def main():
         f"> **Affected areas:** {impact_str}\n"
     )
 
+    if (
+        rtype != "stable"
+        or "b" in version.lower()
+        or "beta" in version.lower()
+        or "dev" in version.lower()
+    ):
+        addon_compat_note = (
+            "> [!NOTE]\n"
+            "> **🧩 Add-on Compatibility Note**: To test new features or ensure full compatibility with this beta release of the integration, you may need to use the **Edge version** of the **[HA WhatsApp Add-on / Gateway](https://github.com/FaserF/hassio-addons/tree/edge/whatsapp)**."
+        )
+    else:
+        addon_compat_note = (
+            "> [!NOTE]\n"
+            "> **🧩 Add-on Compatibility Note**: Please make sure to also update the **[HA WhatsApp Add-on / Gateway](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** to ensure full feature availability and compatibility. *Note: Updating the Add-on automatically updates the integration files in Home Assistant, though a Home Assistant restart is required to load the updated integration.*"
+        )
+
     released_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " UTC"
     if os.environ.get("EMPTY_RELEASE") == "true":
         body_parts = [
@@ -292,6 +308,9 @@ def main():
             f"# {friendly_name} {version}  {channel_badge}",
             "",
             prerelease_note,
+            "",
+            addon_compat_note,
+            "",
             "## 📋 What's Changed",
             "",
             changelog_md,

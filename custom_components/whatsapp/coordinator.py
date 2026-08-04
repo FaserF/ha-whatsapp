@@ -148,6 +148,14 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             except Exception as dash_err:
                 _LOGGER.debug("Dashboard fetch skipped: %s", dash_err)
 
+            moderation: dict[str, Any] = {}
+            try:
+                mod_res = await self.client.get_moderation_config()
+                if isinstance(mod_res, dict) and "data" in mod_res:
+                    moderation = mod_res["data"]
+            except Exception as mod_err:
+                _LOGGER.debug("Moderation fetch skipped: %s", mod_err)
+
             chats = {"total_chats": 0, "groups": []}
             if connected:
                 try:
@@ -229,6 +237,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "stats": stats,
                 "chats": chats,
                 "dashboard": dashboard,
+                "moderation": moderation,
             }
         except WhatsAppAuthError as err:
             _LOGGER.error("Authentication failed during polling: %s", err)

@@ -2812,3 +2812,182 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to remove label: {self._extract_error(text)}"
             )
+
+    async def get_moderation_config(self) -> dict[str, Any]:
+        """Fetch moderation configuration from addon."""
+        url = f"{self.host}/api/moderation/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to fetch moderation config: {self._extract_error(text)}"
+            )
+
+    async def update_moderation_config(
+        self,
+        global_enabled: bool | None = None,
+        group_id: str | None = None,
+        group_config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Update global or group moderation configuration."""
+        url = f"{self.host}/api/moderation/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        payload: dict[str, Any] = {}
+        if global_enabled is not None:
+            payload["global_enabled"] = global_enabled
+        if group_id and group_config:
+            payload["group_id"] = group_id
+            payload["group_config"] = group_config
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update moderation config: {self._extract_error(text)}"
+            )
+
+    async def enable_group_moderation(self, group_id: str) -> dict[str, Any]:
+        """Enable moderation for a specific group."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/enable"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to enable group moderation: {self._extract_error(text)}"
+            )
+
+    async def disable_group_moderation(self, group_id: str) -> dict[str, Any]:
+        """Disable moderation for a specific group."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/disable"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to disable group moderation: {self._extract_error(text)}"
+            )
+
+    async def warn_user(
+        self, group_id: str, user_id: str, reason: str | None = None
+    ) -> dict[str, Any]:
+        """Issue a warning to a group member."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/warn"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        payload = {"user_id": user_id, "reason": reason or "Admin warning"}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to warn user: {self._extract_error(text)}"
+            )
+
+    async def clear_warnings(self, group_id: str, user_id: str) -> dict[str, Any]:
+        """Clear active warnings for a group member."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/warn/{user_id}"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.delete(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to clear warnings: {self._extract_error(text)}"
+            )
+
+    async def export_moderation_config(self, group_id: str) -> dict[str, Any]:
+        """Export moderation config for a group."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/export"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to export moderation config: {self._extract_error(text)}"
+            )
+
+    async def import_moderation_config(
+        self, group_id: str, config_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Import Rose / Aegis moderation config into a group."""
+        url = f"{self.host}/api/moderation/groups/{group_id}/import"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=config_data,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to import moderation config: {self._extract_error(text)}"
+            )

@@ -106,6 +106,11 @@ _SERVICES = [
     "unmute_channel",
     "add_chat_label",
     "remove_chat_label",
+    "enable_moderation",
+    "disable_moderation",
+    "warn_user",
+    "clear_warnings",
+    "import_moderation_config",
 ]
 
 
@@ -638,6 +643,20 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return await client.add_chat_label(data["target"], data["label_id"])
         elif service == "remove_chat_label":
             return await client.remove_chat_label(data["target"], data["label_id"])
+        elif service == "enable_moderation":
+            return await client.enable_group_moderation(data["target"])
+        elif service == "disable_moderation":
+            return await client.disable_group_moderation(data["target"])
+        elif service == "warn_user":
+            return await client.warn_user(
+                data["target"], data["user_id"], data.get("reason")
+            )
+        elif service == "clear_warnings":
+            return await client.clear_warnings(data["target"], data["user_id"])
+        elif service == "import_moderation_config":
+            return await client.import_moderation_config(
+                data["target"], data.get("config", {})
+            )
         return None
 
     async def _handle_search_groups(
