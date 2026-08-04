@@ -75,3 +75,33 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
 
         assert state_sent.state == "12"
         assert state_failed.state == "3"
+
+
+def test_chats_sensor_list_fallback() -> None:
+    """Test WhatsAppChatsSensor handles list input safely without crashing."""
+    from custom_components.whatsapp.sensor import WhatsAppChatsSensor
+
+    mock_coordinator = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry"
+
+    sensor = WhatsAppChatsSensor(mock_coordinator, mock_entry)
+
+    # Test with dict
+    mock_coordinator.data = {
+        "chats": {"total_chats": 10, "groups": [{"jid": "123@g.us"}]}
+    }
+    assert sensor.native_value == 10
+    assert sensor.extra_state_attributes == {"groups": [{"jid": "123@g.us"}]}
+
+    # Test with list (the bug condition in Issue #83)
+    mock_coordinator.data = {
+        "chats": [{"jid": "123@g.us"}, {"jid": "456@s.whatsapp.net"}]
+    }
+    assert sensor.native_value == 2
+    assert sensor.extra_state_attributes == {"groups": [{"jid": "123@g.us"}]}
+
+    # Test with None/empty data
+    mock_coordinator.data = None
+    assert sensor.native_value == 0
+    assert sensor.extra_state_attributes == {"groups": []}

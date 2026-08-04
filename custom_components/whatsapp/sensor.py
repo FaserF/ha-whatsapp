@@ -224,17 +224,30 @@ class WhatsAppChatsSensor(
     @property
     def native_value(self) -> int:
         """Return the total number of chats."""
-        if not self.coordinator.data:
+        if not self.coordinator.data or not isinstance(self.coordinator.data, dict):
             return 0
         chats_data = self.coordinator.data.get("chats", {})
-        return int(chats_data.get("total_chats", 0))
+        if isinstance(chats_data, dict):
+            return int(chats_data.get("total_chats", 0))
+        if isinstance(chats_data, list):
+            return len(chats_data)
+        return 0
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes (lists all groups)."""
-        if not self.coordinator.data:
+        if not self.coordinator.data or not isinstance(self.coordinator.data, dict):
             return {"groups": []}
         chats_data = self.coordinator.data.get("chats", {})
-        return {
-            "groups": chats_data.get("groups", []),
-        }
+        if isinstance(chats_data, dict):
+            return {
+                "groups": chats_data.get("groups", []),
+            }
+        if isinstance(chats_data, list):
+            groups = [
+                c
+                for c in chats_data
+                if isinstance(c, dict) and "@g.us" in c.get("jid", "")
+            ]
+            return {"groups": groups}
+        return {"groups": []}
