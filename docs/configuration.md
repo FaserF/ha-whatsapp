@@ -16,19 +16,19 @@ _Location: Settings > Devices & Services > WhatsApp > Configure_
 
 These settings control how the integration behaves within Home Assistant.
 
-| Setting                 | Recommendation | Why use this?                                                                             |
-| :---------------------- | :------------- | :---------------------------------------------------------------------------------------- |
-| **Mark as Read**        | `Enabled`      | Automatically shows blue double-checks (✓✓) on your phone when HA receives a message.     |
+| Setting                 | Recommendation | Why use this?                                                                                            |
+| :---------------------- | :------------- | :------------------------------------------------------------------------------------------------------- |
+| **Mark as Read**        | `Enabled`      | Automatically shows blue double-checks (✓✓) on your phone when HA receives a message.                    |
 | **Allow Self-Messages** | `Optional`     | Enables "Note to Self" mode. Also allows triggering HA events from your own messages in **Group Chats**. |
-| **Polling Interval**    | `5 seconds`    | How fast HA checks for new messages. `5` is a good balance between speed and battery/CPU. |
-| **Whitelist**           | `Empty`        | List specific numbers (comma separated) to only allow them to interact with your system.  |
-| **Retry Attempts**      | `2`            | If a message fails (e.g. bad internet), HA tries again automatically.                     |
-| **Mask Sensitive Data** | `Enabled`      | Partially hides phone numbers in HA logs (important if you share logs online).            |
-| **Reset Session**       | `Disabled`     | **Danger!** Only use this if you want to completely log out and delete all local data.    |
+| **Polling Interval**    | `5 seconds`    | How fast HA checks for new messages. `5` is a good balance between speed and battery/CPU.                |
+| **Whitelist**           | `Empty`        | List specific numbers (comma separated) to only allow them to interact with your system.                 |
+| **Retry Attempts**      | `2`            | If a message fails (e.g. bad internet), HA tries again automatically.                                    |
+| **Mask Sensitive Data** | `Enabled`      | Partially hides phone numbers in HA logs (important if you share logs online).                           |
+| **Reset Session**       | `Disabled`     | **Danger!** Only use this if you want to completely log out and delete all local data.                   |
 
 ### Multi-Account Support (Multiple WhatsApp Numbers)
 
-You can pair and manage **multiple distinct WhatsApp accounts** (with different phone numbers) through the same Addon instance. 
+You can pair and manage **multiple distinct WhatsApp accounts** (with different phone numbers) through the same Addon instance.
 
 - **Independent Config Entries**: Each paired account gets its own Home Assistant config entry and unique `session_id`.
 - **Targeting Accounts in Automations**: Services accept the optional `account` parameter (e.g. `account: "49159..."` or entry ID). If you only have one account, `account` is optional.
@@ -37,6 +37,7 @@ You can pair and manage **multiple distinct WhatsApp accounts** (with different 
 ### System Maintenance Controls
 
 In the Addon Dashboard Web-UI under **System Maintenance**:
+
 - **Restart Daemon**: Restarts the WhatsApp connection without deleting credentials.
 - **Clean Inactive Sessions**: Purges disconnected or stale session directories from disk to free up resources.
 - **Hard Reset / Logout**: Logs out WhatsApp and deletes all local session credentials.
@@ -52,7 +53,7 @@ These settings control the engine (the WhatsApp browser bridge).
 - **Log Level**: Set to `info` for normal use. Use `debug` only if you encounter problems.
 - **Media Folder**: Set to `/media/whatsapp` to permanently save incoming photos/videos. If left blank, files are deleted after 24h.
 - **Mark Online**: If enabled, your WhatsApp status will show "Online" as long as the App is running.
-- **Sync Full History**: (Default: `false`) Set to `true` to synchronize full historical chats and message history from WhatsApp upon initial pairing or reconnection. *Note: Increases RAM, bandwidth, and initial load time.*
+- **Sync Full History**: (Default: `false`) Set to `true` to synchronize full historical chats and message history from WhatsApp upon initial pairing or reconnection. _Note: Increases RAM, bandwidth, and initial load time._
 - **UI Auth**: Optional password protection for the Web UI.
   - **Security Layer**: If `UI_Auth` is enabled, the App automatically bypasses the password check when accessed via **Home Assistant Ingress** (trusted).
   - **External Protection**: If `UI_Auth` is disabled, the App restricts access to private network ranges and Ingress only, blocking external (public) access by default for safety.
@@ -70,33 +71,33 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 
 > **NOTE:** **Case Insensitive**: Environment variables are evaluated case-insensitively. You can use uppercase (`WELCOME_MESSAGE_ENABLED`), lowercase (`welcome_message_enabled`), or camelCase. Boolean values accept `true`/`false`, `1`/`0`, or `yes`/`no`.
 
-| Environment Variable | Default | Type | Description |
-| :--- | :--- | :--- | :--- |
-| `PORT` | `8066` | Integer | HTTP port for the web interface and REST API. |
-| `API_TOKEN` | _Auto-generated_ | String | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted. |
-| `LOG_LEVEL` | `info` | String | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`, `fatal`). |
-| `WELCOME_MESSAGE_ENABLED` | `true` | Boolean | Send a role-aware welcome greeting when a new contact sends their first direct message. |
-| `ADMIN_NOTIFICATIONS_ENABLED` | `true` | Boolean | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates. |
-| `ADMIN_NUMBERS` | `""` | String | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
-| `MARK_ONLINE` | `false` | Boolean | Keep WhatsApp online status active continuously while container runs. |
-| `SYNC_FULL_HISTORY` | `false` | Boolean | Synchronize full chat history upon pairing or reconnecting. |
-| `MASK_SENSITIVE_DATA` | `false` | Boolean | Mask phone numbers and message content in log outputs. |
-| `UI_AUTH_ENABLED` | `false` | Boolean | Enable HTTP Basic Auth for Web UI access. |
-| `UI_AUTH_PASSWORD` | `""` | String | Password for Web UI access (Username is always `admin`). |
-| `MEDIA_FOLDER` | `""` | String | Path to directory for permanent media storage. |
-| `WEBHOOK_ENABLED` | `false` | Boolean | Enable forwarding of incoming messages to an HTTP Webhook. |
-| `WEBHOOK_URL` | `""` | String | Full Webhook endpoint URL. |
-| `WEBHOOK_TOKEN` | `""` | String | Secret token sent in `X-Webhook-Token` header. |
-| `SEND_MESSAGE_TIMEOUT` | `25000` | Integer | Timeout (in ms) for message delivery confirmation. |
-| `MEDIA_UPLOAD_TIMEOUT` | `60000` | Integer | Timeout (in ms) for media upload/sending. |
-| `MEDIA_RETENTION_DAYS` | `7` | Integer | Auto-delete saved media files older than N days (set to 0 to disable). |
-| `KEEP_ALIVE_INTERVAL` | `30000` | Integer | Interval (in ms) for connection keep-alive checks. |
-| `MESSAGE_SEND_INTERVAL` | `1000` | Integer | Delay (in ms) between enqueued outgoing messages. |
-| `GROUP_FETCH_INTERVAL` | `300000` | Integer | Interval (in ms) between automatic group list refreshes. |
-| `GROUP_FETCH_COOLDOWN_ON_ERROR` | `60000` | Integer | Back-off delay (in ms) after failed group fetch attempt. |
-| `GROUP_FETCH_COOLDOWN_ON_RATE_LIMIT` | `900000` | Integer | Back-off delay (in ms) when WhatsApp rate-limits group fetching. |
-| `NODE_TLS_REJECT_UNAUTHORIZED` | `1` | String/Int | Set to `0` to disable SSL certificate validation for external media/webhooks. |
-| `RESET_SESSION` | `false` | Boolean | **Danger!** Set to `true` to force logout and delete session data on startup. |
+| Environment Variable                 | Default          | Type       | Description                                                                                                         |
+| :----------------------------------- | :--------------- | :--------- | :------------------------------------------------------------------------------------------------------------------ |
+| `PORT`                               | `8066`           | Integer    | HTTP port for the web interface and REST API.                                                                       |
+| `API_TOKEN`                          | _Auto-generated_ | String     | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted.                           |
+| `LOG_LEVEL`                          | `info`           | String     | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`, `fatal`).                                             |
+| `WELCOME_MESSAGE_ENABLED`            | `true`           | Boolean    | Send a role-aware welcome greeting when a new contact sends their first direct message.                             |
+| `ADMIN_NOTIFICATIONS_ENABLED`        | `true`           | Boolean    | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates.                            |
+| `ADMIN_NUMBERS`                      | `""`             | String     | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
+| `MARK_ONLINE`                        | `false`          | Boolean    | Keep WhatsApp online status active continuously while container runs.                                               |
+| `SYNC_FULL_HISTORY`                  | `false`          | Boolean    | Synchronize full chat history upon pairing or reconnecting.                                                         |
+| `MASK_SENSITIVE_DATA`                | `false`          | Boolean    | Mask phone numbers and message content in log outputs.                                                              |
+| `UI_AUTH_ENABLED`                    | `false`          | Boolean    | Enable HTTP Basic Auth for Web UI access.                                                                           |
+| `UI_AUTH_PASSWORD`                   | `""`             | String     | Password for Web UI access (Username is always `admin`).                                                            |
+| `MEDIA_FOLDER`                       | `""`             | String     | Path to directory for permanent media storage.                                                                      |
+| `WEBHOOK_ENABLED`                    | `false`          | Boolean    | Enable forwarding of incoming messages to an HTTP Webhook.                                                          |
+| `WEBHOOK_URL`                        | `""`             | String     | Full Webhook endpoint URL.                                                                                          |
+| `WEBHOOK_TOKEN`                      | `""`             | String     | Secret token sent in `X-Webhook-Token` header.                                                                      |
+| `SEND_MESSAGE_TIMEOUT`               | `25000`          | Integer    | Timeout (in ms) for message delivery confirmation.                                                                  |
+| `MEDIA_UPLOAD_TIMEOUT`               | `60000`          | Integer    | Timeout (in ms) for media upload/sending.                                                                           |
+| `MEDIA_RETENTION_DAYS`               | `7`              | Integer    | Auto-delete saved media files older than N days (set to 0 to disable).                                              |
+| `KEEP_ALIVE_INTERVAL`                | `30000`          | Integer    | Interval (in ms) for connection keep-alive checks.                                                                  |
+| `MESSAGE_SEND_INTERVAL`              | `1000`           | Integer    | Delay (in ms) between enqueued outgoing messages.                                                                   |
+| `GROUP_FETCH_INTERVAL`               | `300000`         | Integer    | Interval (in ms) between automatic group list refreshes.                                                            |
+| `GROUP_FETCH_COOLDOWN_ON_ERROR`      | `60000`          | Integer    | Back-off delay (in ms) after failed group fetch attempt.                                                            |
+| `GROUP_FETCH_COOLDOWN_ON_RATE_LIMIT` | `900000`         | Integer    | Back-off delay (in ms) when WhatsApp rate-limits group fetching.                                                    |
+| `NODE_TLS_REJECT_UNAUTHORIZED`       | `1`              | String/Int | Set to `0` to disable SSL certificate validation for external media/webhooks.                                       |
+| `RESET_SESSION`                      | `false`          | Boolean    | **Danger!** Set to `true` to force logout and delete session data on startup.                                       |
 
 ---
 

@@ -39,9 +39,9 @@ You can also change these settings dynamically using the **Start > Services** ta
 ```yaml
 service: whatsapp.configure_webhook
 data:
-  url: 'https://my-new-url.com/api/webhook'
+  url: "https://my-new-url.com/api/webhook"
   enabled: true
-  token: 'my-secret-token'
+  token: "my-secret-token"
 ```
 
 This is useful if your external URL changes (e.g., Nabu Casa URL) or you want to toggle the webhook based on conditions.

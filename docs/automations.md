@@ -23,7 +23,7 @@ To react to commands, listen for the event and check the `content` field. You ca
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp Bot: Status'
+alias: "WhatsApp Bot: Status"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
@@ -33,7 +33,7 @@ condition:
 action:
   - service: whatsapp.send_message
     data:
-      target: '{{ trigger.event.data.sender }}'
+      target: "{{ trigger.event.data.sender }}"
       message: |
         The server is online! 🚀
         Uptime: {{ states('sensor.whatsapp_uptime') }}
@@ -48,7 +48,7 @@ Using regex or simple "in" checks to handle parameters.
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp Bot: Light Switch'
+alias: "WhatsApp Bot: Light Switch"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
@@ -88,7 +88,7 @@ React with a specific emoji if a keyword is mentioned in a group.
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp Bot: Beer Keyword'
+alias: "WhatsApp Bot: Beer Keyword"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
@@ -101,9 +101,9 @@ condition:
 action:
   - service: whatsapp.send_reaction
     data:
-      target: '{{ trigger.event.data.sender }}'
-      message_id: '{{ trigger.event.data.raw.key.id }}'
-      reaction: '🍺'
+      target: "{{ trigger.event.data.sender }}"
+      message_id: "{{ trigger.event.data.raw.key.id }}"
+      reaction: "🍺"
 ```
 
 {% endraw %}
@@ -117,23 +117,23 @@ Send an image when motion is detected.
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp: Motion Security'
+alias: "WhatsApp: Motion Security"
 trigger:
   - platform: state
     entity_id: binary_sensor.front_door_motion
-    to: 'on'
+    to: "on"
 action:
   - service: camera.snapshot
     data:
-      filename: '/config/www/tmp/snapshot.jpg'
+      filename: "/config/www/tmp/snapshot.jpg"
     target:
       entity_id: camera.front_door
-  - delay: '00:00:02'
+  - delay: "00:00:02"
   - service: whatsapp.send_image
     data:
-      target: '49123456789'
-      message: 'Movement at the door! 📷'
-      url: 'https://your-domain.com/local/tmp/snapshot.jpg'
+      target: "49123456789"
+      message: "Movement at the door! 📷"
+      url: "https://your-domain.com/local/tmp/snapshot.jpg"
       expiration: 86400 # Auto-delete camera snapshot from chat after 24h
 ```
 
@@ -150,9 +150,9 @@ Useful for urgent training inquiries or important work emails.
 {% raw %}
 
 ```yaml
-id: 'volleyball_new_training_inquiry_mail'
-alias: 'Volleyball Training: Forward New Email to WhatsApp'
-description: 'Sends a WhatsApp message on new training inquiry via IMAP.'
+id: "volleyball_new_training_inquiry_mail"
+alias: "Volleyball Training: Forward New Email to WhatsApp"
+description: "Sends a WhatsApp message on new training inquiry via IMAP."
 mode: single
 trigger:
   - platform: event
@@ -166,7 +166,7 @@ action:
   - service: whatsapp.send_message
     continue_on_error: true
     data:
-      target: '49171234567'
+      target: "49171234567"
       message: |
         🏐 *Neue Trainingsanfrage*
 
@@ -192,16 +192,16 @@ Get a WhatsApp when your laundry is done.
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp: Laundry Notification'
+alias: "WhatsApp: Laundry Notification"
 trigger:
   - platform: state
     entity_id: binary_sensor.washer_running
-    from: 'on'
-    to: 'off'
+    from: "on"
+    to: "off"
 action:
   - service: whatsapp.send_message
     data:
-      target: '1203630234567@g.us' # Send to a family group
+      target: "1203630234567@g.us" # Send to a family group
       message: |
         🧺 *Wäsche ist fertig!*
         Bitte die Waschmaschine leeren und in den Trockner räumen.
@@ -216,7 +216,7 @@ Get a list of all devices with low battery.
 {% raw %}
 
 ```yaml
-alias: 'WhatsApp: Low Battery Alert'
+alias: "WhatsApp: Low Battery Alert"
 trigger:
   - platform: numeric_state
     entity_id:
@@ -226,7 +226,7 @@ trigger:
 action:
   - service: whatsapp.send_message
     data:
-      target: '49171234567'
+      target: "49171234567"
       message: |
         🪫 *Batterie schwach!*
         Das Gerät *{{ friendly_name(trigger.entity_id) }}*

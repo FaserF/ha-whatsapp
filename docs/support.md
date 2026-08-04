@@ -2,7 +2,7 @@
 layout: default
 title: ❤️ Support & Donate
 nav_order: 99
-description: 'Support the development of WhatsApp for Home Assistant.'
+description: "Support the development of WhatsApp for Home Assistant."
 ---
 
 # ❤️ Support This Project

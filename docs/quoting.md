@@ -20,18 +20,18 @@ To quote a message, you need its unique `message_id`. You can find this ID in:
 In custom services, the `quote` parameter is used at the **top level** of the data block.
 
 ```yaml
-alias: 'Auto-Reply with Quote'
+alias: "Auto-Reply with Quote"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: 'ping'
+      content: "ping"
 action:
   - service: whatsapp.send_message
     data:
-      target: '{{ trigger.event.data.sender }}'
-      message: 'pong 🏓'
-      quote: '{{ trigger.event.data.id | default(trigger.event.data.raw.key.id) }}'
+      target: "{{ trigger.event.data.sender }}"
+      message: "pong 🏓"
+      quote: "{{ trigger.event.data.id | default(trigger.event.data.raw.key.id) }}"
 ```
 
 ### B. Using the `notify.whatsapp` Service (Legacy)
@@ -39,14 +39,14 @@ action:
 In the classic notify service, quoting must be placed inside the `data` dictionary.
 
 ```yaml
-alias: 'Legacy Notify Reply'
+alias: "Legacy Notify Reply"
 sequence:
   - service: notify.whatsapp
     data:
-      message: 'This is a reply via legacy notify!'
-      target: '49123456789'
+      message: "This is a reply via legacy notify!"
+      target: "49123456789"
       data:
-        quote: '3EB0B8A7C2E4F6789ABCDE'
+        quote: "3EB0B8A7C2E4F6789ABCDE"
 ```
 
 ---

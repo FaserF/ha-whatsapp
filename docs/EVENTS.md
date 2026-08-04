@@ -8,17 +8,17 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 
 ### Event Data Structure
 
-| Field           | Type   | Description                                                                          |
-| :-------------- | :----- | :----------------------------------------------------------------------------------- |
+| Field           | Type   | Description                                                                         |
+| :-------------- | :----- | :---------------------------------------------------------------------------------- |
 | `type`          | string | The interaction type: `chat`, `poll_update`, `event`, `button_reply`, `list_reply`. |
-| `sender`        | string | The full JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`).                     |
-| `sender_number` | string | Clean numeric part of the sender (e.g., `49123456789`).                              |
-| `sender_name`   | string | Display name or push name of the sender (e.g., `John Doe`).                          |
-| `content`       | string | The text body or selected button/row text.                                           |
-| `selected_id`   | string | **(Special)** The ID of the clicked button or list row.                              |
-| `vote`          | list   | **(Special)** For `poll_update`, a list of selected options.                         |
-| `media_url`     | string | URL to download received media.                                                      |
-| `timestamp`     | int    | Unix timestamp of the message.                                                       |
+| `sender`        | string | The full JID (e.g., `49123...@s.whatsapp.net` or `123...@g.us`).                    |
+| `sender_number` | string | Clean numeric part of the sender (e.g., `49123456789`).                             |
+| `sender_name`   | string | Display name or push name of the sender (e.g., `John Doe`).                         |
+| `content`       | string | The text body or selected button/row text.                                          |
+| `selected_id`   | string | **(Special)** The ID of the clicked button or list row.                             |
+| `vote`          | list   | **(Special)** For `poll_update`, a list of selected options.                        |
+| `media_url`     | string | URL to download received media.                                                     |
+| `timestamp`     | int    | Unix timestamp of the message.                                                      |
 
 ---
 
@@ -29,17 +29,17 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 Best for basic "bots".
 
 ```yaml
-alias: 'WhatsApp Bot: Ping'
+alias: "WhatsApp Bot: Ping"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: 'Ping'
+      content: "Ping"
 action:
   - service: whatsapp.send_message
     data:
-      target: '{{ trigger.event.data.sender }}'
-      message: 'Pong! 🏓'
+      target: "{{ trigger.event.data.sender }}"
+      message: "Pong! 🏓"
 ```
 
 ### 2. Handling Button Clicks (Security)
@@ -47,7 +47,7 @@ action:
 React to specific button IDs you sent earlier.
 
 ```yaml
-alias: 'WhatsApp Bot: Alarm Control'
+alias: "WhatsApp Bot: Alarm Control"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
@@ -61,8 +61,8 @@ action:
       entity_id: alarm_control_panel.home
   - service: whatsapp.send_message
     data:
-      target: '{{ trigger.event.data.sender }}'
-      message: '🔒 Alarm armed successfully!'
+      target: "{{ trigger.event.data.sender }}"
+      message: "🔒 Alarm armed successfully!"
 ```
 
 ### 3. Poll Vote Handler
@@ -70,19 +70,19 @@ action:
 Gather data from family votes.
 
 ```yaml
-alias: 'WhatsApp Bot: Dinner Vote'
+alias: "WhatsApp Bot: Dinner Vote"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      type: 'poll_update'
+      type: "poll_update"
 condition:
   - condition: template
     value_template: "{{ 'Pizza 🍕' in trigger.event.data.vote }}"
 action:
   - service: input_select.select_option
     data:
-      option: 'Pizza'
+      option: "Pizza"
     target:
       entity_id: input_select.dinner_choice
 ```

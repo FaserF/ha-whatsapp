@@ -42,7 +42,7 @@ Most users do not want to use their primary WhatsApp number for Home Assistant n
 2. **Work Profiles & App Cloners (Android)**:
    If you want to run a second copy of standard WhatsApp, you can use a Work Profile app like **[Island](https://play.google.com/store/apps/details?id=com.oasisfeng.island)** or **Shelter**. These apps create an isolated sandbox/work profile on your phone, letting you install and run a second, completely separate instance of WhatsApp.
 3. **Manufacturer Dual Apps**:
-   Many Android phone manufacturers include a built-in feature to clone apps (e.g., Samsung's *Dual Messenger*, OnePlus's *Parallel Apps*, or Xiaomi's *Dual Apps*). Search your phone settings for these options to easily clone WhatsApp.
+   Many Android phone manufacturers include a built-in feature to clone apps (e.g., Samsung's _Dual Messenger_, OnePlus's _Parallel Apps_, or Xiaomi's _Dual Apps_). Search your phone settings for these options to easily clone WhatsApp.
 
 > **💡 Sim Card / Activation Note**
 > You only need the physical SIM card (or eSIM) inside a phone during the initial SMS activation of WhatsApp. Once the second WhatsApp account is activated on your phone and paired with Home Assistant, the SIM card does not need to stay inside the phone. However, the WhatsApp app on the phone must remain active.
@@ -76,14 +76,14 @@ The integration provides a `Chats` sensor which lists all your participating gro
 
 > **Warning**
 > **Privacy Mode Warning**: If you enable "Mask Sensitive Data" in the options, Group IDs will also be masked in the logs. You **must disable** masking temporarily if you are trying to find out a Group ID through logs, although using the sensor/service is recommended.
->
+
 ### 5. Passkey Verification Requirement
 
 WhatsApp sometimes requires **passkey verification** (biometrics, PIN, or pattern check on your registered phone) during linked-device setup. Since this is an unofficial client, the native passkey handshake is not fully stable.
 
 - **Effect**: Pairing or reconnection may halt with a "Passkey Required" warning.
 - **Fix**: Remove all passkeys from WhatsApp on your phone (**Settings → Account → Passkeys → Remove all passkeys**) to skip the prompt, or use the experimental passkey flow to approve the prompt within 2 minutes.
-{: .important }
+  {: .important }
 
 ---
 

@@ -58,7 +58,7 @@ Since the App handles the WhatsApp connection logic, several diagnostic tools ar
   - **14-day inactivity limit**: WhatsApp automatically logs out all linked devices if the main phone has not been connected to the internet/online for 14 consecutive days.
   - **Phone switch / Re-installation**: If you change your phone, reinstall WhatsApp, or re-register WhatsApp, all existing linked devices are automatically logged out by WhatsApp.
   - **Manual Logout**: If you logged out from the active sessions list on your WhatsApp phone app, the Addon's session is terminated.
-  - *Fix*: You must re-scan the QR code in the Addon UI to re-establish the connection. See the **[Limitations & Warnings Guide](limitations.md#1-one-session-per-app--multi-account-support)** for how to set up a dedicated second number (e.g. using WhatsApp Business or Island).
+  - _Fix_: You must re-scan the QR code in the Addon UI to re-establish the connection. See the **[Limitations & Warnings Guide](limitations.md#1-one-session-per-app--multi-account-support)** for how to set up a dedicated second number (e.g. using WhatsApp Business or Island).
 
 ### 2. Messages are not arriving
 
@@ -82,7 +82,7 @@ This is usually a side effect of WhatsApp's End-to-End Encryption (E2EE).
 - **Root Cause**: The bot must have the original "Poll Creation" message in its local memory to decrypt votes. If the bot was offline when the poll was sent, or if it was recently restarted and the poll is old, it can't read the vote.
 - **Fix**: Ensure the bot stays online. If the problem persists for **newly created polls**, try a "Reset Session" in the Addon UI to clear potentially corrupted state.
 - **Limitation**: Votes on polls sent while the bot was disconnected can **never** be resolved.
-{: .important }
+  {: .important }
 
 ### 6. WhatsApp Account Suspended / Banned
 
@@ -113,7 +113,7 @@ During pairing or re-connection, WhatsApp might enforce a **passkey verification
 
 - **Option 1 (Recommended):** Open WhatsApp on your phone → **Settings → Account → Passkeys**, tap **Remove all passkeys**, then retry.
 - **Option 2 (Experimental):** Check the **Approve passkey on phone (experimental)** box in the config flow, then approve the prompt sent to your phone within 2 minutes.
-{: .tip }
+  {: .tip }
 
 ---
 

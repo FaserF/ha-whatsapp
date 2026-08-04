@@ -11,14 +11,14 @@ You can send buttons using the `whatsapp.send_buttons` service.
 ```yaml
 service: whatsapp.send_buttons
 data:
-  target: '+49123456789'
-  message: 'Do you want to turn off the lights?'
+  target: "+49123456789"
+  message: "Do you want to turn off the lights?"
   buttons:
-    - id: 'lights_off_yes'
-      displayText: 'Yes, please! 💡'
-    - id: 'lights_off_no'
-      displayText: 'No, leave them on.'
-  footer: 'Smart Home Assistant'
+    - id: "lights_off_yes"
+      displayText: "Yes, please! 💡"
+    - id: "lights_off_no"
+      displayText: "No, leave them on."
+  footer: "Smart Home Assistant"
 ```
 
 ### 🤖 Handling the Response
@@ -26,12 +26,12 @@ data:
 When a user taps a button, a `whatsapp_message_received` event is fired.
 
 ```yaml
-alias: 'Handle Button Press'
+alias: "Handle Button Press"
 trigger:
   - platform: event
     event_type: whatsapp_message_received
     event_data:
-      content: 'Yes, please! 💡' # The displayText is sent as text content
+      content: "Yes, please! 💡" # The displayText is sent as text content
 action:
   - service: light.turn_off
     target:
@@ -83,13 +83,13 @@ For users migrating from Telegram, the `notify.whatsapp` service supports the `i
 ```yaml
 service: notify.whatsapp
 data:
-  message: 'Arm System?'
+  message: "Arm System?"
   data:
     inline_keyboard:
-      - - text: 'Arm Away'
-          callback_data: 'arm_away'
-        - text: 'Arm Home'
-          callback_data: 'arm_home'
+      - - text: "Arm Away"
+          callback_data: "arm_away"
+        - text: "Arm Home"
+          callback_data: "arm_home"
 ```
 
 _The integration will automatically pick up the first 3 buttons and map `text` to `displayText` and `callback_data` to `id`._

@@ -3,7 +3,7 @@ layout: default
 title: Home
 nav_order: 1
 mermaid: true
-description: 'A professional WhatsApp bridge for Home Assistant using Baileys and Node.js.'
+description: "A professional WhatsApp bridge for Home Assistant using Baileys and Node.js."
 ---
 
 <div class="hero-section">
@@ -180,7 +180,7 @@ graph TD
 ---
 
 > **🤖 AI-Assisted Development**: Both the WhatsApp Integration and the WhatsApp Addon are developed, maintained, and continuously optimized with the assistance of modern Artificial Intelligence (AI) coding tools and pair-programming agents.
-{: .note }
+> {: .note }
 
 ---
 
