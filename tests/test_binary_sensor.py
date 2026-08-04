@@ -37,6 +37,7 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         mock_instance.get_chats = AsyncMock(
             return_value={"total_chats": 0, "groups": []}
         )
+        mock_instance.get_moderation_config = AsyncMock(return_value={"data": {}})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
         mock_instance.start_session = AsyncMock(return_value=None)
@@ -46,9 +47,16 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        # The state should be 'on' because mock_instance.connect() returned True
-        state = hass.states.get("binary_sensor.whatsapp_connection") or hass.states.get(
-            "binary_sensor.whatsapp"
+        # Find connectivity binary sensor
+        states = hass.states.async_all("binary_sensor")
+        state = next(
+            (
+                s
+                for s in states
+                if s.attributes.get("device_class") == "connectivity"
+                or "total_sent" in s.attributes
+            ),
+            None,
         )
         assert state
         assert state.state == "on"
@@ -68,8 +76,15 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         await data["coordinator"].async_refresh()
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.whatsapp_connection") or hass.states.get(
-            "binary_sensor.whatsapp"
+        states = hass.states.async_all("binary_sensor")
+        state = next(
+            (
+                s
+                for s in states
+                if s.attributes.get("device_class") == "connectivity"
+                or "total_sent" in s.attributes
+            ),
+            None,
         )
         assert state
         assert state.state == "off"
@@ -77,9 +92,15 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert state.attributes["passkey_required"] is False
 
         # Check moderation status binary sensor
-        mod_state = hass.states.get(
-            "binary_sensor.whatsapp_moderation_status"
-        ) or hass.states.get("binary_sensor.whatsapp_moderation")
+        mod_state = next(
+            (
+                s
+                for s in states
+                if s.attributes.get("device_class") == "safety"
+                or "managed_groups_count" in s.attributes
+            ),
+            None,
+        )
         if mod_state:
             assert mod_state.state == "off"
             assert "managed_groups_count" in mod_state.attributes
