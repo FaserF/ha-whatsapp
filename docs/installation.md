@@ -6,15 +6,15 @@ nav_order: 2
 
 # ⚙️ Installation Guide
 
-Setting up the WhatsApp integration is a two-step process: installing the **App** (the engine) and then the **Integration** (the interface).
+Setting up the WhatsApp integration is a two-step process: installing the **Backend Gateway** (either as a Home Assistant App/Add-on or a Standalone Docker container) and then configuring the **Integration** in Home Assistant.
 
 ---
 
-## 1️⃣ App Installation
+## 1️⃣ Backend Gateway Installation
 
-The App handles the heavy lifting of connecting to WhatsApp.
+The Backend Gateway handles the heavy lifting of connecting to WhatsApp, managing encryption keys, and serving the REST/WebSocket API.
 
-### Option A: Home Assistant Addon (Recommended for HAOS/Supervised)
+### Option A: Home Assistant Add-on / App (Recommended for HA OS / Supervised)
 
 1. **Add the Repository**: Click the button below to add the App repository to your Home Assistant.
 

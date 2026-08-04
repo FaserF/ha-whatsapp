@@ -491,20 +491,20 @@ If you need the ID of a specific incoming message or a dynamic sender:
 
 ---
 
-## 🛠️ Requirements & App
+## 🛠️ Requirements & Gateway
 
 > [!IMPORTANT]
 > **This integration DOES NOT work alone.**
-> It is strictly a bridge to the **[HA WhatsApp Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)**.
+> It is a bridge to the **[HA WhatsApp Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** OR a **Standalone Docker Gateway**.
 
 ### Why?
 
-WhatsApp Web protocols are complex and require a headless browser to maintain encryption and session state.
+WhatsApp Web protocols are complex and require a Node.js engine (Baileys) to maintain encryption and session state.
 
-- **The App**: Runs the browser (Puppeteer/Playwright), handles QR scanning, and encryption.
-- **The Integration**: Connects to the App API to expose services and sensors to Home Assistant.
+- **The Backend Gateway (HA App or Standalone Docker)**: Runs the Node.js Baileys engine, handles QR scanning, and exposes the REST & WebSocket API.
+- **The Integration**: Connects to the Gateway API (local or remote) to expose services and sensors to Home Assistant.
 
-You **Must** install the App from the repo above for this to work.
+You **Must** run either the **Home Assistant App** (recommended for HA OS / Supervised) or the **Standalone Docker Gateway** (for HA Container / Core / external servers) for this integration to work.
 
 ---
 

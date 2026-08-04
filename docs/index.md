@@ -174,7 +174,7 @@ graph TD
 - **🕵️ Discovery**: Find Group IDs instantly with the `search_groups` service.
 - **Modern**: Fully supports the 2026 Home Assistant `notify` standards.
 - **Rich Content**: Interactive Buttons, Polls, Reactions, and Media support.
-- **Easy Setup**: Automatic Add-on installation and configuration for Home Assistant OS users.
+- **Flexible Deployment**: Supports both official HA Add-on (for HA OS) and Standalone Docker Gateway (for HA Container/Core/external servers).
 - **Localized**: Deep German (DE) and English (EN) support.
 
 ---
