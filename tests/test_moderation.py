@@ -6,10 +6,10 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-import pytest
-from homeassistant.exceptions import HomeAssistantError
+import pytest  # noqa: E402
+from homeassistant.exceptions import HomeAssistantError  # noqa: E402
 
-from custom_components.whatsapp.api import WhatsAppApiClient
+from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
 
 @pytest.mark.asyncio
@@ -17,9 +17,11 @@ async def test_api_moderation_methods() -> None:
     """Test API client moderation methods."""
     client = WhatsAppApiClient(host="http://localhost:8066", api_key="secret_token")
 
-    with patch("aiohttp.ClientSession.get") as mock_get, patch(
-        "aiohttp.ClientSession.post"
-    ) as mock_post, patch("aiohttp.ClientSession.delete") as mock_delete:
+    with (
+        patch("aiohttp.ClientSession.get") as mock_get,
+        patch("aiohttp.ClientSession.post") as mock_post,
+        patch("aiohttp.ClientSession.delete") as mock_delete,
+    ):
         # Mock GET config response
         mock_resp_get = AsyncMock()
         mock_resp_get.status = 200
