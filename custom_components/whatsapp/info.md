@@ -7,7 +7,7 @@ A full-featured WhatsApp integration for Home Assistant, allowing you to send me
 - 📨 **Send/Receive Messages**: Full support for text, images, and documents.
 - 🔘 **Interactive Buttons**: Send buttons for quick replies and menu selections.
 - 📊 **Polls**: Create and track WhatsApp polls.
-- 🛡️ **Rose & Aegis Group Moderation**: Comprehensive group defender, welcome/goodbye, captchas, warnings, content locks, anti-raid shield, and 1-click Rose/Aegis import/export.
+- 🛡️ **Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye, captchas, warnings, content locks, anti-raid shield, and 1-click JSON import/export.
 - 🔄 **WebSocket & Webhooks**: Real-time message status and incoming message handling.
 - 🛡️ **Local Control**: Communicates locally with the WhatsApp Addon.
 

@@ -2972,7 +2972,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     async def import_moderation_config(
         self, group_id: str, config_data: dict[str, Any]
     ) -> dict[str, Any]:
-        """Import Rose / Aegis moderation config into a group."""
+        """Import moderation config into a group."""
         url = f"{self.host}/api/moderation/groups/{group_id}/import"
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         async with (

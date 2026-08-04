@@ -80,7 +80,7 @@
 - **🕵️ Discovery Tools**: Built-in service to find Group IDs without checking logs.
 - **🤖 Automation Triggers**: Real-time events for everything happening on WhatsApp.
 - **🛡️ Native Control**: Built-in commands (`ha-app-*`) to check status, restart, or run diagnostics directly via WhatsApp.
-- **🛡️ Rose & Aegis Group Moderation**: Comprehensive group defender, welcome/goodbye messages, captchas, warnings, content locks, anti-raid shield, and 1-click Rose/Aegis JSON import/export.
+- **🛡️ Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye messages, captchas, warnings, content locks, anti-raid shield, and 1-click JSON import/export.
 - **🔔 Admin Alerts**: Proactive system notifications for WhatsApp loss/restore and HA Core/Integration updates.
 - **🌍 Localization**: Full native support for English and German (DE/EN).
   - _Note: Official support is only guaranteed for EN + DE. Russian (RU) translations are provided as a community contribution by [vlad36N](https://github.com/vlad36N) via [#43](https://github.com/FaserF/ha-whatsapp/pull/43)._

@@ -112,7 +112,7 @@ class WhatsAppModerationStatusBinarySensor(
     CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
     BinarySensorEntity,  # type: ignore[misc]
 ):
-    """Binary sensor indicating global Rose & Aegis moderation engine status."""
+    """Binary sensor indicating global WhatsApp moderation engine status."""
 
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True

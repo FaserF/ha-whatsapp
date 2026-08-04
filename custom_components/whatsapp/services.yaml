@@ -1729,7 +1729,7 @@ remove_chat_label:
 
 enable_moderation:
   name: Enable Group Moderation
-  description: Enables Rose & Aegis moderation engine for a target WhatsApp group.
+  description: Enables group moderation engine for a target WhatsApp group.
   fields:
     account:
       name: Account
@@ -1745,7 +1745,7 @@ enable_moderation:
 
 disable_moderation:
   name: Disable Group Moderation
-  description: Disables Rose & Aegis moderation engine for a target WhatsApp group.
+  description: Disables group moderation engine for a target WhatsApp group.
   fields:
     account:
       name: Account
@@ -1810,7 +1810,7 @@ clear_warnings:
 
 import_moderation_config:
   name: Import Moderation Config
-  description: Imports Rose or AegisBot JSON moderation configuration for a group.
+  description: Imports JSON moderation configuration for a group.
   fields:
     account:
       name: Account
@@ -1825,7 +1825,7 @@ import_moderation_config:
         text:
     config:
       name: Configuration Data
-      description: Dictionary containing Rose or AegisBot configuration.
+      description: Dictionary containing group moderation configuration.
       required: true
       selector:
         object:

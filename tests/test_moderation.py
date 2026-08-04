@@ -1,4 +1,4 @@
-"""Test the Rose & Aegis moderation engine in HA WhatsApp."""
+"""Test the group moderation engine in HA WhatsApp."""
 
 from unittest.mock import AsyncMock, patch
 
