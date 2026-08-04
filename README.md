@@ -8,7 +8,7 @@
 
 > Connect your Home Assistant instance directly to WhatsApp using the "Linked Devices" (Web) protocol. No Business API required. 🚀
 >
-> **Requires the [Home Assistant App](https://github.com/FaserF/hassio-addons) to function.** This integration communicates with the App to send and receive messages.
+> **Requires the [Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp) OR the [Standalone Docker Gateway (`whatsapp-gw`)](https://github.com/FaserF/hassio-addons/pkgs/container/whatsapp-gw) to function.** This integration communicates with the Gateway (App or Standalone Container) to send and receive messages.
 
 ---
 
@@ -495,7 +495,7 @@ If you need the ID of a specific incoming message or a dynamic sender:
 
 > [!IMPORTANT]
 > **This integration DOES NOT work alone.**
-> It is a bridge to the **[HA WhatsApp Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** OR a **Standalone Docker Gateway**.
+> It is a bridge to either the **[HA WhatsApp Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** OR the **[Standalone Docker Gateway (`whatsapp-gw`)](https://github.com/FaserF/hassio-addons/pkgs/container/whatsapp-gw)**.
 
 ### Why?
 
@@ -504,7 +504,7 @@ WhatsApp Web protocols are complex and require a Node.js engine (Baileys) to mai
 - **The Backend Gateway (HA App or Standalone Docker)**: Runs the Node.js Baileys engine, handles QR scanning, and exposes the REST & WebSocket API.
 - **The Integration**: Connects to the Gateway API (local or remote) to expose services and sensors to Home Assistant.
 
-You **Must** run either the **Home Assistant App** (recommended for HA OS / Supervised) or the **Standalone Docker Gateway** (for HA Container / Core / external servers) for this integration to work.
+You **Must** run either the **[Home Assistant App](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** (recommended for HA OS / Supervised) or the **[Standalone Docker Gateway](https://github.com/FaserF/hassio-addons/pkgs/container/whatsapp-gw)** (for HA Container / Core / external servers) for this integration to work.
 
 ---
 
