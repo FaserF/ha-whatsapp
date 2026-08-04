@@ -266,3 +266,104 @@ async def test_send_buttons_normalization(
             mock_client.send_buttons.assert_awaited_with(
                 "123", "Hello", buttons, None, quoted_message_id=None, expiration=None
             )
+
+
+async def test_new_services_routing(
+    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
+) -> None:
+    """Test routing for new group, chat, and contact services."""
+    handlers, mock_register = service_handlers
+    hass = MagicMock()
+    hass.services.async_call = AsyncMock()
+    hass.services.async_register.side_effect = mock_register
+    hass.services.has_service.return_value = False
+    hass.config_entries.async_forward_entry_setups = AsyncMock()
+
+    with ExitStack() as stack:
+        get_patches(stack)
+        from custom_components.whatsapp import async_setup_entry
+        from custom_components.whatsapp.const import DOMAIN
+
+        hass.data = {DOMAIN: {}}
+
+        with (
+            patch(
+                "custom_components.whatsapp.get_client_for_account"
+            ) as mock_get_client,
+            patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+            patch(
+                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+            ) as mock_coord_cls,
+        ):
+            mock_instance = mock_client_cls.return_value
+            mock_instance.connect = AsyncMock(return_value=True)
+            mock_instance.start_polling = AsyncMock()
+            mock_instance.set_webhook = AsyncMock()
+
+            mock_coord = mock_coord_cls.return_value
+            mock_coord.async_config_entry_first_refresh = AsyncMock()
+
+            mock_entry = MagicMock()
+            mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
+            mock_entry.options = {}
+            mock_entry.entry_id = "test_entry"
+
+            await async_setup_entry(hass, mock_entry)
+
+            mock_client = MagicMock()
+            mock_client.create_group = AsyncMock(return_value={"id": "g1"})
+            mock_client.add_group_participants = AsyncMock(return_value={})
+            mock_client.star_message = AsyncMock(return_value={})
+            mock_client.pin_message = AsyncMock(return_value={})
+            mock_client.forward_message = AsyncMock(return_value={})
+            mock_client.send_status = AsyncMock(return_value={})
+            mock_client.block_contact = AsyncMock(return_value={})
+            mock_client.mute_chat = AsyncMock(return_value={})
+
+            mock_get_client.return_value = mock_client
+
+            from homeassistant.core import ServiceCall
+
+            # Test create_group
+            create_group_fn = handlers.get("create_group")
+            assert create_group_fn is not None
+            await create_group_fn(
+                ServiceCall(
+                    "whatsapp",
+                    "create_group",
+                    {"subject": "Test", "participants": ["123"]},
+                )
+            )
+            mock_client.create_group.assert_awaited_with("Test", ["123"])
+
+            # Test star_message
+            star_fn = handlers.get("star_message")
+            assert star_fn is not None
+            await star_fn(
+                ServiceCall(
+                    "whatsapp", "star_message", {"target": "123", "message_id": "m1"}
+                )
+            )
+            mock_client.star_message.assert_awaited_with("123", "m1", star=True)
+
+            # Test pin_message
+            pin_fn = handlers.get("pin_message")
+            assert pin_fn is not None
+            await pin_fn(
+                ServiceCall(
+                    "whatsapp",
+                    "pin_message",
+                    {"target": "123", "message_id": "m1", "duration": 3600},
+                )
+            )
+            mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
+
+            # Test send_status
+            status_fn = handlers.get("send_status")
+            assert status_fn is not None
+            await status_fn(
+                ServiceCall("whatsapp", "send_status", {"message": "Status update"})
+            )
+            mock_client.send_status.assert_awaited_with(
+                message="Status update", url=None, caption=None
+            )
