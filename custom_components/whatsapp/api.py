@@ -2813,6 +2813,106 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 f"Failed to remove label: {self._extract_error(text)}"
             )
 
+    async def mark_as_unread(self, target: str) -> dict[str, Any]:
+        """Mark a chat as unread."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/mark_as_unread"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to mark chat as unread: {self._extract_error(text)}"
+            )
+
+    async def clear_chat(self, target: str) -> dict[str, Any]:
+        """Clear all messages in a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/clear"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to clear chat: {self._extract_error(text)}"
+            )
+
+    async def delete_chat(self, target: str) -> dict[str, Any]:
+        """Delete a chat."""
+        jid = self.ensure_jid(target)
+        url = f"{self.host}/chats/delete"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json={"number": jid},
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to delete chat: {self._extract_error(text)}"
+            )
+
+    async def get_chat_messages(self, target: str, limit: int = 50) -> dict[str, Any]:
+        """Fetch stored messages for a chat."""
+        jid = self.ensure_jid(target) or target
+        url = f"{self.host}/chats/messages"
+
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        params: dict[str, str] = {"number": jid, "limit": str(limit)}
+
+        if self.session_id:
+            params["session_id"] = self.session_id
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                url,
+                params=params,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise HomeAssistantError("Invalid API Key")
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to fetch chat messages: {self._extract_error(text)}"
+            )
+
     async def get_moderation_config(self) -> dict[str, Any]:
         """Fetch moderation configuration from addon."""
         url = f"{self.host}/api/moderation/config"

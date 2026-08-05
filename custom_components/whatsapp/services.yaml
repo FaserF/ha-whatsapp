@@ -1727,7 +1727,62 @@ remove_chat_label:
       selector:
         text:
 
+clear_chat:
+  name: Clear Chat
+  description: Clears all messages in a chat history.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: Chat to clear.
+      required: true
+      selector:
+        text:
+
+delete_chat:
+  name: Delete Chat
+  description: Deletes a chat from WhatsApp.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: Chat to delete.
+      required: true
+      selector:
+        text:
+
+get_chat_messages:
+  name: Get Chat Messages
+  description: Fetches recent stored messages for a chat.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account to use.
+      selector:
+        text:
+    target:
+      name: Target Number / Group ID
+      description: Chat to retrieve messages for.
+      required: true
+      selector:
+        text:
+    limit:
+      name: Message Limit
+      description: Maximum number of messages to return (default 50).
+      selector:
+        number:
+          mode: box
+
 enable_moderation:
+
   name: Enable Group Moderation
   description: Enables group moderation engine for a target WhatsApp group.
   fields:

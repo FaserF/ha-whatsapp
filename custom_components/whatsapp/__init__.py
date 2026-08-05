@@ -106,6 +106,10 @@ _SERVICES = [
     "unmute_channel",
     "add_chat_label",
     "remove_chat_label",
+    "mark_as_unread",
+    "clear_chat",
+    "delete_chat",
+    "get_chat_messages",
     "enable_moderation",
     "disable_moderation",
     "warn_user",
@@ -643,6 +647,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return await client.add_chat_label(data["target"], data["label_id"])
         elif service == "remove_chat_label":
             return await client.remove_chat_label(data["target"], data["label_id"])
+        elif service == "mark_as_unread":
+            return await client.mark_as_unread(data["target"])
+        elif service == "clear_chat":
+            return await client.clear_chat(data["target"])
+        elif service == "delete_chat":
+            return await client.delete_chat(data["target"])
+        elif service == "get_chat_messages":
+            return await client.get_chat_messages(
+                data["target"], limit=data.get("limit", 50)
+            )
         elif service == "enable_moderation":
             return await client.enable_group_moderation(data["target"])
         elif service == "disable_moderation":
@@ -1244,6 +1258,37 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "remove_chat_label",
         _handle_service,
         schema=vol.Schema(chat_label_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "mark_as_unread",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "clear_chat",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "delete_chat",
+        _handle_service,
+        schema=vol.Schema(target_only_schema),
+    )
+
+    get_messages_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Required("target"): cv.string,
+        vol.Optional("limit", default=50): cv.positive_int,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "get_chat_messages",
+        _handle_service,
+        schema=vol.Schema(get_messages_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     _SERVICES_REGISTERED = True
