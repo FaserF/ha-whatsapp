@@ -467,3 +467,11 @@ Tracks join velocity across the whole group (`max_joins` within `window_seconds`
 Cluster multiple WhatsApp groups into a shared **Ban Federation**:
 - When a user is banned in one group of the federation, their ID is registered in the central federation ban list.
 - If that user joins or posts in any other group linked to the same federation, they are **automatically banned immediately**!
+
+---
+
+## 💡 Acknowledgments & Inspiration
+
+The Group Moderation Engine, Content Locks, Security Federations, and Group Commands features in this project were inspired by the conceptual architecture of **Miss Rose** and **[AegisBot](https://github.com/FaserF/AegisBot)**.
+
+- **AegisBot Project**: [https://github.com/FaserF/AegisBot](https://github.com/FaserF/AegisBot)
