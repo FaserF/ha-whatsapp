@@ -43,6 +43,11 @@ This table provides a quick overview of what is currently supported by the Whats
 | Connection Status Entity  |   ✅    | Real-time connection feedback                              |
 | Uptime & Stats            |   ✅    | Monitor message throughput and system health               |
 | Integration Repairs       |   ✅    | Guided troubleshooting and self-healing for common errors  |
+| **Group Moderation & Bot Commands** | |                                                            |
+| 37 Group Commands         |   ✅    | Prefix commands (`!help`, `!warn`, `!kick`, `!mute`, `!tban`, etc.) |
+| Content Locks (12 Types)  |   ✅    | Lock media, links, invites, contacts, locations, RTL text  |
+| AI Assistant & Toxicity   |   ✅    | Gemini AI FAQ, Rules Interpreter, Toxicity & Translation   |
+| Full Documentation        |   👉    | See [Group Moderation & Commands Guide](moderation.html)   |
 
 ## 🪄 HA-App Control Commands
 

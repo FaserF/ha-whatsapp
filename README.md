@@ -80,7 +80,7 @@
 - **🕵️ Discovery Tools**: Built-in service to find Group IDs without checking logs.
 - **🤖 Automation Triggers**: Real-time events for everything happening on WhatsApp.
 - **🛡️ Native Control**: Built-in commands (`ha-app-*`) to check status, restart, or run diagnostics directly via WhatsApp.
-- **🛡️ Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye messages, captchas, warnings, content locks, anti-raid shield, and 1-click JSON import/export.
+- **🛡️ Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye messages, captchas, warnings, content locks, anti-raid shield, 37 bot commands (`!help`, `!warn`, `!kick`, `!tban`, `!mute`, `!tmute`, `!translate`, etc.), and 1-click JSON import/export.
 - **🔔 Admin Alerts**: Proactive system notifications for WhatsApp loss/restore and HA Core/Integration updates.
 - **🌍 Localization**: Full native support for English and German (DE/EN).
   - _Note: Official support is only guaranteed for EN + DE. Russian (RU) translations are provided as a community contribution by [vlad36N](https://github.com/vlad36N) via [#43](https://github.com/FaserF/ha-whatsapp/pull/43)._
@@ -94,6 +94,7 @@ The most up-to-date and detailed documentation is available at our **[Official D
 | Guide                                                                                      | Description                                                                   |
 | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
 | **[🚀 Full Guide](https://faserf.github.io/ha-whatsapp/)**                                 | Installation, Services, Automations, and Pro-Tips.                            |
+| **[🛡️ Group Moderation & Commands](docs/moderation.md)**                                  | Complete guide to group defender, content locks, and 37 bot commands.         |
 | **[📚 Whitelist Guide](docs/configuration.md#security-whitelist-feature)**                 | Restrict interaction to specific users/groups.                                |
 | **[🐳 Standalone Docker](docs/configuration.md#-standalone-docker-environment-variables)** | Complete environment variable reference for standalone container deployments. |
 | **[🔘 Buttons Guide](docs/buttons.md)**                                                    | Deep dive into interactive buttons and limitations.                           |
