@@ -47,7 +47,7 @@ This table provides a quick overview of what is currently supported by the Whats
 | 37 Group Commands         |   ✅    | Prefix commands (`!help`, `!warn`, `!kick`, `!mute`, `!tban`, etc.) |
 | Content Locks (12 Types)  |   ✅    | Lock media, links, invites, contacts, locations, RTL text  |
 | AI Assistant & Toxicity   |   ✅    | Gemini AI FAQ, Rules Interpreter, Toxicity & Translation   |
-| Full Documentation        |   👉    | See [Group Moderation & Commands Guide](moderation.html)   |
+| Full Documentation        |   👉    | See [Group Moderation & Commands Guide](https://faserf.github.io/ha-whatsapp/moderation.html)   |
 
 ## 🪄 HA-App Control Commands
 
