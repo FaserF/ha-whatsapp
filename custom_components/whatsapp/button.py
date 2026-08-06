@@ -125,7 +125,14 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
         except Exception as err:
             final_results["Auto-Delete"] = f"Error: {err}"
 
-        # 7. Final Completion Message
+        # 7. Addon Diagnostics (runs full test suite + group moderation prompts)
+        try:
+            await client.run_diagnostic()
+            final_results["Addon Diagnostics"] = "OK"
+        except Exception as err:
+            final_results["Addon Diagnostics"] = f"Error: {err}"
+
+        # 8. Final Completion Message
         completion_text = (
             "🏁 *Diagnostic Test Completed*\n\n"
             "All functional tests have been performed. Check the Home Assistant "

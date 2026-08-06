@@ -3091,3 +3091,23 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to import moderation config: {self._extract_error(text)}"
             )
+
+    async def run_diagnostic(self) -> dict[str, Any]:
+        """Trigger backend diagnostic run on the addon."""
+        url = f"{self.host}/api/diagnostics/run"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to run diagnostic: {self._extract_error(text)}"
+            )
