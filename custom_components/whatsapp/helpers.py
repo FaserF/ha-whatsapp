@@ -64,6 +64,40 @@ def sync_moderation_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
         )
 
 
+def async_sync_moderation_entities(
+    hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
+) -> None:
+    """Sync moderation entity enabled states in entity registry.
+
+    Ensures disabled entities are automatically enabled/disabled in the
+    Home Assistant Entity Registry during polling.
+    """
+    if hass is None:
+        return
+    from .const import DOMAIN
+
+    active = is_moderation_active(coordinator_data)
+    er = async_get_entity_registry(hass)
+    moderation_unique_ids = [
+        f"{entry_id}_moderation_warnings",
+        f"{entry_id}_moderation_raid_status",
+        f"{entry_id}_moderation_status",
+    ]
+    for unique_id in moderation_unique_ids:
+        entity_id = er.async_get_entity_id(
+            "sensor", DOMAIN, unique_id
+        ) or er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
+        if entity_id:
+            entry = er.async_get(entity_id)
+            if entry:
+                if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
+                    er.async_update_entity(entity_id, disabled_by=None)
+                elif not active and entry.disabled_by is None:
+                    er.async_update_entity(
+                        entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
+                    )
+
+
 def format_timestamp(timestamp: int | None) -> str | None:
     """Format a millisecond Unix timestamp into a readable ISO local string."""
     if timestamp is None:

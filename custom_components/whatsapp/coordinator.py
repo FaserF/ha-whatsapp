@@ -31,7 +31,12 @@ from homeassistant.helpers.update_coordinator import (
 
 from .api import WhatsAppApiClient, WhatsAppAuthError
 from .const import CONF_POLLING_INTERVAL, DOMAIN
-from .helpers import safe_text as _safe_text
+from .helpers import (
+    async_sync_moderation_entities,
+)
+from .helpers import (
+    safe_text as _safe_text,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -231,17 +236,20 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                         "Failed to update device registry version: %s", dr_err
                     )
 
-            return _safe_text(
-                {
-                    "connected": connected,
-                    "status": status,
-                    "status_details": details,
-                    "stats": stats,
-                    "chats": chats,
-                    "dashboard": dashboard,
-                    "moderation": moderation,
-                }
-            )
+            data = {
+                "connected": connected,
+                "status": status,
+                "status_details": details,
+                "stats": stats,
+                "chats": chats,
+                "dashboard": dashboard,
+                "moderation": moderation,
+            }
+            if self.config_entry:
+                async_sync_moderation_entities(
+                    self.hass, self.config_entry.entry_id, data
+                )
+            return _safe_text(data)
         except WhatsAppAuthError as err:
             _LOGGER.error("Authentication failed during polling: %s", err)
             raise ConfigEntryAuthFailed("Invalid API Key for WhatsApp Addon") from err

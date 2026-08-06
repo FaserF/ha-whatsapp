@@ -133,6 +133,11 @@ class WhatsAppModerationStatusBinarySensor(
         self._attr_unique_id = f"{entry.entry_id}_moderation_status"
         self._attr_device_info = coordinator.client.get_device_info()
 
+    async def async_added_to_hass(self) -> None:
+        """React to entity added to hass; sync registry enabled state first."""
+        await super().async_added_to_hass()
+        self._sync_registry_enabled()
+
     def _sync_registry_enabled(self) -> None:
         """Enable or disable this entity in the registry based on moderation state."""
         sync_moderation_registry_enabled(self)

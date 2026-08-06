@@ -110,15 +110,16 @@ These commands can be run by **any member** in the group.
 ---
 
 #### 5. `!info`
-- **Description**: Displays a comprehensive status card for a target user (or yourself if no user is specified). Shows warning count, max limit, whitelist approval status, mute status, and recent warning log timestamps.
+- **Description**: Displays a comprehensive status card for a target user (or yourself if no user is specified). Shows warning count, max limit, Captcha verification status, Whitelist approval status, mute status, and recent warning log timestamps.
 - **Syntax**: `!info [@user]`
 - **Example**:
   ```
   User: !info @491701234567
-  Bot: 📋 User Info: @491701234567
+  Bot: 📋 User Info: John Doe
        🆔 ID: 491701234567
        ⚠️ Warnings: 2/3
-       ✅ Approved: No
+       🤖 Captcha Verified: Yes
+       ✅ Approved (Whitelist): No
        🔇 Muted: Yes
        
        Warning History:
