@@ -447,14 +447,25 @@ Set up keyword triggers using `!filter <trigger> <reply>`. Supports exact matche
 
 ---
 
-## 🧠 Gemini AI Capabilities
+## 🧠 Multi-AI Provider Capabilities (OpenAI & Gemini)
 
-Configure a **Gemini API Key** in the Addon UI to unlock advanced AI capabilities:
+Configure an **OpenAI API Key** or **Gemini API Key** in the Addon UI to unlock advanced multi-model AI capabilities:
 
-1. **AI Group Assistant & FAQ**: Auto-replies to user questions in the group using a custom system persona prompt.
-2. **AI Natural Language Rules Interpreter**: Typing `!rules <question>` lets Gemini analyze your group rules and answer the member's question intelligently.
-3. **AI Sentiment & Toxicity Moderation**: Automatically scans incoming messages for hate speech, extreme insults, or harassment. Toxic messages are deleted instantly and a warning is logged.
-4. **AI Translation Engine**: On-demand translation via `!translate` into any supported language.
+1. **Multi-Model Provider Support**: Select between OpenAI (e.g. `gpt-4o-mini`) and Gemini (e.g. `gemini-1.5-flash`) for auto-responses, intent scanning, and rules interpretation.
+2. **AI Intent & Scam Detection**: Automatically scans long or suspicious messages for phishing, crypto-scams, or fraud intent. Malicious messages are deleted instantly.
+3. **AI Group Assistant & FAQ**: Auto-replies to user questions in the group using a custom system persona prompt.
+4. **AI Natural Language Rules Interpreter**: Typing `!rules <question>` lets AI analyze your group rules and answer the member's question intelligently.
+5. **AI Sentiment & Toxicity Moderation**: Automatically scans incoming messages for hate speech, extreme insults, or harassment. Toxic messages are deleted instantly and a warning is logged.
+6. **AI Translation Engine**: On-demand translation via `!translate` into any supported language.
+
+---
+
+## 📦 External Blocklists & Filter Subscriptions (GitHub Sync)
+
+Import external YAML filter blocklists (compatible with **AegisBot** standard filter definitions):
+- **GitHub Auto-Sync**: Automatically syncs raw YAML rule sets (e.g. `filters/default.yaml`) from GitHub repositories.
+- **1-Click Import & Export**: Import and export complete group configurations as JSON.
+
 
 ---
 
