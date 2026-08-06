@@ -36,6 +36,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .helpers import safe_text as _safe_text
 
 
 def _moderation_active(coordinator_data: dict[str, object] | None) -> bool:
@@ -143,21 +144,21 @@ class WhatsAppStatSensor(
         stats = (self.coordinator.data or {}).get("stats", {})
         if self._stat_key == "sent":
             return {
-                "last_message": stats.get("last_sent_message"),
-                "last_target": stats.get("last_sent_target"),
+                "last_message": _safe_text(stats.get("last_sent_message")),
+                "last_target": _safe_text(stats.get("last_sent_target")),
                 "last_time": self._format_time(stats.get("last_sent_time")),
             }
         if self._stat_key == "received":
             return {
-                "last_message": stats.get("last_received_message"),
-                "last_sender": stats.get("last_received_sender"),
+                "last_message": _safe_text(stats.get("last_received_message")),
+                "last_sender": _safe_text(stats.get("last_received_sender")),
                 "last_time": self._format_time(stats.get("last_received_time")),
             }
         if self._stat_key == "failed":
             return {
-                "last_message": stats.get("last_failed_message"),
-                "last_target": stats.get("last_failed_target"),
-                "error_reason": stats.get("last_error_reason"),
+                "last_message": _safe_text(stats.get("last_failed_message")),
+                "last_target": _safe_text(stats.get("last_failed_target")),
+                "error_reason": _safe_text(stats.get("last_error_reason")),
                 "last_time": self._format_time(stats.get("last_failed_time")),
             }
         return {}
@@ -226,10 +227,10 @@ class WhatsAppUptimeSensor(
         """Return the state attributes."""
         stats = (self.coordinator.data or {}).get("stats", {})
         return {
-            "version": stats.get("version", "Unknown"),
-            "phone_number": stats.get("my_number", "Unknown"),
+            "version": _safe_text(stats.get("version", "Unknown")),
+            "phone_number": _safe_text(stats.get("my_number", "Unknown")),
             "connected": stats.get("connected", False),
-            "disconnect_reason": stats.get("disconnect_reason"),
+            "disconnect_reason": _safe_text(stats.get("disconnect_reason")),
         }
 
 
@@ -274,7 +275,7 @@ class WhatsAppChatsSensor(
         chats_data = self.coordinator.data.get("chats", {})
         if isinstance(chats_data, dict):
             return {
-                "groups": chats_data.get("groups", []),
+                "groups": _safe_text(chats_data.get("groups", [])),
             }
         if isinstance(chats_data, list):
             groups = [
@@ -282,7 +283,7 @@ class WhatsAppChatsSensor(
                 for c in chats_data
                 if isinstance(c, dict) and "@g.us" in c.get("jid", "")
             ]
-            return {"groups": groups}
+            return {"groups": _safe_text(groups)}
         return {"groups": []}
 
 

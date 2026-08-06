@@ -105,3 +105,49 @@ def test_chats_sensor_list_fallback() -> None:
     mock_coordinator.data = None
     assert sensor.native_value == 0
     assert sensor.extra_state_attributes == {"groups": []}
+
+
+def test_invalid_unicode_sanitization() -> None:
+    """Test that invalid Unicode surrogates in attributes are sanitized."""
+    import json  # noqa: E402
+
+    from custom_components.whatsapp.helpers import safe_text  # noqa: E402
+    from custom_components.whatsapp.sensor import WhatsAppStatSensor  # noqa: E402
+
+    invalid_str = "Invalid \ud800 Unicode"
+    sanitized = safe_text(invalid_str)
+    assert "\ud800" not in sanitized
+    dumped = json.dumps({"last_message": sanitized})
+    assert "Invalid" in dumped
+
+    mock_coordinator = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry"
+
+    mock_coordinator.data = {
+        "stats": {
+            "last_received_message": "Hello \ud800 World",
+            "last_received_sender": "Sender \ud800",
+            "last_sent_message": "Sent \ud800",
+            "last_sent_target": "Target \ud800",
+            "last_failed_message": "Failed \ud800",
+            "last_failed_target": "Target \ud800",
+            "last_error_reason": "Error \ud800",
+        }
+    }
+
+    sensor_rec = WhatsAppStatSensor(mock_coordinator, mock_entry, "received")
+    sensor_sent = WhatsAppStatSensor(mock_coordinator, mock_entry, "sent")
+    sensor_failed = WhatsAppStatSensor(mock_coordinator, mock_entry, "failed")
+
+    attrs_rec = sensor_rec.extra_state_attributes
+    attrs_sent = sensor_sent.extra_state_attributes
+    attrs_failed = sensor_failed.extra_state_attributes
+
+    json.dumps(attrs_rec)
+    json.dumps(attrs_sent)
+    json.dumps(attrs_failed)
+
+    assert attrs_rec["last_message"] == "Hello \ufffd World"
+    assert attrs_sent["last_message"] == "Sent \ufffd"
+    assert attrs_failed["error_reason"] == "Error \ufffd"

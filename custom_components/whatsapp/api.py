@@ -35,6 +35,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .helpers import safe_text as _safe_text
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -519,7 +520,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         raise WhatsAppRateLimitError("Too many requests")
                     if resp.status == 200:
                         data: dict[str, Any] = await resp.json()
-                        self.stats.update(data)
+                        self.stats.update(_safe_text(data))
                         # Also update connectivity bit
                         if "connected" in data:
                             self._connected = bool(data.get("connected", False))
