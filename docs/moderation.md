@@ -299,12 +299,16 @@ These commands require **Group Admin** privileges.
 #### 27. `!setwelcome`
 - **Description**: Sets the greeting message sent when a new member joins. Enables welcome greetings automatically.
 - **Placeholders**:
-  - `{mention}` ➔ `@491701234567` (clickable mention)
+  - `{mention}` / `{user}` ➔ `@491701234567` (clickable mention)
   - `{name}` ➔ `491701234567` (phone number/name)
-  - `{group}` ➔ `My Group Name`
+  - `{pushname}` ➔ WhatsApp profile name (if available)
+  - `{group}` / `{subject}` / `{title}` ➔ Group Title
+  - `{count}` / `{members}` ➔ Total group member count
   - `{rules}` ➔ Group rules text
+  - `{date}` ➔ Current date (e.g. `06.08.2026`)
+  - `{time}` ➔ Current time (e.g. `10:15`)
 - **Syntax**: `!setwelcome <text>`
-- **Example**: `!setwelcome Welcome {mention} to {group}! Please read our rules: {rules}`
+- **Example**: `!setwelcome Welcome {pushname} ({mention}) to {group}! You are member #{count}. Please read our rules: {rules}`
 
 ---
 
@@ -316,7 +320,7 @@ These commands require **Group Admin** privileges.
 
 #### 29. `!setgoodbye`
 - **Description**: Sets the message sent when a member leaves or is removed from the group.
-- **Placeholders**: `{mention}`, `{name}`, `{group}`.
+- **Placeholders**: `{mention}`, `{name}`, `{pushname}`, `{group}`, `{subject}`, `{title}`, `{count}`, `{members}`, `{rules}`, `{date}`, `{time}`.
 - **Syntax**: `!setgoodbye <text>`
 
 ---
@@ -414,10 +418,14 @@ The Warning Engine tracks user infractions (manual warnings via `!warn`, or auto
 
 ### Welcome & Goodbye Greetings
 When a new participant joins (`action === 'add'`) or leaves (`action === 'remove'`), the bot generates a dynamic message substituting template tags:
-- `{mention}` ➔ `@491701234567`
+- `{mention}` / `{user}` ➔ `@491701234567` (clickable mention)
 - `{name}` ➔ `491701234567`
-- `{group}` ➔ Group Title
+- `{pushname}` ➔ WhatsApp Profile Name
+- `{group}` / `{subject}` / `{title}` ➔ Group Title
+- `{count}` / `{members}` ➔ Member Count
 - `{rules}` ➔ Group Rules text
+- `{date}` ➔ Current Date (e.g. `06.08.2026`)
+- `{time}` ➔ Current Time (e.g. `10:15`)
 
 ### Captcha Verification Modes
 Protect your group against automated spam accounts joining via invite links.
