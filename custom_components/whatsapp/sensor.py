@@ -25,43 +25,16 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_registry import (
-    RegistryEntryDisabler,
-)
-from homeassistant.helpers.entity_registry import (
-    async_get as async_get_entity_registry,
-)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
-from .helpers import safe_text as _safe_text
-
-
-def _moderation_active(coordinator_data: dict[str, object] | None) -> bool:
-    """Return True if moderation is globally or group-level active.
-
-    Used by all moderation entities to decide whether they should be
-    enabled in the entity registry.  Moderation is considered active when:
-
-    * ``global_enabled`` is ``True`` in the moderation config, **or**
-    * At least one group has ``enabled: true`` in its per-group config.
-
-    Args:
-        coordinator_data: The latest data dict from the coordinator,
-            or ``None`` when no data is available yet.
-
-    Returns:
-        ``True`` if moderation is in active use, ``False`` otherwise.
-    """
-    if not coordinator_data:
-        return False
-    mod: dict[str, object] = coordinator_data.get("moderation", {})  # type: ignore[assignment]
-    if mod.get("global_enabled"):
-        return True
-    groups: dict[str, object] = mod.get("groups", {})  # type: ignore[assignment]
-    return any(isinstance(cfg, dict) and cfg.get("enabled") for cfg in groups.values())
+from .helpers import (
+    extract_group_chats,
+    format_timestamp,
+    safe_text,
+    sync_moderation_registry_enabled,
+)
 
 
 async def async_setup_entry(
@@ -144,32 +117,24 @@ class WhatsAppStatSensor(
         stats = (self.coordinator.data or {}).get("stats", {})
         if self._stat_key == "sent":
             return {
-                "last_message": _safe_text(stats.get("last_sent_message")),
-                "last_target": _safe_text(stats.get("last_sent_target")),
-                "last_time": self._format_time(stats.get("last_sent_time")),
+                "last_message": safe_text(stats.get("last_sent_message")),
+                "last_target": safe_text(stats.get("last_sent_target")),
+                "last_time": format_timestamp(stats.get("last_sent_time")),
             }
         if self._stat_key == "received":
             return {
-                "last_message": _safe_text(stats.get("last_received_message")),
-                "last_sender": _safe_text(stats.get("last_received_sender")),
-                "last_time": self._format_time(stats.get("last_received_time")),
+                "last_message": safe_text(stats.get("last_received_message")),
+                "last_sender": safe_text(stats.get("last_received_sender")),
+                "last_time": format_timestamp(stats.get("last_received_time")),
             }
         if self._stat_key == "failed":
             return {
-                "last_message": _safe_text(stats.get("last_failed_message")),
-                "last_target": _safe_text(stats.get("last_failed_target")),
-                "error_reason": _safe_text(stats.get("last_error_reason")),
-                "last_time": self._format_time(stats.get("last_failed_time")),
+                "last_message": safe_text(stats.get("last_failed_message")),
+                "last_target": safe_text(stats.get("last_failed_target")),
+                "error_reason": safe_text(stats.get("last_error_reason")),
+                "last_time": format_timestamp(stats.get("last_failed_time")),
             }
         return {}
-
-    def _format_time(self, timestamp: int | None) -> str | None:
-        """Format the timestamp into a readable string."""
-        if timestamp is None:
-            return None
-        return str(
-            dt_util.as_local(dt_util.utc_from_timestamp(timestamp / 1000)).isoformat()
-        )
 
     @property
     def native_value(self) -> int:
@@ -227,10 +192,10 @@ class WhatsAppUptimeSensor(
         """Return the state attributes."""
         stats = (self.coordinator.data or {}).get("stats", {})
         return {
-            "version": _safe_text(stats.get("version", "Unknown")),
-            "phone_number": _safe_text(stats.get("my_number", "Unknown")),
+            "version": safe_text(stats.get("version", "Unknown")),
+            "phone_number": safe_text(stats.get("my_number", "Unknown")),
             "connected": stats.get("connected", False),
-            "disconnect_reason": _safe_text(stats.get("disconnect_reason")),
+            "disconnect_reason": safe_text(stats.get("disconnect_reason")),
         }
 
 
@@ -273,18 +238,7 @@ class WhatsAppChatsSensor(
         if not self.coordinator.data or not isinstance(self.coordinator.data, dict):
             return {"groups": []}
         chats_data = self.coordinator.data.get("chats", {})
-        if isinstance(chats_data, dict):
-            return {
-                "groups": _safe_text(chats_data.get("groups", [])),
-            }
-        if isinstance(chats_data, list):
-            groups = [
-                c
-                for c in chats_data
-                if isinstance(c, dict) and "@g.us" in c.get("jid", "")
-            ]
-            return {"groups": _safe_text(groups)}
-        return {"groups": []}
+        return {"groups": safe_text(extract_group_chats(chats_data))}
 
 
 class WhatsAppModerationWarningsSensor(
@@ -313,15 +267,7 @@ class WhatsAppModerationWarningsSensor(
 
     def _sync_registry_enabled(self) -> None:
         """Enable or disable this entity in the registry based on moderation state."""
-        if self.hass is None or self.registry_entry is None:
-            return
-        active = _moderation_active(self.coordinator.data)
-        if self.registry_entry.disabled != (not active):
-            er = async_get_entity_registry(self.hass)
-            er.async_update_entity(
-                self.entity_id,
-                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
-            )
+        sync_moderation_registry_enabled(self)
 
     def _handle_coordinator_update(self) -> None:
         """React to coordinator data updates; sync registry enabled state first."""
@@ -368,15 +314,7 @@ class WhatsAppModerationRaidStatusSensor(
 
     def _sync_registry_enabled(self) -> None:
         """Enable or disable this entity in the registry based on moderation state."""
-        if self.hass is None or self.registry_entry is None:
-            return
-        active = _moderation_active(self.coordinator.data)
-        if self.registry_entry.disabled != (not active):
-            er = async_get_entity_registry(self.hass)
-            er.async_update_entity(
-                self.entity_id,
-                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
-            )
+        sync_moderation_registry_enabled(self)
 
     def _handle_coordinator_update(self) -> None:
         """React to coordinator data updates; sync registry enabled state first."""

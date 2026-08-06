@@ -80,7 +80,7 @@
 - **🕵️ Discovery Tools**: Built-in service to find Group IDs without checking logs.
 - **🤖 Automation Triggers**: Real-time events for everything happening on WhatsApp.
 - **🛡️ Native Control**: Built-in commands (`ha-app-*`) to check status, restart, or run diagnostics directly via WhatsApp.
-- **🛡️ Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye messages, captchas, warnings, content locks, anti-raid shield, 37 bot commands (`!help`, `!warn`, `!kick`, `!tban`, `!mute`, `!tmute`, `!translate`, etc.), and 1-click JSON import/export.
+- **🛡️ Group Moderation & Defender**: Comprehensive group defender, welcome/goodbye messages with departure reasons, captchas (Group & Private DM resolution with Web UI status dashboard), configurable user name addressing priorities, warnings, content locks, anti-raid shield, custom command modes (Auto Reply, HA/Webhook forwarding, Command Aliases), 37 bot commands (`!help`, `!warn`, `!kick`, `!tban`, `!mute`, `!tmute`, `!translate`, etc.), and 1-click JSON import/export.
 - **🔔 Admin Alerts**: Proactive system notifications for WhatsApp loss/restore and HA Core/Integration updates.
 - **🌍 Localization**: Full native support for English and German (DE/EN).
   - _Note: Official support is only guaranteed for EN + DE. Russian (RU) translations are provided as a community contribution by [vlad36N](https://github.com/vlad36N) via [#43](https://github.com/FaserF/ha-whatsapp/pull/43)._

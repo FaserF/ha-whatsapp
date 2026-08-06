@@ -20,17 +20,11 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_registry import (
-    RegistryEntryDisabler,
-)
-from homeassistant.helpers.entity_registry import (
-    async_get as async_get_entity_registry,
-)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
-from .sensor import _moderation_active
+from .helpers import safe_text, sync_moderation_registry_enabled
 
 
 async def async_setup_entry(
@@ -91,10 +85,10 @@ class WhatsAppConnectionSensor(
         stats = data.get("stats", {})
         dashboard = data.get("dashboard", {})
         return {
-            "version": stats.get("version", "Unknown"),
-            "phone_number": stats.get("my_number", "Unknown"),
-            "addon_status": data.get("status"),
-            "addon_status_details": data.get("status_details"),
+            "version": safe_text(stats.get("version", "Unknown")),
+            "phone_number": safe_text(stats.get("my_number", "Unknown")),
+            "addon_status": safe_text(data.get("status")),
+            "addon_status_details": safe_text(data.get("status_details")),
             "passkey_required": (
                 bool(dashboard.get("passkeyDetected", False))
                 if isinstance(dashboard, dict)
@@ -105,8 +99,8 @@ class WhatsAppConnectionSensor(
             "total_sent": stats.get("sent", 0),
             "total_received": stats.get("received", 0),
             "total_failed": stats.get("failed", 0),
-            "last_message_sent": stats.get("last_sent_message"),
-            "last_message_target": stats.get("last_sent_target"),
+            "last_message_sent": safe_text(stats.get("last_sent_message")),
+            "last_message_target": safe_text(stats.get("last_sent_target")),
         }
 
     @property
@@ -141,15 +135,7 @@ class WhatsAppModerationStatusBinarySensor(
 
     def _sync_registry_enabled(self) -> None:
         """Enable or disable this entity in the registry based on moderation state."""
-        if self.hass is None or self.registry_entry is None:
-            return
-        active = _moderation_active(self.coordinator.data)
-        if self.registry_entry.disabled != (not active):
-            er = async_get_entity_registry(self.hass)
-            er.async_update_entity(
-                self.entity_id,
-                disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
-            )
+        sync_moderation_registry_enabled(self)
 
     def _handle_coordinator_update(self) -> None:
         """React to coordinator data updates; sync registry enabled state first."""

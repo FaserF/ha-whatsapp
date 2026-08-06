@@ -418,20 +418,45 @@ The Warning Engine tracks user infractions (manual warnings via `!warn`, or auto
 
 ### Welcome & Goodbye Greetings
 When a new participant joins (`action === 'add'`) or leaves (`action === 'remove'`), the bot generates a dynamic message substituting template tags:
-- `{mention}` / `{user}` ➔ `@491701234567` (clickable mention)
-- `{name}` ➔ `491701234567`
-- `{pushname}` ➔ WhatsApp Profile Name
+- `{mention}` / `{user}` ➔ Clickable mention using configured Name Priority
+- `{name}` ➔ `491701234567` (User ID / Phone digits)
+- `{pushname}` ➔ WhatsApp Profile Pushname
 - `{group}` / `{subject}` / `{title}` ➔ Group Title
 - `{count}` / `{members}` ➔ Member Count
 - `{rules}` ➔ Group Rules text
 - `{date}` ➔ Current Date (e.g. `06.08.2026`)
 - `{time}` ➔ Current Time (e.g. `10:15`)
 
-### Captcha Verification Modes
-Protect your group against automated spam accounts joining via invite links.
-- **Button Challenge**: New user must reply with the keyword `"pass"`.
-- **Math Problem**: Generates a random addition challenge (e.g. `Solve math problem: 7 + 4 = ?`).
-- **Timeout**: Configurable timeout (default 120s). If the user fails to answer before the timeout expires, the bot automatically kicks them from the group.
+Farewell (Goodbye) messages automatically include the exact departure reason:
+- 🚶 **Left voluntarily**
+- ⏱️ **Captcha verification timed out**
+- 🚫 **Banned** (with ban reason)
+- 🌐 **Banned via Global Security Federation**
+- ⚠️ **Removed after N warnings**
+- 🔇 **Removed by an admin**
+
+### User Addressing & Name Format Priority
+Configure how members are mentioned in bot responses and greeting messages:
+- **Name Priority Order**:
+  1. `Contact Name > Pushname > Phone Number` (Default)
+  2. `Pushname > Contact Name > Phone Number`
+  3. `Phone Number Only` (+49...)
+- **Fallback**: Select between `Phone Number` (+49...) or Generic (`@User`) when name information is missing.
+
+### Captcha Verification & DM Resolution
+Protect your group against automated spam accounts joining via invite links:
+- **Challenge Modes**: Security Code (e.g. `M5UAY`), Math Problem (`7 + 4 = ?`), or Button Challenge (`pass`).
+- **Delivery Target**: Group Chat or **Private Chat (DM)**.
+- **Private DM Resolution**: When configured for Private Chat, challenges are sent via DM. Users can reply with the security code directly in their private chat with the bot. The bot verifies them instantly, cancels the kick timer, sends a confirmation DM, and posts a welcome notice in the group.
+- **Captcha Dashboard**: Manage pending and verified users directly in the Web UI Dashboard with 1-click manual verification toggling.
+- **Timeout**: Configurable timeout (30s–600s, default 120s). Users who fail to verify in time are automatically removed with a timeout notification.
+
+### Custom Command Handler Modes
+Create custom group commands (`!wifi`, `!faq`, `!socials`) with three execution types:
+1. 🤖 **Auto Reply**: Bot sends an automated text response.
+2. 🏠 **HA / Webhook**: No automated bot reply is sent; the event is forwarded to Home Assistant / Webhooks for custom automation handling. Still appears in `!help`.
+3. 🔗 **Alias**: Redirects execution to execute another built-in or custom command target.
+
 
 ---
 
