@@ -335,10 +335,18 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if sys.modules.get("homeassistant") and getattr(
-        sys.modules["homeassistant"], "_is_stub", False
-    ):
+    if "homeassistant" in sys.modules:
+        if getattr(sys.modules["homeassistant"], "_is_stub", False):
+            return
+        # Real Home Assistant is already imported in sys.modules
         return
+    try:
+        import homeassistant  # noqa: F401
+
+        if not getattr(sys.modules["homeassistant"], "_is_stub", False):
+            return
+    except ImportError:
+        pass
 
     _LOGGER.debug("Building HA stubs...")
 

@@ -14,9 +14,10 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
 
 
 @pytest.fixture(autouse=True)
-def enable_socket(socket_enabled: Any) -> None:
+def enable_socket(request: pytest.FixtureRequest) -> None:
     """Enable socket access during custom component testing."""
-    pass
+    if "socket_enabled" in request.fixturenames:
+        request.getfixturevalue("socket_enabled")
 
 
 @pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
