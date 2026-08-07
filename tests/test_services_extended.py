@@ -134,6 +134,7 @@ async def test_search_groups_service(
             from homeassistant.core import ServiceCall
 
             call = ServiceCall("whatsapp", "search_groups", {"name_filter": "Test"})
+            call.service = "search_groups"
 
             with patch(
                 "custom_components.whatsapp.get_client_for_account",
@@ -203,6 +204,7 @@ async def test_service_routing(
                 "send_message",
                 {"target": "999", "message": "Hi", "account": "MyAccount"},
             )
+            call.service = "send_message"
 
             await send_msg_service(call)
 
@@ -268,6 +270,7 @@ async def test_send_buttons_normalization(
                 "send_buttons",
                 {"target": "123", "message": "Hello", "buttons": buttons},
             )
+            call.service = "send_buttons"
 
             await send_btn_service(call)
 
@@ -331,15 +334,16 @@ async def test_new_services_routing(
 
             from homeassistant.core import ServiceCall
 
+            def make_call(service_name: str, data_dict: dict[str, Any]) -> ServiceCall:
+                c = ServiceCall("whatsapp", service_name, data_dict)
+                c.service = service_name
+                return c
+
             # Test create_group
             create_group_fn = handlers.get("create_group")
             assert create_group_fn is not None
             await create_group_fn(
-                ServiceCall(
-                    "whatsapp",
-                    "create_group",
-                    {"subject": "Test", "participants": ["123"]},
-                )
+                make_call("create_group", {"subject": "Test", "participants": ["123"]})
             )
             mock_client.create_group.assert_awaited_with("Test", ["123"])
 
@@ -347,9 +351,7 @@ async def test_new_services_routing(
             star_fn = handlers.get("star_message")
             assert star_fn is not None
             await star_fn(
-                ServiceCall(
-                    "whatsapp", "star_message", {"target": "123", "message_id": "m1"}
-                )
+                make_call("star_message", {"target": "123", "message_id": "m1"})
             )
             mock_client.star_message.assert_awaited_with("123", "m1", star=True)
 
@@ -357,11 +359,7 @@ async def test_new_services_routing(
             pin_fn = handlers.get("pin_message")
             assert pin_fn is not None
             await pin_fn(
-                ServiceCall(
-                    "whatsapp",
-                    "pin_message",
-                    {"target": "123", "message_id": "m1", "duration": 3600},
-                )
+                make_call("pin_message", {"target": "123", "message_id": "m1", "duration": 3600})
             )
             mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
 
@@ -369,7 +367,7 @@ async def test_new_services_routing(
             status_fn = handlers.get("send_status")
             assert status_fn is not None
             await status_fn(
-                ServiceCall("whatsapp", "send_status", {"message": "Status update"})
+                make_call("send_status", {"message": "Status update"})
             )
             mock_client.send_status.assert_awaited_with(
                 message="Status update", url=None, caption=None

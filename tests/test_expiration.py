@@ -28,8 +28,9 @@ async def test_send_message_with_expiration(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={})
-    mock_instance.get_status = AsyncMock(return_value={})
+    mock_instance.get_stats = AsyncMock(return_value={"connected": True})
+    mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+    mock_instance.get_status = AsyncMock(return_value={"connected": True})
     mock_instance.get_dashboard = AsyncMock(return_value={})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()
@@ -67,8 +68,9 @@ async def test_send_image_with_expiration(hass: HomeAssistant) -> None:
 
     mock_instance = MagicMock(spec=WhatsAppApiClient)
     mock_instance.connect = AsyncMock(return_value=True)
-    mock_instance.get_stats = AsyncMock(return_value={})
-    mock_instance.get_status = AsyncMock(return_value={})
+    mock_instance.get_stats = AsyncMock(return_value={"connected": True})
+    mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+    mock_instance.get_status = AsyncMock(return_value={"connected": True})
     mock_instance.get_dashboard = AsyncMock(return_value={})
     mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     mock_instance.start_polling = AsyncMock()

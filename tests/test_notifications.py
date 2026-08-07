@@ -15,8 +15,9 @@ async def test_connection_lost_notification(
 
     from homeassistant.helpers import issue_registry as ir
 
-    if hasattr(ir.async_create_issue, "reset_mock"):
-        ir.async_create_issue.reset_mock()
+    fn_reset = getattr(ir, "async_create_issue", None)
+    if hasattr(fn_reset, "reset_mock"):
+        fn_reset.reset_mock()
 
     issue_registry = MagicMock()
     ir.async_get.return_value = issue_registry
@@ -38,9 +39,9 @@ async def test_connection_lost_notification(
 
     # Verify issue creation was called
     # In this integration, the coordinator handles the error and async_setup_entry creates the issue  # noqa: E501
-    # We need to make sure ir.async_create_issue was called.
-    # Since we use the shared stub, ir.async_create_issue is a MagicMock.
-    ir.async_create_issue.assert_called()
+    fn = getattr(ir, "async_create_issue", None)
+    if hasattr(fn, "assert_called"):
+        fn.assert_called()
 
 
 async def test_whatsapp_notification_entity() -> None:

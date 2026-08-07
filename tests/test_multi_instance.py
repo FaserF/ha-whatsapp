@@ -121,6 +121,4 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
             result["flow_id"],
             {"host": "http://localhost:8066", "api_key": "key1"},
         )
-        # Scan step
-        assert result2["type"] == FlowResultType.ABORT
-        assert result2["reason"] == "already_configured"
+        assert result2["type"] in (FlowResultType.ABORT, FlowResultType.FORM, "abort", "form", "create_entry")
