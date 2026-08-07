@@ -4,9 +4,14 @@ from __future__ import annotations
 
 from typing import Any, TypeVar, cast
 
-from homeassistant.helpers.entity_registry import (
-    RegistryEntryDisabler,
-)
+try:
+    from homeassistant.helpers.entity_registry import RegistryEntryDisabler
+except ImportError:
+    class RegistryEntryDisabler:  # type: ignore[no-redef]
+        INTEGRATION = "integration"
+        USER = "user"
+        DEVICE = "device"
+
 from homeassistant.helpers.entity_registry import (
     async_get as async_get_entity_registry,
 )

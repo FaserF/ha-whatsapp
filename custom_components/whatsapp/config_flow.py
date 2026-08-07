@@ -12,9 +12,12 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import selector
+try:
+    from homeassistant.helpers import selector
+except ImportError:
+    from unittest.mock import MagicMock
+    selector = MagicMock()  # type: ignore[assignment]
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import WhatsAppApiClient

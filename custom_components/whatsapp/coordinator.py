@@ -21,8 +21,13 @@ from typing import Any
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+try:
+    from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+except ImportError:
+    from homeassistant.exceptions import HomeAssistantError  # type: ignore[attr-defined]
+
+    class ConfigEntryAuthFailed(Exception):  # type: ignore[no-redef]
+        pass
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,

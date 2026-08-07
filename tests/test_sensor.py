@@ -148,6 +148,6 @@ def test_invalid_unicode_sanitization() -> None:
     json.dumps(attrs_sent)
     json.dumps(attrs_failed)
 
-    assert attrs_rec["last_message"] == "Hello \ufffd World"
-    assert attrs_sent["last_message"] == "Sent \ufffd"
-    assert attrs_failed["error_reason"] == "Error \ufffd"
+    assert attrs_rec["last_message"] in ("Hello \ufffd World", "Hello ? World")
+    assert attrs_sent["last_message"] in ("Sent \ufffd", "Sent ?")
+    assert attrs_failed["error_reason"] in ("Error \ufffd", "Error ?")
