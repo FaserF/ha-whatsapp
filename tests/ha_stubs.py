@@ -344,14 +344,23 @@ class MockConfigEntry:
             hass.data["whatsapp"] = {}
 
 
-def mock_add_entities(hass: Any, entities: Any, update_before_add: bool = False) -> None:
+def mock_add_entities(
+    hass: Any, entities: Any, update_before_add: bool = False
+) -> None:
     for entity in entities:
         entity.hass = hass
         if hasattr(entity, "entity_id") and entity.entity_id:
             entity_id = entity.entity_id
         else:
-            domain = getattr(entity, "domain", None) or getattr(entity, "platform", None) or "sensor"
-            if hasattr(entity, "_attr_translation_key") and entity._attr_translation_key:
+            domain = (
+                getattr(entity, "domain", None)
+                or getattr(entity, "platform", None)
+                or "sensor"
+            )
+            if (
+                hasattr(entity, "_attr_translation_key")
+                and entity._attr_translation_key
+            ):
                 key = entity._attr_translation_key
                 if key == "connection":
                     entity_id = f"{domain}.whatsapp"
@@ -363,13 +372,15 @@ def mock_add_entities(hass: Any, entities: Any, update_before_add: bool = False)
                 name = getattr(entity, "name", None) or "whatsapp"
                 entity_id = f"{domain}.{name}"
             entity.entity_id = entity_id
-        
+
         attr = getattr(entity, "extra_state_attributes", {}) or {}
         state_val = getattr(entity, "is_on", None)
         if state_val is not None:
             state_str = "on" if state_val else "off"
         else:
-            state_str = str(getattr(entity, "native_value", getattr(entity, "state", "unknown")))
+            state_str = str(
+                getattr(entity, "native_value", getattr(entity, "state", "unknown"))
+            )
         hass.states.async_set_state(entity.entity_id, state_str, attr)
 
 

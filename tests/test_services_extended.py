@@ -359,16 +359,17 @@ async def test_new_services_routing(
             pin_fn = handlers.get("pin_message")
             assert pin_fn is not None
             await pin_fn(
-                make_call("pin_message", {"target": "123", "message_id": "m1", "duration": 3600})
+                make_call(
+                    "pin_message",
+                    {"target": "123", "message_id": "m1", "duration": 3600},
+                )
             )
             mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
 
             # Test send_status
             status_fn = handlers.get("send_status")
             assert status_fn is not None
-            await status_fn(
-                make_call("send_status", {"message": "Status update"})
-            )
+            await status_fn(make_call("send_status", {"message": "Status update"}))
             mock_client.send_status.assert_awaited_with(
                 message="Status update", url=None, caption=None
             )

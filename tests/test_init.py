@@ -32,7 +32,9 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 0, "failed": 0, "connected": True}
+        )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
@@ -63,7 +65,9 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
     with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         mock_instance = mock_client_cls.return_value
         mock_instance.connect = AsyncMock(return_value=True)
-        mock_instance.get_stats = AsyncMock(return_value={"sent": 0, "failed": 0, "connected": True})
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 0, "failed": 0, "connected": True}
+        )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
         callback: Callable[[dict[str, Any]], None] | None = None
 

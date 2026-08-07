@@ -44,7 +44,12 @@ def mock_client() -> MagicMock:
     client.start_session = MagicMock(return_value=None)
     client.get_qr_code = AsyncMock(return_value="data:image/png;base64,mock_qr")
     client.get_stats = AsyncMock(
-        return_value={"sent": 0, "failed": 0, "my_number": "123456789", "connected": True}
+        return_value={
+            "sent": 0,
+            "failed": 0,
+            "my_number": "123456789",
+            "connected": True,
+        }
     )  # noqa: E501
     client.register_callback = MagicMock()
     client.start_polling = AsyncMock()
@@ -132,11 +137,14 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 if result:
                     entry.state = ha_stubs.ConfigEntryState.LOADED
                     from custom_components.whatsapp.const import DOMAIN
+
                     hass.data.setdefault(DOMAIN, {})
                     if entry.entry_id not in hass.data[DOMAIN]:
                         hass.data[DOMAIN][entry.entry_id] = {
                             "client": mock_client,
-                            "coordinator": ha_stubs.DataUpdateCoordinator(hass, mock_client, entry),
+                            "coordinator": ha_stubs.DataUpdateCoordinator(
+                                hass, mock_client, entry
+                            ),
                         }
                 return result
             except Exception:
