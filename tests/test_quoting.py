@@ -39,8 +39,9 @@ def notify_entity(mock_client: MagicMock) -> WhatsAppNotificationEntity:
     """Fixture to create WhatsAppNotificationEntity instance."""
     coordinator = MagicMock()
     entry = MagicMock()
-    entry.entry_id = "test_entry"
-    return WhatsAppNotificationEntity(mock_client, entry, coordinator)
+    entity = WhatsAppNotificationEntity(mock_client, entry, coordinator)
+    entity._async_record_notification = lambda: None  # type: ignore[method-assign]
+    return entity
 
 
 # ---------------------------------------------------------------------------

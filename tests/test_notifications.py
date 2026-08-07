@@ -15,8 +15,8 @@ async def test_connection_lost_notification(
 
     from homeassistant.helpers import issue_registry as ir
 
-    # Reset mock since it is shared across tests and might have been triggered before
-    ir.async_create_issue.reset_mock()
+    if hasattr(ir.async_create_issue, "reset_mock"):
+        ir.async_create_issue.reset_mock()
 
     issue_registry = MagicMock()
     ir.async_get.return_value = issue_registry
@@ -65,6 +65,7 @@ async def test_whatsapp_notification_entity() -> None:
         from custom_components.whatsapp.notify import WhatsAppNotificationEntity
 
         entity = WhatsAppNotificationEntity(mock_instance, MagicMock(), MagicMock())
+        entity._async_record_notification = lambda: None  # type: ignore[method-assign]
 
         # Call the send_message
         await entity.async_send_message(message="Hello", target=["555"])

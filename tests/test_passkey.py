@@ -46,6 +46,7 @@ async def test_passkey_warning_step_goes_to_waiting_with_continue(
     flow.client.get_stats = AsyncMock(return_value={"my_number": "12345"})
     flow.client.get_chats = AsyncMock(return_value={"total_chats": 10})
     flow.client.close = AsyncMock()
+    flow._abort_if_unique_id_configured = MagicMock()
 
     with patch("asyncio.sleep"):
         res = await flow.async_step_passkey_warning(
@@ -67,6 +68,7 @@ async def test_passkey_waiting_step_success(hass: HomeAssistant) -> None:
     flow.client.get_stats = AsyncMock(return_value={"my_number": "12345"})
     flow.client.get_chats = AsyncMock(return_value={"total_chats": 10})
     flow.client.close = AsyncMock()
+    flow._abort_if_unique_id_configured = MagicMock()
 
     with patch("asyncio.sleep"):
         res = await flow.async_step_passkey_waiting()

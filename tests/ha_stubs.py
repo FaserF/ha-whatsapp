@@ -278,14 +278,20 @@ def mock_add_entities(
         entity.async_write_ha_state()
 
 
+class ConfigEntryState:
+    LOADED = "loaded"
+    NOT_LOADED = "not_loaded"
+    SETUP_ERROR = "setup_error"
+
+
 class MockConfigEntry:
     def __init__(
         self,
-        domain: str,
-        data: dict[str, Any],
-        title: str = "WhatsApp",
+        domain: str = "whatsapp",
+        data: dict[str, Any] | None = None,
         entry_id: str | None = None,
         options: dict[str, Any] | None = None,
+        title: str = "Mock Title",
         **kwargs: Any,
     ) -> None:
         self.domain = domain
@@ -299,6 +305,7 @@ class MockConfigEntry:
         self.title = title
         self.unique_id = kwargs.get("unique_id")
         self.version = kwargs.get("version", 1)
+        self.state = ConfigEntryState.LOADED
 
     def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
@@ -399,10 +406,13 @@ def _build_ha_stub_modules() -> None:
     )
 
     # homeassistant.helpers.entity_registry
+    registry_instance = MagicMock()
+    registry_instance.entities = {}
+    registry_instance.async_update_entity = MagicMock()
     _stub(
         "homeassistant.helpers.entity_registry",
-        async_get=MagicMock(),
-        async_entries_for_config_entry=MagicMock(),
+        async_get=MagicMock(return_value=registry_instance),
+        async_entries_for_config_entry=MagicMock(return_value=[]),
     )
 
     # homeassistant.helpers.device_registry
@@ -426,14 +436,14 @@ def _build_ha_stub_modules() -> None:
     )
 
     # homeassistant.helpers.issue_registry
+    ir_create_issue = MagicMock()
     ir_mod = _stub(
         "homeassistant.helpers.issue_registry",
         async_get=MagicMock(),
         IssueSeverity=MagicMock(),
         async_delete_issue=MagicMock(),
-        async_create_issue=MagicMock(),
+        async_create_issue=ir_create_issue,
     )
-    ir_mod.async_create_issue = MagicMock()
     helpers.issue_registry = ir_mod
 
     # homeassistant.helpers.entity_platform
@@ -469,6 +479,7 @@ def _build_ha_stub_modules() -> None:
     _stub(
         "homeassistant.config_entries",
         ConfigEntry=object,
+        ConfigEntryState=ConfigEntryState,
         ConfigFlow=ConfigFlow,
         OptionsFlow=OptionsFlow,
         ConfigFlowResult=dict,

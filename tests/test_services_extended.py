@@ -118,7 +118,7 @@ async def test_search_groups_service(
             mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
             mock_entry.options = {}
             mock_entry.entry_id = "test_entry"
-            hass.data = {DOMAIN: {}}
+            hass.data = {DOMAIN: {mock_entry.entry_id: {"client": mock_instance}}}
 
             with patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -164,7 +164,11 @@ async def test_service_routing(
         from custom_components.whatsapp import async_setup_entry
         from custom_components.whatsapp.const import DOMAIN
 
-        hass.data = {DOMAIN: {}}
+        mock_entry = MagicMock()
+        mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
+        mock_entry.options = {}
+        mock_entry.entry_id = "test_entry"
+        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
 
         with (
             patch(
@@ -182,11 +186,6 @@ async def test_service_routing(
 
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
-
-            mock_entry = MagicMock()
-            mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
-            mock_entry.options = {}
-            mock_entry.entry_id = "test_entry"
 
             await async_setup_entry(hass, mock_entry)
 
@@ -229,7 +228,11 @@ async def test_send_buttons_normalization(
         from custom_components.whatsapp import async_setup_entry
         from custom_components.whatsapp.const import DOMAIN
 
-        hass.data = {DOMAIN: {}}
+        mock_entry = MagicMock()
+        mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
+        mock_entry.options = {}
+        mock_entry.entry_id = "test_entry"
+        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
 
         with (
             patch(
@@ -247,11 +250,6 @@ async def test_send_buttons_normalization(
 
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
-
-            mock_entry = MagicMock()
-            mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
-            mock_entry.options = {}
-            mock_entry.entry_id = "test_entry"
 
             await async_setup_entry(hass, mock_entry)
 
@@ -294,7 +292,11 @@ async def test_new_services_routing(
         from custom_components.whatsapp import async_setup_entry
         from custom_components.whatsapp.const import DOMAIN
 
-        hass.data = {DOMAIN: {}}
+        mock_entry = MagicMock()
+        mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
+        mock_entry.options = {}
+        mock_entry.entry_id = "test_entry"
+        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
 
         with (
             patch(
@@ -312,11 +314,6 @@ async def test_new_services_routing(
 
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
-
-            mock_entry = MagicMock()
-            mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
-            mock_entry.options = {}
-            mock_entry.entry_id = "test_entry"
 
             await async_setup_entry(hass, mock_entry)
 
