@@ -76,6 +76,7 @@ class Bus:
     def __init__(self) -> None:
         self.async_fire = MagicMock()
         self.async_listen = MagicMock()
+        self.async_listen_once = MagicMock()
 
 
 # Const
@@ -282,6 +283,7 @@ class ConfigEntryState:
     LOADED = "loaded"
     NOT_LOADED = "not_loaded"
     SETUP_ERROR = "setup_error"
+    SETUP_IN_PROGRESS = "setup_in_progress"
 
 
 class MockConfigEntry:
@@ -305,7 +307,7 @@ class MockConfigEntry:
         self.title = title
         self.unique_id = kwargs.get("unique_id")
         self.version = kwargs.get("version", 1)
-        self.state = ConfigEntryState.LOADED
+        self.state = ConfigEntryState.SETUP_IN_PROGRESS
 
     def async_on_unload(self, func: Callable[..., Any]) -> None:
         pass
