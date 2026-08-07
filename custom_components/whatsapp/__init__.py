@@ -492,6 +492,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
+                mimetype=data.get("mimetype") or data.get("mime_type"),
             )
         elif service == "send_video":
             await client.send_video(

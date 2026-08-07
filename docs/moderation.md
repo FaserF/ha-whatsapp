@@ -132,12 +132,53 @@ These commands can be run by **any member** in the group.
 #### 6. `!adminlist` (Alias: `!admins`)
 - **Description**: Fetches and lists all current administrators of the WhatsApp group, visually distinguishing the Group Owner/Creator (👑) from Group Admins (👮).
 - **Syntax**: `!adminlist` or `!admins`
-- **Response**:
-  ```
-  👮 Group Admins (2):
-  👑 @491701111111
-  👮 @491702222222
-  ```
+
+---
+
+#### 7. `!approved`
+- **Description**: Lists all whitelisted/approved users in the group *(MissRose Parity)*.
+- **Syntax**: `!approved`
+
+---
+
+#### 8. `#notename`
+- **Description**: Hashtag shortcut trigger to retrieve and display a saved note *(MissRose Parity)*.
+- **Example**: `#wifi`, `#rules`
+
+---
+
+### 👮 Admin Commands Overview
+
+The following admin commands are available to group administrators:
+
+| Command | Arguments | Description |
+|---|---|---|
+| `!newfed` | `<name>` | Create a new ban federation *(MissRose parity)* |
+| `!joinfed` | `<fed_id>` | Join group to a ban federation *(MissRose parity)* |
+| `!leavefed` | - | Leave current ban federation *(MissRose parity)* |
+| `!fban` | `[@user]` | Federation-ban user across all linked groups *(MissRose parity)* |
+| `!unfban` | `<user_id>` | Remove federation ban from user *(MissRose parity)* |
+| `!fedinfo` | `[fed_id]` | Show federation details *(MissRose parity)* |
+| `!fbanlist` | - | List active federation bans *(MissRose parity)* |
+| `!fedadmins` | - | List federation owner and admins *(MissRose parity)* |
+| `!removespamlinks` | `<on\|off>` | Toggle automatic removal of `t.me` and `wa.me` invite links *(RemoveSpamLinkBot parity)* |
+| `!pin` | `[loud]` | Pin message in group |
+| `!unpin` | - | Unpin message in group |
+| `!unpinall` | - | Unpin all messages in group |
+| `!pinned` | - | Display current pinned message |
+| `!blacklist` | `[word]` | List blacklisted words or add `<word>` to blacklist *(MissRose parity)* |
+| `!rmblacklist` / `!unblacklist` | `<word>` | Remove word from group blacklist *(MissRose parity)* |
+| `!setblacklistaction` | `<action>` | Set action on blacklist hit (`delete`, `warn`, `mute`, `kick`, `ban`) |
+| `!setlog` | `<jid>` | Set moderation log channel *(MissRose parity)* |
+| `!unsetlog` | - | Remove log channel |
+| `!slowmode` | `<time\|off>` | Configure chat rate limit delay (e.g. `10s`, `1m`, `off`) |
+| `!settitle` | `<title>` | Update group subject/title |
+| `!setdescription` | `<text>` | Update group description |
+| `!setphoto` | - | Update group photo/avatar |
+| `!mode` | `<quiet\|normal>` | Set scanner notification mode: `quiet` vs `normal` *(DrWebBot parity)* |
+| `!unapproveall` | - | Bulk clear all user approvals *(MissRose parity)* |
+| `!reports` | `<on\|off>` | Toggle `/report` system for group members *(MissRose parity)* |
+
 
 ---
 
@@ -512,6 +553,7 @@ Tracks join velocity across the whole group (`max_joins` within `window_seconds`
 Cluster multiple WhatsApp groups into a shared **Ban Federation**:
 - When a user is banned in one group of the federation, their ID is registered in the central federation ban list.
 - If that user joins or posts in any other group linked to the same federation, they are **automatically banned immediately**!
+- **⚡ Spam Link Guard Synergy**: When `!removespamlinks on` is active in a federated group, any member posting `t.me` or `wa.me` spam invite links is deleted AND automatically **Federation-Banned (`!fban`)** across all linked groups in the network!
 
 ---
 

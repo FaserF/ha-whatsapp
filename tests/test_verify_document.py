@@ -68,6 +68,18 @@ async def test_verify_send_document() -> None:
         assert headers["X-Auth-Token"] == "test_key"
         _LOGGER.info("✅ Allowed target passed.")
 
+        # Test sending with explicit mimetype
+        await client.send_document(
+            "49123456789",
+            "http://test.com/file.mp3",
+            "file.mp3",
+            "MP3 audio",
+            mimetype="audio/mpeg",
+        )
+        _, kwargs_mp3 = mock_session.post.call_args
+        assert kwargs_mp3["json"]["mimetype"] == "audio/mpeg"
+        assert kwargs_mp3["json"]["fileName"] == "file.mp3"
+
         # 2. Test blocked target
         _LOGGER.info("Testing blocked target (whitelist)...")
         mock_session.post.reset_mock()

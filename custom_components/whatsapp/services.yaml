@@ -262,6 +262,14 @@ send_document:
       example: "Energy_Report_January_2024.pdf"
       selector:
         text:
+    mimetype:
+      name: MIME Type
+      description: >
+        Optional MIME type for the document (e.g., 'audio/mpeg', 'application/pdf', 'video/mp4').
+        If not provided, the MIME type will be automatically inferred from the file name.
+      example: "audio/mpeg"
+      selector:
+        text:
     message:
       name: Caption
       description: Optional text caption displayed with the document.

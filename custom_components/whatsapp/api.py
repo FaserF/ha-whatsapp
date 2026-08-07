@@ -974,6 +974,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        mimetype: str | None = None,
     ) -> str:
         """Send a document (with retry)."""
         if not self.is_allowed(number):
@@ -991,6 +992,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 caption,
                 quoted_message_id,
                 expiration,
+                mimetype,
             ),
         )
 
@@ -1002,6 +1004,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         caption: str | None = None,
         quoted_message_id: str | None = None,
         expiration: int | None = None,
+        mimetype: str | None = None,
     ) -> str:
         """Internal send document logic."""
         api_url = f"{self.host}/send_document"
@@ -1011,6 +1014,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "fileName": file_name,
             "caption": caption,
         }
+        if mimetype is not None:
+            payload["mimetype"] = mimetype
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
         if expiration is not None:
@@ -1024,7 +1029,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 json=payload,
                 headers=headers,
                 params={"session_id": self.session_id},
-                timeout=aiohttp.ClientTimeout(total=30),
+                timeout=aiohttp.ClientTimeout(total=300),
             ) as resp,
         ):
             result = await resp.json()
