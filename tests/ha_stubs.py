@@ -75,6 +75,7 @@ class SupportsResponse:
 class Bus:
     def __init__(self) -> None:
         self.async_fire = MagicMock()
+        self.async_listen = MagicMock()
 
 
 # Const
@@ -432,6 +433,7 @@ def _build_ha_stub_modules() -> None:
         async_delete_issue=MagicMock(),
         async_create_issue=MagicMock(),
     )
+    ir_mod.async_create_issue = MagicMock()
     helpers.issue_registry = ir_mod
 
     # homeassistant.helpers.entity_platform
@@ -448,7 +450,7 @@ def _build_ha_stub_modules() -> None:
         ATTR_MESSAGE="message",
         ATTR_TARGET="target",
         BaseNotificationService=object,
-        NotifyEntity=object,
+        NotifyEntity=type("NotifyEntity", (object,), {"_async_record_notification": lambda self: None}),
     )
 
     # homeassistant.data_entry_flow

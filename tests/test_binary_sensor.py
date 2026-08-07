@@ -38,7 +38,10 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
             return_value={"total_chats": 0, "groups": []}
         )
         mock_instance.get_moderation_config = AsyncMock(return_value={"data": {}})
-        mock_instance.register_callback = MagicMock()
+        def reg_cb(cb: Any) -> None:
+            pass
+
+        mock_instance.register_callback = MagicMock(side_effect=reg_cb)
         mock_instance.start_polling = AsyncMock()
         mock_instance.start_session = AsyncMock(return_value=None)
         mock_instance.close = AsyncMock()

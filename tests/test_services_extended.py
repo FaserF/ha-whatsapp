@@ -64,12 +64,12 @@ def get_patches(stack: ExitStack) -> None:
 
     # voluptuous patches
     stack.enter_context(patch("voluptuous.All", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Required", MagicMock(), create=True))
-    stack.enter_context(patch("voluptuous.Optional", MagicMock(), create=True))
+    stack.enter_context(patch("voluptuous.Required", side_effect=lambda x, **_: x, create=True))
+    stack.enter_context(patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True))
     stack.enter_context(patch("voluptuous.Schema", lambda s, **_: s, create=True))
     stack.enter_context(patch("voluptuous.Coerce", lambda *a, **_: a[0], create=True))
     stack.enter_context(patch("voluptuous.In", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Range", lambda *a, **_: a[0], create=True))
+    stack.enter_context(patch("voluptuous.Range", lambda *a, **_: a[0] if a else MagicMock(), create=True))
     stack.enter_context(patch("voluptuous.Any", lambda *a, **_: a[0], create=True))
     stack.enter_context(patch("voluptuous.Marker", object, create=True))
     stack.enter_context(patch("voluptuous.Invalid", Exception, create=True))

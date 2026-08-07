@@ -108,7 +108,7 @@ def _build_ha_stub_modules() -> None:
     vol_mod.All = MagicMock(side_effect=lambda *a, **_: a[0])
     vol_mod.In = MagicMock(side_effect=lambda *a, **_: a[0])
     vol_mod.Coerce = MagicMock(side_effect=lambda *a, **_: a[0])
-    vol_mod.Range = MagicMock(side_effect=lambda *a, **_: a[0])
+    vol_mod.Range = MagicMock(side_effect=lambda *a, **_: a[0] if a else MagicMock())
     vol_mod.Any = MagicMock(side_effect=lambda *a, **_: a[1] if a[0] is None else a[0])
     vol_mod.Invalid = Exception
     vol_mod.SchemaError = Exception
@@ -174,7 +174,7 @@ def get_patches(stack: ExitStack) -> None:
         patch("voluptuous.In", side_effect=lambda *a, **_: a[0], create=True)
     )
     stack.enter_context(
-        patch("voluptuous.Range", side_effect=lambda *a, **_: a[0], create=True)
+        patch("voluptuous.Range", side_effect=lambda *a, **_: a[0] if a else MagicMock(), create=True)
     )
     stack.enter_context(
         patch(

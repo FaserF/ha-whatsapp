@@ -52,7 +52,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
             nonlocal callback_capture
             callback_capture = callback
 
-        mock_instance.register_callback.side_effect = register_side_effect
+        mock_instance.register_callback = MagicMock(side_effect=register_side_effect)
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
