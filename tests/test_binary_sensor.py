@@ -1,5 +1,6 @@
 """Test the HA WhatsApp binary sensor."""
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from ha_stubs import _build_ha_stub_modules
@@ -39,7 +40,7 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         )
         mock_instance.get_moderation_config = AsyncMock(return_value={"data": {}})
 
-        def reg_cb(cb: Any) -> None:
+        def reg_cb(_cb: Any) -> None:
             pass
 
         mock_instance.register_callback = MagicMock(side_effect=reg_cb)

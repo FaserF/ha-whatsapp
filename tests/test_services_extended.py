@@ -75,7 +75,9 @@ def get_patches(stack: ExitStack) -> None:
     stack.enter_context(patch("voluptuous.In", lambda *a, **_: a[0], create=True))
     stack.enter_context(
         patch(
-            "voluptuous.Range", lambda *a, **_: a[0] if a else MagicMock(), create=True
+            "voluptuous.Range",
+            lambda *a, **_: a[0] if a else MagicMock(),
+            create=True,
         )
     )
     stack.enter_context(patch("voluptuous.Any", lambda *a, **_: a[0], create=True))

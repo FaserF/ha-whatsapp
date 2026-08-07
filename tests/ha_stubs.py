@@ -451,7 +451,9 @@ def _build_ha_stub_modules() -> None:
         ATTR_TARGET="target",
         BaseNotificationService=object,
         NotifyEntity=type(
-            "NotifyEntity", (object,), {"_async_record_notification": lambda self: None}
+            "NotifyEntity",
+            (object,),
+            {"_async_record_notification": lambda _self: None},
         ),
     )
 
