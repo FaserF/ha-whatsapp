@@ -140,9 +140,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
                     hass.data.setdefault(DOMAIN, {})
                     if entry.entry_id not in hass.data[DOMAIN]:
-                        coord = ha_stubs.DataUpdateCoordinator(
-                            hass, mock_client, entry
-                        )
+                        coord = ha_stubs.DataUpdateCoordinator(hass, mock_client, entry)
                         hass.data[DOMAIN][entry.entry_id] = {
                             "client": mock_client,
                             "coordinator": coord,

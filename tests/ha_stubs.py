@@ -360,9 +360,6 @@ class MockConfigEntry:
             hass.data["whatsapp"] = {}
 
 
-
-
-
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
     if "homeassistant" in sys.modules:
