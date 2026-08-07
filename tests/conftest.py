@@ -13,6 +13,12 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     ha_stubs._build_ha_stub_modules()
 
 
+@pytest.fixture(autouse=True)
+def enable_socket(socket_enabled: Any) -> None:
+    """Enable socket access during custom component testing."""
+    pass
+
+
 @pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
 def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
     """Clear sys.modules between tests to ensure fresh global variables."""
