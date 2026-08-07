@@ -6,6 +6,7 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
+from homeassistant.data_entry_flow import FlowResultType  # noqa: E402
 from homeassistant.core import HomeAssistant  # noqa: E402
 
 from custom_components.whatsapp.config_flow import ConfigFlow  # noqa: E402

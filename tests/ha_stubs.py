@@ -246,7 +246,7 @@ stub = _stub
 
 
 def mock_add_entities(
-    hass: Any, entities: list[Any], _update_before_add: bool = False
+    hass: Any, entities: list[Any], update_before_add: bool = False
 ) -> None:
     for entity in entities:
         entity.hass = hass
@@ -255,7 +255,8 @@ def mock_add_entities(
             if hasattr(entity, "is_on"):
                 domain = "binary_sensor"
 
-            if domain == "sensor" and hasattr(entity, "_stat_key") and entity._stat_key:
+            has_stat = hasattr(entity, "_stat_key") and entity._stat_key
+            if domain == "sensor" and has_stat:
                 stat = entity._stat_key
                 if stat == "uptime":
                     entity.entity_id = "sensor.whatsapp_uptime"
@@ -277,7 +278,22 @@ def mock_add_entities(
             else:
                 entity.entity_id = f"{domain}.whatsapp"
 
-        entity.async_write_ha_state()
+        attr = getattr(entity, "extra_state_attributes", {}) or {}
+        state_val = getattr(entity, "is_on", None)
+        if state_val is not None:
+            state_str = "on" if state_val else "off"
+        else:
+            native_val = getattr(entity, "native_value", None)
+            if native_val is not None:
+                state_str = str(native_val)
+            else:
+                state_str = str(getattr(entity, "state", "unknown"))
+        if hasattr(hass, "states") and hasattr(hass.states, "async_set_state"):
+            hass.states.async_set_state(entity.entity_id, state_str, attr)
+        else:
+            entity.async_write_ha_state()
+        if update_before_add and hasattr(entity, "async_update"):
+            pass
 
 
 class ConfigEntryState:
@@ -344,44 +360,7 @@ class MockConfigEntry:
             hass.data["whatsapp"] = {}
 
 
-def mock_add_entities(
-    hass: Any, entities: Any, update_before_add: bool = False
-) -> None:
-    for entity in entities:
-        entity.hass = hass
-        if hasattr(entity, "entity_id") and entity.entity_id:
-            entity_id = entity.entity_id
-        else:
-            domain = (
-                getattr(entity, "domain", None)
-                or getattr(entity, "platform", None)
-                or "sensor"
-            )
-            if (
-                hasattr(entity, "_attr_translation_key")
-                and entity._attr_translation_key
-            ):
-                key = entity._attr_translation_key
-                if key == "connection":
-                    entity_id = f"{domain}.whatsapp"
-                elif key in ("sent", "received", "failed"):
-                    entity_id = f"sensor.whatsapp_messages_{key}"
-                else:
-                    entity_id = f"{domain}.whatsapp_{key}"
-            else:
-                name = getattr(entity, "name", None) or "whatsapp"
-                entity_id = f"{domain}.{name}"
-            entity.entity_id = entity_id
 
-        attr = getattr(entity, "extra_state_attributes", {}) or {}
-        state_val = getattr(entity, "is_on", None)
-        if state_val is not None:
-            state_str = "on" if state_val else "off"
-        else:
-            state_str = str(
-                getattr(entity, "native_value", getattr(entity, "state", "unknown"))
-            )
-        hass.states.async_set_state(entity.entity_id, state_str, attr)
 
 
 def _build_ha_stub_modules() -> None:

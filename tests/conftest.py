@@ -50,7 +50,7 @@ def mock_client() -> MagicMock:
             "my_number": "123456789",
             "connected": True,
         }
-    )  # noqa: E501
+    )
     client.register_callback = MagicMock()
     client.start_polling = AsyncMock()
     client.close = AsyncMock()
@@ -140,11 +140,12 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
                     hass.data.setdefault(DOMAIN, {})
                     if entry.entry_id not in hass.data[DOMAIN]:
+                        coord = ha_stubs.DataUpdateCoordinator(
+                            hass, mock_client, entry
+                        )
                         hass.data[DOMAIN][entry.entry_id] = {
                             "client": mock_client,
-                            "coordinator": ha_stubs.DataUpdateCoordinator(
-                                hass, mock_client, entry
-                            ),
+                            "coordinator": coord,
                         }
                 return result
             except Exception:
