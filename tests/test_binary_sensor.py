@@ -38,6 +38,7 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
             return_value={"total_chats": 0, "groups": []}
         )
         mock_instance.get_moderation_config = AsyncMock(return_value={"data": {}})
+
         def reg_cb(cb: Any) -> None:
             pass
 

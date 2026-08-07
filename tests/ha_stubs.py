@@ -450,7 +450,9 @@ def _build_ha_stub_modules() -> None:
         ATTR_MESSAGE="message",
         ATTR_TARGET="target",
         BaseNotificationService=object,
-        NotifyEntity=type("NotifyEntity", (object,), {"_async_record_notification": lambda self: None}),
+        NotifyEntity=type(
+            "NotifyEntity", (object,), {"_async_record_notification": lambda self: None}
+        ),
     )
 
     # homeassistant.data_entry_flow
