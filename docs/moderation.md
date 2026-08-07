@@ -412,10 +412,207 @@ These commands require **Group Admin** privileges.
 
 ---
 
-#### 37. `!setlang`
-- **Description**: Configures the target language for AI translations (`de`, `en`, `es`, `fr`, `it`, `ar`, `zh`, `ja`, etc.).
-- **Syntax**: `!setlang <code>`
-- **Example**: `!setlang de`
+#### 38. `!resetwarn` (Alias: `!rmwarn`)
+- **Description**: Resets/clears all warnings for a specific user.
+- **Syntax**: `!resetwarn [@user]` or `!rmwarn [@user]`
+
+---
+
+#### 39. `!setwarnlimit`
+- **Description**: Sets the maximum warning threshold (1 to 20) before a penalty is executed.
+- **Syntax**: `!setwarnlimit <count>`
+
+---
+
+#### 40. `!setwarnaction`
+- **Description**: Sets the penalty action when warning limit is reached (`mute`, `kick`, `ban`).
+- **Syntax**: `!setwarnaction <mute|kick|ban>`
+
+---
+
+#### 41. `!whitelist` / `!approve`
+- **Description**: Adds a user to the group approved whitelist, bypassing moderation checks.
+- **Syntax**: `!whitelist [@user]`
+
+---
+
+#### 42. `!unwhitelist` / `!unapprove`
+- **Description**: Removes a user from the group approved whitelist.
+- **Syntax**: `!unwhitelist [@user]`
+
+---
+
+#### 43. `!whitelisted`
+- **Description**: Lists all whitelisted users in the group.
+- **Syntax**: `!whitelisted`
+
+---
+
+#### 44. `!scan`
+- **Description**: Triggers an AI security scan on the group or replied message.
+- **Syntax**: `!scan`
+
+---
+
+#### 45. `!autotranslate`
+- **Description**: Configures auto-translation settings for group messages.
+- **Syntax**: `!autotranslate <on|off>`
+
+---
+
+#### 46. `!flood`
+- **Description**: Configures rate-limit flood protection settings.
+- **Syntax**: `!flood <max_messages> <window_seconds>`
+
+---
+
+#### 47. `!newfed`
+- **Description**: Creates a new cross-group Ban Federation.
+- **Syntax**: `!newfed <name>`
+
+---
+
+#### 48. `!joinfed`
+- **Description**: Connects the current group to a Ban Federation.
+- **Syntax**: `!joinfed <fed_id>`
+
+---
+
+#### 49. `!leavefed`
+- **Description**: Disconnects the current group from its Ban Federation.
+- **Syntax**: `!leavefed`
+
+---
+
+#### 50. `!fban`
+- **Description**: Bans a user across all groups linked to the active Ban Federation.
+- **Syntax**: `!fban [@user] [reason]`
+
+---
+
+#### 51. `!unfban`
+- **Description**: Lifts a federation ban for a user.
+- **Syntax**: `!unfban <user_id>`
+
+---
+
+#### 52. `!fedinfo`
+- **Description**: Displays details, statistics, and owner of a Ban Federation.
+- **Syntax**: `!fedinfo [fed_id]`
+
+---
+
+#### 53. `!fbanlist`
+- **Description**: Lists all users currently banned in the federation.
+- **Syntax**: `!fbanlist`
+
+---
+
+#### 54. `!fedadmins`
+- **Description**: Lists administrators of the Ban Federation.
+- **Syntax**: `!fedadmins`
+
+---
+
+#### 55. `!removespamlinks`
+- **Description**: Toggles automatic deletion of invite links (`t.me`, `wa.me`, `signal`, etc.).
+- **Syntax**: `!removespamlinks <on|off>`
+
+---
+
+#### 56. `!pin`
+- **Description**: Pins a message in the WhatsApp group.
+- **Syntax**: `!pin [loud]` (replying to a message)
+
+---
+
+#### 57. `!unpin`
+- **Description**: Unpins the currently pinned message in the group.
+- **Syntax**: `!unpin`
+
+---
+
+#### 58. `!unpinall`
+- **Description**: Unpins all pinned messages in the group.
+- **Syntax**: `!unpinall`
+
+---
+
+#### 59. `!pinned`
+- **Description**: Shows the current pinned message in the group.
+- **Syntax**: `!pinned`
+
+---
+
+#### 60. `!blacklist`
+- **Description**: Views or adds a word/pattern to the group word blacklist.
+- **Syntax**: `!blacklist [word]`
+
+---
+
+#### 61. `!rmblacklist` / `!unblacklist`
+- **Description**: Removes a word from the group blacklist.
+- **Syntax**: `!rmblacklist <word>`
+
+---
+
+#### 62. `!setblacklistaction`
+- **Description**: Sets penalty action when a blacklisted word is posted (`delete`, `warn`, `mute`, `kick`, `ban`).
+- **Syntax**: `!setblacklistaction <action>`
+
+---
+
+#### 63. `!setlog`
+- **Description**: Sets a log channel for moderation events.
+- **Syntax**: `!setlog <jid>`
+
+---
+
+#### 64. `!unsetlog`
+- **Description**: Removes the configured log channel.
+- **Syntax**: `!unsetlog`
+
+---
+
+#### 65. `!slowmode`
+- **Description**: Sets chat rate limit delay between member messages.
+- **Syntax**: `!slowmode <10s|1m|off>`
+
+---
+
+#### 66. `!settitle`
+- **Description**: Updates the WhatsApp group title/subject.
+- **Syntax**: `!settitle <new_title>`
+
+---
+
+#### 67. `!setdescription`
+- **Description**: Updates the WhatsApp group description text.
+- **Syntax**: `!setdescription <text>`
+
+---
+
+#### 68. `!setphoto`
+- **Description**: Updates the group icon/avatar.
+- **Syntax**: `!setphoto` (replying to an image)
+
+---
+
+#### 69. `!mode`
+- **Description**: Configures bot notification mode (`quiet` vs `normal`).
+- **Syntax**: `!mode <quiet|normal>`
+
+---
+
+#### 70. `!unapproveall`
+- **Description**: Clears all whitelisted user approvals in the group.
+- **Syntax**: `!unapproveall`
+
+---
+
+#### 71. `!reports`
+- **Description**: Enables or disables member message reporting (`!report`).
+- **Syntax**: `!reports <on|off>`
 
 ---
 
