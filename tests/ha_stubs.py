@@ -75,6 +75,7 @@ class SupportsResponse:
 class Bus:
     def __init__(self) -> None:
         self.async_fire = MagicMock()
+        self.async_fire_internal = MagicMock()
         self.async_listen = MagicMock()
         self.async_listen_once = MagicMock()
 
