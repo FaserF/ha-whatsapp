@@ -1945,7 +1945,7 @@ add_telegram_mapping:
             - "inbound"
     sync_self_messages:
       name: Sync Self Messages
-      description: Enable mirroring messages manually sent by the bot WhatsApp account (Default: false).
+      description: "Enable mirroring messages manually sent by the bot WhatsApp account (Default: false)."
       selector:
         boolean:
     tg_thread_id:
