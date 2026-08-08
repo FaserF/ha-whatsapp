@@ -33,6 +33,11 @@ def cleanup_modules() -> Any:
     """Clear sys.modules between tests to ensure fresh patches."""
 
     def _clear() -> None:
+        if "custom_components.whatsapp" in sys.modules:
+            try:
+                sys.modules["custom_components.whatsapp"]._SERVICES_REGISTERED = False
+            except Exception:
+                pass
         to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
         for m in to_del:
             sys.modules.pop(m, None)

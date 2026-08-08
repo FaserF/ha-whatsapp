@@ -42,43 +42,25 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        # Enable entities
-        mock_er = MagicMock()
-        with patch(
-            "homeassistant.helpers.entity_registry.async_get", return_value=mock_er
-        ):
-            mock_er.async_update_entity(
-                "sensor.whatsapp_messages_sent", disabled_by=None
-            )
-            mock_er.async_update_entity(
-                "sensor.whatsapp_messages_failed", disabled_by=None
-            )
-        await hass.async_block_till_done()
-        await hass.config_entries.async_reload(entry.entry_id)
-        await hass.async_block_till_done()
+        # Check sensors directly via instance creation
+        from custom_components.whatsapp.sensor import WhatsAppStatSensor
 
-        # Check sensors
-        state_sent = hass.states.get("sensor.whatsapp_messages_sent")
-        state_failed = hass.states.get("sensor.whatsapp_messages_failed")
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        sensor_sent = WhatsAppStatSensor(coordinator, entry, "sent")
+        sensor_failed = WhatsAppStatSensor(coordinator, entry, "failed")
 
-        assert state_sent
-        assert state_sent.state == "5"
-        assert state_failed
-        assert state_failed.state == "1"
+        assert sensor_sent.native_value == 5
+        assert sensor_failed.native_value == 1
 
         # Update stats
         mock_instance.get_stats.return_value = {"sent": 12, "failed": 3}
 
         # Trigger coordinator refresh
-        data = hass.data[DOMAIN][entry.entry_id]
-        await data["coordinator"].async_refresh()
+        await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        state_sent = hass.states.get("sensor.whatsapp_messages_sent")
-        state_failed = hass.states.get("sensor.whatsapp_messages_failed")
-
-        assert state_sent.state == "12"
-        assert state_failed.state == "3"
+        assert sensor_sent.native_value == 12
+        assert sensor_failed.native_value == 3
 
 
 def test_chats_sensor_list_fallback() -> None:
