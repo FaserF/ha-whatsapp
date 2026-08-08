@@ -1922,6 +1922,11 @@ add_telegram_mapping:
       description: WhatsApp account instance to target.
       selector:
         text:
+    mapping_name:
+      name: Mapping Name
+      description: Custom friendly name for this mapping (Auto-generated if omitted).
+      selector:
+        text:
     wa_jid:
       name: WhatsApp Target JID
       description: WhatsApp Group ID or Phone Number JID (e.g. 1203630123456789@g.us).

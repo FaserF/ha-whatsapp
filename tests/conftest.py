@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from collections.abc import Generator
 from typing import Any
@@ -27,10 +28,8 @@ def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
 
     def _reset_globals() -> None:
         if "custom_components.whatsapp" in sys.modules:
-            try:
+            with contextlib.suppress(Exception):
                 sys.modules["custom_components.whatsapp"]._SERVICES_REGISTERED = False
-            except Exception:
-                pass
 
     _reset_globals()
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
