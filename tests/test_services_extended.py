@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -34,10 +34,8 @@ def cleanup_modules() -> Any:
 
     def _clear() -> None:
         if "custom_components.whatsapp" in sys.modules:
-            try:
+            with suppress(Exception):
                 sys.modules["custom_components.whatsapp"]._SERVICES_REGISTERED = False
-            except Exception:
-                pass
         to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
         for m in to_del:
             sys.modules.pop(m, None)
