@@ -74,7 +74,7 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 
 ---
 
-## 🛠️ Step-by-Step Guide: 1:1 Direct Chat Mirror Setup (Idiotproof)
+## 🛠️ Step-by-Step Guide: 1:1 Direct Chat Mirror Setup
 
 1:1 Direct Chat Mirroring is **100% flexible** on both platforms:
 - **WhatsApp side**: You can map either a direct WhatsApp 1:1 chat (`<phone>@s.whatsapp.net`) OR a dedicated WhatsApp group (`<group_id>@g.us`).

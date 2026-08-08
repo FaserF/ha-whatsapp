@@ -42,6 +42,8 @@ async def test_send_message_with_expiration(hass: HomeAssistant) -> None:
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        hass.data[DOMAIN][entry.entry_id]["client"] = mock_instance
+
         # Call send_message with expiration
         await hass.services.async_call(
             DOMAIN,
@@ -80,6 +82,8 @@ async def test_send_image_with_expiration(hass: HomeAssistant) -> None:
         mock_client_cls.return_value = mock_instance
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
+
+        hass.data[DOMAIN][entry.entry_id]["client"] = mock_instance
 
         # Call send_image with expiration
         await hass.services.async_call(

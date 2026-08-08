@@ -36,6 +36,8 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
             return_value={"sent": 0, "failed": 0, "connected": True}
         )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
         mock_instance.register_callback = MagicMock()
         mock_instance.start_polling = AsyncMock()
         mock_instance.start_session = AsyncMock(return_value=None)
@@ -69,6 +71,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
             return_value={"sent": 0, "failed": 0, "connected": True}
         )
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
         callback: Callable[[dict[str, Any]], None] | None = None
 
         def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:

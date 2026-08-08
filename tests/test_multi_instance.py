@@ -102,15 +102,31 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
     # Try to add again
     with (
         patch(
-            "custom_components.whatsapp.config_flow.WhatsAppApiClient.connect",
+            "custom_components.whatsapp.WhatsAppApiClient.get_health",
+            return_value={"status": "connected"},
+        ),
+        patch(
+            "custom_components.whatsapp.WhatsAppApiClient.connect",
             return_value=True,
         ),
         patch(
-            "custom_components.whatsapp.config_flow.WhatsAppApiClient.get_stats",
-            return_value={"my_number": "49123456789"},
+            "custom_components.whatsapp.WhatsAppApiClient.get_stats",
+            return_value={"my_number": "49123456789", "connected": True},
         ),
         patch(
-            "custom_components.whatsapp.config_flow.WhatsAppApiClient.close",
+            "custom_components.whatsapp.WhatsAppApiClient.get_dashboard",
+            return_value={},
+        ),
+        patch(
+            "custom_components.whatsapp.WhatsAppApiClient.get_chats",
+            return_value={"total_chats": 0, "groups": []},
+        ),
+        patch(
+            "custom_components.whatsapp.WhatsAppApiClient.close",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.whatsapp.WhatsAppApiClient.start_polling",
             return_value=None,
         ),
     ):

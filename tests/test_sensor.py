@@ -31,6 +31,7 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
             return_value={"sent": 5, "failed": 1, "connected": True}
         )
         mock_instance.get_health = AsyncMock(return_value={"status": "ok"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
         mock_instance.get_chats = AsyncMock(
             return_value={"total_chats": 0, "groups": []}
         )

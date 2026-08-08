@@ -11,14 +11,58 @@ import pytest
 
 def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     """Called after the Session object has been created and before performing collection and entering the run test loop."""  # noqa: E501
+    import sys
+    if sys.platform == "win32":
+        import asyncio
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    try:
+        import pytest_socket
+        pytest_socket.enable_sockets()
+    except Exception:
+        pass
     ha_stubs._build_ha_stub_modules()
 
 
+def _ensure_sockets() -> None:
+    import socket
+    import pytest_socket
+    if hasattr(pytest_socket, "enable_socket"):
+        pytest_socket.enable_socket()
+    elif hasattr(pytest_socket, "enable_sockets"):
+        pytest_socket.enable_sockets()
+    if hasattr(pytest_socket, "_true_socket"):
+        socket.socket = pytest_socket._true_socket
+
+    # On Windows, socket.socketpair uses fallback sockets.
+    # We patch socket.socketpair to temporarily use _true_socket if available.
+    orig_socketpair = getattr(socket, "socketpair", None)
+    if orig_socketpair and hasattr(pytest_socket, "_true_socket"):
+        def _safe_socketpair(*args: Any, **kwargs: Any) -> Any:
+            old_sock = socket.socket
+            socket.socket = pytest_socket._true_socket
+            try:
+                return orig_socketpair(*args, **kwargs)
+            finally:
+                socket.socket = old_sock
+        socket.socketpair = _safe_socketpair
+
+
+def pytest_runtest_setup(item: Any) -> None:  # noqa: ARG001
+    """Hook running before each test item setup."""
+    _ensure_sockets()
+
+
+def pytest_runtest_teardown(item: Any) -> None:  # noqa: ARG001
+    """Hook running after each test item execution."""
+    _ensure_sockets()
+
+
 @pytest.fixture(autouse=True)
-def enable_socket(request: pytest.FixtureRequest) -> None:
+def enable_socket() -> Generator[None, None, None]:
     """Enable socket access during custom component testing."""
-    if "socket_enabled" in request.fixturenames:
-        request.getfixturevalue("socket_enabled")
+    _ensure_sockets()
+    yield
+    _ensure_sockets()
 
 
 @pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
@@ -123,8 +167,12 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.bus = ha_stubs.Bus()
 
     async def async_setup(entry_id: str) -> bool:
+        entry = None
         if "entries" in hass.data and entry_id in hass.data["entries"]:
             entry = hass.data["entries"][entry_id]
+        elif hasattr(hass.config_entries, "_entries") and entry_id in hass.config_entries._entries:
+            entry = hass.config_entries._entries[entry_id]
+        if entry is not None:
             try:
                 from custom_components.whatsapp import async_setup_entry
                 from custom_components.whatsapp.coordinator import (
@@ -157,15 +205,11 @@ def hass(mock_client: MagicMock) -> MagicMock:
                     except Exception:
                         entry.state = ha_stubs.ConfigEntryState.LOADED
                     from custom_components.whatsapp.const import DOMAIN
-
                     hass.data.setdefault(DOMAIN, {})
-                    if entry.entry_id not in hass.data[DOMAIN]:
-                        client = mock_client
-                        coord = ha_stubs.DataUpdateCoordinator(hass, client, entry)
-                        hass.data[DOMAIN][entry.entry_id] = {
-                            "client": client,
-                            "coordinator": coord,
-                        }
+                    hass.data[DOMAIN].setdefault(entry.entry_id, {
+                        "client": mock_client,
+                        "coordinator": ha_stubs.DataUpdateCoordinator(hass, mock_client, entry),
+                    })
                 return result
             except Exception as exc:
                 logging.getLogger(__name__).exception(

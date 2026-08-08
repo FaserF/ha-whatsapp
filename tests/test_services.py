@@ -60,6 +60,8 @@ async def test_services(hass: HomeAssistant) -> None:
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        hass.data[DOMAIN][entry.entry_id]["client"] = mock_instance
+
         # 1. Test send_message
         await hass.services.async_call(
             DOMAIN,
