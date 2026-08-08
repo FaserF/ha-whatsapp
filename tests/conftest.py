@@ -25,10 +25,19 @@ def cleanup_whatsapp_module_cache() -> Generator[None, None, None]:
     """Clear sys.modules between tests to ensure fresh global variables."""
     import sys
 
+    def _reset_globals() -> None:
+        if "custom_components.whatsapp" in sys.modules:
+            try:
+                sys.modules["custom_components.whatsapp"]._SERVICES_REGISTERED = False
+            except Exception:
+                pass
+
+    _reset_globals()
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
     for m in to_del:
         sys.modules.pop(m, None)
     yield
+    _reset_globals()
     to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
     for m in to_del:
         sys.modules.pop(m, None)
@@ -142,7 +151,6 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
                     hass.data.setdefault(DOMAIN, {})
                     if entry.entry_id not in hass.data[DOMAIN]:
-                        # Try to find client in hass.data if created by setup
                         client = mock_client
                         coord = ha_stubs.DataUpdateCoordinator(hass, client, entry)
                         hass.data[DOMAIN][entry.entry_id] = {
@@ -150,9 +158,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
                             "coordinator": coord,
                         }
                 return result
-            except Exception:
-                logging.getLogger(__name__).exception("Error in async_setup_entry")
-                return False
+            except Exception as exc:
+                logging.getLogger(__name__).exception("Error in async_setup_entry: %s", exc)
+                raise exc
         return True
 
     hass.config_entries = MagicMock()
