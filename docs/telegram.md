@@ -67,3 +67,24 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 ### 8. 🧵 Telegram Forum Topic ID (`tg_thread_id`)
 - **Description**: Directs messages to a specific **Forum Topic** within a Telegram Supergroup using Telegram's native `message_thread_id`.
 - **Default**: `null`
+
+---
+
+## ❓ Troubleshooting & Important Telegram Bot API Notes
+
+### 🛡️ 1. Telegram Bot Group Privacy Mode (Messages from Telegram -> WhatsApp not arriving)
+By default, Telegram Bot API enables **Group Privacy Mode** on all newly created bots via `@BotFather`.
+- **Symptom**: Messages sent in a Telegram Group are ignored by the bot and do not sync to WhatsApp (unless the message starts with `/` or tags `@botname`).
+- **Solution**:
+  1. Open Telegram and send a message to `@BotFather`.
+  2. Send `/mybots` and select your bot.
+  3. Go to **Bot Settings** -> **Group Privacy**.
+  4. Click **Turn off** (until it confirms `Group Privacy is DISABLED`).
+  5. Remove the bot once from your Telegram Group and re-add it.
+
+---
+
+### 🆔 2. Telegram Group ID Changes (Supergroups & Topics)
+When a standard Telegram group is upgraded to a **Supergroup** (or when Topics/Forums are enabled), Telegram changes the Chat ID from a short negative number (e.g. `-3625914253`) to a Supergroup ID starting with `-100` (e.g. `-1003625914253`).
+- **Solution**: Open the Add-on Web UI, click **Edit** on the mapping, and select the group again from the Telegram dropdown menu to automatically fetch the updated Supergroup ID.
+
