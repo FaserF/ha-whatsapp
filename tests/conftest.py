@@ -142,10 +142,18 @@ def hass(mock_client: MagicMock) -> MagicMock:
                         "async_config_entry_first_refresh",
                     ),
                 )
-                entry.state = ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
+                try:
+                    from homeassistant.config_entries import ConfigEntryState
+                    entry.state = ConfigEntryState.SETUP_IN_PROGRESS
+                except Exception:
+                    entry.state = ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
                 result = await async_setup_entry(hass, entry)
                 if result:
-                    entry.state = ha_stubs.ConfigEntryState.LOADED
+                    try:
+                        from homeassistant.config_entries import ConfigEntryState
+                        entry.state = ConfigEntryState.LOADED
+                    except Exception:
+                        entry.state = ha_stubs.ConfigEntryState.LOADED
                     from custom_components.whatsapp.const import DOMAIN
 
                     hass.data.setdefault(DOMAIN, {})
