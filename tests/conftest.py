@@ -159,7 +159,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
                         }
                 return result
             except Exception as exc:
-                logging.getLogger(__name__).exception("Error in async_setup_entry: %s", exc)
+                logging.getLogger(__name__).exception(
+                    "Error in async_setup_entry: %s", exc
+                )
                 raise exc
         return True
 
