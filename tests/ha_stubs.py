@@ -448,6 +448,7 @@ def _build_ha_stub_modules() -> None:
     )
 
     # homeassistant.helpers.service_info.zeroconf
+    _stub("homeassistant.helpers.service_info")
     _stub(
         "homeassistant.helpers.service_info.zeroconf",
         ZeroconfServiceInfo=MagicMock,
