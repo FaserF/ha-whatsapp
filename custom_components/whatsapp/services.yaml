@@ -1978,6 +1978,11 @@ add_telegram_mapping:
       description: Comma separated list of prefixes to ignore (e.g. !, /).
       selector:
         text:
+    is_direct_chat_mirror:
+      name: 1:1 Direct Chat Mirror
+      description: Enables clean 1:1 message relay without header prefixes for dedicated WhatsApp single-contact groups.
+      selector:
+        boolean:
 
 remove_telegram_mapping:
   name: Remove Telegram Mapping

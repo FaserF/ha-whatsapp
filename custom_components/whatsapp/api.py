@@ -3185,6 +3185,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         sync_reactions: bool = True,
         sync_edits: bool = True,
         sync_deletions: bool = True,
+        is_direct_chat_mirror: bool = False,
     ) -> dict[str, Any]:
         """Create or update a Telegram to WhatsApp chat mapping."""
         url = f"{self.host}/api/telegram/mappings"
@@ -3207,6 +3208,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "sync_reactions": sync_reactions,
             "sync_edits": sync_edits,
             "sync_deletions": sync_deletions,
+            "is_direct_chat_mirror": is_direct_chat_mirror,
         }
         async with (
             aiohttp.ClientSession() as session,

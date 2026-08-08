@@ -720,6 +720,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 sync_reactions=data.get("sync_reactions", True),
                 sync_edits=data.get("sync_edits", True),
                 sync_deletions=data.get("sync_deletions", True),
+                is_direct_chat_mirror=data.get("is_direct_chat_mirror", False),
             )
         elif service == "remove_telegram_mapping":
             return await client.delete_telegram_mapping(data["mapping_id"])

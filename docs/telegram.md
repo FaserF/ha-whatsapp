@@ -68,6 +68,39 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 - **Description**: Directs messages to a specific **Forum Topic** within a Telegram Supergroup using Telegram's native `message_thread_id`.
 - **Default**: `null`
 
+### 9. 🪞 1:1 Direct Chat Mirror (`is_direct_chat_mirror`)
+- **Description**: Enables a clean 1:1 chat experience between a WhatsApp user and a standalone Telegram bot user. Strips all group and sender headers (`[Group | Sender]`), so sending and receiving messages feels like a normal direct 1:1 WhatsApp/Telegram conversation.
+- **Default**: `false`
+
+---
+
+## 🛠️ Step-by-Step Guide: 1:1 Direct Chat Mirror Setup (Idiotproof)
+
+Follow these exact steps to connect a WhatsApp user with a Telegram user so that it feels like a native 1:1 direct chat on both sides:
+
+### Step 1: Create a Standalone Telegram Bot
+1. Open Telegram and search for `@BotFather`.
+2. Send `/newbot` and follow the prompts to set a name and username (e.g. `MyFriend_Bot`).
+3. Copy the **HTTP API Token** provided by BotFather.
+4. Disable Group Privacy: Send `/mybots` -> Select your Bot -> **Bot Settings** -> **Group Privacy** -> **Turn off**.
+
+### Step 2: Create a Dedicated WhatsApp Group
+1. Open WhatsApp on your phone.
+2. Create a **New Group** containing **only your account and the WhatsApp Bot phone number**.
+3. **Group Name**: Set the group name to your contact's name as saved in your phonebook (e.g., `Max Mustermann`).
+4. **Group Photo**: Optionally set the profile picture of the group to your contact's avatar image.
+5. Get the WhatsApp Group JID (e.g. `1234567890@g.us`) from the Add-on Dashboard or HA Services.
+
+### Step 3: Link the Group with Telegram Bot Chat ID
+1. Have the Telegram user open a chat with your Telegram Bot and send a `/start` message.
+2. Open the Add-on Web UI -> **Telegram Bridge** tab.
+3. Click **Add Mapping** (or use the HA Service `whatsapp.add_telegram_mapping`).
+4. Select the WhatsApp Group (`Max Mustermann`) and the Telegram Chat ID.
+5. Check / enable **1:1 Direct Chat Mirror** (`is_direct_chat_mirror: true`).
+6. Save the mapping.
+
+Now, typing in this WhatsApp group sends clean 1:1 messages to the Telegram user, and replies from the Telegram user show up cleanly in the WhatsApp group without header clutter!
+
 ---
 
 ## ❓ Troubleshooting & Important Telegram Bot API Notes
