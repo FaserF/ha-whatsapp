@@ -144,6 +144,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 )
                 try:
                     from homeassistant.config_entries import ConfigEntryState
+
                     entry.state = ConfigEntryState.SETUP_IN_PROGRESS
                 except Exception:
                     entry.state = ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
@@ -151,6 +152,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 if result:
                     try:
                         from homeassistant.config_entries import ConfigEntryState
+
                         entry.state = ConfigEntryState.LOADED
                     except Exception:
                         entry.state = ha_stubs.ConfigEntryState.LOADED
