@@ -3170,6 +3170,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self,
         wa_jid: str,
         tg_chat_id: str,
+        bot_id: str | None = None,
         mapping_name: str | None = None,
         wa_name: str | None = None,
         tg_chat_title: str | None = None,
@@ -3189,6 +3190,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/api/telegram/mappings"
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
         payload = {
+            "bot_id": bot_id,
             "mapping_name": mapping_name,
             "wa_jid": wa_jid,
             "tg_chat_id": tg_chat_id,

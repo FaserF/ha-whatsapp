@@ -705,6 +705,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return await client.add_telegram_mapping(
                 wa_jid=data["wa_jid"],
                 tg_chat_id=data["tg_chat_id"],
+                bot_id=data.get("bot_id"),
                 mapping_name=data.get("mapping_name"),
                 wa_name=data.get("wa_name"),
                 tg_chat_title=data.get("tg_chat_title"),

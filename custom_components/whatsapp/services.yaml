@@ -1922,6 +1922,11 @@ add_telegram_mapping:
       description: WhatsApp account instance to target.
       selector:
         text:
+    bot_id:
+      name: Telegram Bot ID
+      description: ID of the configured Telegram Bot to use for this mapping.
+      selector:
+        text:
     mapping_name:
       name: Mapping Name
       description: Custom friendly name for this mapping (Auto-generated if omitted).
