@@ -69,37 +69,65 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 - **Default**: `null`
 
 ### 9. 🪞 1:1 Direct Chat Mirror (`is_direct_chat_mirror`)
-- **Description**: Enables a clean 1:1 chat experience between a WhatsApp user and a standalone Telegram bot user. Strips all group and sender headers (`[Group | Sender]`), so sending and receiving messages feels like a normal direct 1:1 WhatsApp/Telegram conversation.
+- **Description**: Enables clean 1:1 message relay between any WhatsApp chat (Direct 1:1 DM or dedicated WA Group) and any Telegram chat (Direct Bot DM or Telegram Group/Topic). Strips all group and sender header clutter (`[Group | Sender]`), so conversations feel like native 1:1 direct messages.
 - **Default**: `false`
 
 ---
 
 ## 🛠️ Step-by-Step Guide: 1:1 Direct Chat Mirror Setup (Idiotproof)
 
-Follow these exact steps to connect a WhatsApp user with a Telegram user so that it feels like a native 1:1 direct chat on both sides:
+1:1 Direct Chat Mirroring is **100% flexible** on both platforms:
+- **WhatsApp side**: You can map either a direct WhatsApp 1:1 chat (`<phone>@s.whatsapp.net`) OR a dedicated WhatsApp group (`<group_id>@g.us`).
+- **Telegram side**: You can map either a direct Telegram Bot DM (`<user_id>`) OR a Telegram Group/Supergroup/Topic (`<chat_id>`).
 
-### Step 1: Create a Standalone Telegram Bot
+### Recommended Setup Flow:
+
+#### Step 1: Set Up Telegram (Bot or Group)
 1. Open Telegram and search for `@BotFather`.
-2. Send `/newbot` and follow the prompts to set a name and username (e.g. `MyFriend_Bot`).
-3. Copy the **HTTP API Token** provided by BotFather.
-4. Disable Group Privacy: Send `/mybots` -> Select your Bot -> **Bot Settings** -> **Group Privacy** -> **Turn off**.
+2. Send `/newbot` and follow the prompts to get your **Bot Token**.
+3. Disable Group Privacy: `/mybots` -> Select Bot -> **Bot Settings** -> **Group Privacy** -> **Turn off**.
+4. Have the user open a chat with your Telegram Bot and send a `/start` message (or add the bot to a Telegram group).
 
-### Step 2: Create a Dedicated WhatsApp Group
-1. Open WhatsApp on your phone.
-2. Create a **New Group** containing **only your account and the WhatsApp Bot phone number**.
-3. **Group Name**: Set the group name to your contact's name as saved in your phonebook (e.g., `Max Mustermann`).
-4. **Group Photo**: Optionally set the profile picture of the group to your contact's avatar image.
-5. Get the WhatsApp Group JID (e.g. `1234567890@g.us`) from the Add-on Dashboard or HA Services.
+#### Step 2: Choose Your WhatsApp Chat Variant
+- **Variant 1: Solo WhatsApp Group (Recommended for single phone number setup)**
+  Create a WhatsApp group where **ONLY YOUR OWN PHONE NUMBER is present (no other phone numbers or real contacts are added)**. Name the group after your target contact (e.g. `Max Mustermann`) and set their profile picture. Everything you type into this solo group is picked up by the bridge and sent seamlessly to Telegram.
+- **Variant 2: Direct WhatsApp 1:1 Chat (Multi-Number / Separate WA Account setup)**
+  If you run the WhatsApp Bot on a separate secondary WhatsApp phone number or dedicated bot account, you can directly select the 1:1 phone number JID (`<phone>@s.whatsapp.net`).
 
-### Step 3: Link the Group with Telegram Bot Chat ID
-1. Have the Telegram user open a chat with your Telegram Bot and send a `/start` message.
-2. Open the Add-on Web UI -> **Telegram Bridge** tab.
-3. Click **Add Mapping** (or use the HA Service `whatsapp.add_telegram_mapping`).
-4. Select the WhatsApp Group (`Max Mustermann`) and the Telegram Chat ID.
-5. Check / enable **1:1 Direct Chat Mirror** (`is_direct_chat_mirror: true`).
-6. Save the mapping.
+#### Step 3: Choose Your Telegram Variant
+- **Variant A: Standalone Telegram Bot per Contact**
+  Create a dedicated bot via `@BotFather` for each contact (e.g., `Max_Bot`). The Telegram user chats 1:1 with this bot.
+- **Variant B: Single Shared Telegram Bot with Separate DMs**
+  Use one single Telegram bot for all your contacts. Each Telegram user sends `/start` to the same bot, and you map their individual Telegram User Chat IDs to separate WhatsApp chats/groups.
+- **Variant C: Telegram Group / Supergroup / Topic**
+  Map the WhatsApp chat to a Telegram Group or a specific Forum Topic (`message_thread_id`).
 
-Now, typing in this WhatsApp group sends clean 1:1 messages to the Telegram user, and replies from the Telegram user show up cleanly in the WhatsApp group without header clutter!
+#### Step 4: Create the 1:1 Mirror Mapping
+1. Open the Add-on Web UI -> **Telegram Bridge** tab (or use HA Service `whatsapp.add_telegram_mapping`).
+2. Select your WhatsApp JID (Direct or Group) and the Telegram Chat ID.
+3. Check / enable **1:1 Direct Chat Mirror** (`is_direct_chat_mirror: true`).
+4. Save the mapping.
+
+> 💡 **Why Use a Solo WhatsApp Group? (Single Phone Number Efficiency)**:
+> Since you only have your own single WhatsApp phone number, you don't need a second phone number or a second WhatsApp account!
+> You create a WhatsApp group with **just yourself in it (NO other phone numbers/contacts)**.
+> - Because your WhatsApp session (Baileys) runs in the background on your account, everything you send into this solo group is captured by the bridge and forwarded cleanly to the Telegram user via the Telegram Bot.
+> - When the Telegram user replies to the bot, the message appears cleanly in your solo WhatsApp group.
+> - **Result**: On WhatsApp, you are in a solo group named "Max Mustermann" with Max's picture—it feels 100% like a direct 1:1 chat with Max! Neither person needs an extra phone number, second WA account, or extra Telegram account.
+
+Once saved, messages pass back and forth cleanly without header prefixes!
+
+---
+
+### 📊 1:1 Bridge Setup Variants Comparison Table
+
+| Setup Variant | WhatsApp Side | Telegram Side | Primary Benefit / Ideal Use Case | Extra Phone Number / WA Account Needed? | Extra Telegram Account Needed? | Header Prefix Noise? |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: |
+| **Solo WA Group ↔ Standalone TG Bot** *(Recommended)* | Solo Group (Only yourself) named after contact | Standalone TG Bot DM | **1-Number Setup**: Feels 100% like 1:1 DM for both users without extra numbers or accounts | ❌ No | ❌ No | ❌ No (`is_direct_chat_mirror: true`) |
+| **Solo WA Group ↔ Shared TG Bot** | Solo Group (Only yourself) named after contact | Single TG Bot (Separate User DMs) | **Bot Token Efficiency**: 1 TG Bot handles multiple contacts | ❌ No | ❌ No | ❌ No (`is_direct_chat_mirror: true`) |
+| **Solo WA Group ↔ TG Group / Topic** | Solo Group (Only yourself) named after contact | Telegram Group or Forum Topic | **Group Collaboration**: Relay solo WA chat into a TG group/topic | ❌ No | ❌ No | ❌ No (clean) or optional headers |
+| **Direct WA 1:1 DM ↔ TG Bot** | Direct WA Chat (`<phone>@s.whatsapp.net`) | Standalone or Shared TG Bot DM | **Dedicated Bot Account**: Uses secondary WA phone number as dedicated bot |  Yes | ❌ No | ❌ No (`is_direct_chat_mirror: true`) |
+| **WA Group ↔ TG Group** *(Classic)* | Standard WA Group with multiple contacts | Standard TG Group | **Community Bridge**: Full group-to-group mirroring with sender headers | ❌ No | ❌ No | Yes (Headers `[Group \| Sender]` enabled) |
 
 ---
 
