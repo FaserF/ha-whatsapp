@@ -57,13 +57,20 @@ class ServiceCall:
     def __init__(
         self,
         domain: str,
-        service: str = "",
+        service: str | dict[str, Any] = "",
         data: dict[str, Any] | None = None,
         **_kwargs: Any,
     ) -> None:
         self.domain = domain
-        self.service = service or _kwargs.get("service", "")
-        self.data = data or {}
+        if isinstance(service, dict):
+            self.data = service
+            self.service = _kwargs.get("service", "")
+        elif isinstance(data, dict):
+            self.service = service
+            self.data = data
+        else:
+            self.service = service or _kwargs.get("service", "")
+            self.data = data or {}
 
 
 class SupportsResponse:
@@ -356,8 +363,8 @@ class MockConfigEntry:
         if "entries" not in hass.data:
             hass.data["entries"] = {}
         hass.data["entries"][self.entry_id] = self
-        if "whatsapp" not in hass.data:
-            hass.data["whatsapp"] = {}
+        if self.domain not in hass.data:
+            hass.data[self.domain] = {}
 
 
 def _build_ha_stub_modules() -> None:

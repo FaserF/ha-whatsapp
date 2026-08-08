@@ -3117,3 +3117,126 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to run diagnostic: {self._extract_error(text)}"
             )
+
+    async def get_telegram_config(self) -> dict[str, Any]:
+        """Fetch Telegram bridge configuration from addon."""
+        url = f"{self.host}/api/telegram/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to fetch Telegram config: {self._extract_error(text)}"
+            )
+
+    async def update_telegram_config(
+        self, bot_token: str | None = None, enabled: bool | None = None
+    ) -> dict[str, Any]:
+        """Update Telegram bot token or bridge state."""
+        url = f"{self.host}/api/telegram/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        payload: dict[str, Any] = {}
+        if bot_token is not None:
+            payload["bot_token"] = bot_token
+        if enabled is not None:
+            payload["enabled"] = enabled
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                json=payload,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update Telegram config: {self._extract_error(text)}"
+            )
+
+    async def add_telegram_mapping(
+        self,
+        wa_jid: str,
+        tg_chat_id: str,
+        wa_name: str | None = None,
+        tg_chat_title: str | None = None,
+        sync_mode: str = "bidirectional",
+        include_group_name: bool = False,
+        include_sender_name: bool = True,
+        sync_self_messages: bool = False,
+        tg_thread_id: str | None = None,
+        convert_formatting: bool = True,
+        anonymize_phone_numbers: bool = False,
+        ignore_command_prefixes: str = "",
+        sync_reactions: bool = True,
+        sync_edits: bool = True,
+        sync_deletions: bool = True,
+    ) -> dict[str, Any]:
+        """Create or update a Telegram to WhatsApp chat mapping."""
+        url = f"{self.host}/api/telegram/mappings"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        payload = {
+            "wa_jid": wa_jid,
+            "tg_chat_id": tg_chat_id,
+            "wa_name": wa_name,
+            "tg_chat_title": tg_chat_title,
+            "sync_mode": sync_mode,
+            "include_group_name": include_group_name,
+            "include_sender_name": include_sender_name,
+            "sync_self_messages": sync_self_messages,
+            "tg_thread_id": tg_thread_id,
+            "convert_formatting": convert_formatting,
+            "anonymize_phone_numbers": anonymize_phone_numbers,
+            "ignore_command_prefixes": ignore_command_prefixes,
+            "sync_reactions": sync_reactions,
+            "sync_edits": sync_edits,
+            "sync_deletions": sync_deletions,
+        }
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                json=payload,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to add Telegram mapping: {self._extract_error(text)}"
+            )
+
+    async def delete_telegram_mapping(self, mapping_id: str) -> dict[str, Any]:
+        """Delete a Telegram chat mapping."""
+        url = f"{self.host}/api/telegram/mappings/{mapping_id}"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.delete(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to delete Telegram mapping: {self._extract_error(text)}"
+            )

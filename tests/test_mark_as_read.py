@@ -42,9 +42,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
-    ):
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         # Capture the callback
         callback_capture: Any = None
 
@@ -53,6 +51,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
             callback_capture = callback
 
         mock_instance.register_callback = MagicMock(side_effect=register_side_effect)
+        mock_client_cls.return_value = mock_instance
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -104,9 +103,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.whatsapp.WhatsAppApiClient", return_value=mock_instance
-    ):
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
         callback_capture: Any = None
 
         def register_side_effect(callback: Any) -> None:
@@ -114,6 +111,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
             callback_capture = callback
 
         mock_instance.register_callback = MagicMock(side_effect=register_side_effect)
+        mock_client_cls.return_value = mock_instance
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

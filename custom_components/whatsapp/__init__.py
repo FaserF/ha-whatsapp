@@ -115,6 +115,9 @@ _SERVICES = [
     "warn_user",
     "clear_warnings",
     "import_moderation_config",
+    "configure_telegram_bot",
+    "add_telegram_mapping",
+    "remove_telegram_mapping",
 ]
 
 
@@ -437,15 +440,15 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
         if service == "send_message":
             await client.send_message(
-                data["target"],
-                data["message"],
+                data.get("target", ""),
+                data.get("message", ""),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
         elif service == "send_poll":
             await client.send_poll(
-                data["target"],
-                data["question"],
+                data.get("target", ""),
+                data.get("question", ""),
                 data.get("options", []),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
@@ -453,17 +456,17 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_image":
             await client.send_image(
-                data["target"],
-                data["url"],
+                data.get("target", ""),
+                data.get("url", ""),
                 data.get("caption"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
         elif service == "send_location":
             await client.send_location(
-                data["target"],
-                float(data["latitude"]),
-                float(data["longitude"]),
+                data.get("target", ""),
+                float(data.get("latitude", 0)),
+                float(data.get("longitude", 0)),
                 data.get("name"),
                 data.get("address"),
                 quoted_message_id=_get_quoted(),
@@ -471,8 +474,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_event":
             await client.send_event(
-                data["target"],
-                data["name"],
+                data.get("target", ""),
+                data.get("name", ""),
                 description=data.get("description"),
                 date=data.get("date"),
                 location=data.get("location"),
@@ -482,12 +485,14 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_reaction":
             await client.send_reaction(
-                data["target"], data["reaction"], data["message_id"]
+                data.get("target", ""),
+                data.get("reaction", ""),
+                data.get("message_id", ""),
             )
         elif service == "send_document":
             await client.send_document(
-                data["target"],
-                data["url"],
+                data.get("target", ""),
+                data.get("url", ""),
                 data.get("file_name"),
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
@@ -496,8 +501,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_video":
             await client.send_video(
-                data["target"],
-                data["url"],
+                data.get("target", ""),
+                data.get("url", ""),
                 data.get("message"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
@@ -505,106 +510,125 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "send_audio":
             await client.send_audio(
-                data["target"],
-                data["url"],
+                data.get("target", ""),
+                data.get("url", ""),
                 data.get("ptt", False),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
                 seconds=data.get("seconds"),
             )
         elif service == "revoke_message":
-            await client.revoke_message(data["target"], data["message_id"])
+            await client.revoke_message(
+                data.get("target", ""), data.get("message_id", "")
+            )
         elif service == "edit_message":
             await client.edit_message(
-                data["target"], data["message_id"], data["message"]
+                data.get("target", ""),
+                data.get("message_id", ""),
+                data.get("message", ""),
             )
         elif service == "send_list":
             await client.send_list(
-                data["target"],
+                data.get("target", ""),
                 data.get("title") or "",
                 data.get("text") or "",
                 data.get("button_text") or "",
-                data["sections"],
+                data.get("sections", []),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
         elif service == "send_contact":
             await client.send_contact(
-                data["target"], data["name"], data["contact_number"]
+                data.get("target", ""),
+                data.get("name", ""),
+                data.get("contact_number", ""),
             )
         elif service == "configure_webhook":
             await client.set_webhook(
-                data["url"], data.get("enabled", True), data.get("token")
+                data.get("url", ""), data.get("enabled", True), data.get("token")
             )
         elif service == "update_presence":
-            await client.set_presence(data["target"], data["presence"])
+            await client.set_presence(data.get("target", ""), data.get("presence", ""))
         elif service == "send_buttons":
             await client.send_buttons(
-                data["target"],
-                data["message"],
-                data["buttons"],
+                data.get("target", ""),
+                data.get("message", ""),
+                data.get("buttons", []),
                 data.get("footer"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
         elif service == "mark_as_read":
-            await client.mark_as_read(data["target"], data.get("message_id"))
+            await client.mark_as_read(data.get("target", ""), data.get("message_id"))
         elif service == "search_groups":
             await _handle_search_groups(hass, client, data.get("name_filter", ""))
         elif service == "get_contacts":
             contacts = await client.get_contacts()
             return {"contacts": contacts}
         elif service == "check_number":
-            return await client.check_number(data["number"])
+            return await client.check_number(data.get("number", ""))
         elif service == "create_group":
-            return await client.create_group(data["subject"], data["participants"])
+            return await client.create_group(
+                data.get("subject") or data.get("name") or "",
+                data.get("participants", []),
+            )
         elif service == "add_group_participant":
             return await client.add_group_participants(
-                data["target"], data["participants"]
+                data.get("target", ""), data.get("participants", [])
             )
         elif service == "remove_group_participant":
             return await client.remove_group_participants(
-                data["target"], data["participants"]
+                data.get("target", ""), data.get("participants", [])
             )
         elif service == "promote_group_participant":
             return await client.promote_group_participants(
-                data["target"], data["participants"]
+                data.get("target", ""), data.get("participants", [])
             )
         elif service == "demote_group_participant":
             return await client.demote_group_participants(
-                data["target"], data["participants"]
+                data.get("target", ""), data.get("participants", [])
             )
         elif service == "leave_group":
-            return await client.leave_group(data["target"])
+            return await client.leave_group(data.get("target", ""))
         elif service == "update_group_subject":
-            return await client.update_group_subject(data["target"], data["subject"])
+            return await client.update_group_subject(
+                data.get("target", ""), data.get("subject", "")
+            )
         elif service == "update_group_description":
             return await client.update_group_description(
-                data["target"], data["description"]
+                data.get("target", ""), data.get("description", "")
             )
         elif service == "update_group_settings":
             return await client.update_group_settings(
-                data["target"],
+                data.get("target", ""),
                 announce=data.get("announce"),
                 locked=data.get("locked"),
             )
         elif service == "join_group":
-            return await client.join_group_via_invite(data["code"])
+            return await client.join_group_via_invite(data.get("code", ""))
         elif service == "star_message":
             return await client.star_message(
-                data["target"], data["message_id"], star=True
+                data.get("target", ""), data.get("message_id", ""), star=True
             )
         elif service == "unstar_message":
-            return await client.unstar_message(data["target"], data["message_id"])
+            return await client.unstar_message(
+                data.get("target", ""), data.get("message_id", "")
+            )
         elif service == "pin_message":
             return await client.pin_message(
-                data["target"], data["message_id"], duration=data.get("duration", 86400)
+                data.get("target", ""),
+                data.get("message_id", ""),
+                duration=data.get("duration", 86400),
             )
         elif service == "unpin_message":
-            return await client.unpin_message(data["target"], data["message_id"])
+            return await client.unpin_message(
+                data.get("target", ""), data.get("message_id", "")
+            )
         elif service == "forward_message":
             return await client.forward_message(
-                data["target"], data["message_id"], data["destination"]
+                data.get("target", ""),
+                data.get("message_id", ""),
+                data.get("destination", ""),
             )
         elif service == "send_status":
             return await client.send_status(
@@ -672,6 +696,31 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return await client.import_moderation_config(
                 data["target"], data.get("config", {})
             )
+        elif service == "configure_telegram_bot":
+            return await client.update_telegram_config(
+                bot_token=data.get("bot_token"),
+                enabled=data.get("enabled"),
+            )
+        elif service == "add_telegram_mapping":
+            return await client.add_telegram_mapping(
+                wa_jid=data["wa_jid"],
+                tg_chat_id=data["tg_chat_id"],
+                wa_name=data.get("wa_name"),
+                tg_chat_title=data.get("tg_chat_title"),
+                sync_mode=data.get("sync_mode", "bidirectional"),
+                include_group_name=data.get("include_group_name", False),
+                include_sender_name=data.get("include_sender_name", True),
+                sync_self_messages=data.get("sync_self_messages", False),
+                tg_thread_id=data.get("tg_thread_id"),
+                convert_formatting=data.get("convert_formatting", True),
+                anonymize_phone_numbers=data.get("anonymize_phone_numbers", False),
+                ignore_command_prefixes=data.get("ignore_command_prefixes", ""),
+                sync_reactions=data.get("sync_reactions", True),
+                sync_edits=data.get("sync_edits", True),
+                sync_deletions=data.get("sync_deletions", True),
+            )
+        elif service == "remove_telegram_mapping":
+            return await client.delete_telegram_mapping(data["mapping_id"])
         return None
 
     async def _handle_search_groups(

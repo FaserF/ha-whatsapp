@@ -7,7 +7,6 @@ from ha_stubs import _build_ha_stub_modules
 _build_ha_stub_modules()
 
 from homeassistant.core import HomeAssistant  # noqa: E402
-from homeassistant.helpers import entity_registry as er  # noqa: E402
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 from custom_components.whatsapp.const import (  # noqa: E402
@@ -44,11 +43,16 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
         # Enable entities
-        registry = er.async_get(hass)
-        registry.async_update_entity("sensor.whatsapp_messages_sent", disabled_by=None)
-        registry.async_update_entity(
-            "sensor.whatsapp_messages_failed", disabled_by=None
-        )
+        mock_er = MagicMock()
+        with patch(
+            "homeassistant.helpers.entity_registry.async_get", return_value=mock_er
+        ):
+            mock_er.async_update_entity(
+                "sensor.whatsapp_messages_sent", disabled_by=None
+            )
+            mock_er.async_update_entity(
+                "sensor.whatsapp_messages_failed", disabled_by=None
+            )
         await hass.async_block_till_done()
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()

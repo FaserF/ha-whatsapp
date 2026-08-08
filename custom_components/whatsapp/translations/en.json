@@ -429,6 +429,9 @@
       },
       "moderation_status": {
         "name": "WhatsApp Moderation Engine"
+      },
+      "telegram_bridge_status": {
+        "name": "Telegram Bridge Status"
       }
     },
     "button": {

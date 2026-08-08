@@ -173,6 +173,14 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             except Exception as mod_err:
                 _LOGGER.debug("Moderation fetch skipped: %s", mod_err)
 
+            telegram: dict[str, Any] = {}
+            try:
+                tg_res = await self.client.get_telegram_config()
+                if isinstance(tg_res, dict) and "data" in tg_res:
+                    telegram = tg_res["data"]
+            except Exception as tg_err:
+                _LOGGER.debug("Telegram fetch skipped: %s", tg_err)
+
             chats = {"total_chats": 0, "groups": []}
             if connected:
                 try:
@@ -255,6 +263,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 "chats": chats,
                 "dashboard": dashboard,
                 "moderation": moderation,
+                "telegram": telegram,
             }
             if self.config_entry:
                 async_sync_moderation_entities(

@@ -50,6 +50,7 @@ async def async_setup_entry(
         [
             WhatsAppConnectionSensor(coordinator, entry),
             WhatsAppModerationStatusBinarySensor(coordinator, entry),
+            WhatsAppTelegramBridgeStatusBinarySensor(coordinator, entry),
         ]
     )
 
@@ -164,4 +165,47 @@ class WhatsAppModerationStatusBinarySensor(
             "global_enabled": mod.get("global_enabled", False),
             "managed_groups_count": len(groups),
             "federations_count": len(mod.get("federations", [])),
+        }
+
+
+class WhatsAppTelegramBridgeStatusBinarySensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    BinarySensorEntity,  # type: ignore[misc]
+):
+    """Binary sensor indicating global Telegram Bridge engine status.
+
+    Disabled by default in entity registry. Enabled automatically or manually.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_has_entity_name = True
+    _attr_translation_key = "telegram_bridge_status"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialise the Telegram bridge status binary sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_telegram_bridge_status"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if Telegram bridge is enabled and bot is connected."""
+        data = self.coordinator.data or {}
+        tg = data.get("telegram", {})
+        return bool(tg.get("enabled", False) and tg.get("bot_token"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return Telegram bridge attributes."""
+        data = self.coordinator.data or {}
+        tg = data.get("telegram", {})
+        mappings = tg.get("mappings", [])
+        return {
+            "enabled": tg.get("enabled", False),
+            "bot_username": tg.get("bot_username", ""),
+            "mappings_count": len(mappings),
+            "active_mappings_count": len([m for m in mappings if m.get("enabled")]),
         }

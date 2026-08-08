@@ -59,6 +59,7 @@ def mock_client() -> MagicMock:
     client.get_status = AsyncMock(return_value={"connected": True})
     client.get_chats = AsyncMock(return_value={"total_chats": 0, "groups": []})
     client.get_health = AsyncMock(return_value={"status": "connected"})
+    client.stats = {"sent": 0, "failed": 0, "my_number": "123456789", "connected": True}
     return client
 
 
@@ -80,6 +81,7 @@ def hass(mock_client: MagicMock) -> MagicMock:
             from ha_stubs import ServiceCall
 
             call = ServiceCall(domain, service, service_data)
+            call.service = service
             await service_handlers[(domain, service)](call)
 
     def async_set_state(entity_id: str, state: str, attributes: Any = None) -> None:
@@ -140,9 +142,11 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
                     hass.data.setdefault(DOMAIN, {})
                     if entry.entry_id not in hass.data[DOMAIN]:
-                        coord = ha_stubs.DataUpdateCoordinator(hass, mock_client, entry)
+                        # Try to find client in hass.data if created by setup
+                        client = mock_client
+                        coord = ha_stubs.DataUpdateCoordinator(hass, client, entry)
                         hass.data[DOMAIN][entry.entry_id] = {
-                            "client": mock_client,
+                            "client": client,
                             "coordinator": coord,
                         }
                 return result

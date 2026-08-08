@@ -1893,6 +1893,99 @@ import_moderation_config:
       selector:
         object:
 
+configure_telegram_bot:
+  name: Configure Telegram Bot
+  description: Configures or updates Telegram Bot token and active state for the native bridge.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account instance to target.
+      selector:
+        text:
+    bot_token:
+      name: Bot Token
+      description: Telegram Bot Token provided by @BotFather.
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Toggle the Telegram bridge engine on or off globally.
+      selector:
+        boolean:
+
+add_telegram_mapping:
+  name: Add Telegram Mapping
+  description: Creates or updates a chat bridging mapping between WhatsApp and Telegram.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account instance to target.
+      selector:
+        text:
+    wa_jid:
+      name: WhatsApp Target JID
+      description: WhatsApp Group ID or Phone Number JID (e.g. 1203630123456789@g.us).
+      required: true
+      selector:
+        text:
+    tg_chat_id:
+      name: Telegram Chat ID
+      description: Telegram Group / Supergroup / Channel ID (e.g. -1001234567890).
+      required: true
+      selector:
+        text:
+    sync_mode:
+      name: Sync Direction Mode
+      description: "Directional sync mode: 'bidirectional', 'outbound', or 'inbound'."
+      selector:
+        select:
+          options:
+            - "bidirectional"
+            - "outbound"
+            - "inbound"
+    sync_self_messages:
+      name: Sync Self Messages
+      description: Enable mirroring messages manually sent by the bot WhatsApp account (Default: false).
+      selector:
+        boolean:
+    tg_thread_id:
+      name: Telegram Topic ID
+      description: Optional Forum Topic thread ID for Telegram Forum supergroups.
+      selector:
+        text:
+    convert_formatting:
+      name: Convert Formatting
+      description: Convert WhatsApp formatting syntax to Telegram HTML syntax.
+      selector:
+        boolean:
+    anonymize_phone_numbers:
+      name: Anonymize Phone Numbers
+      description: Mask middle digits of phone numbers in headers.
+      selector:
+        boolean:
+    ignore_command_prefixes:
+      name: Ignore Command Prefixes
+      description: Comma separated list of prefixes to ignore (e.g. !, /).
+      selector:
+        text:
+
+remove_telegram_mapping:
+  name: Remove Telegram Mapping
+  description: Deletes an existing Telegram chat mapping by ID.
+  fields:
+    account:
+      name: Account
+      description: WhatsApp account instance to target.
+      selector:
+        text:
+    mapping_id:
+      name: Mapping ID
+      description: The ID of the mapping to delete.
+      required: true
+      selector:
+        text:
+
+
 
 
 
