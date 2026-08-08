@@ -12,11 +12,14 @@ import pytest
 def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     """Called after the Session object has been created and before performing collection and entering the run test loop."""  # noqa: E501
     import sys
+
     if sys.platform == "win32":
         import asyncio
+
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     try:
         import pytest_socket
+
         pytest_socket.enable_sockets()
     except Exception:
         pass
@@ -25,7 +28,9 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
 
 def _ensure_sockets() -> None:
     import socket
+
     import pytest_socket
+
     if hasattr(pytest_socket, "enable_socket"):
         pytest_socket.enable_socket()
     elif hasattr(pytest_socket, "enable_sockets"):
@@ -37,6 +42,7 @@ def _ensure_sockets() -> None:
     # We patch socket.socketpair to temporarily use _true_socket if available.
     orig_socketpair = getattr(socket, "socketpair", None)
     if orig_socketpair and hasattr(pytest_socket, "_true_socket"):
+
         def _safe_socketpair(*args: Any, **kwargs: Any) -> Any:
             old_sock = socket.socket
             socket.socket = pytest_socket._true_socket
@@ -44,6 +50,7 @@ def _ensure_sockets() -> None:
                 return orig_socketpair(*args, **kwargs)
             finally:
                 socket.socket = old_sock
+
         socket.socketpair = _safe_socketpair
 
 
@@ -170,7 +177,10 @@ def hass(mock_client: MagicMock) -> MagicMock:
         entry = None
         if "entries" in hass.data and entry_id in hass.data["entries"]:
             entry = hass.data["entries"][entry_id]
-        elif hasattr(hass.config_entries, "_entries") and entry_id in hass.config_entries._entries:
+        elif (
+            hasattr(hass.config_entries, "_entries")
+            and entry_id in hass.config_entries._entries
+        ):
             entry = hass.config_entries._entries[entry_id]
         if entry is not None:
             try:
@@ -205,11 +215,17 @@ def hass(mock_client: MagicMock) -> MagicMock:
                     except Exception:
                         entry.state = ha_stubs.ConfigEntryState.LOADED
                     from custom_components.whatsapp.const import DOMAIN
+
                     hass.data.setdefault(DOMAIN, {})
-                    hass.data[DOMAIN].setdefault(entry.entry_id, {
-                        "client": mock_client,
-                        "coordinator": ha_stubs.DataUpdateCoordinator(hass, mock_client, entry),
-                    })
+                    hass.data[DOMAIN].setdefault(
+                        entry.entry_id,
+                        {
+                            "client": mock_client,
+                            "coordinator": ha_stubs.DataUpdateCoordinator(
+                                hass, mock_client, entry
+                            ),
+                        },
+                    )
                 return result
             except Exception as exc:
                 logging.getLogger(__name__).exception(
