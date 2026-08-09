@@ -470,7 +470,7 @@ class WhatsAppPendingCaptchasSensor(
         for group in groups.values():
             captcha_data = group.get("captcha", {})
             pending_list = captcha_data.get("pending", {})
-            if isinstance(pending_list, dict) or isinstance(pending_list, list):
+            if isinstance(pending_list, (dict, list)):
                 pending_total += len(pending_list)
         return pending_total
 
