@@ -28,7 +28,7 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
 
 @pytest.fixture(autouse=True)
 def _patch_aiodns_resolver() -> Generator[None, None, None]:
-    """Patch aiodns.DNSResolver.__init__ on Windows to prevent SelectorEventLoop check error."""
+    """Patch aiodns.DNSResolver.__init__ on Windows to prevent error."""
     import sys
     from unittest.mock import patch
 
@@ -199,7 +199,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
     hass.async_block_till_done = AsyncMock()
 
     def async_create_background_task(
-        coro: Any, name: str | None = None, eager_start: bool = True
+        coro: Any,
+        name: str | None = None,  # noqa: ARG001
+        eager_start: bool = True,  # noqa: ARG001
     ) -> Any:
         import asyncio
         import inspect

@@ -156,7 +156,7 @@ class WhatsAppModerationStatusBinarySensor(
     It is disabled again when moderation is fully turned off.
     """
 
-    _attr_device_class = BinarySensorDeviceClass.SAFETY
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
     _attr_has_entity_name = True
     _attr_translation_key = "moderation_status"
     _attr_entity_registry_enabled_default = False
@@ -230,16 +230,6 @@ class WhatsAppModerationStatusBinarySensor(
             "managed_groups_count": len(groups),
             "managed_groups": managed_group_list,
             "federations_count": len(federations),
-            "safety_status": (
-                "Safe — Group moderation & defender shield actively protecting groups"
-                if mod.get("global_enabled")
-                else "Unsafe — Group moderation & defender shield is disabled"
-            ),
-            "safety_explanation": (
-                "When state is ON (Safe), automatic spam detection, anti-raid shield, "
-                "content locks, and defender bot rules are actively guarding your groups. "
-                "When OFF (Unsafe), groups are unprotected against raids, spam, and policy violations."
-            ),
             "status_description": (
                 (
                     f"Globally active with {len(groups)} managed group(s)"
@@ -262,7 +252,7 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
     Disabled again automatically when no active mappings remain.
     """
 
-    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
     _attr_has_entity_name = True
     _attr_translation_key = "telegram_bridge_status"
     _attr_entity_registry_enabled_default = False
