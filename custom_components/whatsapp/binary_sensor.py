@@ -24,7 +24,11 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
-from .helpers import safe_text, sync_moderation_registry_enabled
+from .helpers import (
+    safe_text,
+    sync_moderation_registry_enabled,
+    sync_telegram_bridge_registry_enabled,
+)
 
 
 async def async_setup_entry(
@@ -102,6 +106,13 @@ class WhatsAppConnectionSensor(
             "total_failed": stats.get("failed", 0),
             "last_message_sent": safe_text(stats.get("last_sent_message")),
             "last_message_target": safe_text(stats.get("last_sent_target")),
+            "status_description": (
+                f"Connected ({safe_text(stats.get('my_number', 'Unknown'))})"
+                if self.is_on
+                else (
+                    f"Disconnected ({safe_text(data.get('status_details', 'Offline'))})"
+                )
+            ),
         }
 
     @property
@@ -157,14 +168,31 @@ class WhatsAppModerationStatusBinarySensor(
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return moderation attributes."""
+        """Return detailed, user-friendly moderation attributes."""
         data = self.coordinator.data or {}
         mod = data.get("moderation", {})
         groups = mod.get("groups", {})
+        federations = mod.get("federations", [])
+
+        # Build list of managed group names / IDs for clarity
+        managed_group_list: list[str] = []
+        for gid, gdata in groups.items():
+            name = gdata.get("name") or gdata.get("subject") or gid
+            managed_group_list.append(str(name))
+
         return {
             "global_enabled": mod.get("global_enabled", False),
             "managed_groups_count": len(groups),
-            "federations_count": len(mod.get("federations", [])),
+            "managed_groups": managed_group_list,
+            "federations_count": len(federations),
+            "status_description": (
+                (
+                    f"Globally active with {len(groups)} managed group(s)"
+                    f" and {len(federations)} federation(s)"
+                )
+                if mod.get("global_enabled")
+                else "Globally disabled"
+            ),
         }
 
 
@@ -174,7 +202,9 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
 ):
     """Binary sensor indicating global Telegram Bridge engine status.
 
-    Disabled by default in entity registry. Enabled automatically or manually.
+    Disabled by default in entity registry. Automatically enabled as soon as
+    a Telegram bot token is configured and at least one mapping is active.
+    Disabled again automatically when no active mappings remain.
     """
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -190,6 +220,20 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
         self._attr_unique_id = f"{entry.entry_id}_telegram_bridge_status"
         self._attr_device_info = coordinator.client.get_device_info()
 
+    async def async_added_to_hass(self) -> None:
+        """React to entity added to hass; sync registry enabled state first."""
+        await super().async_added_to_hass()
+        self._sync_registry_enabled()
+
+    def _sync_registry_enabled(self) -> None:
+        """Enable or disable this entity in the registry based on bridge state."""
+        sync_telegram_bridge_registry_enabled(self)
+
+    def _handle_coordinator_update(self) -> None:
+        """React to coordinator data updates; sync registry enabled state first."""
+        self._sync_registry_enabled()
+        super()._handle_coordinator_update()
+
     @property
     def is_on(self) -> bool:
         """Return true if Telegram bridge is enabled and bot is connected."""
@@ -203,9 +247,17 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
         data = self.coordinator.data or {}
         tg = data.get("telegram", {})
         mappings = tg.get("mappings", [])
+        active_mappings = [m for m in mappings if m.get("enabled")]
+        active_count = len(active_mappings)
+        bot_username = tg.get("bot_username", "")
         return {
             "enabled": tg.get("enabled", False),
-            "bot_username": tg.get("bot_username", ""),
+            "bot_username": bot_username,
             "mappings_count": len(mappings),
-            "active_mappings_count": len([m for m in mappings if m.get("enabled")]),
+            "active_mappings_count": active_count,
+            "status_description": (
+                f"Active with bot @{bot_username} ({active_count} active forwarder(s))"
+                if self.is_on and bot_username
+                else "Inactive or no bot configured"
+            ),
         }

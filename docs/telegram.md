@@ -76,14 +76,15 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 
 ### 10. 📊 Poll Sync Modes & Options (`poll_sync_mode`)
 - **Description**: Configures how polls and poll votes are synchronized between WhatsApp and Telegram:
-  - **Text Diagram & Updates** (`text_diagram` - Default): Sends poll status as a text diagram into the target chat, sends vote updates as text messages in the chat (enabled by default), and cleans up / deletes old poll update messages where possible (enabled by default).
-  - **Native Poll Sync & Auto-Vote** (`native_sync`): Creates a native Telegram/WhatsApp poll in the target chat and automatically casts a vote for the current winning option from the source poll.
-  - **Native Poll Sync without Vote** (`native_no_vote`): Creates a native Telegram/WhatsApp poll in the target chat without automatically voting for options.
+  - **Text Diagram & Updates** (`text_diagram` - Default): Sends poll status as a text diagram into the target chat, sends vote updates as text messages in the chat, and automatically deletes old diagram messages when a new vote arrives (`poll_delete_old_diagram: true`).
+  - **Native Poll Sync & Auto-Vote** (`native_sync`): Creates a native Telegram/WhatsApp poll in the target chat with matching single/multiple choice options, non-anonymous settings (`poll_is_anonymous: false`), and automatically relays the current winning option / vote leader.
+  - **Native Poll Sync without Vote** (`native_no_vote`): Creates a native Telegram/WhatsApp poll in the target chat without automatically relaying winning votes.
   - **Single Notification Only** (`once_no_update`): Sends the initial poll information once as a single text message and suppresses all subsequent vote update messages.
 - **Individual Toggles**:
+  - `poll_is_anonymous` (Default: `false` / Non-anonymous): Controls whether target Telegram polls are created as non-anonymous (so voter names are visible in Telegram) or anonymous.
   - `poll_send_text_diagram` (Default: `true` / Enabled): Send status update as a text diagram into the target.
   - `poll_send_update_message` (Default: `true` / Enabled): Send repeated vote updates into the chat.
-  - `poll_delete_old_message` (Default: `true` / Enabled): Delete the old update message when a new vote update arrives.
+  - `poll_delete_old_diagram` (Default: `true` / Enabled): Automatically delete the previous text diagram message when a new vote update arrives.
 
 ---
 

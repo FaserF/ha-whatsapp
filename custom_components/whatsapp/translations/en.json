@@ -404,9 +404,6 @@
       "failed": {
         "name": "Messages Failed"
       },
-      "uptime": {
-        "name": "Uptime"
-      },
       "version": {
         "name": "WhatsApp Version"
       },

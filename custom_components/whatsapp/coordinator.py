@@ -44,6 +44,7 @@ from .api import WhatsAppApiClient, WhatsAppAuthError
 from .const import CONF_POLLING_INTERVAL, DOMAIN
 from .helpers import (
     async_sync_moderation_entities,
+    async_sync_telegram_bridge_entities,
 )
 from .helpers import (
     safe_text as _safe_text,
@@ -267,6 +268,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             }
             if self.config_entry:
                 async_sync_moderation_entities(
+                    self.hass, self.config_entry.entry_id, data
+                )
+                async_sync_telegram_bridge_entities(
                     self.hass, self.config_entry.entry_id, data
                 )
             return _safe_text(data)

@@ -17,11 +17,11 @@ except ImportError:
         DEVICE = "device"
 
 
-from homeassistant.helpers.entity_registry import (
+from homeassistant.helpers.entity_registry import (  # noqa: E402
     async_get as async_get_entity_registry,
 )
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import dt as dt_util
+from homeassistant.helpers.update_coordinator import CoordinatorEntity  # noqa: E402
+from homeassistant.util import dt as dt_util  # noqa: E402
 
 T = TypeVar("T")
 
@@ -74,6 +74,35 @@ def sync_moderation_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
         )
 
 
+def is_telegram_bridge_active(coordinator_data: dict[str, object] | None) -> bool:
+    """Return True if Telegram bridge is configured with at least one enabled mapping.
+
+    The entity is considered active when:
+    * A ``bot_token`` is set, **and**
+    * At least one mapping has ``enabled: true``.
+    """
+    if not coordinator_data:
+        return False
+    tg: dict[str, object] = coordinator_data.get("telegram", {})  # type: ignore[assignment]
+    if not tg.get("bot_token") and not tg.get("enabled"):
+        return False
+    mappings: list[object] = tg.get("mappings", [])  # type: ignore[assignment]
+    return any(isinstance(m, dict) and m.get("enabled") for m in mappings)
+
+
+def sync_telegram_bridge_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
+    """Enable or disable Telegram bridge entity in registry based on bridge state."""
+    if entity.hass is None or entity.registry_entry is None:
+        return
+    active = is_telegram_bridge_active(entity.coordinator.data)
+    if entity.registry_entry.disabled != (not active):
+        er = async_get_entity_registry(entity.hass)
+        er.async_update_entity(
+            entity.entity_id,
+            disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
+        )
+
+
 def async_sync_moderation_entities(
     hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
 ) -> None:
@@ -112,6 +141,36 @@ def async_sync_moderation_entities(
                         )
     except Exception as exc:
         _LOGGER.debug("Entity registry sync skipped: %s", exc)
+
+
+def async_sync_telegram_bridge_entities(
+    hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
+) -> None:
+    """Sync Telegram bridge entity enabled state in entity registry.
+
+    Automatically enables ``telegram_bridge_status`` binary sensor when
+    at least one mapping is active, and disables it when none are.
+    """
+    if hass is None:
+        return
+    from .const import DOMAIN
+
+    active = is_telegram_bridge_active(coordinator_data)
+    try:
+        er = async_get_entity_registry(hass)
+        unique_id = f"{entry_id}_telegram_bridge_status"
+        entity_id = er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
+        if entity_id:
+            entry = er.async_get(entity_id)
+            if entry:
+                if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
+                    er.async_update_entity(entity_id, disabled_by=None)
+                elif not active and entry.disabled_by is None:
+                    er.async_update_entity(
+                        entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
+                    )
+    except Exception as exc:
+        _LOGGER.debug("Telegram bridge entity registry sync skipped: %s", exc)
 
 
 def format_timestamp(timestamp: int | None) -> str | None:

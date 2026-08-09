@@ -36,7 +36,7 @@ action:
       target: "{{ trigger.event.data.sender }}"
       message: |
         The server is online! 🚀
-        Uptime: {{ states('sensor.whatsapp_uptime') }}
+        Uptime: {{ state_attr('binary_sensor.whatsapp_connection', 'uptime_seconds') }}s
 ```
 
 {% endraw %}
