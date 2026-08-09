@@ -242,9 +242,7 @@ async def test_send_buttons_normalization(
         hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account"
-            ) as mock_get_client,
+            patch("custom_components.whatsapp.get_client_for_account"),
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -309,9 +307,7 @@ async def test_new_services_routing(
         hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account"
-            ) as mock_get_client,
+            patch("custom_components.whatsapp.get_client_for_account"),
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
