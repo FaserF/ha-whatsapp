@@ -98,7 +98,11 @@ def test_chats_sensor_list_fallback() -> None:
     # Test with None/empty data
     mock_coordinator.data = None
     assert sensor.native_value == 0
-    assert sensor.extra_state_attributes == {"groups": []}
+    assert sensor.extra_state_attributes == {
+        "groups": [],
+        "group_count": 0,
+        "status_description": "No data available",
+    }
 
 
 def test_invalid_unicode_sanitization() -> None:
