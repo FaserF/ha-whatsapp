@@ -398,17 +398,21 @@ class WhatsAppModerationRaidStatusSensor(
         mod = data.get("moderation", {})
         groups = mod.get("groups", {})
         chats_data = data.get("chats", {})
-        
+
         # Build map of JID -> chat name from chats data
         chat_names: dict[str, str] = {}
         if isinstance(chats_data, dict):
             for c in chats_data.get("groups", []):
                 if isinstance(c, dict) and c.get("jid"):
-                    chat_names[str(c.get("jid"))] = str(c.get("name") or c.get("subject") or c.get("jid"))
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
         elif isinstance(chats_data, list):
             for c in chats_data:
                 if isinstance(c, dict) and c.get("jid"):
-                    chat_names[str(c.get("jid"))] = str(c.get("name") or c.get("subject") or c.get("jid"))
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
 
         active_groups: list[str] = []
         for gid, group in groups.items():
@@ -466,9 +470,7 @@ class WhatsAppPendingCaptchasSensor(
         for group in groups.values():
             captcha_data = group.get("captcha", {})
             pending_list = captcha_data.get("pending", {})
-            if isinstance(pending_list, dict):
-                pending_total += len(pending_list)
-            elif isinstance(pending_list, list):
+            if isinstance(pending_list, dict) or isinstance(pending_list, list):
                 pending_total += len(pending_list)
         return pending_total
 

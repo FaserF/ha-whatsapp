@@ -107,7 +107,11 @@ class WhatsAppConnectionSensor(
                     )
 
         last_target_raw = safe_text(stats.get("last_sent_target"))
-        last_target_resolved = chat_names.get(str(last_target_raw), last_target_raw) if last_target_raw else None
+        last_target_resolved = (
+            chat_names.get(str(last_target_raw), last_target_raw)
+            if last_target_raw
+            else None
+        )
 
         return {
             "version": safe_text(stats.get("version", "Unknown")),
@@ -301,11 +305,16 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
         active_mappings = [m for m in mappings if m.get("enabled")]
         active_count = len(active_mappings)
         bot_username = tg.get("bot_username", "")
-        
+
         # Build human readable list of active forwarding mappings
         active_mapping_names: list[str] = []
         for m in active_mappings:
-            name = m.get("name") or m.get("chat_name") or m.get("tg_chat_id") or "Unnamed forwarder"
+            name = (
+                m.get("name")
+                or m.get("chat_name")
+                or m.get("tg_chat_id")
+                or "Unnamed forwarder"
+            )
             active_mapping_names.append(str(name))
 
         return {
