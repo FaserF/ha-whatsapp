@@ -349,7 +349,9 @@ async def test_new_services_routing(
                 create_group_fn = handlers.get("create_group")
                 assert create_group_fn is not None
                 await create_group_fn(
-                    make_call("create_group", {"subject": "Test", "participants": ["123"]})
+                    make_call(
+                        "create_group", {"subject": "Test", "participants": ["123"]}
+                    )
                 )
                 mock_client.create_group.assert_awaited_with("Test", ["123"])
 
