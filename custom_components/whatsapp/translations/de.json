@@ -418,6 +418,9 @@
       },
       "moderation_raid_status": {
         "name": "Anti-Raid Schutz-Status"
+      },
+      "pending_captchas": {
+        "name": "Ausstehende Captcha-Verifizierungen"
       }
     },
     "binary_sensor": {
@@ -434,6 +437,9 @@
     "button": {
       "diagnostic_test": {
         "name": "Diagnose-Test"
+      },
+      "reconnect": {
+        "name": "WhatsApp-Sitzung neu starten"
       }
     },
     "notify": {

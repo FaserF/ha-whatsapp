@@ -22,7 +22,35 @@ async def async_setup_entry(
     """Set up the WhatsApp button platform."""
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: WACoordinator = data["coordinator"]
-    async_add_entities([WhatsAppTestButton(coordinator)])
+    async_add_entities(
+        [
+            WhatsAppTestButton(coordinator),
+            WhatsAppReconnectButton(coordinator),
+        ]
+    )
+
+
+class WhatsAppReconnectButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # type: ignore[misc]
+    """Button entity to trigger a gentle WhatsApp session reconnect."""
+
+    coordinator: WACoordinator
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "reconnect"
+    _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:restart"
+
+    def __init__(self, coordinator: WACoordinator) -> None:
+        """Initialize the reconnect button."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_reconnect"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    async def async_press(self) -> None:
+        """Handle the button press to restart session negotiation."""
+        client = self.coordinator.client
+        await client.start_session()
+        await self.coordinator.async_request_refresh()
 
 
 class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # type: ignore[misc]

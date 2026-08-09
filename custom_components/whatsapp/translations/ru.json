@@ -370,9 +370,6 @@
       "failed": {
         "name": "Сообщения не отправлены"
       },
-      "uptime": {
-        "name": "Время безотказной работы"
-      },
       "version": {
         "name": "Версия WhatsApp"
       },
@@ -381,16 +378,34 @@
       },
       "chats": {
         "name": "Чаты"
+      },
+      "moderation_warnings": {
+        "name": "Активные предупреждения модерации"
+      },
+      "moderation_raid_status": {
+        "name": "Статус защиты от рейдов"
+      },
+      "pending_captchas": {
+        "name": "Ожидающие проверки капчи"
       }
     },
     "binary_sensor": {
       "connection": {
         "name": "Соединение"
+      },
+      "moderation_status": {
+        "name": "Движок модерации WhatsApp"
+      },
+      "telegram_bridge_status": {
+        "name": "Статус моста Telegram"
       }
     },
     "button": {
       "diagnostic_test": {
         "name": "Диагностический тест"
+      },
+      "reconnect": {
+        "name": "Перезапустить сеанс WhatsApp"
       }
     },
     "notify": {

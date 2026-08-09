@@ -25,6 +25,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
 from .helpers import (
+    format_timestamp,
     safe_text,
     sync_moderation_registry_enabled,
     sync_telegram_bridge_registry_enabled,
@@ -89,6 +90,25 @@ class WhatsAppConnectionSensor(
         data = self.coordinator.data or {}
         stats = data.get("stats", {})
         dashboard = data.get("dashboard", {})
+        # Build map of JID -> chat name from chats data
+        chats_data = data.get("chats", {})
+        chat_names: dict[str, str] = {}
+        if isinstance(chats_data, dict):
+            for c in chats_data.get("groups", []):
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+        elif isinstance(chats_data, list):
+            for c in chats_data:
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+
+        last_target_raw = safe_text(stats.get("last_sent_target"))
+        last_target_resolved = chat_names.get(str(last_target_raw), last_target_raw) if last_target_raw else None
+
         return {
             "version": safe_text(stats.get("version", "Unknown")),
             "phone_number": safe_text(stats.get("my_number", "Unknown")),
@@ -99,13 +119,13 @@ class WhatsAppConnectionSensor(
                 if isinstance(dashboard, dict)
                 else False
             ),
-            "last_update": stats.get("start_time"),
+            "last_update": format_timestamp(stats.get("start_time")),
             "uptime_seconds": stats.get("uptime", 0),
             "total_sent": stats.get("sent", 0),
             "total_received": stats.get("received", 0),
             "total_failed": stats.get("failed", 0),
             "last_message_sent": safe_text(stats.get("last_sent_message")),
-            "last_message_target": safe_text(stats.get("last_sent_target")),
+            "last_message_target": last_target_resolved,
             "status_description": (
                 f"Connected ({safe_text(stats.get('my_number', 'Unknown'))})"
                 if self.is_on
@@ -173,11 +193,32 @@ class WhatsAppModerationStatusBinarySensor(
         mod = data.get("moderation", {})
         groups = mod.get("groups", {})
         federations = mod.get("federations", [])
+        chats_data = data.get("chats", {})
+
+        # Build map of JID -> chat name from chats data
+        chat_names: dict[str, str] = {}
+        if isinstance(chats_data, dict):
+            for c in chats_data.get("groups", []):
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+        elif isinstance(chats_data, list):
+            for c in chats_data:
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
 
         # Build list of managed group names / IDs for clarity
         managed_group_list: list[str] = []
         for gid, gdata in groups.items():
-            name = gdata.get("name") or gdata.get("subject") or gid
+            name = (
+                gdata.get("name")
+                or gdata.get("subject")
+                or chat_names.get(str(gid))
+                or str(gid)
+            )
             managed_group_list.append(str(name))
 
         return {
@@ -185,6 +226,16 @@ class WhatsAppModerationStatusBinarySensor(
             "managed_groups_count": len(groups),
             "managed_groups": managed_group_list,
             "federations_count": len(federations),
+            "safety_status": (
+                "Safe — Group moderation & defender shield actively protecting groups"
+                if mod.get("global_enabled")
+                else "Unsafe — Group moderation & defender shield is disabled"
+            ),
+            "safety_explanation": (
+                "When state is ON (Safe), automatic spam detection, anti-raid shield, "
+                "content locks, and defender bot rules are actively guarding your groups. "
+                "When OFF (Unsafe), groups are unprotected against raids, spam, and policy violations."
+            ),
             "status_description": (
                 (
                     f"Globally active with {len(groups)} managed group(s)"
@@ -243,20 +294,31 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return Telegram bridge attributes."""
+        """Return detailed Telegram bridge attributes."""
         data = self.coordinator.data or {}
         tg = data.get("telegram", {})
         mappings = tg.get("mappings", [])
         active_mappings = [m for m in mappings if m.get("enabled")]
         active_count = len(active_mappings)
         bot_username = tg.get("bot_username", "")
+        
+        # Build human readable list of active forwarding mappings
+        active_mapping_names: list[str] = []
+        for m in active_mappings:
+            name = m.get("name") or m.get("chat_name") or m.get("tg_chat_id") or "Unnamed forwarder"
+            active_mapping_names.append(str(name))
+
         return {
             "enabled": tg.get("enabled", False),
-            "bot_username": bot_username,
+            "bot_username": f"@{bot_username}" if bot_username else "None",
             "mappings_count": len(mappings),
             "active_mappings_count": active_count,
+            "active_forwarders": active_mapping_names,
             "status_description": (
-                f"Active with bot @{bot_username} ({active_count} active forwarder(s))"
+                (
+                    f"Active with bot @{bot_username} — "
+                    f"{active_count} active forwarder(s)"
+                )
                 if self.is_on and bot_username
                 else "Inactive or no bot configured"
             ),

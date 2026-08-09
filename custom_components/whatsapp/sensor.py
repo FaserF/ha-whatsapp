@@ -62,6 +62,7 @@ async def async_setup_entry(
             WhatsAppChatsSensor(coordinator, entry),
             WhatsAppModerationWarningsSensor(coordinator, entry),
             WhatsAppModerationRaidStatusSensor(coordinator, entry),
+            WhatsAppPendingCaptchasSensor(coordinator, entry),
         ]
     )
 
@@ -278,24 +279,55 @@ class WhatsAppModerationWarningsSensor(
         data = self.coordinator.data or {}
         mod = data.get("moderation", {})
         groups = mod.get("groups", {})
+        chats_data = data.get("chats", {})
+
+        # Build map of JID -> chat name from chats data
+        chat_names: dict[str, str] = {}
+        if isinstance(chats_data, dict):
+            for c in chats_data.get("groups", []):
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+        elif isinstance(chats_data, list):
+            for c in chats_data:
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+
         warned_users_count = 0
         warned_groups: list[str] = []
+        warning_details: list[dict[str, Any]] = []
 
         for gid, group in groups.items():
             user_warns = group.get("warnings", {}).get("user_warns", {})
+            group_name = (
+                group.get("name")
+                or group.get("subject")
+                or chat_names.get(str(gid))
+                or str(gid)
+            )
             group_has_warns = False
-            for _uid, warns in user_warns.items():
+            for uid, warns in user_warns.items():
                 if isinstance(warns, list) and len(warns) > 0:
                     warned_users_count += 1
                     group_has_warns = True
+                    warning_details.append(
+                        {
+                            "group": group_name,
+                            "user": str(uid),
+                            "count": len(warns),
+                        }
+                    )
             if group_has_warns:
-                name = group.get("name") or group.get("subject") or gid
-                warned_groups.append(str(name))
+                warned_groups.append(group_name)
 
         return {
             "total_active_warnings": self.native_value,
             "warned_users_count": warned_users_count,
             "groups_with_warnings": warned_groups,
+            "warning_details": warning_details,
             "status_description": (
                 (
                     f"{self.native_value} warning(s)"
@@ -365,11 +397,29 @@ class WhatsAppModerationRaidStatusSensor(
         data = self.coordinator.data or {}
         mod = data.get("moderation", {})
         groups = mod.get("groups", {})
+        chats_data = data.get("chats", {})
+        
+        # Build map of JID -> chat name from chats data
+        chat_names: dict[str, str] = {}
+        if isinstance(chats_data, dict):
+            for c in chats_data.get("groups", []):
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(c.get("name") or c.get("subject") or c.get("jid"))
+        elif isinstance(chats_data, list):
+            for c in chats_data:
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(c.get("name") or c.get("subject") or c.get("jid"))
+
         active_groups: list[str] = []
         for gid, group in groups.items():
             antispam = group.get("antispam", {})
             if antispam.get("anti_raid", {}).get("enabled"):
-                name = group.get("name") or group.get("subject") or gid
+                name = (
+                    group.get("name")
+                    or group.get("subject")
+                    or chat_names.get(str(gid))
+                    or str(gid)
+                )
                 active_groups.append(str(name))
         return {
             "active_shield_count": len(active_groups),
@@ -378,5 +428,89 @@ class WhatsAppModerationRaidStatusSensor(
                 f"Active in {len(active_groups)} group(s)"
                 if active_groups
                 else "Not active in any group"
+            ),
+        }
+
+
+class WhatsAppPendingCaptchasSensor(
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SensorEntity,  # type: ignore[misc]
+):
+    """Sensor reporting total pending group member Captcha verifications.
+
+    Disabled by default in entity registry. Can be enabled manually or automatically
+    activated when group moderation features are used.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "pending_captchas"
+    _attr_icon = "mdi:shield-account"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_pending_captchas"
+        self._attr_device_info = coordinator.client.get_device_info()
+
+    @property
+    def native_value(self) -> int:
+        """Return the number of pending captchas across all groups."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        groups = mod.get("groups", {})
+        pending_total = 0
+        for group in groups.values():
+            captcha_data = group.get("captcha", {})
+            pending_list = captcha_data.get("pending", {})
+            if isinstance(pending_list, dict):
+                pending_total += len(pending_list)
+            elif isinstance(pending_list, list):
+                pending_total += len(pending_list)
+        return pending_total
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return detailed pending captcha attributes."""
+        data = self.coordinator.data or {}
+        mod = data.get("moderation", {})
+        groups = mod.get("groups", {})
+        chats_data = data.get("chats", {})
+
+        chat_names: dict[str, str] = {}
+        if isinstance(chats_data, dict):
+            for c in chats_data.get("groups", []):
+                if isinstance(c, dict) and c.get("jid"):
+                    chat_names[str(c.get("jid"))] = str(
+                        c.get("name") or c.get("subject") or c.get("jid")
+                    )
+
+        pending_groups: list[str] = []
+        for gid, group in groups.items():
+            captcha_data = group.get("captcha", {})
+            pending = captcha_data.get("pending", {})
+            if pending and (
+                (isinstance(pending, dict) and len(pending) > 0)
+                or (isinstance(pending, list) and len(pending) > 0)
+            ):
+                name = (
+                    group.get("name")
+                    or group.get("subject")
+                    or chat_names.get(str(gid))
+                    or str(gid)
+                )
+                pending_groups.append(str(name))
+
+        val = self.native_value
+        return {
+            "pending_count": val,
+            "groups_with_pending_captchas": pending_groups,
+            "status_description": (
+                f"{val} pending captcha(s) in {len(pending_groups)} group(s)"
+                if val > 0
+                else "No pending captchas"
             ),
         }
