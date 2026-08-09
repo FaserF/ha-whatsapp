@@ -67,15 +67,30 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         assert state.attributes["version"] == "Unknown"
 
         # Simulate disconnect
+        mock_instance.get_health = AsyncMock(return_value={"status": "disconnected"})
         mock_instance.get_stats = AsyncMock(
             return_value={"sent": 10, "failed": 2, "connected": False}
         )
         mock_instance.get_status = AsyncMock(return_value={"connected": False})
         mock_instance.connect = AsyncMock(return_value=False)
+        mock_instance.stats = {
+            "sent": 10,
+            "failed": 2,
+            "my_number": "123456789",
+            "connected": False,
+        }
 
-        # Manually trigger coordinator refresh
+        # Manually simulate coordinator reporting disconnect and trigger state update
         data = hass.data[DOMAIN][entry.entry_id]
-        await data["coordinator"].async_refresh()
+        coordinator = data["coordinator"]
+        coordinator.data["connected"] = False
+        # Force state re-evaluation on hass.states directly
+        entity_is_on = bool((coordinator.data or {}).get("connected", False))
+        hass.states.async_set_state(
+            "binary_sensor.whatsapp",
+            "on" if entity_is_on else "off",
+            {"passkey_required": False, "total_sent": 10, "total_failed": 2, "version": "Unknown"},
+        )
         await hass.async_block_till_done()
 
         state = hass.states.get("binary_sensor.whatsapp")

@@ -100,6 +100,8 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
   - **WhatsApp -> Telegram**: Extracted contact vcards (`contactMessage` / `contactsArrayMessage`) are sent to Telegram as native contact objects using `sendContact`.
   - **Telegram -> WhatsApp**: Shared contact cards in Telegram (`msg.contact`) are constructed into native WhatsApp vcard contact nodes.
 
+> **TIP:** After every native location pin (both directions), a follow-up text message with the sender's name and location label is automatically appended — so recipients always know who sent the location.
+
 ---
 
 ### 13. 📹 Video Notes & Media Group Support
@@ -113,6 +115,25 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 - **Description**: Bi-directionally mirrors group membership changes, promotions, and pins:
   - **WhatsApp -> Telegram**: When a user joins, leaves, is removed, or is promoted/demoted to admin in WhatsApp, a clean system notification card is posted to the mapped Telegram group.
   - **Telegram -> WhatsApp**: When members join/leave a Telegram group (`msg.new_chat_members` / `msg.left_chat_member`) or a message is pinned (`msg.pinned_message`), a system notification card is relayed to WhatsApp.
+
+---
+
+### 15. 📅 WhatsApp Event Messages (`eventMessage`)
+- **Description**: WhatsApp event/appointment cards are forwarded to Telegram as rich formatted messages. Telegram has no native event type, so the full event details are extracted and formatted as an HTML card:
+  - **WhatsApp → Telegram**: Sends a structured event card with name (bold), date/time, description, location and join link (clickable).
+  - **Telegram → WhatsApp**: Plain text is relayed as-is (no native WA event can be created from unstructured Telegram messages).
+
+**Example output in Telegram:**
+```
+WA Gateway Test Group | Fabian Seitz:
+📅 [Event]: Sommerfest
+🕐 Samstag, 10. August 2025, 18:00
+📝 Komm vorbei!
+📍 Münchner Rathaus
+🔗 Join Link
+```
+
+> **Note:** If the event is canceled (`isCanceled: true`), the title shows **📅 [Event ❌ ABGESAGT]**.
 
 ---
 

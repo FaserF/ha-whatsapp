@@ -126,6 +126,12 @@ class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-t
 
     async def async_refresh(self) -> None:
         await self.async_config_entry_first_refresh()
+        if hasattr(self.hass, "_mock_entities"):
+            for entity in self.hass._mock_entities:
+                if getattr(entity, "coordinator", None) is self:
+                    from ha_stubs import mock_add_entities
+
+                    mock_add_entities(self.hass, [entity])
         for listener in list(self._listeners):
             listener()
 
@@ -151,13 +157,19 @@ class CoordinatorEntity(_CoordinatorEntityBase):  # type: ignore[valid-type, mis
 
     def async_write_ha_state(self) -> None:
         if self.hass and self.entity_id:
-            state = getattr(self, "state", None)
-            if state is None:
-                native = getattr(self, "native_value", None)
-                if native is not None:
-                    state = str(native)
-            if hasattr(self, "is_on"):
+            is_on_attr = getattr(type(self), "is_on", None)
+            if isinstance(is_on_attr, property):
                 state = "on" if self.is_on else "off"
+            else:
+                is_on_val = getattr(self, "is_on", None)
+                if is_on_val is not None:
+                    state = "on" if is_on_val else "off"
+                else:
+                    state = getattr(self, "state", None)
+                    if state is None:
+                        native = getattr(self, "native_value", None)
+                        if native is not None:
+                            state = str(native)
 
             self.hass.states.async_set_state(
                 self.entity_id, state, getattr(self, "extra_state_attributes", {})
@@ -255,8 +267,12 @@ stub = _stub
 def mock_add_entities(
     hass: Any, entities: list[Any], update_before_add: bool = False
 ) -> None:
+    if not hasattr(hass, "_mock_entities"):
+        hass._mock_entities = []
     for entity in entities:
         entity.hass = hass
+        if entity not in hass._mock_entities:
+            hass._mock_entities.append(entity)
         if not getattr(entity, "entity_id", None):
             domain = "sensor"
             if hasattr(entity, "is_on"):
@@ -286,19 +302,21 @@ def mock_add_entities(
                 entity.entity_id = f"{domain}.whatsapp"
 
         attr = getattr(entity, "extra_state_attributes", {}) or {}
-        state_val = getattr(entity, "is_on", None)
-        if state_val is not None:
-            state_str = "on" if state_val else "off"
+        is_on_attr = getattr(type(entity), "is_on", None)
+        if isinstance(is_on_attr, property):
+            state_str = "on" if entity.is_on else "off"
         else:
-            native_val = getattr(entity, "native_value", None)
-            if native_val is not None:
-                state_str = str(native_val)
+            state_val = getattr(entity, "is_on", None)
+            if state_val is not None:
+                state_str = "on" if state_val else "off"
             else:
-                state_str = str(getattr(entity, "state", "unknown"))
+                native_val = getattr(entity, "native_value", None)
+                if native_val is not None:
+                    state_str = str(native_val)
+                else:
+                    state_str = str(getattr(entity, "state", "unknown"))
         if hasattr(hass, "states") and hasattr(hass.states, "async_set_state"):
             hass.states.async_set_state(entity.entity_id, state_str, attr)
-        else:
-            entity.async_write_ha_state()
         if update_before_add and hasattr(entity, "async_update"):
             pass
 

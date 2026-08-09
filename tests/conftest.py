@@ -182,63 +182,82 @@ def hass(mock_client: MagicMock) -> MagicMock:
         return coro
 
     hass.async_create_task = MagicMock(side_effect=async_create_task)
+
+    def async_run_hass_job(job: Any, *args: Any, **_kwargs: Any) -> Any:
+        import asyncio
+        import inspect
+
+        target = getattr(job, "target", job)
+        if callable(target):
+            res = target(*args)
+            if inspect.iscoroutine(res):
+                return asyncio.create_task(res)
+            return res
+        return None
+
+    hass.async_run_hass_job = MagicMock(side_effect=async_run_hass_job)
     hass.async_block_till_done = AsyncMock()
 
+    def async_create_background_task(
+        coro: Any, name: str | None = None, eager_start: bool = True
+    ) -> Any:
+        import asyncio
+        import inspect
+
+        if inspect.iscoroutine(coro):
+            return asyncio.ensure_future(coro)
+        # Return a done future so task.done() calls by MockConfigEntry don't fail
+        loop = asyncio.get_event_loop()
+        fut: asyncio.Future[None] = loop.create_future()
+        fut.set_result(None)
+        return fut
+
+    hass.async_create_background_task = MagicMock(
+        side_effect=async_create_background_task
+    )
+
     hass.bus = ha_stubs.Bus()
+
+    hass.config_entries = MagicMock()
+    hass.config_entries._entries = {}
 
     async def async_setup(entry_id: str) -> bool:
         entry = None
         if "entries" in hass.data and entry_id in hass.data["entries"]:
             entry = hass.data["entries"][entry_id]
-        elif (
-            hasattr(hass.config_entries, "_entries")
-            and entry_id in hass.config_entries._entries
-        ):
+        elif entry_id in hass.config_entries._entries:
             entry = hass.config_entries._entries[entry_id]
         if entry is not None:
             try:
                 from custom_components.whatsapp import async_setup_entry
-                from custom_components.whatsapp.coordinator import (
-                    WhatsAppDataUpdateCoordinator,
-                )
 
-                logging.getLogger(__name__).debug(
-                    "DEBUG: WhatsAppDataUpdateCoordinator MRO: %s",
-                    WhatsAppDataUpdateCoordinator.mro(),
-                )
-                logging.getLogger(__name__).debug(
-                    "DEBUG: WhatsAppDataUpdateCoordinator has first_refresh: %s",
-                    hasattr(
-                        WhatsAppDataUpdateCoordinator,
-                        "async_config_entry_first_refresh",
-                    ),
-                )
                 try:
                     from homeassistant.config_entries import ConfigEntryState
 
-                    entry.state = ConfigEntryState.SETUP_IN_PROGRESS
+                    object.__setattr__(entry, "state", ConfigEntryState.SETUP_IN_PROGRESS)
                 except Exception:
-                    entry.state = ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
+                    object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS)
                 result = await async_setup_entry(hass, entry)
                 if result:
                     try:
                         from homeassistant.config_entries import ConfigEntryState
 
-                        entry.state = ConfigEntryState.LOADED
+                        object.__setattr__(entry, "state", ConfigEntryState.LOADED)
                     except Exception:
-                        entry.state = ha_stubs.ConfigEntryState.LOADED
+                        object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.LOADED)
                     from custom_components.whatsapp.const import DOMAIN
 
-                    hass.data.setdefault(DOMAIN, {})
-                    hass.data[DOMAIN].setdefault(
-                        entry.entry_id,
-                        {
+                    if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
+                        # Integration's real setup put its objects in hass.data
+                        pass
+                    else:
+                        hass.data.setdefault(DOMAIN, {})
+                        hass.data[DOMAIN][entry.entry_id] = {
                             "client": mock_client,
                             "coordinator": ha_stubs.DataUpdateCoordinator(
                                 hass, mock_client, entry
                             ),
-                        },
-                    )
+                        }
                 return result
             except Exception as exc:
                 logging.getLogger(__name__).exception(
@@ -247,7 +266,6 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 raise exc
         return True
 
-    hass.config_entries = MagicMock()
     hass.config_entries.async_setup = AsyncMock(side_effect=async_setup)
     hass.config_entries.async_reload = AsyncMock(return_value=True)
 
@@ -255,9 +273,38 @@ def hass(mock_client: MagicMock) -> MagicMock:
         entry: Any, options: dict[str, Any] | None = None, data: Any = None
     ) -> None:
         if options is not None:
-            entry.options.update(options)
+            try:
+                entry.options.update(options)  # mutable dict
+            except AttributeError:
+                # options is a MappingProxyType (immutable) - replace it
+                from types import MappingProxyType
+
+                new_opts = {**entry.options, **options}
+                try:
+                    entry.options = MappingProxyType(new_opts)
+                except AttributeError:
+                    object.__setattr__(entry, "options", MappingProxyType(new_opts))
         if data is not None:
-            entry.data.update(data)
+            try:
+                entry.data.update(data)
+            except AttributeError:
+                from types import MappingProxyType
+
+                new_data = {**entry.data, **data}
+                try:
+                    entry.data = MappingProxyType(new_data)
+                except AttributeError:
+                    object.__setattr__(entry, "data", MappingProxyType(new_data))
+        from custom_components.whatsapp import async_setup_entry
+
+        # Reset state so async_config_entry_first_refresh is allowed to run
+        try:
+            from homeassistant.config_entries import ConfigEntryState
+
+            object.__setattr__(entry, "state", ConfigEntryState.SETUP_IN_PROGRESS)
+        except Exception:
+            object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS)
+        await async_setup_entry(hass, entry)
 
     hass.config_entries.async_update_entry = AsyncMock(side_effect=async_update_entry)
 

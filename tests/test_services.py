@@ -273,6 +273,7 @@ async def test_services(hass: HomeAssistant) -> None:
             "Caption",
             quoted_message_id=None,
             expiration=None,
+            mimetype=None,
         )
 
         # 14. Test send_video

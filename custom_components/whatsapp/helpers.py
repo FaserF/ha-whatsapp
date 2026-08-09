@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, TypeVar, cast
+
+_LOGGER = logging.getLogger(__name__)
 
 try:
     from homeassistant.helpers.entity_registry import RegistryEntryDisabler
@@ -84,25 +87,28 @@ def async_sync_moderation_entities(
     from .const import DOMAIN
 
     active = is_moderation_active(coordinator_data)
-    er = async_get_entity_registry(hass)
-    moderation_unique_ids = [
-        f"{entry_id}_moderation_warnings",
-        f"{entry_id}_moderation_raid_status",
-        f"{entry_id}_moderation_status",
-    ]
-    for unique_id in moderation_unique_ids:
-        entity_id = er.async_get_entity_id(
-            "sensor", DOMAIN, unique_id
-        ) or er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
-        if entity_id:
-            entry = er.async_get(entity_id)
-            if entry:
-                if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
-                    er.async_update_entity(entity_id, disabled_by=None)
-                elif not active and entry.disabled_by is None:
-                    er.async_update_entity(
-                        entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
-                    )
+    try:
+        er = async_get_entity_registry(hass)
+        moderation_unique_ids = [
+            f"{entry_id}_moderation_warnings",
+            f"{entry_id}_moderation_raid_status",
+            f"{entry_id}_moderation_status",
+        ]
+        for unique_id in moderation_unique_ids:
+            entity_id = er.async_get_entity_id(
+                "sensor", DOMAIN, unique_id
+            ) or er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
+            if entity_id:
+                entry = er.async_get(entity_id)
+                if entry:
+                    if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
+                        er.async_update_entity(entity_id, disabled_by=None)
+                    elif not active and entry.disabled_by is None:
+                        er.async_update_entity(
+                            entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
+                        )
+    except Exception as exc:
+        _LOGGER.debug("Entity registry sync skipped: %s", exc)
 
 
 def format_timestamp(timestamp: int | None) -> str | None:
