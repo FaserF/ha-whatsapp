@@ -191,14 +191,14 @@ async def test_service_routing(
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
 
+            mock_client = MagicMock()
+            mock_client.send_message = AsyncMock()
+            mock_get_client.return_value = mock_client
+
             await async_setup_entry(hass, mock_entry)
 
             send_msg_service = handlers.get("send_message")
             assert send_msg_service is not None
-
-            mock_client = MagicMock()
-            mock_client.send_message = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             from homeassistant.core import ServiceCall
 
@@ -256,14 +256,14 @@ async def test_send_buttons_normalization(
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
 
+            mock_client = MagicMock()
+            mock_client.send_buttons = AsyncMock()
+            mock_get_client.return_value = mock_client
+
             await async_setup_entry(hass, mock_entry)
 
             send_btn_service = handlers.get("send_buttons")
             assert send_btn_service is not None
-
-            mock_client = MagicMock()
-            mock_client.send_buttons = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             from homeassistant.core import ServiceCall
 
@@ -321,8 +321,6 @@ async def test_new_services_routing(
             mock_coord = mock_coord_cls.return_value
             mock_coord.async_config_entry_first_refresh = AsyncMock()
 
-            await async_setup_entry(hass, mock_entry)
-
             mock_client = MagicMock()
             mock_client.create_group = AsyncMock(return_value={"id": "g1"})
             mock_client.add_group_participants = AsyncMock(return_value={})
@@ -334,6 +332,8 @@ async def test_new_services_routing(
             mock_client.mute_chat = AsyncMock(return_value={})
 
             mock_get_client.return_value = mock_client
+
+            await async_setup_entry(hass, mock_entry)
 
             from homeassistant.core import ServiceCall
 

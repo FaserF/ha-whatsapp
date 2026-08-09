@@ -34,6 +34,10 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
             "custom_components.whatsapp.config_flow.WhatsAppApiClient.close",
             return_value=None,
         ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.start_session",
+            return_value=None,
+        ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
     ):
         result = await hass.config_entries.flow.async_init(
@@ -63,6 +67,10 @@ async def test_multi_instance_setup(hass: HomeAssistant) -> None:
         ),
         patch(
             "custom_components.whatsapp.config_flow.WhatsAppApiClient.close",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.start_session",
             return_value=None,
         ),
         patch("custom_components.whatsapp.async_setup_entry", return_value=True),
@@ -127,6 +135,10 @@ async def test_duplicate_instance_rejected(hass: HomeAssistant) -> None:
         ),
         patch(
             "custom_components.whatsapp.WhatsAppApiClient.start_polling",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.whatsapp.WhatsAppApiClient.start_session",
             return_value=None,
         ),
     ):

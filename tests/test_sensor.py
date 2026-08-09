@@ -78,15 +78,22 @@ def test_chats_sensor_list_fallback() -> None:
     mock_coordinator.data = {
         "chats": {"total_chats": 10, "groups": [{"jid": "123@g.us"}]}
     }
-    assert sensor.native_value == 10
-    assert sensor.extra_state_attributes == {"groups": [{"jid": "123@g.us"}]}
+    assert sensor.extra_state_attributes == {
+        "groups": [{"jid": "123@g.us"}],
+        "group_count": 1,
+        "status_description": "10 chat(s) total (1 group(s))",
+    }
 
     # Test with list (the bug condition in Issue #83)
     mock_coordinator.data = {
         "chats": [{"jid": "123@g.us"}, {"jid": "456@s.whatsapp.net"}]
     }
     assert sensor.native_value == 2
-    assert sensor.extra_state_attributes == {"groups": [{"jid": "123@g.us"}]}
+    assert sensor.extra_state_attributes == {
+        "groups": [{"jid": "123@g.us"}],
+        "group_count": 1,
+        "status_description": "2 chat(s) total (1 group(s))",
+    }
 
     # Test with None/empty data
     mock_coordinator.data = None
