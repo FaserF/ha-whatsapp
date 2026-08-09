@@ -31,6 +31,7 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
     """Patch aiodns.DNSResolver.__init__ on Windows to prevent SelectorEventLoop check error."""
     import sys
     from unittest.mock import patch
+
     if sys.platform == "win32":
         with patch("aiodns.DNSResolver.__init__", return_value=None):
             yield
