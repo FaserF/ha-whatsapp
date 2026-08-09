@@ -178,10 +178,6 @@ async def test_service_routing(
         mock_client.send_message = AsyncMock()
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ) as mock_get_client,
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -207,11 +203,13 @@ async def test_service_routing(
                 "send_message",
                 {"target": "999", "message": "Hi", "account": "MyAccount"},
             )
-            call.service = "send_message"
 
-            await send_msg_service(call)
-
-            mock_get_client.assert_called_with(hass, "MyAccount")
+            with patch(
+                "custom_components.whatsapp.get_client_for_account",
+                return_value=mock_client,
+            ) as mock_get_client:
+                await send_msg_service(call)
+                mock_get_client.assert_called_with(hass, "MyAccount")
             mock_client.send_message.assert_called_once_with(
                 "999", "Hi", quoted_message_id=None, expiration=None
             )
@@ -243,10 +241,6 @@ async def test_send_buttons_normalization(
         mock_client.send_buttons = AsyncMock()
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ),
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -273,9 +267,12 @@ async def test_send_buttons_normalization(
                 "send_buttons",
                 {"target": "123", "message": "Hello", "buttons": buttons},
             )
-            call.service = "send_buttons"
 
-            await send_btn_service(call)
+            with patch(
+                "custom_components.whatsapp.get_client_for_account",
+                return_value=mock_client,
+            ):
+                await send_btn_service(call)
 
             mock_client.send_buttons.assert_awaited_with(
                 "123", "Hello", buttons, None, quoted_message_id=None, expiration=None
@@ -315,10 +312,6 @@ async def test_new_services_routing(
         mock_client.mute_chat = AsyncMock(return_value={})
 
         with (
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ),
             patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -337,44 +330,46 @@ async def test_new_services_routing(
             from homeassistant.core import ServiceCall
 
             def make_call(service_name: str, data_dict: dict[str, Any]) -> ServiceCall:
-                c = ServiceCall("whatsapp", service_name, data_dict)
-                c.service = service_name
-                return c
+                return ServiceCall("whatsapp", service_name, data_dict)
 
-            # Test create_group
-            create_group_fn = handlers.get("create_group")
-            assert create_group_fn is not None
-            await create_group_fn(
-                make_call(
-                    "create_group",
-                    {"subject": "Test", "participants": ["123"]},
+            with patch(
+                "custom_components.whatsapp.get_client_for_account",
+                return_value=mock_client,
+            ):
+                # Test create_group
+                create_group_fn = handlers.get("create_group")
+                assert create_group_fn is not None
+                await create_group_fn(
+                    make_call(
+                        "create_group",
+                        {"subject": "Test", "participants": ["123"]},
+                    )
                 )
-            )
-            mock_client.create_group.assert_awaited_with("Test", ["123"])
+                mock_client.create_group.assert_awaited_with("Test", ["123"])
 
-            # Test star_message
-            star_fn = handlers.get("star_message")
-            assert star_fn is not None
-            await star_fn(
-                make_call("star_message", {"target": "123", "message_id": "m1"})
-            )
-            mock_client.star_message.assert_awaited_with("123", "m1", star=True)
-
-            # Test pin_message
-            pin_fn = handlers.get("pin_message")
-            assert pin_fn is not None
-            await pin_fn(
-                make_call(
-                    "pin_message",
-                    {"target": "123", "message_id": "m1", "duration": 3600},
+                # Test star_message
+                star_fn = handlers.get("star_message")
+                assert star_fn is not None
+                await star_fn(
+                    make_call("star_message", {"target": "123", "message_id": "m1"})
                 )
-            )
-            mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
+                mock_client.star_message.assert_awaited_with("123", "m1", star=True)
 
-            # Test send_status
-            status_fn = handlers.get("send_status")
-            assert status_fn is not None
-            await status_fn(make_call("send_status", {"message": "Status update"}))
-            mock_client.send_status.assert_awaited_with(
-                message="Status update", url=None, caption=None
-            )
+                # Test pin_message
+                pin_fn = handlers.get("pin_message")
+                assert pin_fn is not None
+                await pin_fn(
+                    make_call(
+                        "pin_message",
+                        {"target": "123", "message_id": "m1", "duration": 3600},
+                    )
+                )
+                mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
+
+                # Test send_status
+                status_fn = handlers.get("send_status")
+                assert status_fn is not None
+                await status_fn(make_call("send_status", {"message": "Status update"}))
+                mock_client.send_status.assert_awaited_with(
+                    message="Status update", url=None, caption=None
+                )
