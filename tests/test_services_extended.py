@@ -205,6 +205,9 @@ async def test_service_routing(
             )
             call.service = "send_message"
 
+            mock_client = MagicMock()
+            mock_client.send_message = AsyncMock()
+
             with patch(
                 "custom_components.whatsapp.get_client_for_account",
                 return_value=mock_client,
@@ -350,7 +353,8 @@ async def test_new_services_routing(
                 assert create_group_fn is not None
                 await create_group_fn(
                     make_call(
-                        "create_group", {"subject": "Test", "participants": ["123"]}
+                        "create_group",
+                        {"subject": "Test", "participants": ["123"]},
                     )
                 )
                 mock_client.create_group.assert_awaited_with("Test", ["123"])
