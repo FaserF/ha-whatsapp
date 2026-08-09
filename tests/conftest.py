@@ -153,7 +153,6 @@ def hass(mock_client: MagicMock) -> MagicMock:
             from ha_stubs import ServiceCall
 
             call = ServiceCall(domain, service, service_data)
-            call.service = service
             await service_handlers[(domain, service)](call)
 
     def async_set_state(entity_id: str, state: str, attributes: Any = None) -> None:

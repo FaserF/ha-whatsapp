@@ -25,6 +25,8 @@ Welcome to the comprehensive guide for the **WhatsApp Group Moderation, Defender
 8. [Gemini AI Capabilities](#-gemini-ai-capabilities)
 9. [Anti-Raid & Flood Protection](#-anti-raid--flood-protection)
 10. [Global Ban Federations](#-global-ban-federations)
+11. [Automated Moderation Testing](#-automated-moderation-testing)
+
 
 ---
 
@@ -757,5 +759,28 @@ Cluster multiple WhatsApp groups into a shared **Ban Federation**:
 ## 💡 Acknowledgments & Inspiration
 
 The Group Moderation Engine, Content Locks, Security Federations, and Group Commands features in this project were inspired by the conceptual architecture of **Miss Rose** and **[AegisBot](https://github.com/FaserF/AegisBot)**.
+
+---
+
+## 🧪 Automated Moderation Testing & Bot Outbound Anti-Spam Shield
+
+The Group Moderation Engine includes an **Autonomous Test Suite** accessible via the Web UI by clicking **Generate Test Commands 🧪** inside any group's settings panel, as well as a **Bot Outbound Anti-Spam Shield 🛡️**.
+
+- **Bot Outbound Anti-Spam Shield 🛡️**:
+  - Active by default for all moderation-enabled groups.
+  - Automatically triggers if the bot sends 5+ messages in 5 seconds in a chat.
+  - Sends one final warning notification before muting.
+  - Calculates mute duration via the formula: `muteSeconds = Math.max(10, msgs_in_5s * group_members)` (e.g. 5 msgs × 20 members = 100 seconds mute).
+  - Automatically un-mutes after expiration. (Telegram Relay messages are explicitly exempt).
+
+- **Automated Test Modes**:
+  - 📋 **Manual Mode (Default)**: Generates sample command payloads and trigger strings categorized by type for manual copying & pasting into WhatsApp.
+  - 🤖 **Autonomous Mode**: Runs automated command test suites directly from the Web UI with customizable execution delays (`delay_ms`) and selective subtest feature checkboxes (*Select All* / *Select None*).
+- **Options**:
+  - **Safe-Only Commands**: Restricts automated testing to read-only diagnostic commands (`!rules`, `!help`, `!notes`, `!filters`, `!warns`, `!locks`, `!info`) to avoid accidental kicks, bans, or mutes in active production groups.
+- **Live Output Streaming**: Renders real-time log events in the modal as commands are dispatched and verified.
+- **Group Verification Report**: Formats and dispatches a comprehensive Markdown test summary report to the target WhatsApp group upon completion.
+
+
 
 - **AegisBot Project**: [https://github.com/FaserF/AegisBot](https://github.com/FaserF/AegisBot)

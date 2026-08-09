@@ -207,7 +207,33 @@ By default, Telegram Bot API enables **Group Privacy Mode** on all newly created
   4. Click **Turn off** (until it confirms `Group Privacy is DISABLED`).
   5. Remove the bot once from your Telegram Group and re-add it.
 
----
+## 🧪 Bridge Integration Test Suite
+
+The Add-on Web UI includes a built-in **Bridge Integration Test Suite** in the Telegram tab. It enables end-to-end automated testing of chat mappings:
+
+- **Supported Message Types (16 Subtests)**:
+  1. 💬 **Text Messages & Markdown**: Formatting translation (`*bold*`, `_italic_`, `~strike~`, `\`code\``).
+  2. 📊 **Native Polls**: Real-time poll creation and multiselect options.
+  3. 🗳️ **Poll Vote Sync**: Votes in WhatsApp/Telegram natively update option counts.
+  4. 📍 **Location Sharing**: Coordinates and address details forwarded as native map pins.
+  5. 📅 **Event Cards**: Rich formatted event summaries with dates, locations, join links, and cancellation status.
+  6. 🖼️ **Images & Captions**: Media photo forwarding with formatted captions.
+  7. 🎙️ **Voice Notes (PTT)**: Audio voice note waveform playback.
+  8. 🎥 **Video & Video Notes**: Video streaming and round videobotschaften.
+  9. 📁 **Documents & Files**: PDF/ZIP file uploads preserving original filenames.
+  10. 🏷️ **WebP Stickers**: Static and animated sticker forwarding.
+  11. 📇 **Contact Cards**: VCard single and multi-contact sharing.
+  12. 😀 **Emoji Reactions**: Reaction add and remove sync.
+  13. ✏️ **Message Edits**: Text edit propagation.
+  14. 🗑️ **Message Deletions**: Revoke message for all.
+  15. 💬 **Quoted Reply Chains**: Thread replies and forum topic (`tg_thread_id`) binding.
+  16. 🔔 **System Events**: Group join, leave, promote, demote notifications.
+
+- **Selective Subtest Matrix**: Includes an interactive UI grid with *Select All* / *Select None* controls to run specific subtests.
+- **Test Directions**: Supports testing **WhatsApp → Telegram**, **Telegram → WhatsApp**, or **Bi-directional (Both)**.
+- **Automated Summary Report**: Dispatches a full test summary with PASS/FAIL status for each step to both WhatsApp and Telegram target chats upon completion.
+
+
 
 ### 🆔 2. Telegram Group ID Changes (Supergroups & Topics)
 When a standard Telegram group is upgraded to a **Supergroup** (or when Topics/Forums are enabled), Telegram changes the Chat ID from a short negative number (e.g. `-3625914253`) to a Supergroup ID starting with `-100` (e.g. `-1003625914253`).

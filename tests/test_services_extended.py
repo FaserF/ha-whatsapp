@@ -73,7 +73,9 @@ def get_patches(stack: ExitStack) -> None:
     stack.enter_context(
         patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True)
     )
-    stack.enter_context(patch("voluptuous.Schema", lambda s, **_: s, create=True))
+    stack.enter_context(
+        patch("voluptuous.Schema", lambda _s, **_: lambda data: data, create=True)
+    )
     stack.enter_context(patch("voluptuous.Coerce", lambda *a, **_: a[0], create=True))
     stack.enter_context(patch("voluptuous.In", lambda *a, **_: a[0], create=True))
     stack.enter_context(
@@ -137,7 +139,6 @@ async def test_search_groups_service(
             from homeassistant.core import ServiceCall
 
             call = ServiceCall("whatsapp", "search_groups", {"name_filter": "Test"})
-            call.service = "search_groups"
 
             with patch(
                 "custom_components.whatsapp.get_client_for_account",

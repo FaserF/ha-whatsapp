@@ -56,21 +56,30 @@ ServiceValidationError = _get_or_create_class(
 class ServiceCall:
     def __init__(
         self,
-        domain: str,
-        service: str | dict[str, Any] = "",
+        hass_or_domain: Any,
+        domain_or_service: str = "",
+        service_or_data: str | dict[str, Any] = "",
         data: dict[str, Any] | None = None,
         **_kwargs: Any,
     ) -> None:
-        self.domain = domain
-        if isinstance(service, dict):
-            self.data = service
-            self.service = _kwargs.get("service", "")
-        elif isinstance(data, dict):
-            self.service = service
-            self.data = data
+        # Support both old (domain, service, data) and new (hass, domain, service, data)
+        # HA 2025+ added hass as first positional argument.
+        if isinstance(hass_or_domain, str):
+            # Old-style: ServiceCall(domain, service, data)
+            domain = hass_or_domain
+            service: str = domain_or_service
+            real_data: dict[str, Any] | None = (
+                service_or_data if isinstance(service_or_data, dict) else data
+            )
         else:
-            self.service = service or _kwargs.get("service", "")
-            self.data = data or {}
+            # New-style: ServiceCall(hass, domain, service, data)
+            self.hass = hass_or_domain
+            domain = domain_or_service
+            service = service_or_data if isinstance(service_or_data, str) else ""
+            real_data = service_or_data if isinstance(service_or_data, dict) else data
+        self.domain = domain
+        self.service = service
+        self.data = real_data if real_data is not None else {}
 
 
 class SupportsResponse:
