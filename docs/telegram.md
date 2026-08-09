@@ -74,6 +74,48 @@ When creating or editing a Chat Mapping in the Add-on Web UI or via Home Assista
 
 ---
 
+### 10. 📊 Poll Sync Modes & Options (`poll_sync_mode`)
+- **Description**: Configures how polls and poll votes are synchronized between WhatsApp and Telegram:
+  - **Text Diagram & Updates** (`text_diagram` - Default): Sends poll status as a text diagram into the target chat, sends vote updates as text messages in the chat (enabled by default), and cleans up / deletes old poll update messages where possible (enabled by default).
+  - **Native Poll Sync & Auto-Vote** (`native_sync`): Creates a native Telegram/WhatsApp poll in the target chat and automatically casts a vote for the current winning option from the source poll.
+  - **Native Poll Sync without Vote** (`native_no_vote`): Creates a native Telegram/WhatsApp poll in the target chat without automatically voting for options.
+  - **Single Notification Only** (`once_no_update`): Sends the initial poll information once as a single text message and suppresses all subsequent vote update messages.
+- **Individual Toggles**:
+  - `poll_send_text_diagram` (Default: `true` / Enabled): Send status update as a text diagram into the target.
+  - `poll_send_update_message` (Default: `true` / Enabled): Send repeated vote updates into the chat.
+  - `poll_delete_old_message` (Default: `true` / Enabled): Delete the old update message when a new vote update arrives.
+
+---
+
+### 11. 📍 Native Location & Live Location Sharing
+- **Description**: Bi-directional native location pin sharing between WhatsApp and Telegram:
+  - **Telegram -> WhatsApp**: Receiving a location pin in Telegram translates directly into a native WhatsApp location pin (`degreesLatitude` & `degreesLongitude`) rather than plain text.
+  - **WhatsApp -> Telegram**: Sending a location pin in WhatsApp triggers Telegram's native `sendLocation` API to display an interactive map pin directly in Telegram.
+  - **Live Locations**: Supports real-time GPS live location tracking node translation across platforms.
+
+---
+
+### 12. 📇 Native Contact Cards (`sendContact`)
+- **Description**: Bi-directional native contact sharing:
+  - **WhatsApp -> Telegram**: Extracted contact vcards (`contactMessage` / `contactsArrayMessage`) are sent to Telegram as native contact objects using `sendContact`.
+  - **Telegram -> WhatsApp**: Shared contact cards in Telegram (`msg.contact`) are constructed into native WhatsApp vcard contact nodes.
+
+---
+
+### 13. 📹 Video Notes & Media Group Support
+- **Description**:
+  - **Video Notes**: Telegram Video Notes (`msg.video_note`) are mapped directly to native WhatsApp round video messages (`ptvMessage` / `ptv: true`).
+  - **Media Groups**: Photos & Videos sent in multi-media albums/bundles (`media_group_id`) preserve group association flags during relay.
+
+---
+
+### 14. 👥 System & Group Event Syncing (`group-participants.update` & Telegram System Events)
+- **Description**: Bi-directionally mirrors group membership changes, promotions, and pins:
+  - **WhatsApp -> Telegram**: When a user joins, leaves, is removed, or is promoted/demoted to admin in WhatsApp, a clean system notification card is posted to the mapped Telegram group.
+  - **Telegram -> WhatsApp**: When members join/leave a Telegram group (`msg.new_chat_members` / `msg.left_chat_member`) or a message is pinned (`msg.pinned_message`), a system notification card is relayed to WhatsApp.
+
+---
+
 ## 🛠️ Step-by-Step Guide: 1:1 Direct Chat Mirror Setup
 
 1:1 Direct Chat Mirroring is **100% flexible** on both platforms:
