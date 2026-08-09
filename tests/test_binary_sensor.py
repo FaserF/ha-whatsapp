@@ -89,7 +89,12 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         hass.states.async_set_state(
             "binary_sensor.whatsapp",
             "on" if entity_is_on else "off",
-            {"passkey_required": False, "total_sent": 10, "total_failed": 2, "version": "Unknown"},
+            {
+                "passkey_required": False,
+                "total_sent": 10,
+                "total_failed": 2,
+                "version": "Unknown",
+            },
         )
         await hass.async_block_till_done()
 

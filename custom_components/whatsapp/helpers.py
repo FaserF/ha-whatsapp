@@ -101,7 +101,10 @@ def async_sync_moderation_entities(
             if entity_id:
                 entry = er.async_get(entity_id)
                 if entry:
-                    if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
+                    if (
+                        active
+                        and entry.disabled_by == RegistryEntryDisabler.INTEGRATION
+                    ):
                         er.async_update_entity(entity_id, disabled_by=None)
                     elif not active and entry.disabled_by is None:
                         er.async_update_entity(

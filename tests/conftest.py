@@ -234,9 +234,13 @@ def hass(mock_client: MagicMock) -> MagicMock:
                 try:
                     from homeassistant.config_entries import ConfigEntryState
 
-                    object.__setattr__(entry, "state", ConfigEntryState.SETUP_IN_PROGRESS)
+                    object.__setattr__(
+                        entry, "state", ConfigEntryState.SETUP_IN_PROGRESS
+                    )
                 except Exception:
-                    object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS)
+                    object.__setattr__(
+                        entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
+                    )
                 result = await async_setup_entry(hass, entry)
                 if result:
                     try:
@@ -244,7 +248,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
                         object.__setattr__(entry, "state", ConfigEntryState.LOADED)
                     except Exception:
-                        object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.LOADED)
+                        object.__setattr__(
+                            entry, "state", ha_stubs.ConfigEntryState.LOADED
+                        )
                     from custom_components.whatsapp.const import DOMAIN
 
                     if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
@@ -303,7 +309,9 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
             object.__setattr__(entry, "state", ConfigEntryState.SETUP_IN_PROGRESS)
         except Exception:
-            object.__setattr__(entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS)
+            object.__setattr__(
+                entry, "state", ha_stubs.ConfigEntryState.SETUP_IN_PROGRESS
+            )
         await async_setup_entry(hass, entry)
 
     hass.config_entries.async_update_entry = AsyncMock(side_effect=async_update_entry)
