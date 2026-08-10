@@ -278,22 +278,23 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             _LOGGER.error("Authentication failed during polling: %s", err)
             raise ConfigEntryAuthFailed("Invalid API Key for WhatsApp Addon") from err
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
-            # Create issue for connection failure (Addon unreachable or Auth)
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                "connection_failed",
-                is_fixable=False,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="connection_failed",
-                translation_placeholders={"error": str(err)},
+            is_shutting_down = bool(
+                (self.data or {}).get("stats", {}).get("shutting_down")
             )
-            # If we were previously connected, we might want to log a warning instead
-            # of failing hard immediately to let entities keep their last known
-            # state for a short while.
-            # But HA's DataUpdateCoordinator usually handles this via UpdateFailed.
-            _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+            if is_shutting_down:
+                _LOGGER.info("WhatsApp Addon is restarting or updating: %s", err)
+            else:
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    "connection_failed",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="connection_failed",
+                    translation_placeholders={"error": str(err)},
+                )
+                _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
+            raise UpdateFailed(f"Addon unreachable (restarting/updating): {err}") from err
         except Exception as err:
             _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(
