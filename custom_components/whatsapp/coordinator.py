@@ -294,7 +294,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                     translation_placeholders={"error": str(err)},
                 )
                 _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
-            raise UpdateFailed(f"Addon unreachable (restarting/updating): {err}") from err
+            raise UpdateFailed(
+                f"Addon unreachable (restarting/updating): {err}"
+            ) from err
         except Exception as err:
             _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(
