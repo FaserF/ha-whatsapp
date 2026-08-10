@@ -181,7 +181,8 @@ class WhatsAppModerationStatusBinarySensor(
     def _handle_coordinator_update(self) -> None:
         """React to coordinator data updates; sync registry enabled state first."""
         self._sync_registry_enabled()
-        super()._handle_coordinator_update()
+        if self.enabled:
+            super()._handle_coordinator_update()
 
     @property
     def is_on(self) -> bool:
@@ -277,7 +278,8 @@ class WhatsAppTelegramBridgeStatusBinarySensor(
     def _handle_coordinator_update(self) -> None:
         """React to coordinator data updates; sync registry enabled state first."""
         self._sync_registry_enabled()
-        super()._handle_coordinator_update()
+        if self.enabled:
+            super()._handle_coordinator_update()
 
     @property
     def is_on(self) -> bool:

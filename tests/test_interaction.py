@@ -415,3 +415,26 @@ async def test_telegram_buttons_normalization() -> None:
         assert args[0] == "123456789"
         assert args[1] == "Alarm?"
         assert args[2] == expected_normalized
+
+
+async def test_invalid_location_and_buttons_validation() -> None:
+    """Verify validation errors for send_location and send_buttons."""
+    from homeassistant.exceptions import HomeAssistantError
+
+    from custom_components.whatsapp.api import WhatsAppApiClient
+
+    client = WhatsAppApiClient(host="http://localhost:8066")
+
+    # Invalid coordinates for send_location
+    with pytest.raises(HomeAssistantError, match="Missing latitude or longitude"):
+        await client.send_location("123456789", None, 11.5)  # type: ignore[arg-type]
+
+    with pytest.raises(HomeAssistantError, match="Invalid coordinates"):
+        await client.send_location("123456789", "invalid", 11.5)  # type: ignore[arg-type]
+
+    # Empty parameters for send_buttons
+    with pytest.raises(HomeAssistantError, match="Message text cannot be empty"):
+        await client.send_buttons("123456789", "", [{"id": "b1", "text": "b1"}])
+
+    with pytest.raises(HomeAssistantError, match="Buttons list cannot be empty"):
+        await client.send_buttons("123456789", "Select option", [])

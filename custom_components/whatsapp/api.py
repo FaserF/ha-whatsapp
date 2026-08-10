@@ -1325,6 +1325,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         expiration: int | None = None,
     ) -> str:
         """Send a location (with retry)."""
+        if latitude is None or longitude is None:
+            raise HomeAssistantError("Missing latitude or longitude for send_location.")
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except (ValueError, TypeError) as err:
+            raise HomeAssistantError(
+                f"Invalid coordinates for send_location: "
+                f"latitude={latitude}, longitude={longitude}"
+            ) from err
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
@@ -1777,6 +1787,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         expiration: int | None = None,
     ) -> str:
         """Send a message with buttons (with retry)."""
+        if not text:
+            raise HomeAssistantError("Message text cannot be empty for send_buttons.")
+        if not buttons:
+            raise HomeAssistantError("Buttons list cannot be empty for send_buttons.")
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
