@@ -2,379 +2,251 @@
 
 from __future__ import annotations
 
-import sys
-from collections.abc import Callable
-from contextlib import ExitStack, suppress
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from ha_stubs import _build_ha_stub_modules
-
-from custom_components.whatsapp.const import CONF_API_KEY, CONF_URL
 
 _build_ha_stub_modules()
 
+from homeassistant.core import HomeAssistant  # noqa: E402
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
-@pytest.fixture  # type: ignore[untyped-decorator]
-def service_handlers() -> tuple[dict[str, Any], Callable[..., Any]]:
-    """Fixture to capture service registrations."""
-    handlers: dict[str, Any] = {}
-
-    def mock_register(
-        domain: str, service: str, handler: Any, _schema: Any = None, **_kwargs: Any
-    ) -> None:
-        if domain == "whatsapp":
-            handlers[service] = handler
-
-    return handlers, mock_register
+from custom_components.whatsapp.const import (  # noqa: E402
+    CONF_API_KEY,
+    CONF_URL,
+    DOMAIN,
+)
 
 
-@pytest.fixture(autouse=True)  # type: ignore[untyped-decorator]
-def cleanup_modules() -> Any:
-    """Clear sys.modules between tests to ensure fresh patches."""
-
-    def _clear() -> None:
-        if "custom_components.whatsapp" in sys.modules:
-            with suppress(Exception):
-                sys.modules["custom_components.whatsapp"]._SERVICES_REGISTERED = False
-        to_del = [m for m in sys.modules if m.startswith("custom_components.whatsapp")]
-        for m in to_del:
-            sys.modules.pop(m, None)
-
-    _clear()
-    yield
-    _clear()
-
-
-def get_patches(stack: ExitStack) -> None:
-    """Apply all required patches to the stack."""
-    # cv patches
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.string", str, create=True)
-    )
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.ensure_list", list, create=True)
-    )
-    stack.enter_context(
-        patch("homeassistant.helpers.config_validation.boolean", bool, create=True)
-    )
-    stack.enter_context(
-        patch(
-            "homeassistant.helpers.config_validation.match_all",
-            lambda x: x,
-            create=True,
-        )
-    )
-
-    # voluptuous patches
-    stack.enter_context(patch("voluptuous.All", lambda *a, **_: a[0], create=True))
-    stack.enter_context(
-        patch("voluptuous.Required", side_effect=lambda x, **_: x, create=True)
-    )
-    stack.enter_context(
-        patch("voluptuous.Optional", side_effect=lambda x, **_: x, create=True)
-    )
-    stack.enter_context(
-        patch("voluptuous.Schema", lambda _s, **_: lambda data: data, create=True)
-    )
-    stack.enter_context(patch("voluptuous.Coerce", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.In", lambda *a, **_: a[0], create=True))
-    stack.enter_context(
-        patch(
-            "voluptuous.Range",
-            lambda *a, **_: a[0] if a else MagicMock(),
-            create=True,
-        )
-    )
-    stack.enter_context(patch("voluptuous.Any", lambda *a, **_: a[0], create=True))
-    stack.enter_context(patch("voluptuous.Marker", object, create=True))
-    stack.enter_context(patch("voluptuous.Invalid", Exception, create=True))
-    stack.enter_context(patch("voluptuous.SchemaError", Exception, create=True))
-
-
-async def test_search_groups_service(
-    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
-) -> None:
+async def test_search_groups_service(hass: HomeAssistant) -> None:
     """Test that search_groups creates a persistent notification."""
-    handlers, mock_register = service_handlers
-    hass = MagicMock()
-    hass.services.async_call = AsyncMock()
-    hass.services.async_register.side_effect = mock_register
-    hass.services.has_service.return_value = False
-    hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"},
+    )
+    mock_entry.add_to_hass(hass)
 
-    with ExitStack() as stack:
-        get_patches(stack)
+    mock_client = MagicMock()
+    mock_client.connect = AsyncMock(return_value=True)
+    mock_client.start_polling = AsyncMock()
+    mock_client.set_webhook = AsyncMock()
+    mock_client.get_groups = AsyncMock(
+        return_value=[
+            {"name": "Test Group", "id": "123@g.us", "participants": 5},
+        ]
+    )
 
-        from custom_components.whatsapp import async_setup_entry
-        from custom_components.whatsapp.const import DOMAIN
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_client),
+        patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord_cls,
+        patch(
+            "custom_components.whatsapp.get_client_for_account",
+            return_value=mock_client,
+        ),
+    ):
+        mock_coord = mock_coord_cls.return_value
+        mock_coord.async_config_entry_first_refresh = AsyncMock()
 
-        with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
-            mock_instance = mock_client_cls.return_value
-            mock_instance.connect = AsyncMock(return_value=True)
-            mock_instance.start_polling = AsyncMock()
-            mock_instance.set_webhook = AsyncMock()
-            mock_instance.get_groups = AsyncMock(
-                return_value=[
-                    {"name": "Test Group", "id": "123@g.us", "participants": 5},
-                ]
+        await hass.config_entries.async_setup(mock_entry.entry_id)
+        await hass.async_block_till_done()
+
+        hass.data[DOMAIN][mock_entry.entry_id]["client"] = mock_client
+
+        real_async_call = hass.services.async_call
+
+        async def spy_async_call(
+            domain: str, service: str, service_data: Any = None, **kwargs: Any
+        ) -> Any:
+            if domain == "persistent_notification":
+                mock_async_call(domain, service, service_data)
+                return None
+            return await real_async_call(
+                domain, service, service_data=service_data, **kwargs
             )
 
-            mock_entry = MagicMock()
-            mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
-            mock_entry.options = {}
-            mock_entry.entry_id = "test_entry"
-            hass.data = {DOMAIN: {mock_entry.entry_id: {"client": mock_instance}}}
-
-            with (
-                patch(
-                    "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-                ) as mock_coord_cls,
-                patch(
-                    "custom_components.whatsapp.get_client_for_account",
-                    return_value=mock_instance,
-                ),
-            ):
-                mock_coord = mock_coord_cls.return_value
-                mock_coord.async_config_entry_first_refresh = AsyncMock()
-
-                await async_setup_entry(hass, mock_entry)
-
-                search_service = handlers.get("search_groups")
-                assert search_service is not None
-
-                from homeassistant.core import ServiceCall
-
-                call = ServiceCall("whatsapp", "search_groups", {"name_filter": "Test"})
-
-                await search_service(call)
-
-                hass.services.async_call.assert_called_once()
-                args = hass.services.async_call.call_args.args
-                assert args[0] == "persistent_notification"
-                assert args[1] == "create"
-                assert "Found 1 group(s)" in args[2]["message"]
+        mock_async_call = AsyncMock()
+        with patch.object(hass.services, "async_call", side_effect=spy_async_call):
+            await hass.services.async_call(
+                DOMAIN,
+                "search_groups",
+                {"name_filter": "Test"},
+                blocking=True,
+            )
+            mock_async_call.assert_called_once()
+            args = mock_async_call.call_args.args
+            assert args[0] == "persistent_notification"
+            assert args[1] == "create"
+            assert args[2]["title"] == "WhatsApp Group Search"
+            assert "Found 1 group(s):" in args[2]["message"]
+            assert "Test Group" in args[2]["message"]
+            assert args[2]["notification_id"] == "whatsapp_group_search"
 
 
-async def test_service_routing(
-    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
-) -> None:
+async def test_service_routing(hass: HomeAssistant) -> None:
     """Test that specifying 'account' routes correctly."""
-    handlers, mock_register = service_handlers
-    hass = MagicMock()
-    hass.services.async_call = AsyncMock()
-    hass.services.async_register.side_effect = mock_register
-    hass.services.has_service.return_value = False
-    hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"},
+    )
+    mock_entry.add_to_hass(hass)
 
-    with ExitStack() as stack:
-        get_patches(stack)
-        from custom_components.whatsapp import async_setup_entry
-        from custom_components.whatsapp.const import DOMAIN
+    mock_client = MagicMock()
+    mock_client.connect = AsyncMock(return_value=True)
+    mock_client.start_polling = AsyncMock()
+    mock_client.set_webhook = AsyncMock()
+    mock_client.send_message = AsyncMock()
 
-        mock_entry = MagicMock()
-        mock_entry.data = {CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"}
-        mock_entry.options = {}
-        mock_entry.entry_id = "test_entry"
-        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_client),
+        patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord_cls,
+        patch(
+            "custom_components.whatsapp.get_client_for_account",
+            return_value=mock_client,
+        ) as mock_get_client,
+    ):
+        mock_coord = mock_coord_cls.return_value
+        mock_coord.async_config_entry_first_refresh = AsyncMock()
 
-        mock_client = MagicMock()
-        mock_client.send_message = AsyncMock()
+        await hass.config_entries.async_setup(mock_entry.entry_id)
+        await hass.async_block_till_done()
 
-        with (
-            patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-            patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls,
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ) as mock_get_client,
-        ):
-            mock_instance = mock_client_cls.return_value
-            mock_instance.connect = AsyncMock(return_value=True)
-            mock_instance.start_polling = AsyncMock()
-            mock_instance.set_webhook = AsyncMock()
+        hass.data[DOMAIN][mock_entry.entry_id]["client"] = mock_client
 
-            mock_coord = mock_coord_cls.return_value
-            mock_coord.async_config_entry_first_refresh = AsyncMock()
-
-            await async_setup_entry(hass, mock_entry)
-
-            send_msg_service = handlers.get("send_message")
-            assert send_msg_service is not None
-
-            from homeassistant.core import ServiceCall
-
-            call = ServiceCall(
-                "whatsapp",
-                "send_message",
-                {"target": "999", "message": "Hi", "account": "MyAccount"},
-            )
-
-            await send_msg_service(call)
-            mock_get_client.assert_called_with(hass, "MyAccount")
-            mock_client.send_message.assert_called_once_with(
-                "999", "Hi", quoted_message_id=None, expiration=None
-            )
+        await hass.services.async_call(
+            DOMAIN,
+            "send_message",
+            {"target": "999", "message": "Hi", "account": "MyAccount"},
+            blocking=True,
+        )
+        mock_get_client.assert_called_with(hass, "MyAccount")
+        mock_client.send_message.assert_called_once_with(
+            "999", "Hi", quoted_message_id=None, expiration=None
+        )
 
 
-async def test_send_buttons_normalization(
-    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
-) -> None:
+async def test_send_buttons_normalization(hass: HomeAssistant) -> None:
     """Test send_buttons normalization."""
-    handlers, mock_register = service_handlers
-    hass = MagicMock()
-    hass.services.async_call = AsyncMock()
-    hass.services.async_register.side_effect = mock_register
-    hass.services.has_service.return_value = False
-    hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"},
+    )
+    mock_entry.add_to_hass(hass)
 
-    with ExitStack() as stack:
-        get_patches(stack)
-        from custom_components.whatsapp import async_setup_entry
-        from custom_components.whatsapp.const import DOMAIN
+    mock_client = MagicMock()
+    mock_client.connect = AsyncMock(return_value=True)
+    mock_client.start_polling = AsyncMock()
+    mock_client.set_webhook = AsyncMock()
+    mock_client.send_buttons = AsyncMock()
 
-        mock_entry = MagicMock()
-        mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
-        mock_entry.options = {}
-        mock_entry.entry_id = "test_entry"
-        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_client),
+        patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord_cls,
+        patch(
+            "custom_components.whatsapp.get_client_for_account",
+            return_value=mock_client,
+        ),
+    ):
+        mock_coord = mock_coord_cls.return_value
+        mock_coord.async_config_entry_first_refresh = AsyncMock()
 
-        mock_client = MagicMock()
-        mock_client.send_buttons = AsyncMock()
+        await hass.config_entries.async_setup(mock_entry.entry_id)
+        await hass.async_block_till_done()
 
-        with (
-            patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-            patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls,
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ),
-        ):
-            mock_instance = mock_client_cls.return_value
-            mock_instance.connect = AsyncMock(return_value=True)
-            mock_instance.start_polling = AsyncMock()
-            mock_instance.set_webhook = AsyncMock()
+        hass.data[DOMAIN][mock_entry.entry_id]["client"] = mock_client
 
-            mock_coord = mock_coord_cls.return_value
-            mock_coord.async_config_entry_first_refresh = AsyncMock()
+        buttons = [{"id": "b1", "displayText": "Click"}]
+        await hass.services.async_call(
+            DOMAIN,
+            "send_buttons",
+            {"target": "123", "message": "Hello", "buttons": buttons},
+            blocking=True,
+        )
 
-            await async_setup_entry(hass, mock_entry)
-
-            send_btn_service = handlers.get("send_buttons")
-            assert send_btn_service is not None
-
-            from homeassistant.core import ServiceCall
-
-            buttons = [{"id": "b1", "displayText": "Click"}]
-            call = ServiceCall(
-                "whatsapp",
-                "send_buttons",
-                {"target": "123", "message": "Hello", "buttons": buttons},
-            )
-
-            await send_btn_service(call)
-
-            mock_client.send_buttons.assert_awaited_with(
-                "123", "Hello", buttons, None, quoted_message_id=None, expiration=None
-            )
+        mock_client.send_buttons.assert_awaited_with(
+            "123", "Hello", buttons, None, quoted_message_id=None, expiration=None
+        )
 
 
-async def test_new_services_routing(
-    service_handlers: tuple[dict[str, Any], Callable[..., Any]],
-) -> None:
+async def test_new_services_routing(hass: HomeAssistant) -> None:
     """Test routing for new group, chat, and contact services."""
-    handlers, mock_register = service_handlers
-    hass = MagicMock()
-    hass.services.async_call = AsyncMock()
-    hass.services.async_register.side_effect = mock_register
-    hass.services.has_service.return_value = False
-    hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "test"},
+    )
+    mock_entry.add_to_hass(hass)
 
-    with ExitStack() as stack:
-        get_patches(stack)
-        from custom_components.whatsapp import async_setup_entry
-        from custom_components.whatsapp.const import DOMAIN
+    mock_client = MagicMock()
+    mock_client.connect = AsyncMock(return_value=True)
+    mock_client.start_polling = AsyncMock()
+    mock_client.set_webhook = AsyncMock()
+    mock_client.create_group = AsyncMock(return_value={"id": "g1"})
+    mock_client.add_group_participants = AsyncMock(return_value={})
+    mock_client.star_message = AsyncMock(return_value={})
+    mock_client.pin_message = AsyncMock(return_value={})
+    mock_client.forward_message = AsyncMock(return_value={})
+    mock_client.send_status = AsyncMock(return_value={})
+    mock_client.block_contact = AsyncMock(return_value={})
+    mock_client.mute_chat = AsyncMock(return_value={})
 
-        mock_entry = MagicMock()
-        mock_entry.data = {"url": "http://localhost:8066", "api_key": "test"}
-        mock_entry.options = {}
-        mock_entry.entry_id = "test_entry"
-        hass.data = {DOMAIN: {mock_entry.entry_id: {"client": MagicMock()}}}
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient", return_value=mock_client),
+        patch(
+            "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
+        ) as mock_coord_cls,
+        patch(
+            "custom_components.whatsapp.get_client_for_account",
+            return_value=mock_client,
+        ),
+    ):
+        mock_coord = mock_coord_cls.return_value
+        mock_coord.async_config_entry_first_refresh = AsyncMock()
 
-        mock_client = MagicMock()
-        mock_client.create_group = AsyncMock(return_value={"id": "g1"})
-        mock_client.add_group_participants = AsyncMock(return_value={})
-        mock_client.star_message = AsyncMock(return_value={})
-        mock_client.pin_message = AsyncMock(return_value={})
-        mock_client.forward_message = AsyncMock(return_value={})
-        mock_client.send_status = AsyncMock(return_value={})
-        mock_client.block_contact = AsyncMock(return_value={})
-        mock_client.mute_chat = AsyncMock(return_value={})
+        await hass.config_entries.async_setup(mock_entry.entry_id)
+        await hass.async_block_till_done()
 
-        with (
-            patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
-            patch(
-                "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
-            ) as mock_coord_cls,
-            patch(
-                "custom_components.whatsapp.get_client_for_account",
-                return_value=mock_client,
-            ),
-        ):
-            mock_instance = mock_client_cls.return_value
-            mock_instance.connect = AsyncMock(return_value=True)
-            mock_instance.start_polling = AsyncMock()
-            mock_instance.set_webhook = AsyncMock()
+        hass.data[DOMAIN][mock_entry.entry_id]["client"] = mock_client
 
-            mock_coord = mock_coord_cls.return_value
-            mock_coord.async_config_entry_first_refresh = AsyncMock()
+        # Test create_group
+        await hass.services.async_call(
+            DOMAIN,
+            "create_group",
+            {"subject": "Test", "participants": ["123"]},
+            blocking=True,
+        )
+        mock_client.create_group.assert_awaited_with("Test", ["123"])
 
-            await async_setup_entry(hass, mock_entry)
+        # Test star_message
+        await hass.services.async_call(
+            DOMAIN,
+            "star_message",
+            {"target": "123", "message_id": "m1"},
+            blocking=True,
+        )
+        mock_client.star_message.assert_awaited_with("123", "m1", star=True)
 
-            from homeassistant.core import ServiceCall
+        # Test pin_message
+        await hass.services.async_call(
+            DOMAIN,
+            "pin_message",
+            {"target": "123", "message_id": "m1", "duration": 3600},
+            blocking=True,
+        )
+        mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
 
-            def make_call(service_name: str, data_dict: dict[str, Any]) -> ServiceCall:
-                return ServiceCall("whatsapp", service_name, data_dict)
-
-            # Test create_group
-            create_group_fn = handlers.get("create_group")
-            assert create_group_fn is not None
-            await create_group_fn(
-                make_call(
-                    "create_group",
-                    {"subject": "Test", "participants": ["123"]},
-                )
-            )
-            mock_client.create_group.assert_awaited_with("Test", ["123"])
-
-            # Test star_message
-            star_fn = handlers.get("star_message")
-            assert star_fn is not None
-            await star_fn(
-                make_call("star_message", {"target": "123", "message_id": "m1"})
-            )
-            mock_client.star_message.assert_awaited_with("123", "m1", star=True)
-
-            # Test pin_message
-            pin_fn = handlers.get("pin_message")
-            assert pin_fn is not None
-            await pin_fn(
-                make_call(
-                    "pin_message",
-                    {"target": "123", "message_id": "m1", "duration": 3600},
-                )
-            )
-            mock_client.pin_message.assert_awaited_with("123", "m1", duration=3600)
-
-            # Test send_status
-            status_fn = handlers.get("send_status")
-            assert status_fn is not None
-            await status_fn(make_call("send_status", {"message": "Status update"}))
-            mock_client.send_status.assert_awaited_with(
-                message="Status update", url=None, caption=None
-            )
+        # Test send_status
+        await hass.services.async_call(
+            DOMAIN,
+            "send_status",
+            {"message": "Status update"},
+            blocking=True,
+        )
+        mock_client.send_status.assert_awaited_with(
+            message="Status update", url=None, caption=None
+        )
