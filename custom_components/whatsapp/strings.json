@@ -423,6 +423,14 @@
         "name": "Pending Captcha Verifications"
       }
     },
+    "switch": {
+      "moderation_master": {
+        "name": "Moderation Engine"
+      },
+      "telegram_bridge_master": {
+        "name": "Telegram Bridge"
+      }
+    },
     "binary_sensor": {
       "connection": {
         "name": "Connection"

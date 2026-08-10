@@ -113,11 +113,31 @@ class WhatsAppConnectionSensor(
             else None
         )
 
+        health = data.get("health", {})
+        health_status = str(health.get("status", "")).lower()
+        last_reason = str(stats.get("last_disconnect_reason", "")).lower()
+        is_shutting_down = bool(stats.get("shutting_down", False))
+
+        connection_state = "connected" if self.is_on else "disconnected"
+        if health_status == "updating" or last_reason == "updating":
+            connection_state = "updating"
+        elif (
+            health_status == "shutting_down"
+            or last_reason == "shutting_down"
+            or is_shutting_down
+        ):
+            connection_state = "restarting"
+
+        num_str = safe_text(stats.get("my_number", "Unknown"))
+        det_str = safe_text(data.get("status_details", "Offline"))
+        state_title = connection_state.capitalize()
+
         return {
             "version": safe_text(stats.get("version", "Unknown")),
             "phone_number": safe_text(stats.get("my_number", "Unknown")),
             "addon_status": safe_text(data.get("status")),
             "addon_status_details": safe_text(data.get("status_details")),
+            "connection_state": connection_state,
             "passkey_required": (
                 bool(dashboard.get("passkeyDetected", False))
                 if isinstance(dashboard, dict)
@@ -131,11 +151,9 @@ class WhatsAppConnectionSensor(
             "last_message_sent": safe_text(stats.get("last_sent_message")),
             "last_message_target": last_target_resolved,
             "status_description": (
-                f"Connected ({safe_text(stats.get('my_number', 'Unknown'))})"
+                f"{state_title} ({num_str})"
                 if self.is_on
-                else (
-                    f"Disconnected ({safe_text(data.get('status_details', 'Offline'))})"
-                )
+                else f"{state_title} ({det_str})"
             ),
         }
 

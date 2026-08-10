@@ -52,6 +52,7 @@ PLATFORMS: list[Platform] = [
     Platform.BUTTON,
     Platform.NOTIFY,
     Platform.SENSOR,
+    Platform.SWITCH,
 ]
 
 _SERVICES = [
@@ -236,7 +237,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
-        """Handle incoming message from API."""
+        """Handle incoming message or event from API."""
+        event_type = str(data.get("type", "")).lower()
+        if event_type in (
+            "config_updated",
+            "state_changed",
+            "moderation_updated",
+            "telegram_updated",
+        ):
+            _LOGGER.debug(
+                "Received config update event (%s) from addon, refreshing coordinator",
+                event_type,
+            )
+            hass.async_create_task(coordinator.async_request_refresh())
+            return
+
         # Normalize sender for the event
         # The addon now sends 'sender_number' which is the best-effort phone number
         # We prefer that over splitting the raw JID which might be an LID (UUID)

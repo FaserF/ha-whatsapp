@@ -278,25 +278,66 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             _LOGGER.error("Authentication failed during polling: %s", err)
             raise ConfigEntryAuthFailed("Invalid API Key for WhatsApp Addon") from err
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
-            is_shutting_down = bool(
-                (self.data or {}).get("stats", {}).get("shutting_down")
+            previous_data = self.data or {}
+            prev_stats = previous_data.get("stats", {})
+            prev_health = previous_data.get("health", {})
+            last_reason = str(prev_stats.get("last_disconnect_reason", "")).lower()
+            health_status = str(prev_health.get("status", "")).lower()
+            is_shutting_down = (
+                bool(prev_stats.get("shutting_down", False))
+                or health_status in ("shutting_down", "updating")
+                or last_reason in ("shutting_down", "updating")
             )
+
             if is_shutting_down:
-                _LOGGER.info("WhatsApp Addon is restarting or updating: %s", err)
-            else:
-                ir.async_create_issue(
-                    self.hass,
-                    DOMAIN,
-                    "connection_failed",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="connection_failed",
-                    translation_placeholders={"error": str(err)},
+                status_str = (
+                    "updating"
+                    if (health_status == "updating" or last_reason == "updating")
+                    else "shutting_down"
                 )
-                _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
-            raise UpdateFailed(
-                f"Addon unreachable (restarting/updating): {err}"
-            ) from err
+                status_desc = (
+                    "Addon is updating to new version..."
+                    if status_str == "updating"
+                    else "Addon is restarting..."
+                )
+                _LOGGER.info(
+                    "WhatsApp Addon is %s — maintaining entity availability (%s)",
+                    status_str,
+                    err,
+                )
+                return _safe_text(
+                    {
+                        "connected": False,
+                        "status": status_str,
+                        "status_details": status_desc,
+                        "health": {"status": status_str},
+                        "stats": {
+                            "last_disconnect_reason": status_str,
+                            "shutting_down": True,
+                            "my_number": prev_stats.get("my_number", "Unknown"),
+                            "version": prev_stats.get("version", "Unknown"),
+                            "sent": prev_stats.get("sent", 0),
+                            "received": prev_stats.get("received", 0),
+                            "failed": prev_stats.get("failed", 0),
+                        },
+                        "chats": previous_data.get("chats", {}),
+                        "dashboard": previous_data.get("dashboard", {}),
+                        "moderation": previous_data.get("moderation", {}),
+                        "telegram": previous_data.get("telegram", {}),
+                    }
+                )
+
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                "connection_failed",
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="connection_failed",
+                translation_placeholders={"error": str(err)},
+            )
+            _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
+            raise UpdateFailed(f"Addon unreachable: {err}") from err
         except Exception as err:
             _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(

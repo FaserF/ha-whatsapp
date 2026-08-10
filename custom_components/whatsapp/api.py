@@ -3287,3 +3287,65 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to delete Telegram mapping: {self._extract_error(text)}"
             )
+
+    async def set_global_moderation_enabled(self, enabled: bool) -> dict[str, Any]:
+        """Enable or disable global moderation engine."""
+        url = f"{self.host}/api/moderation/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                json={"global_enabled": enabled},
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            err_msg = self._extract_error(text)
+            raise HomeAssistantError(
+                f"Failed to update global moderation config: {err_msg}"
+            )
+
+    async def prepare_update(self) -> dict[str, Any]:
+        """Signal to the addon that an update is about to begin."""
+        url = f"{self.host}/api/system/prepare_update"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        try:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
+                    url,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as resp,
+            ):
+                if resp.status == 200:
+                    return cast(dict[str, Any], await resp.json())
+        except Exception:  # noqa: BLE001
+            pass
+        return {}
+
+    async def set_telegram_bridge_enabled(self, enabled: bool) -> dict[str, Any]:
+        """Enable or disable global Telegram bridge."""
+        url = f"{self.host}/api/telegram/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                json={"enabled": enabled},
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to toggle Telegram bridge: {self._extract_error(text)}"
+            )
