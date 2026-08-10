@@ -664,7 +664,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     async def _async_get_addon_manager(self, slug: str) -> Any:
         """Return the addon manager."""
         try:
-            from homeassistant.components.hassio import AddonManager
+            from homeassistant.components.hassio import AddonManager  # type: ignore[attr-defined] # noqa: I001
 
             return AddonManager(self.hass, _LOGGER, slug, ADDON_NAME)
         except (ImportError, AttributeError):
@@ -675,7 +675,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
     ) -> ConfigFlowResult:
         """Handle Hass.io discovery."""
         try:
-            from homeassistant.components.hassio import AddonState
+            from homeassistant.components.hassio import AddonState  # type: ignore[attr-defined] # noqa: I001
         except (ImportError, AttributeError):
             return await self.async_step_user()
 

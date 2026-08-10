@@ -179,8 +179,8 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
     async def _test_buttons(self, jid: str) -> None:
         """Test sending buttons."""
         buttons = [
-            {"buttonId": "btn_1", "displayText": "Option 1"},
-            {"buttonId": "btn_2", "displayText": "Option 2"},
+            {"id": "btn_1", "text": "Option 1"},
+            {"id": "btn_2", "text": "Option 2"},
         ]
         await self.coordinator.client.send_buttons(
             jid,

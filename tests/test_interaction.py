@@ -370,7 +370,20 @@ async def test_buttons_payload() -> None:
             payload = mock_session.post.call_args.kwargs["json"]
             assert payload["number"] == "123456789@s.whatsapp.net"
             assert payload["message"] == "Choose one:"
-            assert payload["buttons"] == buttons
+            assert payload["buttons"] == [
+                {
+                    "id": "btn_1",
+                    "buttonId": "btn_1",
+                    "text": "Option 1",
+                    "displayText": "Option 1",
+                },
+                {
+                    "id": "btn_2",
+                    "buttonId": "btn_2",
+                    "text": "Option 2",
+                    "displayText": "Option 2",
+                },
+            ]
             assert payload["footer"] == "My Footer"
 
 

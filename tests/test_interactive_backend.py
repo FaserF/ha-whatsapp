@@ -34,7 +34,14 @@ async def test_send_buttons_payload() -> None:
             kwargs = mock_post.call_args.kwargs
             assert kwargs["json"]["number"] == "123@s.whatsapp.net"
             assert kwargs["json"]["message"] == "Hello"
-            assert kwargs["json"]["buttons"] == buttons
+            assert kwargs["json"]["buttons"] == [
+                {
+                    "id": "b1",
+                    "buttonId": "b1",
+                    "text": "Click",
+                    "displayText": "Click",
+                }
+            ]
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]

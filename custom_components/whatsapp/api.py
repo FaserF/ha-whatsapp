@@ -1213,6 +1213,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         from_me: bool = True,
     ) -> str:
         """Revoke (delete) a message."""
+        if not message_id:
+            raise HomeAssistantError("Missing message_id for revoke_message.")
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
@@ -1236,6 +1238,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         payload: dict[str, Any] = {
             "number": number,
             "message_id": message_id,
+            "messageId": message_id,
             "fromMe": from_me,
         }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
@@ -1370,8 +1373,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             "number": number,
             "latitude": latitude,
             "longitude": longitude,
+            "degreesLatitude": latitude,
+            "degreesLongitude": longitude,
             "title": name,
+            "name": name,
             "description": address,
+            "address": address,
         }
         if quoted_message_id is not None:
             payload["quotedMessageId"] = quoted_message_id
@@ -1791,6 +1798,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError("Message text cannot be empty for send_buttons.")
         if not buttons:
             raise HomeAssistantError("Buttons list cannot be empty for send_buttons.")
+        for i, b in enumerate(buttons):
+            if (
+                not isinstance(b, dict)
+                or not (b.get("id") or b.get("buttonId"))
+                or not (b.get("text") or b.get("displayText"))
+            ):
+                raise HomeAssistantError(
+                    f"Invalid button at index {i}: each button must have an "
+                    "'id' (or 'buttonId') and 'text' (or 'displayText')."
+                )
         if not self.is_allowed(number):
             raise HomeAssistantError(f"Target {number} is not in the whitelist.")
         target_jid = self.ensure_jid(number)
@@ -1820,10 +1837,20 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> str:
         """Internal send buttons logic."""
         url = f"{self.host}/send_buttons"
+        formatted_buttons = [
+            {
+                "id": b.get("id") or b.get("buttonId") or f"btn_{i}",
+                "buttonId": b.get("buttonId") or b.get("id") or f"btn_{i}",
+                "text": b.get("text") or b.get("displayText") or "",
+                "displayText": b.get("displayText") or b.get("text") or "",
+            }
+            for i, b in enumerate(buttons)
+        ]
         payload: dict[str, Any] = {
             "number": number,
+            "text": text,
             "message": text,
-            "buttons": buttons,
+            "buttons": formatted_buttons,
             "footer": footer,
         }
         if quoted_message_id is not None:
