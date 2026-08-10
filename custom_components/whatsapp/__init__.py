@@ -423,9 +423,6 @@ def get_client_for_account(
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Set up global WhatsApp services."""
-    global _SERVICES_REGISTERED
-    if _SERVICES_REGISTERED:
-        return
 
     async def _handle_service(call: ServiceCall) -> Any:
         """General service handler for routing."""
@@ -1344,6 +1341,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    global _SERVICES_REGISTERED
     _SERVICES_REGISTERED = True
 
 
