@@ -210,3 +210,61 @@ def test_hardcoded_strings_in_config_flow() -> None:
         _LOGGER.warning("Hardcoded strings to fix in config_flow.py:")
         for e in errors:
             _LOGGER.warning(e)
+
+
+def test_services_yaml_keys_translated() -> None:
+    """Verify that all services defined in services.yaml have names and descriptions."""
+    services_yaml_path = COMPONENT_DIR / "services.yaml"
+    if not services_yaml_path.exists():
+        pytest.skip("services.yaml missing")
+
+    import yaml
+
+    with open(services_yaml_path, encoding="utf-8") as f:
+        services_data = yaml.safe_load(f) or {}
+
+    missing_fields: list[str] = []
+    for svc_name, svc_info in services_data.items():
+        if not svc_info.get("name"):
+            missing_fields.append(f"Service '{svc_name}' missing name in services.yaml")
+        if not svc_info.get("description"):
+            missing_fields.append(
+                f"Service '{svc_name}' missing description in services.yaml"
+            )
+
+    assert not missing_fields, "\n".join(missing_fields)
+
+
+def test_entity_translation_keys_valid() -> None:
+    """Verify that _attr_translation_key in entity platforms exist in strings.json."""
+    files = get_translation_files()
+    if not files["strings"].exists():
+        pytest.skip("strings.json missing")
+
+    strings_json = load_json(files["strings"])
+    entity_strings = strings_json.get("entity", {})
+
+    python_files = [
+        COMPONENT_DIR / "sensor.py",
+        COMPONENT_DIR / "binary_sensor.py",
+        COMPONENT_DIR / "button.py",
+        COMPONENT_DIR / "notify.py",
+    ]
+
+    missing_keys: list[str] = []
+
+    for py_file in python_files:
+        if not py_file.exists():
+            continue
+        with open(py_file, encoding="utf-8") as f:
+            content = f.read()
+
+        platform = py_file.stem
+        keys = re.findall(r'_attr_translation_key\s*=\s*["\'](\w+)["\']', content)
+        for k in keys:
+            if k not in entity_strings.get(platform, {}):
+                missing_keys.append(
+                    f"Key '{k}' in {py_file.name} missing in entity.{platform}"
+                )
+
+    assert not missing_keys, "\n".join(missing_keys)
