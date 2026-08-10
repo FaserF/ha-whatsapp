@@ -252,15 +252,15 @@ async def test_quoted_message_payload() -> None:
         with (
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_polling",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"
@@ -323,15 +323,15 @@ async def test_buttons_payload() -> None:
         with (
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_polling",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.start_session",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.api.WhatsAppApiClient.mark_as_read",
-                side_effect=AsyncMock(),
+                new_callable=AsyncMock,
             ),
             patch(
                 "custom_components.whatsapp.WhatsAppDataUpdateCoordinator"

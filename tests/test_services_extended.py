@@ -67,7 +67,7 @@ async def test_search_groups_service(hass: HomeAssistant) -> None:
                 domain, service, service_data=service_data, **kwargs
             )
 
-        mock_async_call = AsyncMock()
+        mock_async_call = MagicMock()
         with patch.object(hass.services, "async_call", side_effect=spy_async_call):
             await hass.services.async_call(
                 DOMAIN,
