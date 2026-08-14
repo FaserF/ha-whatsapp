@@ -75,3 +75,67 @@ async def test_whatsapp_notification_entity() -> None:
         mock_instance.send_message.assert_awaited_once_with(
             "555", "Hello", quoted_message_id=None, expiration=None
         )
+
+
+async def test_whatsapp_notification_attachments() -> None:
+    """Test notification entity with single and multiple attachments."""
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.send_image = AsyncMock()
+        mock_instance.send_video = AsyncMock()
+        mock_instance.send_audio = AsyncMock()
+        mock_instance.send_document = AsyncMock()
+
+        from custom_components.whatsapp.notify import WhatsAppNotificationEntity
+
+        entity = WhatsAppNotificationEntity(mock_instance, MagicMock(), MagicMock())
+        entity._async_record_notification = lambda: None  # type: ignore[method-assign]
+
+        # Test single image attachment
+        await entity.async_send_message(
+            message="Check this image",
+            target=["555"],
+            data={"attachment": "https://example.com/photo.jpg"},
+        )
+        mock_instance.send_image.assert_awaited_once_with(
+            "555",
+            "https://example.com/photo.jpg",
+            "Check this image",
+            quoted_message_id=None,
+            expiration=None,
+        )
+
+        # Test multiple attachments (video + audio + document)
+        await entity.async_send_message(
+            message="Check files",
+            target=["555"],
+            data={
+                "attachments": [
+                    "https://example.com/clip.mp4",
+                    "https://example.com/voice.opus",
+                    {"url": "https://example.com/doc.pdf", "file_name": "manual.pdf"},
+                ]
+            },
+        )
+        mock_instance.send_video.assert_awaited_once_with(
+            "555",
+            "https://example.com/clip.mp4",
+            "Check files",
+            quoted_message_id=None,
+            expiration=None,
+        )
+        mock_instance.send_audio.assert_awaited_once_with(
+            "555",
+            "https://example.com/voice.opus",
+            False,
+            quoted_message_id=None,
+            expiration=None,
+        )
+        mock_instance.send_document.assert_awaited_once_with(
+            "555",
+            "https://example.com/doc.pdf",
+            "manual.pdf",
+            None,
+            quoted_message_id=None,
+            expiration=None,
+        )

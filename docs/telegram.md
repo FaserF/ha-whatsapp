@@ -183,6 +183,15 @@ Once saved, messages pass back and forth cleanly without header prefixes!
 
 ---
 
+## 🎛️ Home Assistant Control Entities
+
+You can monitor and control the Telegram Bridge directly from Home Assistant:
+
+- **Telegram Bridge Master Switch (`switch.*_telegram_bridge_master`)**: A global switch to instantly enable or disable the Telegram Bridge processing.
+- **Telegram Bridge Status (`binary_sensor.*_telegram_bridge_status`)**: Shows whether the bridge is actively running, with detailed attributes listing the active mapping configurations.
+
+---
+
 ### 📊 1:1 Bridge Setup Variants Comparison Table
 
 | Setup Variant | WhatsApp Side | Telegram Side | Primary Benefit / Ideal Use Case | Extra Phone Number / WA Account Needed? | Extra Telegram Account Needed? | Header Prefix Noise? |

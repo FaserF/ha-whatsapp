@@ -24,6 +24,9 @@ These settings control how the integration behaves within Home Assistant.
 | **Whitelist**           | `Empty`        | List specific numbers (comma separated) to only allow them to interact with your system.                 |
 | **Retry Attempts**      | `2`            | If a message fails (e.g. bad internet), HA tries again automatically.                                    |
 | **Mask Sensitive Data** | `Enabled`      | Partially hides phone numbers in HA logs (important if you share logs online).                           |
+| **API Key**             | `Required`     | The API Token from the Gateway Web UI used to authenticate the integration with the Gateway.             |
+| **Debug Payloads**      | `Disabled`     | Enable to print full incoming JSON payloads in the Home Assistant logs for debugging.                    |
+| **Buttons as Polls**    | `Disabled`     | Automatically convert button messages to polls on clients that do not support native buttons.            |
 | **Reset Session**       | `Disabled`     | **Danger!** Only use this if you want to completely log out and delete all local data.                   |
 
 ### Multi-Account Support (Multiple WhatsApp Numbers)

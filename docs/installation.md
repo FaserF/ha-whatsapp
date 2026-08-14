@@ -114,7 +114,7 @@ Now we connect the components and link your device.
   <a href="https://my.home-assistant.io/redirect/config_flow_start/?domain=whatsapp" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Add Integration</span></a>
 </div>
 
-1. **Discovery**: Home Assistant will automatically find the app and show a notification ("New devices found"). Click **Configure**.
+1. **Discovery**: Home Assistant uses **Zeroconf** to automatically discover the gateway on your local network. It will show a notification ("New devices found"). Click **Configure**.
 2. **Connection Details**:
    - **Host**: Enter the URL of your App. (Default: `http://localhost:8066`).
    - **API Key**: Paste the **API Token** you copied from the App Web UI.

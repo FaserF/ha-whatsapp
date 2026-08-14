@@ -1071,6 +1071,29 @@ mark_as_read:
       selector:
         text:
 
+mark_as_unread:
+  name: Mark Chat as Unread
+  description: >
+    Marks a specific chat as unread.
+    Works for both individual chats AND group chats.
+  fields:
+    account:
+      name: Account
+      description: >
+        The WhatsApp account to use (Service Instance).
+        Provide the phone number (e.g., "49123456789") or the Entry ID.
+        If only one account is configured, this can be omitted.
+      example: "49171234567"
+      selector:
+        text:
+    target:
+      name: Target Phone ID
+      description: The phone number or group ID to mark as unread.
+      example: "49171234567"
+      required: true
+      selector:
+        text:
+
 get_contacts:
   name: Get Contacts
   description: >

@@ -35,13 +35,17 @@ This table provides a quick overview of what is currently supported by the Whats
 | **System**                |         |                                                            |
 | Location                  |   ✅    | Send location pins with address                            |
 | Contacts                  |   ✅    | Send VCards (Phone Contacts)                               |
+| Events                    |   ✅    | Send Group Events (send_event)                             |
 | Presence                  |   ✅    | Set status to "typing...", "recording...", etc.            |
 | Whitelist                 |   ✅    | Restrict outgoing messages to specific numbers             |
 | Hass.io Discovery         |   ✅    | Auto-discovery of the local WhatsApp Addon                 |
 | Multiple Instances        |   ✅    | Connect multiple WhatsApp accounts simultaneously          |
-| **Diagnostics & Repairs** |         |                                                            |
-| Connection Status Entity  |   ✅    | Real-time connection feedback                              |
-| Uptime & Stats            |   ✅    | Monitor message throughput and system health               |
+| **Entities & Control**    |         |                                                            |
+| Master Switches           |   ✅    | Global toggles for Moderation Engine & Telegram Bridge     |
+| Action Buttons            |   ✅    | `Reconnect` session and `Diagnostic Test` buttons          |
+| Connection Sensors        |   ✅    | Real-time connection and add-on health status              |
+| Statistic Sensors         |   ✅    | Message throughput (sent, received, failed) and chat count |
+| Moderation Sensors        |   ✅    | Warnings, Raid Status, and Pending Captchas counters       |
 | Integration Repairs       |   ✅    | Guided troubleshooting and self-healing for common errors  |
 | **Group Moderation & Bot Commands** | |                                                            |
 | 37 Group Commands         |   ✅    | Prefix commands (`!help`, `!warn`, `!kick`, `!mute`, `!tban`, etc.) |

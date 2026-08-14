@@ -106,17 +106,21 @@ The most up-to-date and detailed documentation is available at our **[Official D
 
 ## 💡 How to use
 
-### The WhatsApp Sensor
+### Entities & Platforms
 
-The integration provides a binary sensor (e.g., `binary_sensor.whatsapp`).
+The integration provides several entity platforms to monitor and control the connection:
 
-- **State**: Indicates if the integration is successfully connected to the App.
-- **Attributes**:
-  - `messages_sent`: Total number of messages sent since restart.
-  - `last_message_content`: Content of the last sent message.
-  - `last_message_target`: Phone number of the last recipient.
+- **Binary Sensors**: Tracks the connection state to the gateway (e.g., `binary_sensor.whatsapp`).
+- **Sensors**: Includes counters for messages (sent, received, failed) and moderation statistics.
+  - **Attributes**:
+    - `messages_sent`: Total number of messages sent since restart.
+    - `last_message_content`: Content of the last sent or received message.
+    - `last_message_target`: Phone number or JID of the last target/sender.
+    - `last_event`: Details of the most recent event.
+- **Buttons**: Action buttons for manual control (e.g., Reconnect, Request QR Code, Delete Session).
+- **Switches**: Toggle features directly from Home Assistant, such as the Moderation Defender or the Telegram Bridge.
 
-If the sensor is `disabled`, check your Home Assistant "Entities" settings and enable it. It tracks the connection health to the WhatsApp Home Assistant App.
+If entities are `disabled`, check your Home Assistant "Entities" settings and enable them.
 
 ### Services
 

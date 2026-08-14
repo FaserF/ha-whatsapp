@@ -2,6 +2,13 @@
 
 If your WhatsApp integration isn't sending messages as expected, use these tools and steps to identify the issue.
 
+## 🔌 Session Reconnect Button
+
+If your connection seems stuck but the add-on is running, you can use the built-in **Reconnect** button entity.
+1. Go to **Settings** → **Devices & Services** → **WhatsApp**.
+2. Click on the **1 device** link.
+3. Find the `WhatsApp Reconnect` button (disabled by default). Enable it and press it to gently restart the session negotiation without restarting the entire add-on.
+
 ## 🧪 Automated Diagnostic Self-Test
 
 The integration includes a hidden **Diagnostic Test** button that performs a series of end-to-end tests by sending messages to your own WhatsApp account.

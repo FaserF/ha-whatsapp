@@ -360,6 +360,61 @@ async def async_send_whatsapp_message(
         await client.send_audio(
             recipient, url, ptt, quoted_message_id=quoted, expiration=expiration
         )
+    elif "attachment" in data or "attachments" in data:
+        # Handles single or multiple attachments:
+        # data: {"attachment": "url_or_path"} or {"attachment": {"url": "..."}}
+        # data: {"attachments": ["url1", "url2"]}
+        raw_attachments = data.get("attachments") or data.get("attachment")
+        if isinstance(raw_attachments, (str, dict)):
+            attachments = [raw_attachments]
+        elif isinstance(raw_attachments, list):
+            attachments = list(raw_attachments)
+        else:
+            attachments = []
+
+        for idx, att in enumerate(attachments):
+            url_val = att.get("url") if isinstance(att, dict) else att
+            if not url_val:
+                continue
+            url = str(url_val)
+            caption = message if idx == 0 else None
+            lower_url = url.lower().split("?")[0]
+            if lower_url.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
+                await client.send_image(
+                    recipient,
+                    url,
+                    caption,
+                    quoted_message_id=quoted,
+                    expiration=expiration,
+                )
+            elif lower_url.endswith((".mp4", ".mov", ".avi", ".mkv", ".webm")):
+                await client.send_video(
+                    recipient,
+                    url,
+                    caption,
+                    quoted_message_id=quoted,
+                    expiration=expiration,
+                )
+            elif lower_url.endswith((".mp3", ".ogg", ".wav", ".m4a", ".opus", ".aac")):
+                await client.send_audio(
+                    recipient,
+                    url,
+                    data.get("ptt", False),
+                    quoted_message_id=quoted,
+                    expiration=expiration,
+                )
+            else:
+                file_name = (
+                    att.get("file_name") if isinstance(att, dict) else None
+                ) or data.get("file_name")
+                await client.send_document(
+                    recipient,
+                    url,
+                    file_name,
+                    caption,
+                    quoted_message_id=quoted,
+                    expiration=expiration,
+                )
     else:
         # Default text message
         await client.send_message(

@@ -756,6 +756,20 @@ Cluster multiple WhatsApp groups into a shared **Ban Federation**:
 
 ---
 
+## 🎛️ Home Assistant Control Entities
+
+The integration provides native Home Assistant entities to monitor and control the Moderation Engine:
+
+- **Moderation Master Switch (`switch.*_moderation_master`)**: A global switch to instantly turn the Moderation Engine on or off across all groups.
+- **Moderation Status (`binary_sensor.*_moderation_status`)**: Shows whether the engine is globally enabled or disabled, with detailed attributes about managed groups.
+- **Moderation Warnings (`sensor.*_moderation_warnings`)**: Real-time counter of active user warnings across all managed groups.
+- **Moderation Raid Status (`sensor.*_moderation_raid_status`)**: Counter of groups currently with the Anti-Raid shield active.
+- **Pending Captchas (`sensor.*_pending_captchas`)**: Total number of pending group member Captcha verifications.
+
+*(Note: Most moderation sensors are disabled by default in the Home Assistant entity registry and will automatically activate when moderation features are used.)*
+
+---
+
 ## 💡 Acknowledgments & Inspiration
 
 The Group Moderation Engine, Content Locks, Security Federations, and Group Commands features in this project were inspired by the conceptual architecture of **Miss Rose** and **[AegisBot](https://github.com/FaserF/AegisBot)**.

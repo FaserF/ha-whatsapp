@@ -122,3 +122,10 @@ data:
 ```
 
 _The integration will automatically pick up the first 3 buttons and map `text` to `displayText` and `callback_data` to `id`._
+
+---
+
+## 🎛️ Home Assistant Button Entities
+
+*Note: This page describes sending Interactive Message Buttons in WhatsApp.* 
+If you are looking for the integration's native Home Assistant **Action Button Entities** (such as the **WhatsApp Reconnect** button or the **Diagnostic Test** button), you can find them in your Home Assistant device settings. See the [Troubleshooting Guide](troubleshooting.md) for more details.

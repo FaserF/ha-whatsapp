@@ -22,6 +22,24 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 
 ---
 
+## The Event: `whatsapp_button_pressed`
+
+This event is explicitly fired when a user clicks an interactive button sent by the integration, allowing for targeted button automations.
+
+### Event Data Structure
+
+| Field           | Type   | Description                                                                         |
+| :-------------- | :----- | :---------------------------------------------------------------------------------- |
+| `sender`        | string | The full JID of the user who pressed the button.                                    |
+| `sender_number` | string | Clean numeric part of the sender (e.g., `49123456789`).                             |
+| `sender_name`   | string | Display name or push name of the sender.                                            |
+| `button_id`     | string | The unique ID of the clicked button (defined when sending).                         |
+| `button_text`   | string | The display text of the clicked button.                                             |
+| `message_id`    | string | The ID of the original message containing the buttons.                              |
+| `timestamp`     | int    | Unix timestamp of the event.                                                        |
+
+---
+
 ## 🤖 Automation Examples
 
 ### 1. Simple Command Trigger (Direct Reply)
@@ -50,11 +68,11 @@ React to specific button IDs you sent earlier.
 alias: "WhatsApp Bot: Alarm Control"
 trigger:
   - platform: event
-    event_type: whatsapp_message_received
+    event_type: whatsapp_button_pressed
 condition:
   - condition: template
-    # 'selected_id' is the ID you defined in 'whatsapp.send_buttons'
-    value_template: "{{ trigger.event.data.selected_id == 'arm_away' }}"
+    # 'button_id' is the ID you defined in 'whatsapp.send_buttons'
+    value_template: "{{ trigger.event.data.button_id == 'arm_away' }}"
 action:
   - service: alarm_control_panel.alarm_arm_away
     target:
