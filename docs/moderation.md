@@ -722,7 +722,8 @@ Configure an **OpenAI API Key** or **Gemini API Key** in the Addon UI to unlock 
 3. **AI Group Assistant & FAQ**: Auto-replies to user questions in the group using a custom system persona prompt.
 4. **AI Natural Language Rules Interpreter**: Typing `!rules <question>` lets AI analyze your group rules and answer the member's question intelligently.
 5. **AI Sentiment & Toxicity Moderation**: Automatically scans incoming messages for hate speech, extreme insults, or harassment. Toxic messages are deleted instantly and a warning is logged.
-6. **AI Translation Engine**: On-demand translation via `!translate` into any supported language.
+6. **AI Translation Engine**: On-demand translation via `!translate` and automated multi-engine translation (`Google Translate`, `Lingva`, `MyMemory`, or `Gemini AI`).
+7. **Speech-to-Text (STT) Transcription**: Converts incoming voice notes and audio messages (`.ogg/opus`) into readable text using Gemini 1.5 Multimodal Audio or OpenAI Whisper API.
 
 ---
 
