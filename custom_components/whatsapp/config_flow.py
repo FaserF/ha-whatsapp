@@ -26,6 +26,7 @@ from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,
+    CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     CONF_RETRY_ATTEMPTS,
@@ -1036,6 +1037,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 vol.Optional(
                     CONF_SELF_MESSAGES,
                     default=self._config_entry.options.get(CONF_SELF_MESSAGES, False),
+                ): bool,
+                vol.Optional(
+                    CONF_BUTTONS_AS_POLLS,
+                    default=self._config_entry.options.get(
+                        CONF_BUTTONS_AS_POLLS, False
+                    ),
                 ): bool,
                 vol.Optional("reset_session", default=False): bool,
             }

@@ -93,6 +93,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self.mask_sensitive_data = mask_sensitive_data
         self.whitelist = whitelist or []
         self.retry_attempts = 2
+        self.buttons_as_polls = False
+        self._active_button_polls: dict[str, dict[str, Any]] = {}
         self._connected = False
         self._disconnect_reason: str | None = None
         self.stats: dict[str, Any] = {
@@ -1813,11 +1815,51 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
+
+        if self.buttons_as_polls:
+            poll_options = [
+                b.get("text") or b.get("displayText") or f"Option {i + 1}"
+                for i, b in enumerate(buttons)
+            ]
+            button_id_map = {
+                (b.get("text") or b.get("displayText") or f"Option {i + 1}"): (
+                    b.get("id") or b.get("buttonId") or f"btn_{i}"
+                )
+                for i, b in enumerate(buttons)
+            }
+            poll_question = f"{text}\n\n_{footer}_" if footer else text
+            _LOGGER.debug(
+                "Emulating buttons via WhatsApp Poll (buttons_as_polls=True): "
+                "'%s' -> %s",
+                poll_question,
+                poll_options,
+            )
+            msg_id = await self.send_poll(
+                number=target_jid,
+                question=poll_question,
+                options=poll_options,
+                quoted_message_id=quoted_message_id,
+                expiration=expiration,
+                allow_multiple_responses=False,
+            )
+            if msg_id:
+                self._active_button_polls[msg_id] = {
+                    "question": poll_question,
+                    "button_map": button_id_map,
+                    "target": target_jid,
+                }
+                # Keep active_button_polls map bounded
+                if len(self._active_button_polls) > 200:
+                    oldest_key = next(iter(self._active_button_polls))
+                    self._active_button_polls.pop(oldest_key, None)
+            return msg_id
+
         _LOGGER.warning(
-            "WhatsApp has deprecated interactive buttons on standard Multi-Device (Web) "
-            "accounts. The message was dispatched, but mobile clients may only display "
-            "plain text without buttons. For reliable 1-click interactions, use "
-            "'whatsapp.send_poll' instead."
+            "WhatsApp has deprecated interactive buttons on standard Multi-Device "
+            "(Web) accounts. The message was dispatched, but mobile clients may only "
+            "display plain text without buttons. For reliable 1-click interactions, "
+            "enable the 'Emulate buttons using Polls' option in integration settings "
+            "or use 'whatsapp.send_poll' directly."
         )
         return cast(
             str,

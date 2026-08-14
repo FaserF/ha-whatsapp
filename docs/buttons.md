@@ -43,6 +43,26 @@ action:
 
 ---
 
+## ✨ Automatic Fallback: "Emulate Buttons via Polls" Option
+
+If you already have existing automations using `whatsapp.send_buttons` or `notify.whatsapp` with `data.buttons` / `data.inline_keyboard`, you can enable the **"Emulate Buttons via Polls"** option in the integration settings:
+
+1. Go to **Settings → Devices & Services → WhatsApp → Configure (Options)**
+2. Enable **"Emulate Buttons via Polls"**
+3. Save
+
+### How it works:
+* Every `whatsapp.send_buttons` or `notify` button call is automatically converted into a native WhatsApp **Poll** under the hood.
+* The message text and footer are mapped to the poll question.
+* The buttons (`displayText` / `text`) become the selectable poll options.
+* When a user taps an option in WhatsApp, the integration intercepts the vote, resolves the corresponding button ID, and fires both:
+  1. `whatsapp_button_pressed` (with `button_id: "your_id"`, matching native button press events)
+  2. `whatsapp_message_received` (with the chosen option as `content`)
+
+This gives you **100% backwards compatibility** with existing button automations without having to rewrite YAML!
+
+---
+
 ## ⚠️ Known Technical Limitations & Deprecation in WhatsApp
 
 > [!IMPORTANT]
@@ -54,7 +74,7 @@ action:
 >
 > **Recommended Alternative: Interactive Polls (`whatsapp.send_poll`)** 📊
 >
-> For reliable single-tap interactive choices in Home Assistant with WhatsApp, use **Polls** instead of buttons! Polls are 100% natively supported across all WhatsApp platforms (Android, iOS, Web, Desktop, Groups, Direct Chats).
+> For reliable single-tap interactive choices in Home Assistant with WhatsApp, use **Polls** directly or turn on the **"Emulate Buttons via Polls"** option!
 
 ```yaml
 service: whatsapp.send_poll

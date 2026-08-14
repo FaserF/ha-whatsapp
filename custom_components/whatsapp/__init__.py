@@ -34,6 +34,7 @@ from homeassistant.exceptions import ServiceValidationError
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,
+    CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
     CONF_SELF_MESSAGES,
@@ -225,6 +226,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ha_base_url=ha_base_url,
         session=session,
     )
+    client.buttons_as_polls = bool(entry.options.get(CONF_BUTTONS_AS_POLLS, False))
 
     coordinator = WhatsAppDataUpdateCoordinator(hass, client, entry)
     hass.data.setdefault(DOMAIN, {})
@@ -314,6 +316,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             button_id = reply.get("selectedRowId")
         elif "templateButtonReplyMessage" in raw_msg_msg:
             button_id = raw_msg_msg["templateButtonReplyMessage"].get("selectedId")
+        elif "pollUpdateMessage" in raw_msg_msg:
+            # Check if this poll was created as a button emulation poll
+            poll_creation_key = raw_msg_msg["pollUpdateMessage"].get(
+                "pollCreationMessageKey", {}
+            )
+            poll_creation_id = poll_creation_key.get("id")
+            if poll_creation_id and poll_creation_id in client._active_button_polls:
+                poll_info = client._active_button_polls[poll_creation_id]
+                button_map = poll_info.get("button_map", {})
+                votes = data.get("vote", [])
+                if isinstance(votes, list) and votes:
+                    selected_text = votes[0]
+                    button_id = button_map.get(selected_text)
+                    if button_id:
+                        _LOGGER.info(
+                            "Resolved emulated button press from WhatsApp poll vote: "
+                            "'%s' -> button_id '%s'",
+                            selected_text,
+                            button_id,
+                        )
 
         if button_id:
             button_data = {**data, "button_id": button_id}

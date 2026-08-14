@@ -102,6 +102,7 @@
           "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
           "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
           "self_messages": "Nachrichten von sich selbst verarbeiten",
+          "buttons_as_polls": "Buttons über Umfragen emulieren (Sendet Buttons automatisch als native Umfrage und feuert Button-Events bei Abstimmung)",
           "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
         },
         "description": "⚠️ ACHTUNG: 'Sitzung zurücksetzen' meldet dich ab und löscht die Sitzungsdaten im Addon."

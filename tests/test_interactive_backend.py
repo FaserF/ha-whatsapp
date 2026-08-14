@@ -70,3 +70,35 @@ async def test_send_list_payload() -> None:
             assert kwargs["json"]["text"] == "Text"
             assert kwargs["json"]["button_text"] == "Button"
             assert kwargs["json"]["sections"] == sections
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_buttons_as_polls() -> None:
+    """Test send_buttons when buttons_as_polls is enabled."""
+    client = WhatsAppApiClient(host="http://localhost:8066", api_key="test")
+    client.buttons_as_polls = True
+
+    with patch.object(client, "send_poll", new_callable=AsyncMock) as mock_send_poll:
+        mock_send_poll.return_value = "poll_msg_123"
+        buttons = [
+            {"id": "btn_yes", "displayText": "Yes, please! 💡"},
+            {"id": "btn_no", "displayText": "No, leave them on."},
+        ]
+        msg_id = await client.send_buttons(
+            "49123456789", "Turn off lights?", buttons, footer="Smart Home"
+        )
+
+        assert msg_id == "poll_msg_123"
+        mock_send_poll.assert_called_once_with(
+            number="49123456789@s.whatsapp.net",
+            question="Turn off lights?\n\n_Smart Home_",
+            options=["Yes, please! 💡", "No, leave them on."],
+            quoted_message_id=None,
+            expiration=None,
+            allow_multiple_responses=False,
+        )
+        assert "poll_msg_123" in client._active_button_polls
+        assert client._active_button_polls["poll_msg_123"]["button_map"] == {
+            "Yes, please! 💡": "btn_yes",
+            "No, leave them on.": "btn_no",
+        }
