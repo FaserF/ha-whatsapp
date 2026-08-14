@@ -65,7 +65,7 @@ This gives you **100% backwards compatibility** with existing button automations
 
 ## ⚠️ Known Technical Limitations & Deprecation in WhatsApp
 
-> [!IMPORTANT]
+> **IMPORTANT:**
 > **Why do buttons fail to render on official WhatsApp mobile / desktop clients?**
 >
 > WhatsApp (Meta) deprecated and disabled legacy MD / multi-device protobuf buttons (`buttonsMessage`, `templateMessage`, `interactiveMessage`) for standard web/linked-device multi-device clients. 
