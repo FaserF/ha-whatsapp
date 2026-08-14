@@ -43,36 +43,45 @@ action:
 
 ---
 
-## ⚠️ Limitations & Potential Problems
+## ⚠️ Known Technical Limitations & Deprecation in WhatsApp
 
-While buttons are powerful, there are several technical hurdles to be aware of:
+> [!IMPORTANT]
+> **Why do buttons fail to render on official WhatsApp mobile / desktop clients?**
+>
+> WhatsApp (Meta) deprecated and disabled legacy MD / multi-device protobuf buttons (`buttonsMessage`, `templateMessage`, `interactiveMessage`) for standard web/linked-device multi-device clients. 
+> 
+> When sending legacy buttons via the Web multi-device protocol (Baileys), WhatsApp's servers strip or reject the interactive button layout on modern WhatsApp clients (iOS, Android, WhatsApp Web/Desktop), causing the recipient to receive only the message body / header with no clickable buttons rendered.
+>
+> **Recommended Alternative: Interactive Polls (`whatsapp.send_poll`)** 📊
+>
+> For reliable single-tap interactive choices in Home Assistant with WhatsApp, use **Polls** instead of buttons! Polls are 100% natively supported across all WhatsApp platforms (Android, iOS, Web, Desktop, Groups, Direct Chats).
 
-### 1. The 3-Button Limit
+```yaml
+service: whatsapp.send_poll
+data:
+  target: "+49123456789"
+  question: "¿Hay alguien en casa?"
+  options:
+    - "🔒 Hay gente"
+    - "📷 No hay nadie"
+```
 
-WhatsApp strictly limits interactive messages to a **maximum of 3 buttons**. If you need more options, consider using the [List Menu (send_list)](api.md#post-send_list), which supports up to 10 rows per section.
+---
 
-### 2. Standard vs. Business Accounts
+## ⚠️ Limitations & Account Behavior
 
-WhatsApp's treatment of buttons depends on the account type:
+### 1. WhatsApp Button Support
+Buttons are officially restricted by Meta exclusively to **WhatsApp Cloud API (Official Business API)**. On linked-device Web sessions (used by this addon and Baileys), button protobuf rendering is not supported by WhatsApp mobile clients.
 
-| Feature           | Standard Account                     | Business Account (Official API) |
-| :---------------- | :----------------------------------- | :------------------------------ |
-| **Reliability**   | Medium (Experimental)                | Very High                       |
-| **Stability**     | Buttons may disappear After 24h      | Persistent                      |
-| **Display**       | May show as plain text on older apps | Full UI support                 |
-| **Quick Replies** | Emulated via bridge                  | Native feature                  |
+### 2. The 3-Button Limit
+Even where supported, WhatsApp restricts button messages to a maximum of 3 buttons.
 
-**Standard Accounts** (like the one used by this integration) use the "Linked Device" protocol. Since WhatsApp officially only supports buttons for Business APIs, the bridge has to "emulate" these. This can lead to buttons not appearing on some versions of the WhatsApp App (especially older Android versions).
+### 3. Client Rendering
+On modern mobile clients, button messages render only as plain text header/message.
 
-### 3. Client Version Issues
+### 4. Interactive Polls as Universal Replacement
+Polls (`whatsapp.send_poll`) trigger `whatsapp_message_received` or poll update events when selected and work seamlessly without account restrictions.
 
-If the recipient is using a very old version of WhatsApp, interactive messages might show up as:
-`This message is not supported by your version of WhatsApp.`
-Ensure both your bot account and the recipients have updated apps.
-
-### 4. Group Limitations
-
-In some regions, buttons in groups are restricted for non-business accounts to prevent spam.
 
 ---
 

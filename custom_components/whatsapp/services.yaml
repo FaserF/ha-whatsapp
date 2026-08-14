@@ -696,10 +696,8 @@ send_buttons:
   name: Send Buttons
   description: >
     Sends a message with interactive buttons that the recipient can tap.
-    When tapped, the button ID is sent back via webhook.
-    Perfect for confirmation dialogs, quick replies, or menu selections.
-    Maximum 3 buttons per message. Also supports Telegram inline_keyboard format.
-    See [Buttons Guide](https://faserf.github.io/ha-whatsapp/buttons) for more details.
+    Note: WhatsApp/Meta has deprecated legacy interactive buttons on standard Multi-Device (Web) accounts, which may cause modern WhatsApp clients to display only text without clickable buttons. For reliable 1-click interactions, use 'whatsapp.send_poll' instead.
+    See [Buttons Guide](https://faserf.github.io/ha-whatsapp/buttons) for details.
   fields:
     account:
       name: Account

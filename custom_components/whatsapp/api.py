@@ -1813,6 +1813,12 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
+        _LOGGER.warning(
+            "WhatsApp has deprecated interactive buttons on standard Multi-Device (Web) "
+            "accounts. The message was dispatched, but mobile clients may only display "
+            "plain text without buttons. For reliable 1-click interactions, use "
+            "'whatsapp.send_poll' instead."
+        )
         return cast(
             str,
             await self._send_with_retry(
