@@ -64,6 +64,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
     """
 
     client: WhatsAppApiClient
+    _unreachable_count: int = 0
 
     def __init__(
         self,
@@ -84,6 +85,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         self.client = client
         self.entry = entry
         self._connected: bool = False
+        self._unreachable_count: int = 0
 
         polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 30)
         super().__init__(
@@ -93,6 +95,79 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             name=DOMAIN,
             update_interval=timedelta(seconds=polling_interval),
         )
+
+    def _handle_unreachable(self, err_or_details: Any) -> dict[str, Any]:
+        """Handle unreachable addon state gracefully during updates or restarts."""
+        previous_data = self.data or {}
+        prev_stats = previous_data.get("stats", {})
+        prev_health = previous_data.get("health", {})
+        last_reason = str(prev_stats.get("last_disconnect_reason", "")).lower()
+        health_status = str(prev_health.get("status", "")).lower()
+
+        self._unreachable_count = getattr(self, "_unreachable_count", 0) + 1
+
+        is_shutting_down = (
+            bool(prev_stats.get("shutting_down", False))
+            or health_status in ("shutting_down", "updating")
+            or last_reason in ("shutting_down", "updating")
+        )
+
+        # Allow a grace period of up to 4 polling intervals (~2 mins)
+        # if the coordinator was previously connected.
+        if previous_data and (is_shutting_down or self._unreachable_count <= 4):
+            status_str = (
+                "updating"
+                if (
+                    health_status == "updating"
+                    or last_reason == "updating"
+                    or self._unreachable_count <= 4
+                )
+                else "shutting_down"
+            )
+            status_desc = (
+                f"Addon is updating/restarting ({self._unreachable_count}/4)..."
+                if self._unreachable_count <= 4
+                else "Addon is restarting..."
+            )
+            _LOGGER.info(
+                "WhatsApp Addon is %s (%d/4) — maintaining availability (%s)",
+                status_str,
+                self._unreachable_count,
+                err_or_details,
+            )
+            return _safe_text(
+                {
+                    "connected": False,
+                    "status": status_str,
+                    "status_details": status_desc,
+                    "health": {"status": status_str},
+                    "stats": {
+                        "last_disconnect_reason": status_str,
+                        "shutting_down": True,
+                        "my_number": prev_stats.get("my_number", "Unknown"),
+                        "version": prev_stats.get("version", "Unknown"),
+                        "sent": prev_stats.get("sent", 0),
+                        "received": prev_stats.get("received", 0),
+                        "failed": prev_stats.get("failed", 0),
+                    },
+                    "chats": previous_data.get("chats", {}),
+                    "dashboard": previous_data.get("dashboard", {}),
+                    "moderation": previous_data.get("moderation", {}),
+                    "telegram": previous_data.get("telegram", {}),
+                }
+            )
+
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            "connection_failed",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="connection_failed",
+            translation_placeholders={"error": str(err_or_details)},
+        )
+        _LOGGER.debug("Error communicating with WhatsApp API: %s", err_or_details)
+        raise UpdateFailed(f"Addon unreachable: {err_or_details}")
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch fresh data from the WhatsApp addon.
@@ -125,9 +200,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             status = health.get("status", "unknown")
             details = health.get("details", "")
 
-            # If addon is unreachable, handled by the generic Exception block below
+            # If addon is unreachable, handle gracefully (e.g. during addon updates)
             if status == "unreachable":
-                raise UpdateFailed(f"Addon is unreachable: {details}")
+                return self._handle_unreachable(details)
 
             # If addon is still starting, we report that and skip full stats
             if status == "starting":
@@ -236,7 +311,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                 ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
                 ir.async_delete_issue(self.hass, DOMAIN, "passkey_required")
 
-            # Always delete connection issue if we successfully reached this point
+            # Reset unreachable counter and delete issue on success
+            self._unreachable_count = 0
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
 
             # Dynamically update device registry sw_version with live version
@@ -278,66 +354,9 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             _LOGGER.error("Authentication failed during polling: %s", err)
             raise ConfigEntryAuthFailed("Invalid API Key for WhatsApp Addon") from err
         except (HomeAssistantError, aiohttp.ClientError, TimeoutError) as err:
-            previous_data = self.data or {}
-            prev_stats = previous_data.get("stats", {})
-            prev_health = previous_data.get("health", {})
-            last_reason = str(prev_stats.get("last_disconnect_reason", "")).lower()
-            health_status = str(prev_health.get("status", "")).lower()
-            is_shutting_down = (
-                bool(prev_stats.get("shutting_down", False))
-                or health_status in ("shutting_down", "updating")
-                or last_reason in ("shutting_down", "updating")
-            )
-
-            if is_shutting_down:
-                status_str = (
-                    "updating"
-                    if (health_status == "updating" or last_reason == "updating")
-                    else "shutting_down"
-                )
-                status_desc = (
-                    "Addon is updating to new version..."
-                    if status_str == "updating"
-                    else "Addon is restarting..."
-                )
-                _LOGGER.info(
-                    "WhatsApp Addon is %s — maintaining entity availability (%s)",
-                    status_str,
-                    err,
-                )
-                return _safe_text(
-                    {
-                        "connected": False,
-                        "status": status_str,
-                        "status_details": status_desc,
-                        "health": {"status": status_str},
-                        "stats": {
-                            "last_disconnect_reason": status_str,
-                            "shutting_down": True,
-                            "my_number": prev_stats.get("my_number", "Unknown"),
-                            "version": prev_stats.get("version", "Unknown"),
-                            "sent": prev_stats.get("sent", 0),
-                            "received": prev_stats.get("received", 0),
-                            "failed": prev_stats.get("failed", 0),
-                        },
-                        "chats": previous_data.get("chats", {}),
-                        "dashboard": previous_data.get("dashboard", {}),
-                        "moderation": previous_data.get("moderation", {}),
-                        "telegram": previous_data.get("telegram", {}),
-                    }
-                )
-
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                "connection_failed",
-                is_fixable=False,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="connection_failed",
-                translation_placeholders={"error": str(err)},
-            )
-            _LOGGER.debug("Error communicating with WhatsApp API: %s", err)
-            raise UpdateFailed(f"Addon unreachable: {err}") from err
+            return self._handle_unreachable(err)
+        except UpdateFailed:
+            raise
         except Exception as err:
             _LOGGER.error("Unexpected error communicating with WhatsApp API: %s", err)
             raise UpdateFailed(

@@ -32,8 +32,9 @@ async def test_connection_lost_notification(
     import pytest
     from homeassistant.helpers.update_coordinator import UpdateFailed
 
-    # In a real setup, async_setup_entry would create the issue
-    # We test the logic by calling a coordinator update that fails
+    # In a real setup, async_setup_entry would create the issue.
+    # Test that a coordinator update fails without previous cache.
+    data["coordinator"].data = None
     with pytest.raises(UpdateFailed):
         await data["coordinator"].async_refresh()
 
@@ -42,6 +43,33 @@ async def test_connection_lost_notification(
     fn = getattr(ir, "async_create_issue", None)
     if hasattr(fn, "assert_called"):
         fn.assert_called()
+
+
+async def test_addon_update_grace_period(
+    data: dict[str, Any], mock_client: MagicMock
+) -> None:
+    """Test that temporary unreachability during addon updates is handled gracefully."""
+    from homeassistant.exceptions import HomeAssistantError
+
+    # Coordinator starts with existing active session data
+    data["coordinator"].data = {
+        "connected": True,
+        "status": "ready",
+        "stats": {"my_number": "4912345678", "sent": 10},
+    }
+
+    # Simulate temporary connection drops (e.g. during container rebuild)
+    mock_client.get_health = AsyncMock(
+        return_value={"status": "unreachable", "details": "Connect call failed"}
+    )
+    mock_client.get_stats = AsyncMock(
+        side_effect=HomeAssistantError("Connect call failed")
+    )
+
+    # First refresh should NOT raise UpdateFailed; it should maintain updating state
+    await data["coordinator"].async_refresh()
+    assert data["coordinator"].data["connected"] is False
+    assert data["coordinator"].data["status"] == "updating"
 
 
 async def test_whatsapp_notification_entity() -> None:
