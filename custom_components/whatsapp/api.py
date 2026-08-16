@@ -544,6 +544,25 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return cast(str, number)
         return f"{number.split(':')[0]}@s.whatsapp.net"
 
+    def get_admin_jid(self) -> str | None:
+        """Return the primary admin JID if configured in stats or options."""
+        admins = self.stats.get("admin_numbers")
+        if not admins:
+            return None
+        if isinstance(admins, list) and admins:
+            raw_num = str(admins[0]).strip()
+        elif isinstance(admins, str) and admins.strip():
+            raw_num = admins.split(",")[0].strip()
+        else:
+            return None
+
+        if not raw_num:
+            return None
+        clean = "".join(c for c in raw_num if c.isdigit())
+        if not clean:
+            return None
+        return f"{clean}@s.whatsapp.net"
+
     async def get_stats(self) -> dict[str, Any]:
         """Fetch stats from the Addon."""
         url = f"{self.host}/stats"

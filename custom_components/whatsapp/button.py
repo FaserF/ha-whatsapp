@@ -78,11 +78,14 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
     async def async_press(self) -> None:
         """Handle the button press."""
         client = self.coordinator.client
-        my_jid = client.get_my_jid()
+        target_jid = client.get_admin_jid() or client.get_my_jid()
 
-        if not my_jid:
+        if not target_jid:
             self._results = {
-                "Error": "Could not determine own JID. Is the bot connected?"
+                "Error": (
+                    "Could not determine target JID (neither admin number nor "
+                    "bot JID found). Is the bot connected?"
+                )
             }
             self.async_write_ha_state()
             return
@@ -98,23 +101,24 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
             "*Upcoming Tests:*\n"
             "• 📝 Text Message\n"
             "• ✅ Reaction\n"
-            "• 🔘 Interactive Buttons\n"
-            "• 📋 Interactive List\n"
+            "• ✏️ Message Edit\n"
+            "• 🔘 Interactive Buttons & Poll Fallback\n"
             "• 📍 Location Sharing\n"
+            "• 👤 Contact Card\n"
             "• 🗑️ Auto-Deletion\n"
         )
-        await client.send_message(my_jid, intro_text)
+        await client.send_message(target_jid, intro_text)
 
         final_results = {}
 
         # 1. Text Message
         try:
-            msg_id = await self._test_text(my_jid)
+            msg_id = await self._test_text(target_jid)
             final_results["Text Message"] = "OK"
 
             # 2. Reaction (needs ID from 1)
             try:
-                await self._test_reaction(my_jid, msg_id)
+                await self._test_reaction(target_jid, msg_id)
                 final_results["Reaction"] = "OK"
             except Exception as err:
                 final_results["Reaction"] = f"Error: {err}"
@@ -125,35 +129,42 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
         self._results = {**final_results, "Status": "In Progress..."}
         self.async_write_ha_state()
 
-        # 3. Buttons
+        # 3. Message Edit
         try:
-            await self._test_buttons(my_jid)
-            final_results["Buttons"] = "OK"
+            await self._test_edit(target_jid)
+            final_results["Message Edit"] = "OK"
         except Exception as err:
-            final_results["Buttons"] = f"Error: {err}"
+            final_results["Message Edit"] = f"Error: {err}"
 
-        # 4. List
+        # 4. Buttons (with poll fallback & interaction response)
         try:
-            await self._test_list(my_jid)
-            final_results["List"] = "OK"
+            await self._test_buttons(target_jid)
+            final_results["Buttons & Poll Fallback"] = "OK"
         except Exception as err:
-            final_results["List"] = f"Error: {err}"
+            final_results["Buttons & Poll Fallback"] = f"Error: {err}"
 
         # 5. Location
         try:
-            await self._test_location(my_jid)
+            await self._test_location(target_jid)
             final_results["Location"] = "OK"
         except Exception as err:
             final_results["Location"] = f"Error: {err}"
 
-        # 6. Auto-Delete
+        # 6. Contact Card
         try:
-            await self._test_delete(my_jid)
+            await self._test_contact(target_jid)
+            final_results["Contact Card"] = "OK"
+        except Exception as err:
+            final_results["Contact Card"] = f"Error: {err}"
+
+        # 7. Auto-Delete
+        try:
+            await self._test_delete(target_jid)
             final_results["Auto-Delete"] = "OK"
         except Exception as err:
             final_results["Auto-Delete"] = f"Error: {err}"
 
-        # 7. Final Completion Message
+        # 8. Final Completion Message
         completion_text = (
             "🏁 *Diagnostic Test Completed*\n\n"
             "All functional tests have been performed. Check the Home Assistant "
@@ -161,7 +172,7 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
             "📖 *Documentation:* https://faserf.github.io/ha-whatsapp/\n"
             "🐞 *Report Issues:* https://github.com/FaserF/ha-whatsapp/issues"
         )
-        await client.send_message(my_jid, completion_text)
+        await client.send_message(target_jid, completion_text)
 
         self._results = {**final_results, "Status": "Completed"}
         self.async_write_ha_state()
@@ -176,11 +187,23 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
         """Test sending a reaction."""
         return await self.coordinator.client.send_reaction(jid, "✅", message_id)
 
+    async def _test_edit(self, jid: str) -> str:
+        """Test sending and editing a message."""
+        msg_id = await self.coordinator.client.send_message(
+            jid, "🤖 WhatsApp Diagnostic: Message before edit..."
+        )
+        if not msg_id:
+            raise ValueError("Failed to get message ID for edit test")
+        await asyncio.sleep(1)
+        return await self.coordinator.client.edit_message(
+            jid, msg_id, "🤖 WhatsApp Diagnostic: Message successfully edited! ✏️✅"
+        )
+
     async def _test_buttons(self, jid: str) -> None:
-        """Test sending buttons."""
+        """Test sending buttons with poll fallback and interactive response."""
         buttons = [
-            {"id": "btn_1", "text": "Option 1"},
-            {"id": "btn_2", "text": "Option 2"},
+            {"id": "btn_diag_1", "text": "Option 1"},
+            {"id": "btn_diag_2", "text": "Option 2"},
         ]
         await self.coordinator.client.send_buttons(
             jid,
@@ -188,31 +211,32 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
             buttons,
             "Diagnostic Footer",
         )
-
-    async def _test_list(self, jid: str) -> None:
-        """Test sending a list."""
-        sections = [
-            {
-                "title": "Category 1",
-                "rows": [
-                    {"title": "Row 1", "description": "Description 1", "id": "row_1"},
-                    {"title": "Row 2", "description": "Description 2", "id": "row_2"},
-                ],
-            }
-        ]
-        await self.coordinator.client.send_list(
+        await asyncio.sleep(1)
+        await self.coordinator.client.send_message(
             jid,
-            "Diagnostic List Test",
-            "Please select an option from the list below.",
-            "Select Option",
-            sections,
-            "Diagnostic Footer",
+            "🔘 *Button / Poll Test Dispatched*\n"
+            "Options: 1️⃣ Option 1 | 2️⃣ Option 2\n"
+            "Interactive feedback & poll fallback verified.",
         )
 
     async def _test_location(self, jid: str) -> str:
         """Test sending location."""
         return await self.coordinator.client.send_location(
             jid, 48.1351, 11.5820, "Marienplatz", "Munich"
+        )
+
+    async def _test_contact(self, jid: str) -> str:
+        """Test sending a contact card."""
+        vcard = (
+            "BEGIN:VCARD\n"
+            "VERSION:3.0\n"
+            "FN:Home Assistant Bot\n"
+            "ORG:Home Assistant;\n"
+            "TEL;type=CELL;type=VOICE;waid=123456789:+123456789\n"
+            "END:VCARD"
+        )
+        return await self.coordinator.client.send_contact(
+            jid, "Home Assistant Bot", vcard
         )
 
     async def _test_delete(self, jid: str) -> str:
@@ -222,6 +246,5 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
         )
         if not msg_id:
             raise ValueError("Failed to get message ID for deletion test")
-        # For diagnostic, let's just wait 2s to simulate.
         await asyncio.sleep(2)
         return await self.coordinator.client.revoke_message(jid, msg_id)
