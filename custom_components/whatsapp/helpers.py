@@ -61,17 +61,23 @@ def is_moderation_active(coordinator_data: dict[str, object] | None) -> bool:
     return any(isinstance(cfg, dict) and cfg.get("enabled") for cfg in groups.values())
 
 
-def sync_moderation_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
-    """Enable or disable moderation entity in registry based on moderation state."""
+def _sync_entity_registry_enabled(
+    entity: CoordinatorEntity[Any], is_active: bool
+) -> None:
+    """Enable or disable an entity in the registry based on its active condition."""
     if entity.hass is None or entity.registry_entry is None:
         return
-    active = is_moderation_active(entity.coordinator.data)
-    if entity.registry_entry.disabled != (not active):
+    if entity.registry_entry.disabled != (not is_active):
         er = async_get_entity_registry(entity.hass)
         er.async_update_entity(
             entity.entity_id,
-            disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
+            disabled_by=None if is_active else RegistryEntryDisabler.INTEGRATION,
         )
+
+
+def sync_moderation_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
+    """Enable or disable moderation entity in registry based on moderation state."""
+    _sync_entity_registry_enabled(entity, is_moderation_active(entity.coordinator.data))
 
 
 def is_telegram_bridge_active(coordinator_data: dict[str, object] | None) -> bool:
@@ -92,50 +98,39 @@ def is_telegram_bridge_active(coordinator_data: dict[str, object] | None) -> boo
 
 def sync_telegram_bridge_registry_enabled(entity: CoordinatorEntity[Any]) -> None:
     """Enable or disable Telegram bridge entity in registry based on bridge state."""
-    if entity.hass is None or entity.registry_entry is None:
-        return
-    active = is_telegram_bridge_active(entity.coordinator.data)
-    if entity.registry_entry.disabled != (not active):
-        er = async_get_entity_registry(entity.hass)
-        er.async_update_entity(
-            entity.entity_id,
-            disabled_by=None if active else RegistryEntryDisabler.INTEGRATION,
-        )
+    _sync_entity_registry_enabled(
+        entity, is_telegram_bridge_active(entity.coordinator.data)
+    )
 
 
-def async_sync_moderation_entities(
-    hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
+def async_sync_entities_by_unique_ids(
+    hass: Any,
+    unique_ids: list[str],
+    is_active: bool,
+    domains: tuple[str, ...] = ("sensor", "binary_sensor"),
 ) -> None:
-    """Sync moderation entity enabled states in entity registry.
-
-    Ensures disabled entities are automatically enabled/disabled in the
-    Home Assistant Entity Registry during polling.
-    """
+    """Sync multiple entity enabled states in entity registry for given unique IDs."""
     if hass is None:
         return
     from .const import DOMAIN
 
-    active = is_moderation_active(coordinator_data)
     try:
         er = async_get_entity_registry(hass)
-        moderation_unique_ids = [
-            f"{entry_id}_moderation_warnings",
-            f"{entry_id}_moderation_raid_status",
-            f"{entry_id}_moderation_status",
-        ]
-        for unique_id in moderation_unique_ids:
-            entity_id = er.async_get_entity_id(
-                "sensor", DOMAIN, unique_id
-            ) or er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
+        for unique_id in unique_ids:
+            entity_id = None
+            for domain in domains:
+                entity_id = er.async_get_entity_id(domain, DOMAIN, unique_id)
+                if entity_id:
+                    break
             if entity_id:
                 entry = er.async_get(entity_id)
                 if entry:
                     if (
-                        active
+                        is_active
                         and entry.disabled_by == RegistryEntryDisabler.INTEGRATION
                     ):
                         er.async_update_entity(entity_id, disabled_by=None)
-                    elif not active and entry.disabled_by is None:
+                    elif not is_active and entry.disabled_by is None:
                         er.async_update_entity(
                             entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
                         )
@@ -143,34 +138,31 @@ def async_sync_moderation_entities(
         _LOGGER.debug("Entity registry sync skipped: %s", exc)
 
 
+def async_sync_moderation_entities(
+    hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
+) -> None:
+    """Sync moderation entity enabled states in entity registry."""
+    async_sync_entities_by_unique_ids(
+        hass,
+        [
+            f"{entry_id}_moderation_warnings",
+            f"{entry_id}_moderation_raid_status",
+            f"{entry_id}_moderation_status",
+        ],
+        is_moderation_active(coordinator_data),
+    )
+
+
 def async_sync_telegram_bridge_entities(
     hass: Any, entry_id: str, coordinator_data: dict[str, Any] | None
 ) -> None:
-    """Sync Telegram bridge entity enabled state in entity registry.
-
-    Automatically enables ``telegram_bridge_status`` binary sensor when
-    at least one mapping is active, and disables it when none are.
-    """
-    if hass is None:
-        return
-    from .const import DOMAIN
-
-    active = is_telegram_bridge_active(coordinator_data)
-    try:
-        er = async_get_entity_registry(hass)
-        unique_id = f"{entry_id}_telegram_bridge_status"
-        entity_id = er.async_get_entity_id("binary_sensor", DOMAIN, unique_id)
-        if entity_id:
-            entry = er.async_get(entity_id)
-            if entry:
-                if active and entry.disabled_by == RegistryEntryDisabler.INTEGRATION:
-                    er.async_update_entity(entity_id, disabled_by=None)
-                elif not active and entry.disabled_by is None:
-                    er.async_update_entity(
-                        entity_id, disabled_by=RegistryEntryDisabler.INTEGRATION
-                    )
-    except Exception as exc:
-        _LOGGER.debug("Telegram bridge entity registry sync skipped: %s", exc)
+    """Sync Telegram bridge entity enabled state in entity registry."""
+    async_sync_entities_by_unique_ids(
+        hass,
+        [f"{entry_id}_telegram_bridge_status"],
+        is_telegram_bridge_active(coordinator_data),
+        domains=("binary_sensor",),
+    )
 
 
 def format_timestamp(timestamp: int | None) -> str | None:
@@ -194,3 +186,15 @@ def extract_group_chats(chats_data: Any) -> list[dict[str, Any]]:
             c for c in chats_data if isinstance(c, dict) and "@g.us" in c.get("jid", "")
         ]
     return []
+
+
+def normalize_media_url(url: str, ha_base_url: str | None = None) -> str:
+    """Prepend HA base URL to relative URLs starting with '/'."""
+    if not url or url.startswith("//"):
+        return url
+    # /config/www/ is the filesystem path; HA serves it at /local/
+    if url.startswith("/config/www/"):
+        url = "/local/" + url[len("/config/www/") :]
+    if url.startswith("/") and ha_base_url:
+        return f"{ha_base_url.rstrip('/')}{url}"
+    return url

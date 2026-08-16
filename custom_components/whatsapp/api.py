@@ -35,6 +35,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .helpers import normalize_media_url
 from .helpers import safe_text as _safe_text
 
 _LOGGER = logging.getLogger(__name__)
@@ -228,14 +229,62 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     def _normalize_url(self, url: str) -> str:
         """Prepend HA base URL to relative URLs starting with '/'."""
-        if not url or url.startswith("//"):
-            return url
-        # /config/www/ is the filesystem path; HA serves it at /local/
-        if url.startswith("/config/www/"):
-            url = "/local/" + url[len("/config/www/") :]
-        if url.startswith("/") and self.ha_base_url:
-            return f"{self.ha_base_url.rstrip('/')}{url}"
-        return url
+        return normalize_media_url(url, self.ha_base_url)
+
+    def _validate_target(self, number: str) -> str:
+        """Validate that number is whitelisted and return resolved JID."""
+        if not self.is_allowed(number):
+            raise HomeAssistantError(f"Target {number} is not in the whitelist.")
+        target_jid = self.ensure_jid(number)
+        if not target_jid:
+            raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
+        return target_jid
+
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json_data: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        timeout: float = 30.0,
+        action_name: str = "request",
+    ) -> Any:
+        """Central request handler for addon API calls."""
+        url = f"{self.host}{path if path.startswith('/') else f'/{path}'}"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        query_params = {"session_id": self.session_id}
+        if params:
+            query_params.update(params)
+
+        async with (
+            self._get_session() as session,
+            session.request(
+                method,
+                url,
+                json=json_data,
+                headers=headers,
+                params=query_params,
+                timeout=aiohttp.ClientTimeout(total=timeout),
+            ) as resp,
+        ):
+            if resp.status == 401:
+                raise WhatsAppAuthError("Invalid API Key")
+            if resp.status == 429:
+                raise WhatsAppRateLimitError("Too many requests (429)")
+            if resp.status != 200:
+                text = await resp.text()
+                error_msg = self._extract_error(text)
+                raise HomeAssistantError(f"Failed to {action_name}: {error_msg}")
+
+            # Try to return JSON if present, otherwise text
+            content_type = resp.headers.get("Content-Type", "")
+            if "application/json" in content_type:
+                return await resp.json()
+            try:
+                return await resp.json()
+            except Exception:
+                return await resp.text()
 
     @contextlib.asynccontextmanager
     async def _get_session(self) -> AsyncGenerator[aiohttp.ClientSession, None]:
