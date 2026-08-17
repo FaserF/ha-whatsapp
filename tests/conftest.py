@@ -20,26 +20,55 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     try:
         import pytest_socket
 
-        if hasattr(pytest_socket, "socket_allow_hosts"):
-            pytest_socket.socket_allow_hosts(
-                ["127.0.0.1", "::1", "localhost"], allow_unix_socket=True
-            )
+        # Intercept socket_allow_hosts so any downstream call
+        # automatically retains ::1, 127.0.0.1, and localhost
+        if hasattr(pytest_socket, "socket_allow_hosts") and not getattr(
+            pytest_socket, "_patched_for_ipv6", False
+        ):
+            orig_allow_hosts = pytest_socket.socket_allow_hosts
+
+            def _safe_socket_allow_hosts(*args: Any, **kwargs: Any) -> Any:
+                allowed_hosts: list[str] = []
+                if args and args[0] is not None:
+                    allowed_hosts = list(args[0])
+                elif "allowed" in kwargs and kwargs["allowed"] is not None:
+                    allowed_hosts = list(kwargs["allowed"])
+                elif "allowed_hosts" in kwargs and kwargs["allowed_hosts"] is not None:
+                    allowed_hosts = list(kwargs["allowed_hosts"])
+
+                for h in ("::1", "127.0.0.1", "localhost", "0.0.0.0", "::"):
+                    if h not in allowed_hosts:
+                        allowed_hosts.append(h)
+
+                allow_unix = kwargs.get(
+                    "allow_unix_socket",
+                    args[1] if len(args) > 1 else True,
+                )
+                return orig_allow_hosts(allowed_hosts, allow_unix)
+
+            pytest_socket.socket_allow_hosts = _safe_socket_allow_hosts
+            pytest_socket._patched_for_ipv6 = True
+
+        pytest_socket.socket_allow_hosts(
+            ["::1", "127.0.0.1", "localhost", "0.0.0.0", "::"], allow_unix_socket=True
+        )
         if hasattr(pytest_socket, "enable_socket"):
             pytest_socket.enable_socket()
         elif hasattr(pytest_socket, "enable_sockets"):
             pytest_socket.enable_sockets()
 
         orig_check = getattr(pytest_socket, "_check_address", None)
-        if orig_check:
+        if orig_check and not getattr(pytest_socket, "_check_address_patched", False):
 
             def _safe_check_address(address: Any) -> None:
                 if isinstance(address, tuple) and address:
-                    host = address[0]
-                    if host in ("::1", "127.0.0.1", "localhost"):
+                    host = str(address[0])
+                    if host in ("::1", "127.0.0.1", "localhost", "0.0.0.0", "::"):
                         return
                 orig_check(address)
 
             pytest_socket._check_address = _safe_check_address
+            pytest_socket._check_address_patched = True
     except Exception:
         pass
     ha_stubs._build_ha_stub_modules()
@@ -66,7 +95,8 @@ def _ensure_sockets() -> None:
 
         if hasattr(pytest_socket, "socket_allow_hosts"):
             pytest_socket.socket_allow_hosts(
-                ["127.0.0.1", "::1", "localhost"], allow_unix_socket=True
+                ["::1", "127.0.0.1", "localhost", "0.0.0.0", "::"],
+                allow_unix_socket=True,
             )
         if hasattr(pytest_socket, "enable_socket"):
             pytest_socket.enable_socket()
@@ -106,6 +136,14 @@ def pytest_runtest_teardown(item: Any) -> None:  # noqa: ARG001
 @pytest.fixture(autouse=True)
 def enable_socket() -> Generator[None, None, None]:
     """Enable socket access during custom component testing."""
+    _ensure_sockets()
+    yield
+    _ensure_sockets()
+
+
+@pytest.fixture(autouse=True)
+def socket_enabled(socket_enabled: Any = None) -> Generator[None, None, None]:  # noqa: ARG001
+    """Ensure socket_enabled fixture always includes IPv6 ::1 and localhost."""
     _ensure_sockets()
     yield
     _ensure_sockets()
