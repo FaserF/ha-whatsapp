@@ -142,7 +142,9 @@ def enable_socket() -> Generator[None, None, None]:
 
 
 @pytest.fixture(autouse=True)
-def socket_enabled(socket_enabled: Any = None) -> Generator[None, None, None]:  # noqa: ARG001
+def socket_enabled(
+    socket_enabled: Any = None,
+) -> Generator[None, None, None]:  # noqa: ARG001
     """Ensure socket_enabled fixture always includes IPv6 ::1 and localhost."""
     _ensure_sockets()
     yield
