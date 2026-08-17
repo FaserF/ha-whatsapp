@@ -48,7 +48,8 @@ This table provides a quick overview of what is currently supported by the Whats
 | Moderation Sensors        |   ✅    | Warnings, Raid Status, and Pending Captchas counters       |
 | Integration Repairs       |   ✅    | Guided troubleshooting and self-healing for common errors  |
 | **Group Moderation & Bot Commands** | |                                                            |
-| 37 Group Commands         |   ✅    | Prefix commands (`!help`, `!warn`, `!kick`, `!mute`, `!tban`, etc.) |
+| Interactive Commands      |   ✅    | Prefix commands (`!help`, `!roll`, `!coin`, `!warn`, `!kick`, `!mute`, `!tban`, etc.) |
+| Speech-to-Text (STT)      |   ✅    | Voice note transcription (Google Gemini, OpenAI Whisper, AegisBot Server) |
 | Content Locks (12 Types)  |   ✅    | Lock media, links, invites, contacts, locations, RTL text  |
 | AI Assistant & Toxicity   |   ✅    | Gemini AI FAQ, Rules Interpreter, Toxicity & Translation   |
 | Full Documentation        |   👉    | See [Group Moderation & Commands Guide](https://faserf.github.io/ha-whatsapp/moderation.html)   |

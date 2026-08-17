@@ -137,13 +137,31 @@ These commands can be run by **any member** in the group.
 
 ---
 
-#### 7. `!approved`
+#### 7. `!roll` (Alias: `!dice`)
+- **Description**: Rolls dice or picks random options. Supports standard 6-sided dice (`!roll`), polyhedral dice (`!roll d20`, `!roll 2d6`), coin flips (`!roll coin`), random choice (`!roll pick Pizza, Burger, Sushi`), group rolls (`!roll all`), and unique turn order without duplicates (`!roll all unique`).
+- **Syntax**: `!roll [formula] [all] [unique]`
+- **Examples**:
+  - `!roll` ➔ `🎲 *Dice Roll (1d6):* ⚄ *5*`
+  - `!roll 2d6` ➔ `🎲 *Dice Roll (2d6):* *9* _(4 + 5)_`
+  - `!roll all 20` ➔ Ranked rolls for all group members with medals (🥇, 🥈, 🥉).
+  - `!roll all unique` ➔ Unique turn order without duplicate numbers.
+
+---
+
+#### 8. `!coin` (Alias: `!coinflip`, `!münze`, `!flip`)
+- **Description**: Flips a coin to return Heads or Tails.
+- **Syntax**: `!coin` or `!coinflip`
+- **Response**: `🪙 *Coin Flip:* *Kopf (Heads) 🪙*`
+
+---
+
+#### 9. `!approved`
 - **Description**: Lists all whitelisted/approved users in the group *(MissRose Parity)*.
 - **Syntax**: `!approved`
 
 ---
 
-#### 8. `#notename`
+#### 10. `#notename`
 - **Description**: Hashtag shortcut trigger to retrieve and display a saved note *(MissRose Parity)*.
 - **Example**: `#wifi`, `#rules`
 
@@ -723,7 +741,10 @@ Configure an **OpenAI API Key** or **Gemini API Key** in the Addon UI to unlock 
 4. **AI Natural Language Rules Interpreter**: Typing `!rules <question>` lets AI analyze your group rules and answer the member's question intelligently.
 5. **AI Sentiment & Toxicity Moderation**: Automatically scans incoming messages for hate speech, extreme insults, or harassment. Toxic messages are deleted instantly and a warning is logged.
 6. **AI Translation Engine**: On-demand translation via `!translate` and automated multi-engine translation (`Google Translate`, `Lingva`, `MyMemory`, or `Gemini AI`).
-7. **Speech-to-Text (STT) Transcription**: Converts incoming voice notes and audio messages (`.ogg/opus`) into readable text using Gemini 1.5 Multimodal Audio or OpenAI Whisper API.
+7. **Speech-to-Text (STT) Transcription**: Converts incoming voice notes and audio messages (`.ogg/opus`) into readable text. Quotes the original audio message with multi-language transcription and automated diagnostic error feedback. Supports 3 backend engines:
+   - **Google Gemini**: Cloud-based transcription using Gemini 1.5 Multimodal Audio.
+   - **OpenAI Whisper**: Cloud-based transcription via OpenAI Audio Transcriptions API.
+   - **AegisBot Native Server**: Local, cloudless transcription powered by AegisBot's dynamic Faster-Whisper engine. Supports custom base URLs (`http://<host>:8000`), bearer API token authentication, automatic host hardware auto-tuning, timeout protection against server hangs, and zero-idle RAM sleep.
 
 ---
 
