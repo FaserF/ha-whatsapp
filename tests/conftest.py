@@ -20,7 +20,26 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
     try:
         import pytest_socket
 
-        pytest_socket.enable_sockets()
+        if hasattr(pytest_socket, "socket_allow_hosts"):
+            pytest_socket.socket_allow_hosts(
+                ["127.0.0.1", "::1", "localhost"], allow_unix_socket=True
+            )
+        if hasattr(pytest_socket, "enable_socket"):
+            pytest_socket.enable_socket()
+        elif hasattr(pytest_socket, "enable_sockets"):
+            pytest_socket.enable_sockets()
+
+        orig_check = getattr(pytest_socket, "_check_address", None)
+        if orig_check:
+
+            def _safe_check_address(address: Any) -> None:
+                if isinstance(address, tuple) and address:
+                    host = address[0]
+                    if host in ("::1", "127.0.0.1", "localhost"):
+                        return
+                orig_check(address)
+
+            pytest_socket._check_address = _safe_check_address
     except Exception:
         pass
     ha_stubs._build_ha_stub_modules()
@@ -42,14 +61,21 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
 def _ensure_sockets() -> None:
     import socket
 
-    import pytest_socket
+    try:
+        import pytest_socket
 
-    if hasattr(pytest_socket, "enable_socket"):
-        pytest_socket.enable_socket()
-    elif hasattr(pytest_socket, "enable_sockets"):
-        pytest_socket.enable_sockets()
-    if hasattr(pytest_socket, "_true_socket"):
-        socket.socket = pytest_socket._true_socket
+        if hasattr(pytest_socket, "socket_allow_hosts"):
+            pytest_socket.socket_allow_hosts(
+                ["127.0.0.1", "::1", "localhost"], allow_unix_socket=True
+            )
+        if hasattr(pytest_socket, "enable_socket"):
+            pytest_socket.enable_socket()
+        elif hasattr(pytest_socket, "enable_sockets"):
+            pytest_socket.enable_sockets()
+        if hasattr(pytest_socket, "_true_socket"):
+            socket.socket = pytest_socket._true_socket
+    except Exception:
+        pass
 
     # On Windows, socket.socketpair uses fallback sockets.
     # We patch socket.socketpair to temporarily use _true_socket if available.
