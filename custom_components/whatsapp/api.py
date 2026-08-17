@@ -888,13 +888,31 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         target_jid = self.ensure_jid(number)
         if not target_jid:
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
+
+        if not options or not isinstance(options, list):
+            raise HomeAssistantError("WhatsApp polls require a list of voting options.")
+        cleaned_options = [str(opt).strip() for opt in options if str(opt).strip()]
+        if len(cleaned_options) < 2:
+            raise HomeAssistantError(
+                "WhatsApp polls require at least 2 voting options (maximum 12). "
+                "If you need a single confirmation button, provide at least two "
+                "distinct choices."
+            )
+        if len(cleaned_options) > 12:
+            raise HomeAssistantError("WhatsApp polls support a maximum of 12 options.")
+        if len(set(cleaned_options)) != len(cleaned_options):
+            raise HomeAssistantError(
+                "WhatsApp polls require unique voting options. "
+                "Duplicate options are not supported by WhatsApp."
+            )
+
         return cast(
             str,
             await self._send_with_retry(
                 self._send_poll_internal,
                 target_jid,
                 question,
-                options,
+                cleaned_options,
                 quoted_message_id,
                 expiration,
                 allow_multiple_responses,
@@ -1885,16 +1903,41 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(f"Could not parse valid JID from target: {number}")
 
         if self.buttons_as_polls:
-            poll_options = [
-                b.get("text") or b.get("displayText") or f"Option {i + 1}"
-                for i, b in enumerate(buttons)
-            ]
-            button_id_map = {
-                (b.get("text") or b.get("displayText") or f"Option {i + 1}"): (
-                    b.get("id") or b.get("buttonId") or f"btn_{i}"
+            seen_counts: dict[str, int] = {}
+            poll_options: list[str] = []
+            button_id_map: dict[str, str] = {}
+
+            for i, b in enumerate(buttons):
+                btn_id = str(b.get("id") or b.get("buttonId") or f"btn_{i}")
+                raw_text = str(
+                    b.get("text") or b.get("displayText") or f"Option {i + 1}"
+                ).strip()
+                if not raw_text:
+                    raw_text = f"Option {i + 1}"
+
+                if raw_text in seen_counts:
+                    seen_counts[raw_text] += 1
+                    unique_text = f"{raw_text} ({seen_counts[raw_text]})"
+                else:
+                    seen_counts[raw_text] = 1
+                    unique_text = raw_text
+
+                poll_options.append(unique_text)
+                button_id_map[unique_text] = btn_id
+
+            # WhatsApp requires at least 2 options for polls.
+            # If only 1 button was provided, append a placeholder option
+            # as an auto-fix for WhatsApp limitations.
+            if len(poll_options) == 1:
+                lang = getattr(self, "language", None) or "en"
+                placeholder_label = (
+                    "— (Platzhalter / WA-Limit) —"
+                    if str(lang).lower().startswith("de")
+                    else "— (Placeholder / WA Limit) —"
                 )
-                for i, b in enumerate(buttons)
-            }
+                poll_options.append(placeholder_label)
+                button_id_map[placeholder_label] = "__placeholder_ignore__"
+
             poll_question = f"{text}\n\n_{footer}_" if footer else text
             _LOGGER.debug(
                 "Emulating buttons via WhatsApp Poll (buttons_as_polls=True): "

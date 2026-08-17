@@ -329,13 +329,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 if isinstance(votes, list) and votes:
                     selected_text = votes[0]
                     button_id = button_map.get(selected_text)
-                    if button_id:
+                    if button_id and button_id != "__placeholder_ignore__":
                         _LOGGER.info(
                             "Resolved emulated button press from WhatsApp poll vote: "
                             "'%s' -> button_id '%s'",
                             selected_text,
                             button_id,
                         )
+                    else:
+                        button_id = None
 
         if button_id:
             button_data = {**data, "button_id": button_id}
@@ -831,11 +833,27 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema(msg_schema),
     )
 
+    def _validate_poll_options(value: Any) -> list[str]:
+        raw_list = cv.ensure_list(value)
+        cleaned = [str(opt).strip() for opt in raw_list if str(opt).strip()]
+        if len(cleaned) < 2:
+            raise vol.Invalid(
+                "WhatsApp polls require at least 2 voting options (maximum 12)."
+            )
+        if len(cleaned) > 12:
+            raise vol.Invalid("WhatsApp polls support a maximum of 12 options.")
+        if len(set(cleaned)) != len(cleaned):
+            raise vol.Invalid(
+                "WhatsApp polls require unique voting options. "
+                "Duplicate options are not allowed."
+            )
+        return cleaned
+
     poll_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
         vol.Required("target"): cv.string,
         vol.Required("question"): cv.string,
-        vol.Required("options"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Required("options"): _validate_poll_options,
         vol.Optional("allow_multiple_responses", default=False): cv.boolean,
     }
     hass.services.async_register(

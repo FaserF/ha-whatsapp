@@ -102,3 +102,48 @@ async def test_send_buttons_as_polls() -> None:
             "Yes, please! 💡": "btn_yes",
             "No, leave them on.": "btn_no",
         }
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_buttons_single_button_autofix() -> None:
+    """Test send_buttons auto-fixes a single button by appending placeholder."""
+    client = WhatsAppApiClient(host="http://localhost:8066", api_key="test")
+    client.buttons_as_polls = True
+
+    with patch.object(client, "send_poll", new_callable=AsyncMock) as mock_send_poll:
+        mock_send_poll.return_value = "poll_msg_single"
+        buttons = [{"id": "btn_ack", "displayText": "Bestätigen"}]
+        msg_id = await client.send_buttons("49123456789", "Alarm ausgelöst!", buttons)
+
+        assert msg_id == "poll_msg_single"
+        call_kwargs = mock_send_poll.call_args.kwargs
+        assert len(call_kwargs["options"]) == 2
+        assert call_kwargs["options"][0] == "Bestätigen"
+        placeholder_opt = call_kwargs["options"][1]
+        assert "Placeholder" in placeholder_opt or "Platzhalter" in placeholder_opt
+        btn_map = client._active_button_polls["poll_msg_single"]["button_map"]
+        assert btn_map["Bestätigen"] == "btn_ack"
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_buttons_duplicate_text_autofix() -> None:
+    """Test send_buttons auto-fixes identical button texts with incremented suffix."""
+    client = WhatsAppApiClient(host="http://localhost:8066", api_key="test")
+    client.buttons_as_polls = True
+
+    with patch.object(client, "send_poll", new_callable=AsyncMock) as mock_send_poll:
+        mock_send_poll.return_value = "poll_msg_dups"
+        buttons = [
+            {"id": "btn_opt_1", "text": "Option"},
+            {"id": "btn_opt_2", "text": "Option"},
+            {"id": "btn_opt_3", "text": "Option"},
+        ]
+        msg_id = await client.send_buttons("49123456789", "Choose option", buttons)
+
+        assert msg_id == "poll_msg_dups"
+        call_kwargs = mock_send_poll.call_args.kwargs
+        assert call_kwargs["options"] == ["Option", "Option (2)", "Option (3)"]
+        btn_map = client._active_button_polls["poll_msg_dups"]["button_map"]
+        assert btn_map["Option"] == "btn_opt_1"
+        assert btn_map["Option (2)"] == "btn_opt_2"
+        assert btn_map["Option (3)"] == "btn_opt_3"

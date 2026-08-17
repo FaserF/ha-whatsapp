@@ -21,6 +21,8 @@ from ha_stubs import _build_ha_stub_modules  # noqa: E402
 _build_ha_stub_modules()
 
 
+from homeassistant.exceptions import HomeAssistantError  # noqa: E402
+
 # 2. Import under test
 from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402
 
@@ -102,6 +104,23 @@ async def test_send_poll_multiple_responses(api_client: WhatsAppApiClient) -> No
         assert kwargs["json"]["options"] == ["Yes", "No"]
         assert kwargs["json"]["expiration"] == 86400
         assert kwargs["json"]["selectableCount"] == 0
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_poll_validation(api_client: WhatsAppApiClient) -> None:
+    """Test poll options validation (< 2 options, duplicates, > 12 options)."""
+    # 1. Less than 2 options
+    with pytest.raises(HomeAssistantError, match="at least 2 voting options"):
+        await api_client.send_poll("12345", "Question?", ["Single Option"])
+
+    # 2. Duplicate options
+    with pytest.raises(HomeAssistantError, match="unique voting options"):
+        await api_client.send_poll("12345", "Question?", ["Option A", "Option A"])
+
+    # 3. More than 12 options
+    too_many = [f"Option {i}" for i in range(13)]
+    with pytest.raises(HomeAssistantError, match="maximum of 12 options"):
+        await api_client.send_poll("12345", "Question?", too_many)
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]

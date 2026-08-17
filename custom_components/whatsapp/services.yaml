@@ -105,8 +105,7 @@ send_poll:
     options:
       name: Options
       description: >
-        List of voting options. Provide as a YAML list or JSON array.
-        Maximum 12 options allowed by WhatsApp.
+        List of voting options (minimum 2, maximum 12 unique options required by WhatsApp). Provide as a YAML list or JSON array.
       example:
         - "Pizza 🍕"
         - "Sushi 🍣"
