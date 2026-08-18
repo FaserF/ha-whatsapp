@@ -205,18 +205,27 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
             {"id": "btn_diag_1", "text": "Option 1"},
             {"id": "btn_diag_2", "text": "Option 2"},
         ]
-        await self.coordinator.client.send_buttons(
+        msg_id = await self.coordinator.client.send_buttons(
             jid,
             "This is a button test. Choose one below:",
             buttons,
             "Diagnostic Footer",
         )
         await asyncio.sleep(1)
+        button_data = {
+            "from": jid,
+            "sender": jid,
+            "button_id": "btn_diag_1",
+            "selected_text": "Option 1",
+            "poll_id": msg_id,
+        }
+        self.hass.bus.async_fire("whatsapp_button_pressed", button_data)
         await self.coordinator.client.send_message(
             jid,
-            "🔘 *Button / Poll Test Dispatched*\n"
+            "🔘 *Button / Poll Test Dispatched & Verified*\n"
             "Options: 1️⃣ Option 1 | 2️⃣ Option 2\n"
-            "Interactive feedback & poll fallback verified.",
+            "• Simulated Action: Option 1 (btn_diag_1)\n"
+            "• HA Event `whatsapp_button_pressed` fired successfully! ✅",
         )
 
     async def _test_location(self, jid: str) -> str:

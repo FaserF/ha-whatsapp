@@ -1381,7 +1381,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         payload: dict[str, Any] = {
             "number": number,
             "message_id": message_id,
+            "messageId": message_id,
             "new_content": new_content,
+            "newText": new_content,
         }
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
 
