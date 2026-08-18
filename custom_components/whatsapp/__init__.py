@@ -41,6 +41,7 @@ from .const import (
     CONF_WHITELIST,
     DOMAIN,
     EVENT_MESSAGE_RECEIVED,
+    EVENT_MESSAGE_SENT,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
 
@@ -274,15 +275,49 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         data["sender_number"] = clean_sender
 
-        # Self-message filtering (fromMe)
-        # Default: Don't monitor 'fromMe' messages unless explicitly enabled in options
+        # Self-message handling (fromMe)
         raw_msg = data.get("raw", {})
-        from_me = raw_msg.get("key", {}).get("fromMe", False)
-        if from_me and not entry.options.get(CONF_SELF_MESSAGES, False):
-            _LOGGER.debug(
-                "Ignoring self-message (fromMe) as it's disabled in configuration"
-            )
-            return
+        from_me = bool(
+            raw_msg.get("key", {}).get("fromMe", False) or data.get("from_me", False)
+        )
+        remote_id = str(
+            raw_msg.get("key", {}).get("remoteJid", "")
+            or data.get("to")
+            or data.get("from", "")
+        )
+        is_group = "@g.us" in remote_id or bool(data.get("is_group", False))
+
+        if from_me:
+            # Fire dedicated whatsapp_message_sent event with rich metadata (Issue #94)
+            sent_data = {
+                **data,
+                "from": "me",
+                "to": remote_id,
+                "sender": "me",
+                "recipient": remote_id,
+                "recipient_number": (
+                    remote_id.split("@")[0]
+                    if ("@s.whatsapp.net" in remote_id or "@lid" in remote_id)
+                    else remote_id
+                ),
+                "is_group": is_group,
+                "entry_id": entry.entry_id,
+                "session_id": session_id,
+                "from_me": True,
+            }
+            if is_group:
+                sent_data["group_id"] = remote_id
+
+            _LOGGER.debug("Firing WhatsApp sent event: %s", sent_data)
+            hass.bus.async_fire(EVENT_MESSAGE_SENT, sent_data)
+
+            # Unless explicitly enabled in options, don't also fire received event
+            if not entry.options.get(CONF_SELF_MESSAGES, False):
+                _LOGGER.debug(
+                    "Ignoring self-message from whatsapp_message_received (fromMe) "
+                    "as self_messages option is disabled"
+                )
+                return
 
         # Whitelist filtering
         if whitelist is not None:

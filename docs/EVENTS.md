@@ -22,6 +22,30 @@ Every interaction from the linked WhatsApp account triggers a `whatsapp_message_
 
 ---
 
+## The Event: `whatsapp_message_sent`
+
+This event is explicitly fired whenever a message is sent from your linked WhatsApp account (from your phone, WhatsApp Web, or Home Assistant).
+
+### Event Data Structure
+
+| Field              | Type    | Description                                                                         |
+| :----------------- | :------ | :---------------------------------------------------------------------------------- |
+| `from`             | string  | Always `"me"` for sent messages.                                                   |
+| `to`               | string  | Destination JID (e.g. `49123...@s.whatsapp.net` or `123...@g.us`).                  |
+| `sender`           | string  | Always `"me"`.                                                                      |
+| `recipient`        | string  | Destination JID.                                                                    |
+| `recipient_number` | string  | Clean numeric part of recipient (e.g. `49123456789`).                               |
+| `content`          | string  | The text body or caption sent.                                                      |
+| `type`             | string  | The interaction type (`chat`, `image`, `video`, `audio`, `document`, `poll`, etc.). |
+| `is_group`         | boolean | `true` if sent to a group chat, `false` otherwise.                                  |
+| `group_id`         | string  | **(Optional)** Group JID if `is_group` is true.                                     |
+| `id`               | string  | Unique WhatsApp message ID.                                                         |
+| `media_url`        | string  | **(Optional)** URL of sent media attachment.                                        |
+| `entry_id`         | string  | Home Assistant config entry ID.                                                     |
+| `session_id`       | string  | WhatsApp session ID.                                                                |
+
+---
+
 ## The Event: `whatsapp_button_pressed`
 
 This event is explicitly fired when a user clicks an interactive button sent by the integration, allowing for targeted button automations.

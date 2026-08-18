@@ -16,6 +16,8 @@ from custom_components.whatsapp.const import (  # noqa: E402
     CONF_SELF_MESSAGES,
     CONF_URL,
     DOMAIN,
+    EVENT_MESSAGE_RECEIVED,
+    EVENT_MESSAGE_SENT,
 )
 
 
@@ -57,7 +59,7 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
 
 
 async def test_self_message_received(hass: HomeAssistant) -> None:
-    """Ensure self-messages are filtered by default and processed when enabled."""
+    """Ensure whatsapp_message_sent is fired on fromMe with metadata."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_URL: "test", CONF_API_KEY: "abc"},
@@ -105,13 +107,21 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
             },
         }
 
-        # 1. Test: Disabled (Default)
+        # 1. Test: Disabled (Default) - Fires whatsapp_message_sent only
         with patch.object(hass.bus, "async_fire") as mock_fire:
             assert callback is not None, "Callback was not registered!"
             callback(self_message_payload)
-            mock_fire.assert_not_called()
+            assert mock_fire.call_count == 1
+            call_event, call_data = mock_fire.call_args[0]
+            assert call_event == EVENT_MESSAGE_SENT
+            assert call_data["from"] == "me"
+            assert call_data["to"] == "123456789@s.whatsapp.net"
+            assert call_data["sender"] == "me"
+            assert call_data["recipient"] == "123456789@s.whatsapp.net"
+            assert call_data["recipient_number"] == "123456789"
+            assert call_data["from_me"] is True
 
-        # 2. Test: Enabled
+        # 2. Test: Enabled (self_messages: True) - Fires both sent and received
         new_options = entry.options.copy()
         new_options[CONF_SELF_MESSAGES] = True
         await hass.config_entries.async_update_entry(entry, options=new_options)
@@ -120,7 +130,7 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         with patch.object(hass.bus, "async_fire") as mock_fire:
             assert callback is not None, "Callback was not registered!"
             callback(self_message_payload)
-            mock_fire.assert_called_once()
-            args, _ = mock_fire.call_args
-            assert args[0] == "whatsapp_message_received"
-            assert args[1]["raw"]["key"]["fromMe"] is True
+            assert mock_fire.call_count == 2
+            events_fired = [call[0][0] for call in mock_fire.call_args_list]
+            assert EVENT_MESSAGE_SENT in events_fired
+            assert EVENT_MESSAGE_RECEIVED in events_fired

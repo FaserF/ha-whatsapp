@@ -23,8 +23,10 @@ Constants:
         allowed phone numbers / JIDs.
     EVENT_MESSAGE_RECEIVED: Home Assistant event name fired whenever a
         new WhatsApp message is received.
+    EVENT_MESSAGE_SENT: Home Assistant event name fired whenever a
+        WhatsApp message is sent (fromMe: true).
     CONF_SELF_MESSAGES: Options-entry key that controls whether messages sent
-        to the account's own number should be processed.
+        to the account's own number should be processed as incoming received messages.
 """
 
 DOMAIN = "whatsapp"
@@ -42,3 +44,4 @@ CONF_DEBUG_PAYLOADS = "debug_payloads"
 CONF_SELF_MESSAGES = "self_messages"
 CONF_BUTTONS_AS_POLLS = "buttons_as_polls"
 EVENT_MESSAGE_RECEIVED = "whatsapp_message_received"
+EVENT_MESSAGE_SENT = "whatsapp_message_sent"
