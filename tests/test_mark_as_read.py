@@ -34,6 +34,7 @@ async def test_mark_as_read_enabled(hass: HomeAssistant) -> None:
     mock_instance.start_session = AsyncMock(return_value=None)
     mock_instance.close = AsyncMock()
     mock_instance.mark_as_read = AsyncMock(return_value=None)
+    mock_instance.was_sent_by_ha = MagicMock(return_value=False)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -95,6 +96,7 @@ async def test_mark_as_read_disabled(hass: HomeAssistant) -> None:
     mock_instance.start_session = AsyncMock(return_value=None)
     mock_instance.close = AsyncMock()
     mock_instance.mark_as_read = AsyncMock(return_value=None)
+    mock_instance.was_sent_by_ha = MagicMock(return_value=False)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
