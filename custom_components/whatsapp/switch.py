@@ -143,8 +143,16 @@ class WhatsAppAutoResponderSwitch(
         }
 
     async def async_turn_on(self, **_kwargs: Any) -> None:
-        """Turn on the Auto Responder."""
-        await self.coordinator.client.set_auto_responder_enabled(True)
+        """Turn on Auto Responder with start_time set to now and unlimited end_time."""
+        from homeassistant.util import dt as dt_util
+
+        now_local = dt_util.now()
+        start_time_iso = now_local.strftime("%Y-%m-%dT%H:%M")
+        await self.coordinator.client.set_auto_responder_config(
+            enabled=True,
+            start_time=start_time_iso,
+            end_time="",
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **_kwargs: Any) -> None:
