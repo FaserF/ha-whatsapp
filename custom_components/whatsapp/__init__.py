@@ -289,22 +289,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         is_group = "@g.us" in remote_id or bool(data.get("is_group", False))
 
-        # --- Loop Guard (highest priority) ---
-        # If the incoming message ID matches one that HA itself sent, this is an
-        # echo from the addon.  We MUST NOT fire whatsapp_message_received — doing
-        # so would let user automations respond, producing an infinite loop.
-        # This guard is unconditional: it cannot be bypassed by CONF_SELF_MESSAGES.
+        # Determine message identity
         incoming_msg_id = str(
             raw_msg.get("key", {}).get("id", "")
             or data.get("id", "")
             or data.get("message_id", "")
         )
-        if client.was_sent_by_ha(incoming_msg_id):
-            _LOGGER.debug(
-                "Dropping echo of HA-sent message %s — loop guard (ID match)",
-                incoming_msg_id,
-            )
-            return
+        is_ha_echo = client.was_sent_by_ha(incoming_msg_id)
 
         if from_me:
             # Fire dedicated whatsapp_message_sent event with rich metadata (Issue #94)
@@ -330,6 +321,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.debug("Firing WhatsApp sent event: %s", sent_data)
             hass.bus.async_fire(EVENT_MESSAGE_SENT, sent_data)
 
+            # --- Loop Guard (highest priority for received events) ---
+            # If the message ID was sent by HA itself, drop it from received events
+            # to prevent infinite feedback loops in automations.
+            if is_ha_echo:
+                _LOGGER.debug(
+                    "Dropping echo of HA-sent message %s from received events — "
+                    "loop guard (ID match)",
+                    incoming_msg_id,
+                )
+                return
+
             # Unless explicitly enabled in options, don't also fire received event
             if not entry.options.get(CONF_SELF_MESSAGES, False):
                 _LOGGER.debug(
@@ -337,6 +339,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "as self_messages option is disabled"
                 )
                 return
+
+        # If incoming non-fromMe message was somehow flagged as sent by HA, drop it
+        if is_ha_echo:
+            _LOGGER.debug(
+                "Dropping echo of HA-sent message %s — loop guard (ID match)",
+                incoming_msg_id,
+            )
+            return
 
         # Whitelist filtering
         if whitelist is not None:

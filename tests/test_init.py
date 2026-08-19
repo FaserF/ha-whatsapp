@@ -191,8 +191,10 @@ async def test_loop_guard_blocks_ha_echo(hass: HomeAssistant) -> None:
         with patch.object(hass.bus, "async_fire") as mock_fire:
             assert callback is not None
             callback(echo_payload)
-            # Loop guard must drop the echo entirely — no events at all
-            assert mock_fire.call_count == 0, (
-                "Loop guard failed: HA echo should not fire any event, "
-                f"but fired: {[c[0][0] for c in mock_fire.call_args_list]}"
+            # Loop guard must drop the echo from EVENT_MESSAGE_RECEIVED
+            # even if CONF_SELF_MESSAGES is True
+            events_fired = [call[0][0] for call in mock_fire.call_args_list]
+            assert EVENT_MESSAGE_RECEIVED not in events_fired, (
+                "Loop guard failed: HA echo fired EVENT_MESSAGE_RECEIVED"
             )
+            assert EVENT_MESSAGE_SENT in events_fired
