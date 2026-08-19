@@ -29,7 +29,7 @@ body:
     id: integration_version
     attributes:
       label: Integration Version (if also installed)
-      placeholder: v2.1.0
+      placeholder: v2.1.1
     validations:
       required: false
 
