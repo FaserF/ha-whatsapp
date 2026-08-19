@@ -41,7 +41,8 @@ This table provides a quick overview of what is currently supported by the Whats
 | Hass.io Discovery         |   ✅    | Auto-discovery of the local WhatsApp Addon                 |
 | Multiple Instances        |   ✅    | Connect multiple WhatsApp accounts simultaneously          |
 | **Entities & Control**    |         |                                                            |
-| Master Switches           |   ✅    | Global toggles for Moderation Engine & Telegram Bridge     |
+| Master Switches           |   ✅    | Global toggles for Moderation Engine, Telegram Bridge & Auto Responder |
+| Auto Responder            |   ✅    | Automated away/vacation replies with timeframes & deduplication |
 | Action Buttons            |   ✅    | `Reconnect` session and `Diagnostic Test` buttons          |
 | Connection Sensors        |   ✅    | Real-time connection and add-on health status              |
 | Statistic Sensors         |   ✅    | Message throughput (sent, received, failed) and chat count |
@@ -52,7 +53,7 @@ This table provides a quick overview of what is currently supported by the Whats
 | Speech-to-Text (STT)      |   ✅    | Voice note transcription (Google Gemini, OpenAI Whisper, AegisBot Server) |
 | Content Locks (12 Types)  |   ✅    | Lock media, links, invites, contacts, locations, RTL text  |
 | AI Assistant & Toxicity   |   ✅    | Gemini AI FAQ, Rules Interpreter, Toxicity & Translation   |
-| Full Documentation        |   👉    | See [Group Moderation & Commands Guide](https://faserf.github.io/ha-whatsapp/moderation.html)   |
+| Full Documentation        |   👉    | See [Group Moderation](https://faserf.github.io/ha-whatsapp/moderation.html), [Telegram Bridge](https://faserf.github.io/ha-whatsapp/telegram.html), and [Auto Responder](https://faserf.github.io/ha-whatsapp/autoresponder.html) |
 
 ## 🪄 HA-App Control Commands
 

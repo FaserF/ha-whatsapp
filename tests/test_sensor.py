@@ -63,6 +63,24 @@ async def test_stats_sensors(hass: HomeAssistant) -> None:
         assert sensor_sent.native_value == 12
         assert sensor_failed.native_value == 3
 
+        # Update stats with lifetime persistence
+        mock_instance.get_stats.return_value = {
+            "sent": 2,
+            "failed": 0,
+            "lifetime_sent": 50,
+            "lifetime_failed": 5,
+        }
+
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        assert sensor_sent.native_value == 50
+        assert sensor_sent.extra_state_attributes["session_count"] == 2
+        assert sensor_sent.extra_state_attributes["lifetime_count"] == 50
+        assert sensor_failed.native_value == 5
+        assert sensor_failed.extra_state_attributes["session_count"] == 0
+        assert sensor_failed.extra_state_attributes["lifetime_count"] == 5
+
 
 def test_chats_sensor_list_fallback() -> None:
     """Test WhatsAppChatsSensor handles list input safely without crashing."""

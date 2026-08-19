@@ -430,6 +430,9 @@
       },
       "telegram_bridge_master": {
         "name": "Telegram-Brücke"
+      },
+      "auto_responder": {
+        "name": "Auto-Responder"
       }
     },
     "binary_sensor": {

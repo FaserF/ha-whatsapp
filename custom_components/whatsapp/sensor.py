@@ -110,11 +110,12 @@ class WhatsAppStatSensor(
         """Return the state attributes."""
         stats = (self.coordinator.data or {}).get("stats", {})
         val = self.native_value
+        attrs: dict[str, Any] = {}
         if self._stat_key == "sent":
             msg = safe_text(stats.get("last_sent_message"))
             target = safe_text(stats.get("last_sent_target"))
             t_str = format_timestamp(stats.get("last_sent_time"))
-            return {
+            attrs = {
                 "last_message": msg,
                 "last_target": target,
                 "last_time": t_str,
@@ -124,11 +125,11 @@ class WhatsAppStatSensor(
                     else f"{val} sent"
                 ),
             }
-        if self._stat_key == "received":
+        elif self._stat_key == "received":
             msg = safe_text(stats.get("last_received_message"))
             sender = safe_text(stats.get("last_received_sender"))
             t_str = format_timestamp(stats.get("last_received_time"))
-            return {
+            attrs = {
                 "last_message": msg,
                 "last_sender": sender,
                 "last_time": t_str,
@@ -138,12 +139,12 @@ class WhatsAppStatSensor(
                     else f"{val} received"
                 ),
             }
-        if self._stat_key == "failed":
+        elif self._stat_key == "failed":
             msg = safe_text(stats.get("last_failed_message"))
             target = safe_text(stats.get("last_failed_target"))
             reason = safe_text(stats.get("last_error_reason"))
             t_str = format_timestamp(stats.get("last_failed_time"))
-            return {
+            attrs = {
                 "last_message": msg,
                 "last_target": target,
                 "error_reason": reason,
@@ -154,12 +155,20 @@ class WhatsAppStatSensor(
                     else "No transmission errors"
                 ),
             }
-        return {}
+
+        if f"lifetime_{self._stat_key}" in stats:
+            attrs["session_count"] = int(stats.get(self._stat_key, 0))
+            attrs["lifetime_count"] = val
+
+        return attrs
 
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
         stats = (self.coordinator.data or {}).get("stats", {})
+        lifetime_key = f"lifetime_{self._stat_key}"
+        if lifetime_key in stats and stats[lifetime_key] is not None:
+            return int(stats[lifetime_key])
         return int(stats.get(self._stat_key, 0))
 
 

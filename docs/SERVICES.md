@@ -838,6 +838,35 @@ data:
 ```
 
 
+## Auto Responder
+
+### `whatsapp.set_auto_responder`
+
+Configures and activates/deactivates the automated away / vacation auto-responder.
+
+```yaml
+service: whatsapp.set_auto_responder
+data:
+  account: "49171234567"
+  enabled: true
+  start_time: "2026-08-20T08:00"
+  end_time: "2026-08-30T18:00"
+  direct_only: true
+  once_per_contact: true
+  message_template: "Hello {sender_name}!\n\nI am on vacation{end_time_text}.\n{once_notice}"
+```
+
+### `whatsapp.reset_auto_responder_seen`
+
+Clears the cache of contacts who have already received an automated response during the active period.
+
+```yaml
+service: whatsapp.reset_auto_responder_seen
+data:
+  account: "49171234567"
+```
+
+
 ## Other
 
 ### `whatsapp.configure_webhook`

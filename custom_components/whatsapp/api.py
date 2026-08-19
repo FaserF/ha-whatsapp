@@ -3510,3 +3510,91 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             raise HomeAssistantError(
                 f"Failed to toggle Telegram bridge: {self._extract_error(text)}"
             )
+
+    async def get_auto_responder_config(self) -> dict[str, Any]:
+        """Fetch auto responder configuration from addon."""
+        url = f"{self.host}/api/autoresponder/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to fetch auto responder config: {self._extract_error(text)}"
+            )
+
+    async def set_auto_responder_config(
+        self,
+        enabled: bool | None = None,
+        start_time: str | None = None,
+        end_time: str | None = None,
+        direct_only: bool | None = None,
+        once_per_contact: bool | None = None,
+        message_template: str | None = None,
+    ) -> dict[str, Any]:
+        """Update auto responder configuration."""
+        url = f"{self.host}/api/autoresponder/config"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        payload: dict[str, Any] = {}
+        if enabled is not None:
+            payload["enabled"] = enabled
+        if start_time is not None:
+            payload["start_time"] = start_time
+        if end_time is not None:
+            payload["end_time"] = end_time
+        if direct_only is not None:
+            payload["direct_only"] = direct_only
+        if once_per_contact is not None:
+            payload["once_per_contact"] = once_per_contact
+        if message_template is not None:
+            payload["message_template"] = message_template
+
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                json=payload,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            raise HomeAssistantError(
+                f"Failed to update auto responder config: {self._extract_error(text)}"
+            )
+
+    async def set_auto_responder_enabled(self, enabled: bool) -> dict[str, Any]:
+        """Enable or disable Auto Responder."""
+        return await self.set_auto_responder_config(enabled=enabled)
+
+    async def reset_auto_responder_seen(self) -> dict[str, Any]:
+        """Reset seen recipients for Auto Responder."""
+        url = f"{self.host}/api/autoresponder/reset-seen"
+        headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url,
+                headers=headers,
+                params={"session_id": self.session_id},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp,
+        ):
+            if resp.status == 200:
+                return cast(dict[str, Any], await resp.json())
+            text = await resp.text()
+            err_msg = self._extract_error(text)
+            raise HomeAssistantError(
+                f"Failed to reset auto responder seen contacts: {err_msg}"
+            )

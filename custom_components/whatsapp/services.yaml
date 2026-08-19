@@ -2020,6 +2020,58 @@ remove_telegram_mapping:
       selector:
         text:
 
+set_auto_responder:
+  name: Set Auto Responder
+  description: Configures the WhatsApp Auto Responder (Away / Vacation response).
+  fields:
+    account:
+      name: Account
+      description: The WhatsApp account to configure (e.g. phone number or Entry ID).
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Enable or disable the Auto Responder.
+      selector:
+        boolean:
+    start_time:
+      name: Start Time
+      description: Optional start date/time (ISO 8601 string, e.g. 2026-08-20T08:00). Leave empty to start immediately.
+      selector:
+        text:
+    end_time:
+      name: End Time
+      description: Optional end date/time (ISO 8601 string, e.g. 2026-08-30T18:00). Leave empty for indefinite duration.
+      selector:
+        text:
+    direct_only:
+      name: Direct Chats Only
+      description: Set to true to reply only in 1:1 private chats (default), or false to also reply in group chats.
+      selector:
+        boolean:
+    once_per_contact:
+      name: Once Per Contact
+      description: Set to true to send at most one automated reply per person during the period (default), or false to reply on every incoming message.
+      selector:
+        boolean:
+    message_template:
+      name: Message Template
+      description: "The automated reply template. Placeholders: {sender_name}, {start_time}, {end_time}, {end_time_text}, {once_notice}."
+      selector:
+        text:
+          multiline: true
+
+reset_auto_responder_seen:
+  name: Reset Auto Responder Contacts
+  description: Clears the list of contacts who already received an automatic reply, allowing them to receive a response again.
+  fields:
+    account:
+      name: Account
+      description: The WhatsApp account to target.
+      selector:
+        text:
+
+
 
 
 

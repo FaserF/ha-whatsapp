@@ -121,6 +121,8 @@ _SERVICES = [
     "configure_telegram_bot",
     "add_telegram_mapping",
     "remove_telegram_mapping",
+    "set_auto_responder",
+    "reset_auto_responder_seen",
 ]
 
 
@@ -795,6 +797,17 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
         elif service == "remove_telegram_mapping":
             return await client.delete_telegram_mapping(data["mapping_id"])
+        elif service == "set_auto_responder":
+            return await client.set_auto_responder_config(
+                enabled=data.get("enabled"),
+                start_time=data.get("start_time"),
+                end_time=data.get("end_time"),
+                direct_only=data.get("direct_only"),
+                once_per_contact=data.get("once_per_contact"),
+                message_template=data.get("message_template"),
+            )
+        elif service == "reset_auto_responder_seen":
+            return await client.reset_auto_responder_seen()
         return None
 
     async def _handle_search_groups(
@@ -1429,6 +1442,28 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         _handle_service,
         schema=vol.Schema(get_messages_schema),
         supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    auto_responder_schema: dict[vol.Marker, Any] = {
+        **s_account,
+        vol.Optional("enabled"): cv.boolean,
+        vol.Optional("start_time"): vol.Any(cv.string, None),
+        vol.Optional("end_time"): vol.Any(cv.string, None),
+        vol.Optional("direct_only"): cv.boolean,
+        vol.Optional("once_per_contact"): cv.boolean,
+        vol.Optional("message_template"): cv.string,
+    }
+    hass.services.async_register(
+        DOMAIN,
+        "set_auto_responder",
+        _handle_service,
+        schema=vol.Schema(auto_responder_schema),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "reset_auto_responder_seen",
+        _handle_service,
+        schema=vol.Schema(s_account),
     )
 
     global _SERVICES_REGISTERED
