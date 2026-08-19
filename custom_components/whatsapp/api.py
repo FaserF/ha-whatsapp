@@ -1823,8 +1823,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         api_url = f"{self.host}/send_contact"
         payload: dict[str, Any] = {
             "number": number,
-            "contact_name": contact_name,
-            "contact_number": contact_number,
+            "contactName": contact_name,
+            "contactNumber": contact_number,
         }
         if quoted_message_id:
             payload["quotedMessageId"] = quoted_message_id

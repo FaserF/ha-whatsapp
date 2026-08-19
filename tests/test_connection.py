@@ -259,8 +259,10 @@ async def test_send_contact(api_client: WhatsAppApiClient) -> None:
     with patch("aiohttp.ClientSession", return_value=mock_session):
         await api_client.send_contact("12345", "Name", "123456789", expiration=3600)
         _, kwargs = mock_session.post.call_args
-        assert kwargs["json"]["contact_name"] == "Name"
+        assert kwargs["json"]["contactName"] == "Name"
+        assert kwargs["json"]["contactNumber"] == "123456789"
         assert kwargs["json"]["expiration"] == 3600
+        assert "/send_contact" in kwargs.get("url", str(mock_session.post.call_args))
 
 
 @pytest.mark.asyncio  # type: ignore[untyped-decorator]
@@ -367,3 +369,56 @@ if __name__ == "__main__":
         # print("All methods present. Run with pytest for full verification.")
 
     asyncio.run(run())
+
+
+def test_was_sent_by_ha_empty(api_client: WhatsAppApiClient) -> None:
+    """Returns False when no messages have been tracked."""
+    assert api_client.was_sent_by_ha("SOME_ID") is False
+
+
+def test_was_sent_by_ha_known_id(api_client: WhatsAppApiClient) -> None:
+    """Returns True for IDs that are explicitly tracked."""
+    api_client._sent_message_ids.append("MSG_001")
+    assert api_client.was_sent_by_ha("MSG_001") is True
+    assert api_client.was_sent_by_ha("MSG_002") is False
+
+
+def test_was_sent_by_ha_empty_string(api_client: WhatsAppApiClient) -> None:
+    """Returns False for empty/falsy IDs regardless of deque contents."""
+    api_client._sent_message_ids.append("REAL_ID")
+    assert api_client.was_sent_by_ha("") is False
+    assert api_client.was_sent_by_ha(None) is False  # type: ignore[arg-type]
+
+
+def test_was_sent_by_ha_deque_maxlen(api_client: WhatsAppApiClient) -> None:
+    """Deque does not grow beyond maxlen=500 (oldest entries evicted)."""
+    for i in range(600):
+        api_client._sent_message_ids.append(f"ID_{i}")
+    # ID_0 to ID_99 should have been evicted
+    assert api_client.was_sent_by_ha("ID_0") is False
+    assert api_client.was_sent_by_ha("ID_100") is True
+    assert api_client.was_sent_by_ha("ID_599") is True
+    assert len(api_client._sent_message_ids) == 500
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_send_contact_camelcase_payload(api_client: WhatsAppApiClient) -> None:
+    """send_contact must use camelCase keys matching the addon /send_contact route."""
+    mock_session = mock_aiohttp_post()
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        await api_client.send_contact("12345", "John Doe", "4915123456789")
+        _, kwargs = mock_session.post.call_args
+        payload = kwargs["json"]
+        # Addon expects camelCase — snake_case would cause "Missing parameters" 400
+        assert "contactName" in payload, "contactName key missing (camelCase required)"
+        assert "contactNumber" in payload, (
+            "contactNumber key missing (camelCase required)"
+        )
+        assert "contact_name" not in payload, (
+            "contact_name must NOT be sent (snake_case rejected by addon)"
+        )
+        assert "contact_number" not in payload, (
+            "contact_number must NOT be sent (snake_case rejected by addon)"
+        )
+        assert payload["contactName"] == "John Doe"
+        assert payload["contactNumber"] == "4915123456789"
