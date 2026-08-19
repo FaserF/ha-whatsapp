@@ -78,7 +78,7 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
     async def async_press(self) -> None:
         """Handle the button press."""
         client = self.coordinator.client
-        target_jid = client.get_admin_jid() or client.get_my_jid()
+        target_jid = client.get_my_jid() or client.get_admin_jid()
 
         if not target_jid:
             self._results = {

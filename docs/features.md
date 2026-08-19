@@ -53,7 +53,7 @@ This table provides a quick overview of what is currently supported by the Whats
 | Speech-to-Text (STT)      |   ✅    | Voice note transcription (Google Gemini, OpenAI Whisper, AegisBot Server) |
 | Content Locks (12 Types)  |   ✅    | Lock media, links, invites, contacts, locations, RTL text  |
 | AI Assistant & Toxicity   |   ✅    | Gemini AI FAQ, Rules Interpreter, Toxicity & Translation   |
-| Full Documentation        |   👉    | See [Group Moderation](https://faserf.github.io/ha-whatsapp/moderation.html), [Telegram Bridge](https://faserf.github.io/ha-whatsapp/telegram.html), and [Auto Responder](https://faserf.github.io/ha-whatsapp/autoresponder.html) |
+| Full Documentation        |   👉    | See [Group Moderation](moderation.md), [Telegram Bridge](telegram.md), and [Auto Responder](autoresponder.md) |
 
 ## 🪄 HA-App Control Commands
 

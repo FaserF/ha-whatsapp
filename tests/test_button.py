@@ -127,9 +127,9 @@ async def test_test_button_success_all_steps(hass: HomeAssistant) -> None:
     assert attrs.get("Contact Card") == "OK"
     assert attrs.get("Auto-Delete") == "OK"
 
-    # Verify target was admin JID
+    # Verify target was bot own JID
     client.send_message.assert_any_call(
-        "491761111111@s.whatsapp.net",
+        "4915902242000@s.whatsapp.net",
         "🤖 WhatsApp Diagnostic: Text Message Test",
     )
 
