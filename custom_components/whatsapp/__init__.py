@@ -289,6 +289,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         is_group = "@g.us" in remote_id or bool(data.get("is_group", False))
 
+        # --- Loop Guard (highest priority) ---
+        # If the incoming message ID matches one that HA itself sent, this is an
+        # echo from the addon.  We MUST NOT fire whatsapp_message_received — doing
+        # so would let user automations respond, producing an infinite loop.
+        # This guard is unconditional: it cannot be bypassed by CONF_SELF_MESSAGES.
+        incoming_msg_id = str(
+            raw_msg.get("key", {}).get("id", "")
+            or data.get("id", "")
+            or data.get("message_id", "")
+        )
+        if client.was_sent_by_ha(incoming_msg_id):
+            _LOGGER.debug(
+                "Dropping echo of HA-sent message %s — loop guard (ID match)",
+                incoming_msg_id,
+            )
+            return
+
         if from_me:
             # Fire dedicated whatsapp_message_sent event with rich metadata (Issue #94)
             sent_data = {

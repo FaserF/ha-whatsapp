@@ -79,6 +79,8 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
         mock_instance.get_chats = AsyncMock(
             return_value={"total_chats": 0, "groups": []}
         )
+        # This message was NOT sent by HA — loop guard must pass it through
+        mock_instance.was_sent_by_ha = MagicMock(return_value=False)
         callback: Callable[[dict[str, Any]], None] | None = None
 
         def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
@@ -134,3 +136,63 @@ async def test_self_message_received(hass: HomeAssistant) -> None:
             events_fired = [call[0][0] for call in mock_fire.call_args_list]
             assert EVENT_MESSAGE_SENT in events_fired
             assert EVENT_MESSAGE_RECEIVED in events_fired
+
+
+async def test_loop_guard_blocks_ha_echo(hass: HomeAssistant) -> None:
+    """Verify echoes of HA-sent messages never fire any event."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        options={CONF_SELF_MESSAGES: True},  # Worst-case: guard must still hold
+        entry_id="test_entry_loop",
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 0, "failed": 0, "connected": True}
+        )
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(
+            return_value={"total_chats": 0, "groups": []}
+        )
+        # Simulate: HA sent this message ID — it IS a known echo
+        mock_instance.was_sent_by_ha = MagicMock(return_value=True)
+        callback: Callable[[dict[str, Any]], None] | None = None
+
+        def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
+            nonlocal callback
+            callback = cb
+
+        mock_instance.register_callback = MagicMock(side_effect=reg_cb)
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
+        mock_instance.close = AsyncMock()
+
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        echo_payload = {
+            "content": "Diagnostic message echoed back",
+            "sender": "123456789@s.whatsapp.net",
+            "is_group": False,
+            "raw": {
+                "key": {
+                    "remoteJid": "123456789@s.whatsapp.net",
+                    "fromMe": True,
+                    "id": "HA_SENT_MSG_001",
+                }
+            },
+        }
+
+        with patch.object(hass.bus, "async_fire") as mock_fire:
+            assert callback is not None
+            callback(echo_payload)
+            # Loop guard must drop the echo entirely — no events at all
+            assert mock_fire.call_count == 0, (
+                "Loop guard failed: HA echo should not fire any event, "
+                f"but fired: {[c[0][0] for c in mock_fire.call_args_list]}"
+            )

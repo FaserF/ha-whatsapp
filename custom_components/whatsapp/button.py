@@ -78,13 +78,13 @@ class WhatsAppTestButton(CoordinatorEntity[WACoordinator], ButtonEntity):  # typ
     async def async_press(self) -> None:
         """Handle the button press."""
         client = self.coordinator.client
-        target_jid = client.get_my_jid() or client.get_admin_jid()
+        target_jid = client.get_my_jid()
 
         if not target_jid:
             self._results = {
                 "Error": (
-                    "Could not determine target JID (neither admin number nor "
-                    "bot JID found). Is the bot connected?"
+                    "Cannot run diagnostic: bot JID not yet known. "
+                    "Ensure the bot is fully connected and try again."
                 )
             }
             self.async_write_ha_state()

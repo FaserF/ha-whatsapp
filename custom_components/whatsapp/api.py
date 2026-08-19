@@ -27,6 +27,7 @@ import contextlib
 import json
 import logging
 import re
+from collections import deque
 from collections.abc import AsyncGenerator
 from typing import Any, cast
 
@@ -115,6 +116,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self._polling_task: asyncio.Task[Any] | None = None
         self._session: aiohttp.ClientSession | None = session
         self._owns_session: bool = session is None
+        # Tracks IDs of messages sent by this HA integration so echoes can be
+        # identified and blocked from firing whatsapp_message_received (loop guard).
+        self._sent_message_ids: deque[str] = deque(maxlen=500)
 
     def _extract_error(self, text: str) -> str:
         """Extract a clean error message from a JSON response."""
@@ -123,6 +127,14 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return data.get("detail") or data.get("error") or text
         except (json.JSONDecodeError, AttributeError):
             return text
+
+    def was_sent_by_ha(self, msg_id: str) -> bool:
+        """Return True if this message ID was sent by this HA integration.
+
+        Used to identify echoed messages and prevent them from re-firing
+        whatsapp_message_received, which would cause automation loops.
+        """
+        return bool(msg_id) and msg_id in self._sent_message_ids
 
     def is_allowed(self, target: str) -> bool:
         """Check if a target JID is allowed by the whitelist."""
@@ -811,6 +823,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             result = await resp.json()
 
             msg_id = str(result.get("id", ""))
+            # Track sent message ID to identify echoes and prevent automation loops.
+            if msg_id:
+                self._sent_message_ids.append(msg_id)
             # Local fallback increment (stats will update on next poll)
             self.stats["sent"] += 1
             self.stats["last_sent_message"] = message
