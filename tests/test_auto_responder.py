@@ -145,7 +145,11 @@ async def test_auto_responder_switch_and_services(hass: HomeAssistant) -> None:
         mock_instance.set_auto_responder_enabled.assert_called_with(False)
 
         await switch.async_turn_on()
-        mock_instance.set_auto_responder_enabled.assert_called_with(True)
+        mock_instance.set_auto_responder_config.assert_called()
+        call_kwargs = mock_instance.set_auto_responder_config.call_args.kwargs
+        assert call_kwargs["enabled"] is True
+        assert "T" in call_kwargs["start_time"]
+        assert call_kwargs["end_time"] == ""
 
         # Test set_auto_responder service
         await hass.services.async_call(
