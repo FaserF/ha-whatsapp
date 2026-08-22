@@ -32,7 +32,7 @@ Use the **Developer Tools** -> **Services** tab to verify your configuration bef
 
 1. Select `whatsapp.send_message` (or `notify.whatsapp`).
 2. Switch to **YAML Mode**.
-3. Paste one of the examples from the **[Service Docs](SERVICES.md)** (Ensure you use the correct recipient number).
+3. Paste one of the examples from the **[Service Docs](services.md)** (Ensure you use the correct recipient number).
 4. Click **Call Service**.
 
 ## 🛠️ Troubleshooting
