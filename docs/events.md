@@ -2,6 +2,7 @@
 layout: default
 title: Events & Automations
 nav_order: 4
+permalink: /events.html
 ---
 
 # ⚡ Events & Automations
