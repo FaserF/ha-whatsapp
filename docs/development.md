@@ -1,3 +1,9 @@
+---
+layout: default
+title: Development Guide
+nav_order: 20
+---
+
 # 👨‍💻 Development Guide
 
 ## Architecture

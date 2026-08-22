@@ -1,3 +1,9 @@
+---
+layout: default
+title: Events & Automations
+nav_order: 4
+---
+
 # ⚡ Events & Automations
 
 Reactive automations are the heart of this integration. This guide covers how to listen for messages, button clicks, and poll votes.

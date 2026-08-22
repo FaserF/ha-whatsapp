@@ -1,3 +1,9 @@
+---
+layout: default
+title: Quoting & Replying
+nav_order: 12
+---
+
 # 💬 Quoting & Replying
 
 The WhatsApp integration supports quoting (replying to) specific messages. This is particularly useful in group chats to maintain context or for providing direct answers to user queries.

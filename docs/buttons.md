@@ -1,3 +1,9 @@
+---
+layout: default
+title: Buttons & Interactive Messages
+nav_order: 11
+---
+
 # 🔘 Buttons & Interactive Messages
 
 Buttons allow you to create interactive experiences for your users. Instead of typing a response, users can simply tap a button to trigger an action in Home Assistant.

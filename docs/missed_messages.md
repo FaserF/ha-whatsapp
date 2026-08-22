@@ -1,5 +1,7 @@
 ---
+layout: default
 title: Missed Messages
+nav_order: 14
 description: How the WhatsApp Integration handles messages received while the addon was offline.
 ---
 
