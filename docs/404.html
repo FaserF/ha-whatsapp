@@ -15,10 +15,6 @@ nav_exclude: true
     var hash = window.location.hash || '';
     var search = window.location.search || '';
 
-    // Normalize path to lowercase
-    var pathLower = rawPath.toLowerCase();
-
-    // Map of known documentation pages
     var validPages = [
       "index", "installation", "configuration", "features",
       "services", "events", "automations", "buttons",
@@ -28,18 +24,21 @@ nav_exclude: true
       "beta", "api", "architecture", "development"
     ];
 
-    // Check if the current path matches any of our known pages (regardless of casing or subfolder)
     for (var i = 0; i < validPages.length; i++) {
       var page = validPages[i];
-      // Matches /events.html, /EVENTS.html, /ha-whatsapp/EVENTS.html, /EVENTS, etc.
       var regex = new RegExp('/' + page + '(\\.html)?$', 'i');
       if (regex.test(rawPath)) {
         var target = '/ha-whatsapp/' + page + '.html' + search + hash;
-        if (window.location.pathname + search + hash !== target) {
-          window.location.replace(target);
-          return;
-        }
+        window.location.replace(target);
+        return;
       }
+    }
+
+    // Fallback: simple lowercase
+    var lower = rawPath.toLowerCase();
+    if (rawPath !== lower && lower.indexOf('404') === -1) {
+      window.location.replace(lower + search + hash);
+      return;
     }
 
     document.getElementById('msg').innerHTML = 'The requested page could not be found. <a href="/ha-whatsapp/">Go back to home</a>';
