@@ -129,6 +129,25 @@ action:
       entity_id: input_select.dinner_choice
 ```
 
+### 4. Outgoing Message Tracking (`whatsapp_message_sent`)
+
+React whenever you send a message (e.g. from your phone or HA) to a specific person or group.
+
+```yaml
+alias: "WhatsApp: Outgoing Message Tracker"
+trigger:
+  - platform: event
+    event_type: whatsapp_message_sent
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data.recipient_number == '49123456789' }}"
+action:
+  - service: logbook.log
+    data:
+      name: "WhatsApp Sent"
+      message: "Sent message to {{ trigger.event.data.recipient_number }}: {{ trigger.event.data.content }}"
+```
+
 ---
 
 ## 🙋 Self-Messages (`fromMe`)
