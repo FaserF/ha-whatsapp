@@ -5,6 +5,27 @@
 />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
+<script>
+  (function () {
+    var p = window.location.pathname;
+    var validPages = [
+      "events", "services", "automations", "buttons", "quoting",
+      "missed_messages", "autoresponder", "moderation", "webhooks",
+      "rocketchat", "telegram", "tips", "troubleshooting", "limitations",
+      "i18n", "support", "beta", "api", "architecture", "development",
+      "installation", "configuration", "features", "index"
+    ];
+    for (var i = 0; i < validPages.length; i++) {
+      var name = validPages[i];
+      var r = new RegExp('/' + name + '(\\.html)?$', 'i');
+      if (r.test(p) && p !== '/ha-whatsapp/' + name + '.html') {
+        window.location.replace('/ha-whatsapp/' + name + '.html' + window.location.search + window.location.hash);
+        return;
+      }
+    }
+  })();
+</script>
+
 <!-- Mermaid Support -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
