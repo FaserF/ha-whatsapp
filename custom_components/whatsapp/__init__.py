@@ -298,18 +298,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         is_ha_echo = client.was_sent_by_ha(incoming_msg_id)
 
         if from_me:
+            # Determine sender number for sent message (my own number / account number)
+            my_number = client.stats.get("my_number") or ""
+            my_sender_number = (
+                my_number.split("@")[0].split(":")[0] if my_number else "me"
+            )
+            recipient_num = (
+                remote_id.split("@")[0].split(":")[0]
+                if (
+                    "@s.whatsapp.net" in remote_id
+                    or "@lid" in remote_id
+                    or "@g.us" in remote_id
+                )
+                else remote_id
+            )
+
             # Fire dedicated whatsapp_message_sent event with rich metadata (Issue #94)
             sent_data = {
                 **data,
                 "from": "me",
                 "to": remote_id,
                 "sender": "me",
+                "sender_number": my_sender_number,
                 "recipient": remote_id,
-                "recipient_number": (
-                    remote_id.split("@")[0]
-                    if ("@s.whatsapp.net" in remote_id or "@lid" in remote_id)
-                    else remote_id
-                ),
+                "recipient_number": recipient_num,
                 "is_group": is_group,
                 "entry_id": entry.entry_id,
                 "session_id": session_id,
