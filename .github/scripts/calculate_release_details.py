@@ -147,7 +147,11 @@ def main():
 
         if script_path:
             try:
-                repo_url = f"https://github.com/{repo}" if repo else f"https://github.com/{owner}/{repo_name}"
+                repo_url = (
+                    f"https://github.com/{repo}"
+                    if repo
+                    else f"https://github.com/{owner}/{repo_name}"
+                )
                 cl_args = [
                     "python",
                     script_path,
@@ -168,9 +172,7 @@ def main():
                         pass
             except Exception as e:
                 print(f"Error generating changelog: {e}")
-                changelog_md = (
-                    "_Changelog could not be generated automatically. See commit history._"
-                )
+                changelog_md = "_Changelog could not be generated automatically. See commit history._"
         else:
             changelog_md = "_Changelog script not found._"
 
