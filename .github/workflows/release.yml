@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: "Type of release (stable, beta, nightly, app_sync)"
+        description: "Type of release (stable, beta, nightly)"
         required: true
         default: "beta"
         type: choice
@@ -13,7 +13,6 @@ on:
           - stable
           - beta
           - nightly
-          - app_sync
 
       bump_level:
         description: "Bump Level (SemVer only: major, minor, patch)"
@@ -29,11 +28,6 @@ on:
         description: "Manually override new version (e.g. 1.2.3 or 2026.6.2b1). Leave empty to use automatic calculation."
         required: false
         type: string
-      empty_release:
-        description: "Generate empty release (Addon-only changes)?"
-        required: false
-        type: boolean
-        default: false
   push:
     branches:
       - main
@@ -62,16 +56,15 @@ jobs:
       tag: ${{ steps.get_version.outputs.tag }}
       is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
       release_body: ${{ steps.get_version.outputs.release_body }}
-      title: ${{ steps.get_version.outputs.title }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.14.7"
 
       - name: Calculate Version and Release Details
         id: get_version
@@ -80,89 +73,34 @@ jobs:
           RELEASE_TYPE: ${{ github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta') }}
           BUMP_LEVEL: ${{ github.event.inputs.bump_level || 'patch' }}
           VERSION_OVERRIDE: ${{ inputs.version_override }}
-          EMPTY_RELEASE: ${{ github.event.inputs.empty_release || 'false' }}
           REPO: ${{ github.repository }}
           OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          if [[ "${{ github.event.inputs.release_type }}" == "app_sync" ]]; then
-            echo "🔄 Syncing version from App repository..."
-            APP_CONFIG_URL="https://raw.githubusercontent.com/FaserF/hassio-addons/master/whatsapp/config.yaml"
-            REMOTE_VERSION=$(curl -s "$APP_CONFIG_URL" | grep "^version:" | head -n 1 | awk '{print $2}' | tr -d '"' | tr -d "'")
-            if [[ -z "$REMOTE_VERSION" ]]; then
-               echo "❌ Failed to fetch version from App config!"
-               exit 1
-            fi
-            export VERSION_OVERRIDE="$REMOTE_VERSION"
-            export RELEASE_TYPE="stable"
-            export EMPTY_RELEASE="true"
-            echo "✅ Syncing to version: $VERSION_OVERRIDE"
-          fi
           python .github/scripts/calculate_release_details.py
 
       - name: Upload Release Body
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: release-body
           path: release_body.md
 
-      - name: Prepare Initial Draft Body
-        shell: bash
-        run: |
-          cp release_body.md initial_draft_body.md
-
-      - name: Check and Delete Existing Draft Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          TAG: ${{ steps.get_version.outputs.tag }}
-          VERSION: ${{ steps.get_version.outputs.version }}
-        shell: bash
-        run: |
-          # Find and delete any existing draft release with same tag or title
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'" or .name=="Release '$VERSION'") | select(.draft==true) | .id')
-          if [ -n "$release_id" ]; then
-            gh api -X DELETE "repos/$REPO/releases/$release_id"
-          fi
-          # Also check if the git tag already exists locally or remotely, delete it so we can re-create it
-          git tag -d "$TAG" 2>/dev/null || true
-          git push --delete origin "$TAG" 2>/dev/null || true
-
-      - name: Create Initial Draft Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.get_version.outputs.tag }}
-          VERSION: ${{ steps.get_version.outputs.version }}
-          IS_PRERELEASE: ${{ steps.get_version.outputs.is_prerelease }}
-        shell: bash
-        run: |
-          prerelease_arg=""
-          if [ "$IS_PRERELEASE" = "true" ]; then
-            prerelease_arg="--prerelease"
-          fi
-          gh release create "$TAG" \
-            --target "${{ github.ref_name }}" \
-            --title "${{ steps.get_version.outputs.title }}" \
-            --notes-file "initial_draft_body.md" \
-            --draft \
-            $prerelease_arg
-
-  release:
-    name: Sync, Zip, and Publish Release
+  sync-version:
+    name: Sync Repository Version
     needs: versioning
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.14.7"
 
       - name: Configure Git and pull latest
         run: |
@@ -171,24 +109,35 @@ jobs:
           git reset --hard HEAD
           git pull --rebase origin ${{ github.ref_name }}
 
-      - name: Update Files (Bump Version)
+      - name: Update Files
         shell: bash
         run: |
           python .github/scripts/version_manager.py bump --type ${{ github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta') }} --level ${{ github.event.inputs.bump_level || 'patch' }} --override "${{ github.event.inputs.version_override || '' }}"
 
-      - name: Update Placeholders in Templates
-        shell: bash
-        run: |
           if [ -f .github/scripts/update_templates.py ]; then
             python .github/scripts/update_templates.py "${{ needs.versioning.outputs.version }}"
           fi
 
-      - name: 📦 Zip Component
-        run: |
-          cd custom_components/whatsapp
-          zip -r ../../whatsapp.zip .
+      - name: Upload Updated Components
 
-      - name: Commit and Push Bumped Files
+
+        uses: actions/upload-artifact@v7.0.1
+
+
+        with:
+
+
+          name: updated-components
+
+
+          path: custom_components/
+
+
+          retention-days: 1
+
+
+
+      - name: Commit and Push
         run: |
           git add custom_components/*/manifest.json .github/ISSUE_TEMPLATE/*.yml .github/ISSUE_TEMPLATE/*.yaml 2>/dev/null || true
           if ! git diff --staged --quiet; then
@@ -196,52 +145,106 @@ jobs:
             git push origin HEAD:${{ github.ref_name }} || (git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }})
           fi
 
-      - name: Download Release Body Artifact
-        uses: actions/download-artifact@v8
+      - name: Download Release Body
+        uses: actions/download-artifact@v8.0.1
         with:
           name: release-body
 
-      - name: Create / Publish GitHub Release
+      - name: Update Draft Status (Zipping Integration)
+        shell: bash
+        run: |
+          cp release_body.md updated_draft_body.md
+
+      - name: Create Draft Release on GitHub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           TAG: ${{ needs.versioning.outputs.tag }}
           VERSION: ${{ needs.versioning.outputs.version }}
-          TITLE: ${{ needs.versioning.outputs.title }}
           IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
         shell: bash
         run: |
-          # Find existing draft release
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name==env.TAG or .name==env.TITLE) | select(.draft==true) | .id')
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          git tag -d "$TAG" 2>/dev/null || true
+          git push --delete origin "$TAG" 2>/dev/null || true
 
-          # Set prerelease argument
           prerelease_arg=""
           if [ "$IS_PRERELEASE" = "true" ]; then
             prerelease_arg="--prerelease"
           fi
+          gh release create "$TAG" \
+            --target "${{ github.ref_name }}" \
+            --title "Release $VERSION" \
+            --notes-file "updated_draft_body.md" \
+            --draft \
+            $prerelease_arg
 
-          if [ -n "$release_id" ]; then
-            # Update the existing draft release to publish it
-            gh api -X PATCH "repos/$REPO/releases/$release_id" \
-              -f tag_name="$TAG" \
-              -f target_commitish="${{ github.ref_name }}" \
-              -f name="$TITLE" \
-              -f body_path="release_body.md" \
-              -F draft=false \
-              -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
 
-            # Upload the assets to the published release
+  gh-release:
+    needs: [versioning, sync-version]
+    if: always() && needs.versioning.result == 'success' && needs.sync-version.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: |
+          git pull --rebase origin ${{ github.ref_name }}
+
+      - name: Download Updated Components
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: updated-components
+          path: custom_components/
+
+      - name: 📦 Zip Component
+        run: |
+          cd custom_components/whatsapp
+          zip -r ../../whatsapp.zip .
+
+      - name: Download Release Body Artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: release-body
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.versioning.outputs.tag }}
+          VERSION: ${{ needs.versioning.outputs.version }}
+          IS_PRERELEASE: ${{ needs.versioning.outputs.is_prerelease }}
+        shell: bash
+        run: |
+          prerelease_arg=""
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            prerelease_arg="--prerelease"
+          fi
+          
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --title "Release $VERSION" \
+              --notes-file "release_body.md" \
+              --draft=false \
+              $prerelease_arg
             gh release upload "$TAG" whatsapp.zip --clobber
           else
-            # Create a brand new release if no draft exists
             gh release create "$TAG" \
               --target "${{ github.ref_name }}" \
-              --title "$TITLE" \
+              --title "Release $VERSION" \
               --notes-file "release_body.md" \
               $prerelease_arg \
               whatsapp.zip
           fi
 
+ 
       - name: Post-Release Dev Bump
         run: |
           git config --global user.name "github-actions[bot]"
@@ -260,21 +263,37 @@ jobs:
           fi
 
   cleanup-release:
-    needs: [versioning, release]
-    if: always() && needs.versioning.result == 'success' && (needs.release.result == 'failure' || cancelled())
+    needs: [versioning, sync-version, gh-release]
+    if: always() && needs.versioning.result == 'success' && (needs.sync-version.result == 'failure' || needs.gh-release.result == 'failure' || cancelled())
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
-      - name: Delete Draft Release
+      - name: Delete Draft Release and Tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.versioning.outputs.tag }}
         shell: bash
         run: |
-          release_id=$(gh api "repos/$REPO/releases" --jq '.[] | select(.tag_name=="'$TAG'") | select(.draft==true) | .id')
-          if [ -n "$release_id" ]; then
-            gh api -X DELETE "repos/$REPO/releases/$release_id"
-            gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          fi
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          git tag -d "$TAG" 2>/dev/null || true
+          git push --delete origin "$TAG" 2>/dev/null || true
+      - name: Delete Component Artifact
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const target = artifacts.artifacts.find(a => a.name === "updated-components");
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id,
+              });
+            }
