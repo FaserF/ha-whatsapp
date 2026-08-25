@@ -128,7 +128,7 @@ _SERVICES = [
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
     """Set up the WhatsApp component and register services early.
 
     Registering services in async_setup ensures that whatsapp.* actions

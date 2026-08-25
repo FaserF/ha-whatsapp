@@ -4,7 +4,7 @@ import json
 import os
 import re
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 def run_git(args):
@@ -290,7 +290,7 @@ def main():
             "> **🧩 Add-on Compatibility Note**: Please make sure to also update the **[HA WhatsApp Add-on / Gateway](https://github.com/FaserF/hassio-addons/tree/master/whatsapp)** to ensure full feature availability and compatibility. *Note: Updating the Add-on automatically updates the integration files in Home Assistant, though a Home Assistant restart is required to load the updated integration.*"
         )
 
-    released_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " UTC"
+    released_at = datetime.now(UTC).strftime("%Y-%m-%d %H:%M") + " UTC"
     if os.environ.get("EMPTY_RELEASE") == "true":
         body_parts = [
             f"# {friendly_name} {version} (Sync)  {channel_badge}",
