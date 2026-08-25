@@ -1,3 +1,4 @@
+import contextlib
 import glob
 import json
 import os
@@ -165,10 +166,8 @@ def main():
                 if os.path.exists("CHANGELOG_BODY.md"):
                     with open("CHANGELOG_BODY.md", encoding="utf-8") as cl_file:
                         changelog_md = cl_file.read().strip()
-                    try:
+                    with contextlib.suppress(OSError):
                         os.remove("CHANGELOG_BODY.md")
-                    except OSError:
-                        pass
             except Exception as e:
                 print(f"Error generating changelog: {e}")
                 changelog_md = "_Changelog could not be generated automatically. See commit history._"
