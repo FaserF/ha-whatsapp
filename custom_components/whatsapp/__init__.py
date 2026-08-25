@@ -125,6 +125,19 @@ _SERVICES = [
     "reset_auto_responder_seen",
 ]
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the WhatsApp component and register services early.
+
+    Registering services in async_setup ensures that whatsapp.* actions
+    are already known to Home Assistant before automations load and validate,
+    preventing spurious 'service_not_found' repairs during startup.
+    """
+    await async_setup_services(hass)
+    return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the WhatsApp integration from a config entry.
@@ -538,6 +551,9 @@ def get_client_for_account(
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Set up global WhatsApp services."""
+    global _SERVICES_REGISTERED
+    if _SERVICES_REGISTERED:
+        return
 
     async def _handle_service(call: ServiceCall) -> Any:
         """General service handler for routing."""
