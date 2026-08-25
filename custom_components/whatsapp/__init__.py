@@ -1521,7 +1521,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema(s_account),
     )
 
-    global _SERVICES_REGISTERED
     _SERVICES_REGISTERED = True
 
 
