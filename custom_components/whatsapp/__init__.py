@@ -1542,6 +1542,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Returns:
         ``True`` if unloading succeeded, ``False`` otherwise.
     """
+    global _SERVICES_REGISTERED
+
     data = hass.data[DOMAIN][entry.entry_id]
     client: WhatsAppApiClient = data["client"]
     await client.close()
@@ -1556,7 +1558,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.services.async_remove(DOMAIN, service)
         hass.data.pop(DOMAIN)
 
-        global _SERVICES_REGISTERED
         _SERVICES_REGISTERED = False
 
     return bool(unload_ok)
