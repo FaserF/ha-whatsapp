@@ -289,6 +289,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 clean_sender = full_sender.split("@")[0]
 
         data["sender_number"] = clean_sender
+        data["person_number"] = clean_sender
 
         # Self-message handling (fromMe)
         raw_msg = data.get("raw", {})
@@ -316,15 +317,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             my_sender_number = (
                 my_number.split("@")[0].split(":")[0] if my_number else "me"
             )
-            recipient_num = (
-                remote_id.split("@")[0].split(":")[0]
-                if (
-                    "@s.whatsapp.net" in remote_id
-                    or "@lid" in remote_id
-                    or "@g.us" in remote_id
-                )
-                else remote_id
-            )
+            # Determine recipient number (prefer sender_number if provided by gateway, otherwise extract digits)
+            raw_sender_number = data.get("sender_number")
+            if raw_sender_number and not str(raw_sender_number).startswith("1576") and "@lid" not in str(raw_sender_number):
+                recipient_num = str(raw_sender_number)
+            elif "@s.whatsapp.net" in remote_id:
+                recipient_num = remote_id.split("@")[0].split(":")[0]
+            elif "@lid" in remote_id:
+                recipient_num = data.get("sender_number") or remote_id.split("@")[0].split(":")[0]
+            elif "@g.us" in remote_id:
+                recipient_num = remote_id.split("@")[0].split(":")[0]
+            else:
+                recipient_num = remote_id
 
             # Fire dedicated whatsapp_message_sent event with rich metadata (Issue #94)
             sent_data = {
