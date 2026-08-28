@@ -484,6 +484,13 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                         raise WhatsAppAuthError("Invalid API Key")
                     if resp.status == 200:
                         data = await resp.json()
+                        if data.get("status") == "already_connected" or data.get(
+                            "connected"
+                        ):
+                            self._connected = True
+                            if data.get("my_number"):
+                                self.stats["my_number"] = data["my_number"]
+                            return ""
                         return str(data.get("code", ""))
                     text = await resp.text()
                     raise HomeAssistantError(f"Failed to request pairing code: {text}")
