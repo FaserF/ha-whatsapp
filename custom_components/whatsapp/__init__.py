@@ -319,12 +319,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             # Determine recipient number (prefer sender_number if provided by gateway, otherwise extract digits)
             raw_sender_number = data.get("sender_number")
-            if raw_sender_number and not str(raw_sender_number).startswith("1576") and "@lid" not in str(raw_sender_number):
+            if (
+                raw_sender_number
+                and not str(raw_sender_number).startswith("1576")
+                and "@lid" not in str(raw_sender_number)
+            ):
                 recipient_num = str(raw_sender_number)
             elif "@s.whatsapp.net" in remote_id:
                 recipient_num = remote_id.split("@")[0].split(":")[0]
             elif "@lid" in remote_id:
-                recipient_num = data.get("sender_number") or remote_id.split("@")[0].split(":")[0]
+                recipient_num = (
+                    data.get("sender_number") or remote_id.split("@")[0].split(":")[0]
+                )
             elif "@g.us" in remote_id:
                 recipient_num = remote_id.split("@")[0].split(":")[0]
             else:
