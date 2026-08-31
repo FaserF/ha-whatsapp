@@ -1081,7 +1081,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): vol.All(int, vol.Range(min=0, max=10)),
                 vol.Optional(
                     CONF_WHITELIST,
-                    description={"suggested_value": self._config_entry.options.get(CONF_WHITELIST, "")},
+                    description={
+                        "suggested_value": self._config_entry.options.get(
+                            CONF_WHITELIST, ""
+                        )
+                    },
                 ): vol.Any(None, str),
                 vol.Optional(
                     CONF_SELF_MESSAGES,
@@ -1186,9 +1190,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
             # Ensure whitelist is stored cleanly (empty string if cleared/None)
             if CONF_WHITELIST in user_input:
-                user_input[CONF_WHITELIST] = (
-                    (user_input[CONF_WHITELIST] or "").strip()
-                )
+                user_input[CONF_WHITELIST] = (user_input[CONF_WHITELIST] or "").strip()
             else:
                 user_input[CONF_WHITELIST] = ""
 
