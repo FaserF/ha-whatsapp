@@ -375,6 +375,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
                 return
 
+            # When self_messages is enabled, ensure the received event's sender fields
+            # reflect 'me' (own account) rather than the recipient's phone number
+            data["from"] = "me"
+            data["sender"] = "me"
+            data["sender_number"] = my_sender_number
+            data["person_number"] = my_sender_number
+            data["recipient"] = remote_id
+            data["recipient_number"] = recipient_num
+
         # If incoming non-fromMe message was somehow flagged as sent by HA, drop it
         if is_ha_echo:
             _LOGGER.debug(

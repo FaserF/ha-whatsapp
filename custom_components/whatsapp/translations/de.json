@@ -101,7 +101,7 @@
           "api_key": "API Schlüssel",
           "retry_attempts": "Wiederholungsversuche (bei Fehlern)",
           "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
-          "self_messages": "Nachrichten von sich selbst verarbeiten",
+          "self_messages": "Nachrichten von sich selbst verarbeiten (Legacy-Fallback; message_sent Event empfohlen)",
           "buttons_as_polls": "Buttons über Umfragen emulieren (Sendet Buttons automatisch als native Umfrage und feuert Button-Events bei Abstimmung)",
           "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
         },

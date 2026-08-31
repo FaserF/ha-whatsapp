@@ -101,7 +101,7 @@
           "api_key": "API Key",
           "retry_attempts": "Retry Attempts (on failure)",
           "whitelist": "Whitelisted Users/Groups (Comma-separated phone numbers or Group IDs. Leave empty for no whitelist)",
-          "self_messages": "Process messages from self",
+          "self_messages": "Process messages from self (Legacy fallback; message_sent event is recommended)",
           "buttons_as_polls": "Emulate Buttons via Polls (Converts send_buttons to native Polls & fires button events on vote)",
           "reset_session": "Reset Session (Logout & Clear Data)"
         },
