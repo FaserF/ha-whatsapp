@@ -1081,8 +1081,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 ): vol.All(int, vol.Range(min=0, max=10)),
                 vol.Optional(
                     CONF_WHITELIST,
-                    default=self._config_entry.options.get(CONF_WHITELIST, ""),
-                ): str,
+                    description={"suggested_value": self._config_entry.options.get(CONF_WHITELIST, "")},
+                ): vol.Any(None, str),
                 vol.Optional(
                     CONF_SELF_MESSAGES,
                     default=self._config_entry.options.get(CONF_SELF_MESSAGES, False),
@@ -1183,6 +1183,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
 
             # Always remove ephemeral reset_session option
             user_input.pop("reset_session", None)
+
+            # Ensure whitelist is stored cleanly (empty string if cleared/None)
+            if CONF_WHITELIST in user_input:
+                user_input[CONF_WHITELIST] = (
+                    (user_input[CONF_WHITELIST] or "").strip()
+                )
+            else:
+                user_input[CONF_WHITELIST] = ""
+
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
