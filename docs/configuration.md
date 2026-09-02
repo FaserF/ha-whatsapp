@@ -79,7 +79,7 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 | `PORT`                               | `8066`           | Integer    | HTTP port for the web interface and REST API.                                                                       |
 | `API_TOKEN`                          | _Auto-generated_ | String     | Security token for REST API requests (`X-Auth-Token`). Auto-persisted to disk if omitted.                           |
 | `LOG_LEVEL`                          | `info`           | String     | Logging verbosity (`trace`, `debug`, `info`, `warn`, `error`, `fatal`).                                             |
-| `WELCOME_MESSAGE_ENABLED`            | `true`           | Boolean    | Send a role-aware welcome greeting when a new contact sends their first direct message.                             |
+| `WELCOME_MESSAGE_ENABLED`            | `false`          | Boolean    | Send a role-aware welcome greeting when a new contact sends their first direct message.                             |
 | `ADMIN_NOTIFICATIONS_ENABLED`        | `true`           | Boolean    | Send automatic WhatsApp alerts to admins for connection loss/restore and system updates.                            |
 | `ADMIN_NUMBERS`                      | `""`             | String     | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
 | `MARK_ONLINE`                        | `false`          | Boolean    | Keep WhatsApp online status active continuously while container runs.                                               |
