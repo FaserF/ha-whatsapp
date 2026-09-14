@@ -64,12 +64,12 @@ Use an **HTTP Request** node configured as follows for each message type.
 | Authentication | Header Auth (`X-Auth-Token`) |
 | Body (JSON) | See below |
 
-`json
+```json
 {
   "number": "491761234567",
   "message": "Hello from n8n! 🤖"
 }
-`
+```
 
 > **Tip:** The `number` field accepts a plain phone number (e.g. `491761234567`) or a full JID (e.g. `491761234567@s.whatsapp.net` or `120363...@g.us` for groups).
 
@@ -77,13 +77,13 @@ Use an **HTTP Request** node configured as follows for each message type.
 
 ### Send an Image / Video / Document
 
-`json
+```json
 {
   "number": "491761234567",
   "url": "https://example.com/photo.jpg",
   "caption": "Look at this!"
 }
-`
+```
 
 Endpoint: `/send_image`, `/send_video`, `/send_document`
 
@@ -93,14 +93,14 @@ For documents, also include `"fileName": "report.pdf"`.
 
 ### Send a Poll
 
-`json
+```json
 {
   "number": "491761234567",
   "question": "Which day works best?",
   "options": ["Monday", "Wednesday", "Friday"],
   "selectableCount": 1
 }
-`
+```
 
 Endpoint: `/send_poll`
 
@@ -108,14 +108,14 @@ Endpoint: `/send_poll`
 
 ### Send a Location Pin
 
-`json
+```json
 {
   "number": "491761234567",
   "latitude": 48.1351,
   "longitude": 11.5820,
   "title": "Munich City Center"
 }
-`
+```
 
 Endpoint: `/send_location`
 
@@ -123,13 +123,13 @@ Endpoint: `/send_location`
 
 ### Send an Audio / Voice Note
 
-`json
+```json
 {
   "number": "491761234567",
   "url": "https://example.com/audio.mp3",
   "ptt": true
 }
-`
+```
 
 Endpoint: `/send_audio` — set `"ptt": true` for voice note style.
 
@@ -137,13 +137,13 @@ Endpoint: `/send_audio` — set `"ptt": true` for voice note style.
 
 ### Send a Reaction
 
-`json
+```json
 {
   "number": "491761234567",
   "messageId": "BAE5CCF5A...",
   "reaction": "👍"
 }
-`
+```
 
 Endpoint: `/send_reaction`
 
@@ -153,12 +153,12 @@ Endpoint: `/send_reaction`
 
 Simulate typing before sending a message:
 
-`json
+```json
 {
   "number": "491761234567",
   "presence": "composing"
 }
-`
+```
 
 Endpoint: `/set_presence` — values: `composing`, `recording`, `paused`, `available`
 
@@ -166,9 +166,9 @@ Endpoint: `/set_presence` — values: `composing`, `recording`, `paused`, `avail
 
 ### Check Connection Status
 
-`
+```http
 GET http://<your-ha-ip>:8066/status
-`
+```
 
 Returns: `{ "connected": true, "version": "..." }`
 
@@ -198,19 +198,21 @@ In Home Assistant, go to **Settings → Apps → WhatsApp → Configuration** an
 
 Or configure it dynamically via automation:
 
-`yaml
+```yaml
 service: whatsapp.configure_webhook
 data:
   url: "https://your-n8n-instance.com/webhook/whatsapp"
   enabled: true
   token: "my-n8n-secret"
-`
+```
 
 ### Step 3: Validate the Token in n8n (Recommended)
 
 Add an **IF** node after the Webhook trigger:
 
-- **Condition**: `{{ \.headers['x-webhook-token'] }}` equals `my-n8n-secret`
+{% raw %}
+- **Condition**: `{{ $json.headers['x-webhook-token'] }}` equals `my-n8n-secret`
+{% endraw %}
 - **True** → continue processing
 - **False** → respond with 401 / stop
 
@@ -218,7 +220,7 @@ Add an **IF** node after the Webhook trigger:
 
 Every incoming WhatsApp message delivers this JSON payload to n8n:
 
-`json
+```json
 {
   "id": "BAE5CCF5A...",
   "type": "text",
@@ -240,7 +242,7 @@ Every incoming WhatsApp message delivers this JSON payload to n8n:
   "session_id": "default",
   "raw": {}
 }
-`
+```
 
 Key fields for n8n routing:
 
@@ -257,60 +259,64 @@ Key fields for n8n routing:
 
 ## 🔧 Example Workflows
 
+{% raw %}
 ### Auto-reply to a keyword
 
-`
+```text
 [Webhook Trigger]
     ↓
-[IF] {{ \.content }} contains "order status"
+[IF] {{ $json.content }} contains "order status"
     ↓ YES
 [HTTP Request] POST /send_message
-    { "number": "{{ \.sender_number }}", "message": "Your order is on the way! 📦" }
-`
+    { "number": "{{ $json.sender_number }}", "message": "Your order is on the way! 📦" }
+```
 
 ### Forward DMs to a CRM or ticketing system
 
-`
+```text
 [Webhook Trigger]
     ↓
-[IF] {{ \.is_group }} == false  (DMs only)
+[IF] {{ $json.is_group }} == false  (DMs only)
     ↓
 [HTTP Request] POST to your CRM API
-    { "phone": "{{ \.sender_number }}", "note": "{{ \.content }}" }
-`
+    { "phone": "{{ $json.sender_number }}", "note": "{{ $json.content }}" }
+```
 
 ### AI agent: pass message to LLM and reply
 
-`
+```text
 [Webhook Trigger] receives WhatsApp message
     ↓
 [HTTP Request] POST to OpenAI / Gemini
-    { "model": "gpt-4o", "messages": [{ "role": "user", "content": "{{ \.content }}" }] }
+    { "model": "gpt-4o", "messages": [{ "role": "user", "content": "{{ $json.content }}" }] }
     ↓
 [HTTP Request] POST /send_message
-    { "number": "{{ \.sender_number }}", "message": "{{ \.choices[0].message.content }}" }
-`
+    { "number": "{{ $json.sender_number }}", "message": "{{ $json.choices[0].message.content }}" }
+```
 
 ### Send a WhatsApp message on a schedule (n8n Cron)
 
-`
+```text
 [Cron Trigger] every morning at 08:00
     ↓
 [HTTP Request] POST /send_message
     { "number": "491761234567", "message": "Good morning! Here is your daily summary ☀️" }
-`
+```
+{% endraw %}
 
 ---
 
 ## 🔢 Useful n8n Expressions
 
+{% raw %}
 | Goal | Expression |
 |---|---|
-| Sender phone number | `{{ \.sender_number }}` |
-| Message text | `{{ \.content }}` |
-| Is group message? | `{{ \.is_group }}` |
-| Media URL | `{{ \.media_url }}` |
-| Message type | `{{ \.type }}` |
+| Sender phone number | `{{ $json.sender_number }}` |
+| Message text | `{{ $json.content }}` |
+| Is group message? | `{{ $json.is_group }}` |
+| Media URL | `{{ $json.media_url }}` |
+| Message type | `{{ $json.type }}` |
+{% endraw %}
 
 ---
 

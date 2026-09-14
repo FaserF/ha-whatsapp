@@ -330,11 +330,16 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                     from homeassistant.helpers import device_registry as dr
 
                     dev_reg = dr.async_get(self.hass)
-                    device = dev_reg.async_get_device(
-                        identifiers={(DOMAIN, self.client.session_id)}
+                    devices = dr.async_entries_for_config_entry(
+                        dev_reg, self.config_entry.entry_id
                     )
-                    if device and device.sw_version != version:
-                        dev_reg.async_update_device(device.id, sw_version=version)
+                    for device in devices:
+                        if (DOMAIN, self.client.session_id) in device.identifiers:
+                            if device.sw_version != version:
+                                dev_reg.async_update_device(
+                                    device.id, sw_version=version
+                                )
+                            break
                 except Exception as dr_err:
                     _LOGGER.debug(
                         "Failed to update device registry version: %s", dr_err
