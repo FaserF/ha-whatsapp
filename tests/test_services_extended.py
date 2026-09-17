@@ -33,7 +33,11 @@ async def test_search_groups_service(hass: HomeAssistant) -> None:
     mock_client.set_webhook = AsyncMock()
     mock_client.get_groups = AsyncMock(
         return_value=[
-            {"name": "Test Group", "id": "123@g.us", "participants": 5},
+            {
+                "subject": "Test Group",
+                "id": "123@g.us",
+                "participantsCount": 5,
+            },
         ]
     )
 
@@ -82,6 +86,8 @@ async def test_search_groups_service(hass: HomeAssistant) -> None:
             assert args[2]["title"] == "WhatsApp Group Search"
             assert "Found 1 group(s):" in args[2]["message"]
             assert "Test Group" in args[2]["message"]
+            assert "123@g.us" in args[2]["message"]
+            assert "5" in args[2]["message"]
             assert args[2]["notification_id"] == "whatsapp_group_search"
 
 
