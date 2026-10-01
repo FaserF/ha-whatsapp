@@ -214,12 +214,13 @@ def hass(mock_client: MagicMock) -> MagicMock:
 
     async def async_call(
         domain: str, service: str, service_data: Any = None, **_kwargs: Any
-    ) -> None:
+    ) -> Any:
         if (domain, service) in service_handlers:
             from ha_stubs import ServiceCall
 
             call = ServiceCall(domain, service, service_data)
-            await service_handlers[(domain, service)](call)
+            return await service_handlers[(domain, service)](call)
+        return None
 
     def async_set_state(entity_id: str, state: str, attributes: Any = None) -> None:
         states[entity_id] = MagicMock(state=state, attributes=attributes or {})

@@ -16,6 +16,8 @@ All services can be called via `whatsapp.<service_name>`.
 
 Sends a plain text message to a WhatsApp user or group. This is the most basic messaging action. Use it for notifications, alerts, or any text-based communication from your automations. Supports emoji, line breaks (\n), and basic formatting (*bold*, _italic_).
 
+Supports `response_variable` to capture the result (`success`, `message_id`).
+
 ```yaml
 service: whatsapp.send_message
 data:
@@ -28,6 +30,14 @@ data:
   quote: "3EB0B8A7C2E4F6789ABCDE"
   reply_to: "3EB0B8A7C2E4F6789ABCDE"
   expiration: 86400
+response_variable: send_result
+```
+*Response Data:*
+```json
+{
+  "success": true,
+  "message_id": "3EB0B8A7C2E4F6789ABCDE"
+}
 ```
 
 ### `whatsapp.edit_message`

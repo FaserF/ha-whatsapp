@@ -586,14 +586,15 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return data["quote"] if "quote" in data else data.get("reply_to")
 
         if service == "send_message":
-            await client.send_message(
+            msg_id = await client.send_message(
                 data.get("target", ""),
                 data.get("message", ""),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_poll":
-            await client.send_poll(
+            msg_id = await client.send_poll(
                 data.get("target", ""),
                 data.get("question", ""),
                 data.get("options", []),
@@ -601,16 +602,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
                 allow_multiple_responses=data.get("allow_multiple_responses", False),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_image":
-            await client.send_image(
+            msg_id = await client.send_image(
                 data.get("target", ""),
                 data.get("url", ""),
                 data.get("caption"),
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_location":
-            await client.send_location(
+            msg_id = await client.send_location(
                 data.get("target", ""),
                 float(data.get("latitude", 0)),
                 float(data.get("longitude", 0)),
@@ -619,8 +622,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_event":
-            await client.send_event(
+            msg_id = await client.send_event(
                 data.get("target", ""),
                 data.get("name", ""),
                 description=data.get("description"),
@@ -630,14 +634,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 is_canceled=data.get("is_canceled", False),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_reaction":
-            await client.send_reaction(
+            msg_id = await client.send_reaction(
                 data.get("target", ""),
                 data.get("reaction", ""),
                 data.get("message_id", ""),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_document":
-            await client.send_document(
+            msg_id = await client.send_document(
                 data.get("target", ""),
                 data.get("url", ""),
                 data.get("file_name"),
@@ -646,8 +652,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
                 mimetype=data.get("mimetype") or data.get("mime_type"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_video":
-            await client.send_video(
+            msg_id = await client.send_video(
                 data.get("target", ""),
                 data.get("url", ""),
                 data.get("message"),
@@ -655,8 +662,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
                 seconds=data.get("seconds"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_audio":
-            await client.send_audio(
+            msg_id = await client.send_audio(
                 data.get("target", ""),
                 data.get("url", ""),
                 data.get("ptt", False),
@@ -664,18 +672,21 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 expiration=data.get("expiration"),
                 seconds=data.get("seconds"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "revoke_message":
-            await client.revoke_message(
+            msg_id = await client.revoke_message(
                 data.get("target", ""), data.get("message_id", "")
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "edit_message":
-            await client.edit_message(
+            msg_id = await client.edit_message(
                 data.get("target", ""),
                 data.get("message_id", ""),
                 data.get("message", ""),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_list":
-            await client.send_list(
+            msg_id = await client.send_list(
                 data.get("target", ""),
                 data.get("title") or "",
                 data.get("text") or "",
@@ -684,20 +695,24 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "send_contact":
-            await client.send_contact(
+            msg_id = await client.send_contact(
                 data.get("target", ""),
                 data.get("name", ""),
                 data.get("contact_number", ""),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "configure_webhook":
             await client.set_webhook(
                 data.get("url", ""), data.get("enabled", True), data.get("token")
             )
+            return {"success": True}
         elif service == "update_presence":
             await client.set_presence(data.get("target", ""), data.get("presence", ""))
+            return {"success": True}
         elif service == "send_buttons":
-            await client.send_buttons(
+            msg_id = await client.send_buttons(
                 data.get("target", ""),
                 data.get("message", ""),
                 data.get("buttons", []),
@@ -705,8 +720,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 quoted_message_id=_get_quoted(),
                 expiration=data.get("expiration"),
             )
+            return {"success": True, "message_id": msg_id}
         elif service == "mark_as_read":
             await client.mark_as_read(data.get("target", ""), data.get("message_id"))
+            return {"success": True}
         elif service == "search_groups":
             await _handle_search_groups(hass, client, data.get("name_filter", ""))
         elif service == "get_contacts":
@@ -968,6 +985,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_message",
         _handle_service,
         schema=vol.Schema(msg_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     def _validate_poll_options(value: Any) -> list[str]:
@@ -998,6 +1016,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_poll",
         _handle_service,
         schema=vol.Schema(poll_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     image_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
@@ -1010,6 +1029,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_image",
         _handle_service,
         schema=vol.Schema(image_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     doc_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
@@ -1023,6 +1043,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_document",
         _handle_service,
         schema=vol.Schema(doc_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     video_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
@@ -1036,6 +1057,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_video",
         _handle_service,
         schema=vol.Schema(video_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     audio_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
@@ -1049,6 +1071,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_audio",
         _handle_service,
         schema=vol.Schema(audio_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     revoke_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1060,6 +1083,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "revoke_message",
         _handle_service,
         schema=vol.Schema(revoke_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     edit_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1072,6 +1096,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "edit_message",
         _handle_service,
         schema=vol.Schema(edit_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     list_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1087,6 +1112,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_list",
         _handle_service,
         schema=vol.Schema(list_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     contact_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1099,6 +1125,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_contact",
         _handle_service,
         schema=vol.Schema(contact_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     webhook_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1125,6 +1152,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_location",
         _handle_service,
         schema=vol.Schema(loc_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     event_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1142,6 +1170,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_event",
         _handle_service,
         schema=vol.Schema(event_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     react_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1154,6 +1183,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_reaction",
         _handle_service,
         schema=vol.Schema(react_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     presence_schema: dict[vol.Marker, Any] = {
         **s_account,
@@ -1180,6 +1210,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "send_buttons",
         _handle_service,
         schema=vol.Schema(buttons_schema),
+        supports_response=SupportsResponse.OPTIONAL,
     )
     search_schema: dict[vol.Marker, Any] = {
         **s_account,

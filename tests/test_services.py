@@ -33,22 +33,22 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.get_status = AsyncMock(return_value={"connected": True})
         mock_instance.get_dashboard = AsyncMock(return_value={})
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
-        mock_instance.send_message = AsyncMock()
-        mock_instance.send_image = AsyncMock()
-        mock_instance.send_poll = AsyncMock()
-        mock_instance.send_location = AsyncMock()
-        mock_instance.send_event = AsyncMock()
-        mock_instance.send_reaction = AsyncMock()
-        mock_instance.send_buttons = AsyncMock()
+        mock_instance.send_message = AsyncMock(return_value="msg_123")
+        mock_instance.send_image = AsyncMock(return_value="msg_img_123")
+        mock_instance.send_poll = AsyncMock(return_value="msg_poll_123")
+        mock_instance.send_location = AsyncMock(return_value="msg_loc_123")
+        mock_instance.send_event = AsyncMock(return_value="msg_ev_123")
+        mock_instance.send_reaction = AsyncMock(return_value="msg_react_123")
+        mock_instance.send_buttons = AsyncMock(return_value="msg_btn_123")
         mock_instance.set_presence = AsyncMock()
-        mock_instance.send_list = AsyncMock()
-        mock_instance.send_contact = AsyncMock()
-        mock_instance.edit_message = AsyncMock()
-        mock_instance.revoke_message = AsyncMock()
+        mock_instance.send_list = AsyncMock(return_value="msg_list_123")
+        mock_instance.send_contact = AsyncMock(return_value="msg_cnt_123")
+        mock_instance.edit_message = AsyncMock(return_value="msg_edit_123")
+        mock_instance.revoke_message = AsyncMock(return_value="msg_rev_123")
         mock_instance.set_webhook = AsyncMock()
-        mock_instance.send_document = AsyncMock()
-        mock_instance.send_video = AsyncMock()
-        mock_instance.send_audio = AsyncMock()
+        mock_instance.send_document = AsyncMock(return_value="msg_doc_123")
+        mock_instance.send_video = AsyncMock(return_value="msg_vid_123")
+        mock_instance.send_audio = AsyncMock(return_value="msg_aud_123")
         mock_instance.get_contacts = AsyncMock(
             return_value=[{"id": "123@s.whatsapp.net", "name": "John"}]
         )
@@ -63,12 +63,14 @@ async def test_services(hass: HomeAssistant) -> None:
         hass.data[DOMAIN][entry.entry_id]["client"] = mock_instance
 
         # 1. Test send_message
-        await hass.services.async_call(
+        res = await hass.services.async_call(
             DOMAIN,
             "send_message",
             {"target": "12345", "message": "Hello"},
             blocking=True,
+            return_response=True,
         )
+        assert res == {"success": True, "message_id": "msg_123"}
         mock_instance.send_message.assert_awaited_with(
             "12345", "Hello", quoted_message_id=None, expiration=None
         )
