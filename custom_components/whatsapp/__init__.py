@@ -891,8 +891,20 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         name_filter = name_filter.lower()
         try:
             groups = await client.get_groups()
+
+            def group_name(group: dict[str, Any]) -> str:
+                return str(group.get("name") or group.get("subject") or "Unnamed group")
+
+            def participant_count(group: dict[str, Any]) -> str:
+                return str(
+                    group.get("participants")
+                    or group.get("participantsCount")
+                    or group.get("participantCount")
+                    or 0
+                )
+
             if name_filter:
-                groups = [g for g in groups if name_filter in g["name"].lower()]
+                groups = [g for g in groups if name_filter in group_name(g).lower()]
 
             if not groups:
                 msg_suffix = f' matching "{name_filter}"' if name_filter else ""
@@ -900,7 +912,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             else:
                 table = "| Name | Group ID | Participants |\n| :--- | :--- | :--- |\n"
                 for g in groups:
-                    table += f"| {g['name']} | `{g['id']}` | {g['participants']} |\n"
+                    table += (
+                        f"| {group_name(g)} | `{g.get('id', 'unknown')}` | "
+                        f"{participant_count(g)} |\n"
+                    )
 
                 message = (
                     f"Found {len(groups)} group(s):\n\n{table}\n\n"
