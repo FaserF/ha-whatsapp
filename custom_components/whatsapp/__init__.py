@@ -1621,6 +1621,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         for service in _SERVICES:
             if hass.services.has_service(DOMAIN, service):
                 hass.services.async_remove(DOMAIN, service)
+        if hass.services.has_service("notify", "whatsapp"):
+            hass.services.async_remove("notify", "whatsapp")
         hass.data.pop(DOMAIN)
 
         _SERVICES_REGISTERED = False

@@ -69,19 +69,10 @@ async def async_setup_entry(
 
         async def async_notify_service(call: Any) -> None:
             """Handle the legacy notify service call with multi-account routing."""
-            account = call.data.get("account")
-            client_to_use = client
-            if account:
-                try:
-                    from . import get_client_for_account
+            from . import get_client_for_account
 
-                    client_to_use = get_client_for_account(hass, account)
-                except Exception:
-                    _LOGGER.warning(
-                        "Could not resolve account '%s' for notify service, "
-                        "using default",
-                        account,
-                    )
+            account = call.data.get("account")
+            client_to_use = get_client_for_account(hass, account)
 
             service_inst = WhatsAppNotificationService(client_to_use)
             await service_inst.async_send_message(

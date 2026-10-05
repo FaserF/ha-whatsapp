@@ -167,3 +167,83 @@ async def test_whatsapp_notification_attachments() -> None:
             quoted_message_id=None,
             expiration=None,
         )
+
+
+async def test_notify_service_lifecycle_and_account_resolution() -> None:
+    """Test legacy notify.whatsapp service lifecycle, dynamic client resolution and error handling."""
+    from homeassistant.exceptions import ServiceValidationError
+
+    from custom_components.whatsapp.const import DOMAIN
+    from custom_components.whatsapp.notify import async_setup_entry
+
+    hass = MagicMock()
+    registered_services: dict[tuple[str, str], Any] = {}
+
+    def mock_has_service(domain: str, service: str) -> bool:
+        return (domain, service) in registered_services
+
+    def mock_register(
+        domain: str, service: str, handler: Any, schema: Any = None
+    ) -> None:
+        registered_services[(domain, service)] = handler
+
+    def mock_remove(domain: str, service: str) -> None:
+        registered_services.pop((domain, service), None)
+
+    hass.services.has_service = MagicMock(side_effect=mock_has_service)
+    hass.services.async_register = MagicMock(side_effect=mock_register)
+    hass.services.async_remove = MagicMock(side_effect=mock_remove)
+
+    mock_client1 = MagicMock()
+    mock_client1.send_message = AsyncMock()
+    mock_client1.close = AsyncMock()
+    mock_client2 = MagicMock()
+    mock_client2.send_message = AsyncMock()
+    mock_client2.close = AsyncMock()
+
+    entry1 = MagicMock(entry_id="entry_1", options={})
+    entry2 = MagicMock(entry_id="entry_2", options={})
+
+    hass.data = {
+        DOMAIN: {
+            "entry_1": {"client": mock_client1, "coordinator": MagicMock()},
+            "entry_2": {"client": mock_client2, "coordinator": MagicMock()},
+        }
+    }
+
+    async_add_entities = MagicMock()
+    await async_setup_entry(hass, entry1, async_add_entities)
+
+    assert ("notify", "whatsapp") in registered_services
+    handler = registered_services[("notify", "whatsapp")]
+
+    # 1. Call with specific valid account
+    call_valid = MagicMock(
+        data={"account": "entry_2", "message": "Test Msg", "target": ["12345"]}
+    )
+    await handler(call_valid)
+    mock_client2.send_message.assert_awaited_once_with(
+        "12345", "Test Msg", quoted_message_id=None, expiration=None
+    )
+
+    # 2. Call with invalid account should raise ServiceValidationError
+    import pytest
+
+    call_invalid = MagicMock(
+        data={"account": "invalid_acc", "message": "Test", "target": ["12345"]}
+    )
+    with pytest.raises(ServiceValidationError):
+        await handler(call_invalid)
+
+    # 3. Test unload removes notify.whatsapp when last entry is unloaded
+    from custom_components.whatsapp import async_unload_entry
+
+    hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
+
+    # Unload entry_1 (entry_2 remains)
+    await async_unload_entry(hass, entry1)
+    assert ("notify", "whatsapp") in registered_services
+
+    # Unload entry_2 (last entry)
+    await async_unload_entry(hass, entry2)
+    assert ("notify", "whatsapp") not in registered_services
