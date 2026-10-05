@@ -1142,6 +1142,19 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 timeout=aiohttp.ClientTimeout(total=300),
             ) as resp,
         ):
+            if resp.status == 401:
+                raise WhatsAppAuthError("Invalid API Key")
+            if resp.status != 200:
+                text = await resp.text()
+                error_msg = self._extract_error(text)
+                self.stats["failed"] += 1
+                self.stats["last_failed_message"] = (
+                    f"Document: {file_name or 'unnamed'}"
+                )
+                self.stats["last_failed_target"] = number
+                self.stats["last_error_reason"] = error_msg
+                raise HomeAssistantError(f"Failed to send document: {error_msg}")
+
             result = await resp.json()
             msg_id = str(result.get("id", ""))
             self.stats["sent"] += 1

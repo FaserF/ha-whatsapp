@@ -88,4 +88,19 @@ async def test_verify_send_document() -> None:
         assert not mock_session.post.called
         _LOGGER.info("✅ Blocked target passed.")
 
+        # 3. Test HTTP error response status (e.g. 500)
+        _LOGGER.info("Testing HTTP error response...")
+        mock_error_resp = MagicMock()
+        mock_error_resp.status = 500
+        mock_error_resp.text = AsyncMock(return_value="Gateway Error")
+        mock_session.post.return_value = MockAsyncContextManager(mock_error_resp)
+        with pytest.raises(
+            HomeAssistantError, match="Failed to send document: Gateway Error"
+        ):
+            await client.send_document(
+                "49123456789", "http://test.com/file.pdf", "file.pdf"
+            )
+        assert client.stats["failed"] > 0
+        assert client.stats["last_error_reason"] == "Gateway Error"
+
     _LOGGER.info("All verification tests for send_document PASSED!")
