@@ -135,6 +135,10 @@
           "name": "Zitierte Nachricht-ID",
           "description": "Die ID einer Nachricht, auf die geantwortet/zitiert werden soll."
         },
+        "reply_to": {
+          "name": "Antwort auf Nachricht-ID",
+          "description": "Legacy-Alias für quote. Die ID einer Nachricht, auf die geantwortet/zitiert werden soll."
+        },
         "expiration": {
           "name": "Ablaufzeit (Sekunden)",
           "description": "Dauer, nach der die Nachricht wieder verschwindet."

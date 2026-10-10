@@ -56,7 +56,7 @@ def flatten_dict(
 
 
 def test_translation_consistency() -> None:
-    """Verify that all keys in strings.json are present in translation files."""
+    """Verify that all keys in strings.json are present in all translation files."""
     files = get_translation_files()
 
     if not files["strings"].exists():
@@ -66,7 +66,6 @@ def test_translation_consistency() -> None:
     strings_keys = set(strings_data.keys())
 
     errors: list[str] = []
-    warnings: list[str] = []
 
     for lang, path in files.items():
         if lang == "strings":
@@ -77,18 +76,11 @@ def test_translation_consistency() -> None:
         missing_keys = strings_keys - keys
 
         if missing_keys:
-            msg = f"Keys in strings.json missing in {lang}.json: {sorted(missing_keys)}"
-            if lang in ["en", "de"]:
-                errors.append(msg)
-            else:
-                warnings.append(msg)
+            errors.append(
+                f"Keys in strings.json missing in {lang}.json: {sorted(missing_keys)}"
+            )
 
-    # Log warnings for community translations
-    if warnings:
-        for warning in warnings:
-            _LOGGER.warning(warning)
-
-    # Fail for official translations (EN/DE)
+    # Fail if any translation file is missing keys from strings.json
     assert not errors, "\n".join(errors)
 
 

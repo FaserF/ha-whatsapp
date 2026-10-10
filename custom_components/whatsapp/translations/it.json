@@ -135,6 +135,10 @@
           "name": "ID messaggio da citare",
           "description": "L'ID del messaggio da citare o a cui rispondere."
         },
+        "reply_to": {
+          "name": "ID messaggio a cui rispondere",
+          "description": "Alias legacy per quote. L'ID del messaggio da citare o a cui rispondere."
+        },
         "expiration": {
           "name": "Scadenza (secondi)",
           "description": "Tempo dopo il quale il messaggio scompare."

@@ -135,6 +135,10 @@
           "name": "Quote Message ID",
           "description": "The ID of a message to quote/reply to."
         },
+        "reply_to": {
+          "name": "Reply To Message ID",
+          "description": "Legacy alias for quote. The ID of a message to quote/reply to."
+        },
         "expiration": {
           "name": "Expiration (Seconds)",
           "description": "Duration after which the message disappears."
