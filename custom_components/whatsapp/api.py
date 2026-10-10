@@ -309,14 +309,16 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
     async def start_polling(self, interval: int = 2) -> None:
         """Start the polling loop."""
-        if self._polling_task:
+        if self._polling_task and not self._polling_task.done():
             return
 
+        self._polling_enabled = True
         self._polling_task = asyncio.create_task(self._poll_loop(interval))
         _LOGGER.debug("Started polling loop with interval %ss", interval)
 
     async def stop_polling(self) -> None:
         """Stop the polling loop."""
+        self._polling_enabled = False
         task = self._polling_task
         if task:
             task.cancel()
@@ -324,6 +326,18 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 await task
             self._polling_task = None
         _LOGGER.debug("Stopped polling loop")
+
+    def ensure_polling(self, interval: int = 2) -> None:
+        """Ensure the polling loop task is active if polling was enabled."""
+        if not getattr(self, "_polling_enabled", False):
+            return
+
+        if self._polling_task is None or self._polling_task.done():
+            _LOGGER.warning(
+                "Event polling loop task was not running (done=%s). Restarting...",
+                self._polling_task.done() if self._polling_task else "None",
+            )
+            self._polling_task = asyncio.create_task(self._poll_loop(interval))
 
     async def _poll_loop(self, interval: int) -> None:
         """Poll for new events."""
@@ -343,12 +357,26 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     ) as resp,
                 ):
                     if resp.status == 200:
-                        events = await resp.json()
+                        try:
+                            events = await resp.json()
+                        except Exception as json_err:
+                            _LOGGER.debug(
+                                "Failed to decode events JSON payload: %s", json_err
+                            )
+                            events = None
+
                         if isinstance(events, list) and self._callback:
                             for event in events:
                                 if _LOGGER.isEnabledFor(logging.DEBUG):
-                                    _LOGGER.debug("Received event: %s", events)
-                                self._callback(event)
+                                    _LOGGER.debug("Received event: %s", event)
+                                try:
+                                    self._callback(event)
+                                except Exception as cb_err:  # noqa: BLE001
+                                    _LOGGER.error(
+                                        "Error executing incoming event callback: %s",
+                                        cb_err,
+                                        exc_info=True,
+                                    )
                     elif resp.status == 401:
                         _LOGGER.error("Polling failed: Invalid API Key")
                         await asyncio.sleep(10)

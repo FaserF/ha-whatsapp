@@ -195,6 +195,12 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         """
 
         try:
+            # 0. Watchdog: ensure event polling loop is alive
+            polling_interval = (
+                self.entry.options.get(CONF_POLLING_INTERVAL, 5) if self.entry else 5
+            )
+            self.client.ensure_polling(interval=polling_interval)
+
             # 1. Check Addon Health first (Lightweight)
             health = await self.client.get_health()
             status = health.get("status", "unknown")
