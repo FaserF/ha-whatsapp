@@ -1,0 +1,481 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Collega l'integrazione WhatsApp",
+        "data": {
+          "host": "URL host dell'add-on",
+          "api_key": "Token API (dall'interfaccia dell'add-on)"
+        },
+        "description": "Inserisci l'URL dell'add-on WhatsApp.\n\nURL tipici:\n- `http://localhost:8066` (Docker/locale)\n- `http://addon-slug:8066` (add-on di HA)\n\n[Guida all'installazione]({setup_url})"
+      },
+      "scan": {
+        "title": "Scansiona il codice QR",
+        "data": {
+          "request_new_qr": "Richiedi un nuovo codice QR",
+          "use_phone_pairing": "Associa invece con il numero di telefono"
+        },
+        "description": "Scansiona il codice QR qui sotto con l'app WhatsApp sul telefono (Dispositivi collegati).\n\n![Codice QR]({qr_image})\n\n**Dopo aver scansionato il codice, fai clic su Invia.**"
+      },
+      "phone_pairing": {
+        "title": "Associa con il numero di telefono",
+        "data": {
+          "phone_number": "Numero di telefono (con prefisso internazionale, es. 39347...)"
+        },
+        "description": "Inserisci il tuo numero di telefono per richiedere un codice di associazione."
+      },
+      "show_pairing_code": {
+        "title": "Codice di associazione",
+        "description": "Inserisci questo codice di associazione nell'app WhatsApp sul telefono: **{pairing_code}**\n\n**Dopo aver inserito il codice, fai clic su Invia.**"
+      },
+      "hassio_confirm": {
+        "title": "Installa l'add-on ufficiale",
+        "data": {
+          "version": "Versione dell'add-on"
+        },
+        "description": "Vuoi installare l'add-on WhatsApp ufficiale? È il modo consigliato per usare questa integrazione su Home Assistant OS."
+      },
+      "discovery_confirm": {
+        "title": "Conferma rilevamento",
+        "description": "Vuoi configurare la **WhatsApp Homeassistant App (ex Add-on)** rilevata su `{host}`?"
+      },
+      "account_warning": {
+        "title": "Avviso di sicurezza importante",
+        "description": "⚠️ **Evita il ban dell'account WhatsApp**\n\nIl tuo account WhatsApp sembra nuovo o inattivo (nessuna chat o messaggio recente rilevato).\n\n**IMPORTANTE:** Meta è molto severa con gli account nuovi e con i dispositivi collegati. Usare subito un account nuovo per messaggi automatici porterà con ogni probabilità alla sospensione o al ban.\n\n**Consiglio:** non usare questo account nell'integrazione per qualche giorno. Prima scrivi qualche normale messaggio in chat private o di gruppo dall'app WhatsApp sul telefono, per costruire una buona reputazione.\n\nPer maggiori dettagli consulta la [GitHub Issue #59]({issue_url}) e la [documentazione per la risoluzione dei problemi]({docs_url})."
+      },
+      "account_warning_fallback": {
+        "title": "Promemoria di sicurezza",
+        "description": "⚠️ **Evita il ban dell'account WhatsApp**\n\nL'integrazione non è riuscita a verificare l'età o lo storico messaggi del tuo account WhatsApp (elenco chat non pronto o versione dell'add-on obsoleta).\n\n**NOTA:** se si tratta di un account WhatsApp nuovo, non usarlo nell'integrazione per qualche giorno per evitare la sospensione. Prima invia qualche normale messaggio in gruppi o chat private dall'app sul telefono per costruire reputazione. Se usi un account già consolidato, puoi ignorare questo avviso.\n\nPer maggiori dettagli consulta la [GitHub Issue #59]({issue_url}) e la [documentazione per la risoluzione dei problemi]({docs_url})."
+      },
+      "passkey_warning": {
+        "title": "Passkey WhatsApp richiesta",
+        "data": {
+          "continue_with_passkey": "Prova l'opzione 2: approva la passkey sul telefono (sperimentale)"
+        },
+        "description": "## 🔑 Rilevata passkey WhatsApp\n\nDopo la scansione del codice QR, WhatsApp richiede una **verifica con passkey**. È una [limitazione nota]({baileys_issue_url}) della libreria Baileys su cui si basa questo add-on: la procedura con passkey non è ancora implementata del tutto.\n\n---\n\n### ✅ Opzione 1 — Soluzione consigliata\n\n1. Apri **WhatsApp** sul telefono\n2. Vai in **Impostazioni → Account → Passkey**\n3. Tocca **Rimuovi tutte le passkey**\n4. Fai clic su **Invia** (senza spuntare la casella qui sotto): verrai guidato nei passaggi successivi\n\n---\n\n### 🧪 Opzione 2 — Approva la passkey sul telefono (sperimentale)\n\nUn fork della community ([Qiua/Baileys]({qiua_fork_url}) / [PR #2676]({baileys_pr_url})) sta lavorando al supporto nativo delle passkey. Spunta la casella qui sotto per provare questa strada: verrai guidato ad approvare la richiesta di passkey sul telefono.\n\n> ⚠️ **Non è ancora stabile.** La connessione potrebbe andare in timeout o fallire senza avvisi."
+      },
+      "passkey_waiting": {
+        "title": "In attesa dell'approvazione della passkey",
+        "description": "## 🔑 Approva la passkey sul telefono\n\nWhatsApp ha inviato una richiesta di passkey al tuo telefono. Segui questi passaggi:\n\n1. Apri **WhatsApp** sul telefono\n2. Cerca una **richiesta di passkey** o una notifica\n3. Tocca **Approva** / usa biometria o PIN\n4. Attendi: questa schermata avanzerà da sola quando la connessione sarà confermata\n\n> L'integrazione sta verificando l'esito della connessione. Possono servire fino a **2 minuti**.\n> Se non succede nulla, fai clic su **Invia** per controllare lo stato attuale."
+      },
+      "already_connected": {
+        "title": "Sessione esistente trovata",
+        "data": {
+          "action": "Come vuoi procedere?"
+        },
+        "description": "È stata trovata una sessione WhatsApp attiva per **{phone_number}**.\n\nPuoi usare questa sessione oppure disconnetterti per associare un altro telefono."
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi all'add-on WhatsApp. Verifica che l'[add-on WhatsApp]({addon_url}) sia installato e in esecuzione.",
+      "invalid_auth": "Autenticazione non valida",
+      "invalid_api_key_format": "Il token API deve contenere da 8 a 128 caratteri alfanumerici (a-z, A-Z, 0-9, _, -).",
+      "connection_error": "Non connesso a WhatsApp. Scansiona prima il codice QR.",
+      "addon_install_error": "Installazione dell'add-on WhatsApp non riuscita. Controlla i log del Supervisor.",
+      "rate_limit": "Troppe richieste. Attendi 15 minuti e riprova.",
+      "qr_timeout": "La generazione del codice QR è andata in timeout o non è riuscita. Controlla il log dell'add-on, verifica che sia online e fai clic su Invia per riprovare.",
+      "passkey_timeout": "Nessuna approvazione della passkey ricevuta entro 2 minuti. Apri WhatsApp sul telefono, cerca la richiesta di passkey o la notifica, poi fai clic su Invia per riprovare.",
+      "unknown": "Errore imprevisto"
+    },
+    "abort": {
+      "already_configured": "Il dispositivo è già configurato",
+      "already_in_progress": "La configurazione di questo dispositivo è già in corso",
+      "unique_id_conflict": "Questo numero WhatsApp è già configurato. Rimuovi prima la voce esistente.",
+      "connection_error": "Impossibile connettersi all'add-on WhatsApp. Controlla l'URL e verifica che l'add-on sia in esecuzione.",
+      "missing_dependency": "Dipendenza richiesta mancante. Controlla l'installazione dell'add-on.",
+      "invalid_auth": "Chiave API non valida. Controlla il token nell'interfaccia dell'add-on.",
+      "unknown": "Si è verificato un errore imprevisto.",
+      "not_loaded": "Non caricato.",
+      "passkey_remove_required": "Configurazione sospesa. Rimuovi tutte le passkey da WhatsApp (Impostazioni → Account → Passkey → Rimuovi tutte), poi riavvia la configurazione."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni WhatsApp",
+        "data": {
+          "debug_payloads": "Debug dei payload (registra gli eventi in arrivo)",
+          "polling_interval": "Intervallo di polling (secondi)",
+          "mask_sensitive_data": "Maschera i dati sensibili nei log",
+          "mark_as_read": "Segna i messaggi come letti (spunte blu)",
+          "api_key": "Chiave API",
+          "retry_attempts": "Tentativi in caso di errore",
+          "whitelist": "Utenti/gruppi autorizzati (numeri di telefono o ID gruppo separati da virgola; lascia vuoto per nessuna whitelist)",
+          "self_messages": "Elabora i messaggi inviati da te (fallback legacy; è consigliato l'evento message_sent)",
+          "buttons_as_polls": "Emula i pulsanti con i sondaggi (converte send_buttons in sondaggi nativi e genera eventi pulsante al voto)",
+          "reset_session": "Reimposta sessione (disconnetti e cancella i dati)"
+        },
+        "description": "⚠️ ATTENZIONE: 'Reimposta sessione' ti disconnette ed elimina i dati di sessione sull'add-on."
+      }
+    },
+    "error": {
+      "reset_failed": "Reimpostazione della sessione non riuscita. Controlla i log.",
+      "invalid_auth": "Autenticazione non valida",
+      "invalid_api_key_format": "Il token API deve contenere da 8 a 128 caratteri alfanumerici (a-z, A-Z, 0-9, _, -)."
+    }
+  },
+  "services": {
+    "send_message": {
+      "name": "Invia messaggio",
+      "description": "Invia un messaggio di testo a un numero WhatsApp.",
+      "fields": {
+        "message": {
+          "name": "Messaggio",
+          "description": "Il testo da inviare."
+        },
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui inviare."
+        },
+        "account": {
+          "name": "Account",
+          "description": "L'account WhatsApp da usare (istanza del servizio)."
+        },
+        "quote": {
+          "name": "ID messaggio da citare",
+          "description": "L'ID del messaggio da citare o a cui rispondere."
+        },
+        "expiration": {
+          "name": "Scadenza (secondi)",
+          "description": "Tempo dopo il quale il messaggio scompare."
+        }
+      }
+    },
+    "send_document": {
+      "name": "Invia documento",
+      "description": "Invia un documento (PDF, Zip, Doc, ecc.) a un numero WhatsApp.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui inviare."
+        },
+        "url": {
+          "name": "URL",
+          "description": "L'URL del documento da inviare."
+        },
+        "file_name": {
+          "name": "Nome file",
+          "description": "Nome file personalizzato (facoltativo)."
+        },
+        "message": {
+          "name": "Didascalia",
+          "description": "Didascalia di testo del documento (facoltativa)."
+        }
+      }
+    },
+    "send_video": {
+      "name": "Invia video",
+      "description": "Invia un file video a un numero WhatsApp.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui inviare."
+        },
+        "url": {
+          "name": "URL",
+          "description": "L'URL del video da inviare."
+        },
+        "message": {
+          "name": "Didascalia",
+          "description": "Didascalia di testo del video (facoltativa)."
+        }
+      }
+    },
+    "send_audio": {
+      "name": "Invia audio",
+      "description": "Invia un file audio o un messaggio vocale.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui inviare."
+        },
+        "url": {
+          "name": "URL",
+          "description": "L'URL del file audio."
+        },
+        "ptt": {
+          "name": "Messaggio vocale (PTT)",
+          "description": "Invia come messaggio vocale (con forma d'onda) invece che come file audio."
+        },
+        "account": {
+          "name": "Account",
+          "description": "L'account WhatsApp da usare (istanza del servizio)."
+        }
+      }
+    },
+    "revoke_message": {
+      "name": "Elimina messaggio",
+      "description": "Elimina per tutti un messaggio inviato.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui è stato inviato il messaggio."
+        },
+        "message_id": {
+          "name": "ID messaggio",
+          "description": "L'ID del messaggio da eliminare."
+        }
+      }
+    },
+    "edit_message": {
+      "name": "Modifica messaggio",
+      "description": "Modifica il testo di un messaggio inviato.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo a cui è stato inviato il messaggio."
+        },
+        "message_id": {
+          "name": "ID messaggio",
+          "description": "L'ID del messaggio da modificare."
+        },
+        "message": {
+          "name": "Nuovo testo",
+          "description": "Il nuovo testo del messaggio."
+        }
+      }
+    },
+    "send_list": {
+      "name": "Invia messaggio con elenco",
+      "description": "Invia un elenco interattivo (menu di azioni).",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo."
+        },
+        "title": {
+          "name": "Titolo",
+          "description": "Il titolo del menu."
+        },
+        "text": {
+          "name": "Testo principale",
+          "description": "Il corpo del messaggio."
+        },
+        "button_text": {
+          "name": "Etichetta pulsante",
+          "description": "Testo del pulsante del menu (es. Menu)."
+        },
+        "sections": {
+          "name": "Sezioni (JSON)",
+          "description": "Le sezioni e le righe (elenco JSON)."
+        }
+      }
+    },
+    "send_contact": {
+      "name": "Invia contatto",
+      "description": "Invia una scheda contatto (VCard).",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono o l'ID gruppo."
+        },
+        "name": {
+          "name": "Nome visualizzato",
+          "description": "Il nome del contatto."
+        },
+        "contact_number": {
+          "name": "Numero del contatto",
+          "description": "Il numero di telefono del contatto."
+        }
+      }
+    },
+    "configure_webhook": {
+      "name": "Configura webhook",
+      "description": "Imposta l'URL del webhook a cui l'add-on invia gli eventi.",
+      "fields": {
+        "url": {
+          "name": "URL webhook",
+          "description": "L'URL a cui inviare gli eventi."
+        },
+        "enabled": {
+          "name": "Abilitato",
+          "description": "Abilita o disabilita il webhook."
+        },
+        "token": {
+          "name": "Token",
+          "description": "Token di sicurezza (facoltativo)."
+        }
+      }
+    },
+    "send_reaction": {
+      "name": "Invia reazione",
+      "description": "Reagisce a un messaggio con un'emoji.",
+      "fields": {
+        "reaction": {
+          "name": "Reazione",
+          "description": "L'emoji con cui reagire."
+        },
+        "target": {
+          "name": "Numero destinatario",
+          "description": "Il numero di telefono della chat."
+        },
+        "message_id": {
+          "name": "ID messaggio",
+          "description": "L'ID del messaggio a cui reagire."
+        }
+      }
+    },
+    "update_presence": {
+      "name": "Aggiorna presenza",
+      "description": "Aggiorna il tuo stato di presenza (es. sta scrivendo).",
+      "fields": {
+        "presence": {
+          "name": "Presenza",
+          "description": "Uno tra: available, unavailable, composing, recording, paused."
+        },
+        "target": {
+          "name": "Numero destinatario",
+          "description": "La chat per cui aggiornare la presenza."
+        }
+      }
+    },
+    "send_buttons": {
+      "name": "Invia pulsanti",
+      "description": "Invia un messaggio con pulsanti interattivi.",
+      "fields": {
+        "target": {
+          "name": "Numero destinatario",
+          "description": "La chat a cui inviare."
+        },
+        "message": {
+          "name": "Messaggio",
+          "description": "Il testo principale."
+        },
+        "buttons": {
+          "name": "Pulsanti",
+          "description": "Elenco di pulsanti definiti come oggetti con id e displayText."
+        },
+        "footer": {
+          "name": "Piè di pagina",
+          "description": "Testo a piè di pagina (facoltativo)."
+        }
+      }
+    },
+    "send_event": {
+      "name": "Invia evento",
+      "description": "Invia un messaggio interattivo di evento di gruppo WhatsApp.",
+      "fields": {
+        "account": {
+          "name": "Account",
+          "description": "L'account WhatsApp da usare."
+        },
+        "target": {
+          "name": "Numero destinatario / ID gruppo",
+          "description": "Il numero di telefono o l'ID gruppo."
+        },
+        "name": {
+          "name": "Nome evento",
+          "description": "Il titolo o nome dell'evento."
+        },
+        "description": {
+          "name": "Descrizione",
+          "description": "Dettagli aggiuntivi o descrizione dell'evento."
+        },
+        "date": {
+          "name": "Data e ora",
+          "description": "Data e ora di inizio dell'evento (formato ISO)."
+        },
+        "location": {
+          "name": "Luogo",
+          "description": "Nome del luogo o indirizzo."
+        },
+        "join_link": {
+          "name": "Link di partecipazione",
+          "description": "Link facoltativo a una videochiamata o chiamata vocale."
+        },
+        "is_canceled": {
+          "name": "Annullato",
+          "description": "Imposta su true se l'evento è stato annullato."
+        },
+        "expiration": {
+          "name": "Scadenza (secondi)",
+          "description": "Tempo dopo il quale il messaggio scompare."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sent": {
+        "name": "Messaggi inviati"
+      },
+      "received": {
+        "name": "Messaggi ricevuti"
+      },
+      "failed": {
+        "name": "Messaggi non riusciti"
+      },
+      "version": {
+        "name": "Versione WhatsApp"
+      },
+      "phone_number": {
+        "name": "Numero di telefono"
+      },
+      "chats": {
+        "name": "Chat"
+      },
+      "moderation_warnings": {
+        "name": "Avvisi di moderazione attivi"
+      },
+      "moderation_raid_status": {
+        "name": "Stato protezione anti-raid"
+      },
+      "pending_captchas": {
+        "name": "Verifiche captcha in sospeso"
+      }
+    },
+    "switch": {
+      "moderation_master": {
+        "name": "Motore di moderazione"
+      },
+      "telegram_bridge_master": {
+        "name": "Bridge Telegram"
+      },
+      "auto_responder": {
+        "name": "Risposta automatica"
+      }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connessione"
+      },
+      "moderation_status": {
+        "name": "Motore di moderazione WhatsApp"
+      },
+      "telegram_bridge_status": {
+        "name": "Stato bridge Telegram"
+      }
+    },
+    "button": {
+      "diagnostic_test": {
+        "name": "Test diagnostico"
+      },
+      "reconnect": {
+        "name": "Riavvia sessione WhatsApp"
+      }
+    },
+    "notify": {
+      "whatsapp": {
+        "name": "Integrazione WhatsApp"
+      }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Connessione all'add-on WhatsApp non riuscita",
+      "description": "L'integrazione non riesce a raggiungere l'add-on WhatsApp all'URL configurato. Verifica che l'add-on sia in esecuzione e che l'URL sia corretto.\n\nErrore: {error}"
+    },
+    "session_expired": {
+      "title": "Sessione WhatsApp scaduta",
+      "description": "La tua sessione WhatsApp non è più attiva o è stata chiusa dal telefono. Associa di nuovo il dispositivo dall'interfaccia web dell'add-on."
+    },
+    "connection_error_baileys": {
+      "title": "Connessione WhatsApp interrotta",
+      "description": "L'add-on WhatsApp ha problemi di connessione (probabilmente un bug noto della libreria Baileys). L'add-on sta riprovando in automatico. Non serve alcun intervento: il problema si risolverà da solo quando la connessione sarà ristabilita."
+    },
+    "passkey_required": {
+      "title": "Passkey WhatsApp richiesta — intervento necessario",
+      "description": "Dopo la scansione del QR, WhatsApp richiede una **verifica con passkey**. È una [limitazione nota]({baileys_issue_url}) della libreria Baileys. L'associazione non può essere completata finché il problema non viene risolto.\n\n**Soluzione:** apri WhatsApp sul telefono → **Impostazioni → Account → Passkey → Rimuovi tutte le passkey**. Poi riavvia la sessione dalla dashboard dell'add-on o ripeti la configurazione dell'integrazione."
+    }
+  }
+}
