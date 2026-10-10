@@ -411,14 +411,14 @@ async def test_send_contact_camelcase_payload(api_client: WhatsAppApiClient) -> 
         payload = kwargs["json"]
         # Addon expects camelCase — snake_case would cause "Missing parameters" 400
         assert "contactName" in payload, "contactName key missing (camelCase required)"
-        assert "contactNumber" in payload, (
-            "contactNumber key missing (camelCase required)"
-        )
-        assert "contact_name" not in payload, (
-            "contact_name must NOT be sent (snake_case rejected by addon)"
-        )
-        assert "contact_number" not in payload, (
-            "contact_number must NOT be sent (snake_case rejected by addon)"
-        )
+        assert (
+            "contactNumber" in payload
+        ), "contactNumber key missing (camelCase required)"
+        assert (
+            "contact_name" not in payload
+        ), "contact_name must NOT be sent (snake_case rejected by addon)"
+        assert (
+            "contact_number" not in payload
+        ), "contact_number must NOT be sent (snake_case rejected by addon)"
         assert payload["contactName"] == "John Doe"
         assert payload["contactNumber"] == "4915123456789"
