@@ -102,6 +102,7 @@ class Platform:
     BUTTON = "button"
     NOTIFY = "notify"
     SENSOR = "sensor"
+    SWITCH = "switch"
 
 
 class EntityCategory:
@@ -141,6 +142,9 @@ class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-t
                     from ha_stubs import mock_add_entities
 
                     mock_add_entities(self.hass, [entity])
+
+    async def async_request_refresh(self) -> None:
+        await self.async_refresh()
         for listener in list(self._listeners):
             listener()
 
@@ -160,6 +164,10 @@ class CoordinatorEntity(_CoordinatorEntityBase):  # type: ignore[valid-type, mis
         self.hass: Any = None
         self.entity_id: str | None = None
         coordinator.async_add_listener(self.async_write_ha_state)
+
+    @property
+    def unique_id(self) -> str | None:
+        return getattr(self, "_attr_unique_id", None)
 
     def __class_getitem__(cls, _: Any) -> Any:
         return cls
@@ -463,6 +471,7 @@ def _build_ha_stub_modules() -> None:
         boolean=bool,
         match_all=lambda x: x,
         positive_int=int,
+        config_entry_only_config_schema=lambda *args, **kwargs: MagicMock(),
     )
 
     # homeassistant.helpers.entity_registry
@@ -560,6 +569,9 @@ def _build_ha_stub_modules() -> None:
     vol_mod.Length = lambda **x: x
     vol_mod.Coerce = lambda x: x
 
+    # probatio
+    sys.modules["probatio"] = vol_mod
+
     # Finalize parents
     ha = _stub("homeassistant")
     ha.core = sys.modules["homeassistant.core"]
@@ -585,7 +597,7 @@ def _build_ha_stub_modules() -> None:
     components.notify = sys.modules["homeassistant.components.notify"]
     components.hassio = sys.modules["homeassistant.components.hassio"]
 
-    # components.binary_sensor / sensor
+    # components.binary_sensor / sensor / button / switch
     _stub(
         "homeassistant.components.binary_sensor",
         BinarySensorDeviceClass=MagicMock(),
@@ -596,6 +608,14 @@ def _build_ha_stub_modules() -> None:
         SensorDeviceClass=MagicMock(),
         SensorEntity=object,
         SensorStateClass=MagicMock(),
+    )
+    _stub(
+        "homeassistant.components.button",
+        ButtonEntity=object,
+    )
+    _stub(
+        "homeassistant.components.switch",
+        SwitchEntity=object,
     )
 
     # components.diagnostics
@@ -613,6 +633,7 @@ def _build_ha_stub_modules() -> None:
         "homeassistant.components.repairs",
         RepairsFlow=RepairsFlow,
         ConfirmRepairFlow=ConfirmRepairFlow,
+        RepairsFlowResult=object,
     )
     components.repairs = repairs_mod
 
