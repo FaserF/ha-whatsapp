@@ -15,6 +15,7 @@ The coordinator is responsible for:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -45,6 +46,7 @@ from .const import CONF_POLLING_INTERVAL, DOMAIN
 from .helpers import (
     async_sync_moderation_entities,
     async_sync_telegram_bridge_entities,
+    is_connection_or_dns_error,
 )
 from .helpers import (
     safe_text as _safe_text,
@@ -88,23 +90,40 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         self._unreachable_count: int = 0
 
         polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 30)
+        self._normal_interval: timedelta = timedelta(seconds=polling_interval)
         super().__init__(
             hass,
             _LOGGER,
             config_entry=entry,
             name=DOMAIN,
-            update_interval=timedelta(seconds=polling_interval),
+            update_interval=self._normal_interval,
         )
 
     def _handle_unreachable(self, err_or_details: Any) -> dict[str, Any]:
         """Handle unreachable addon state gracefully during updates or restarts."""
         previous_data = self.data or {}
-        prev_stats = previous_data.get("stats", {})
-        prev_health = previous_data.get("health", {})
+        prev_stats = (
+            previous_data.get("stats", {}) if isinstance(previous_data, dict) else {}
+        )
+        prev_health = (
+            previous_data.get("health", {}) if isinstance(previous_data, dict) else {}
+        )
         last_reason = str(prev_stats.get("last_disconnect_reason", "")).lower()
         health_status = str(prev_health.get("status", "")).lower()
 
         self._unreachable_count = getattr(self, "_unreachable_count", 0) + 1
+        self._connected = False
+
+        # Exponential backoff for coordinator polling interval when unreachable:
+        # 5s, 10s, 20s, 40s, 80s, 160s, capped at max 300s
+        backoff_sec = min(5 * (2 ** min(self._unreachable_count - 1, 6)), 300)
+        self.update_interval = timedelta(seconds=backoff_sec)
+        _LOGGER.debug(
+            "Addon unreachable (count=%d). Backing off polling interval to %ss: %s",
+            self._unreachable_count,
+            backoff_sec,
+            err_or_details,
+        )
 
         is_shutting_down = (
             bool(prev_stats.get("shutting_down", False))
@@ -205,6 +224,30 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
             health = await self.client.get_health()
             status = health.get("status", "unknown")
             details = health.get("details", "")
+
+            # If health check reports unreachable due to transient DNS/connection errors
+            # (e.g. boot race or container startup), retry with exponential backoff.
+            if status == "unreachable" and is_connection_or_dns_error(details):
+                max_health_retries = 4
+                retry_delay = 1
+                for attempt in range(max_health_retries):
+                    wait_time = min(retry_delay * (2**attempt), 16)
+                    _LOGGER.info(
+                        "WhatsApp gateway not reachable during health check (%s). "
+                        "Retrying in %ss (attempt %d/%d)...",
+                        details,
+                        wait_time,
+                        attempt + 1,
+                        max_health_retries,
+                    )
+                    await asyncio.sleep(wait_time)
+                    health = await self.client.get_health()
+                    status = health.get("status", "unknown")
+                    details = health.get("details", "")
+                    if status != "unreachable" or not is_connection_or_dns_error(
+                        details
+                    ):
+                        break
 
             # If addon is unreachable, handle gracefully (e.g. during addon updates)
             if status == "unreachable":
@@ -327,6 +370,8 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
 
             # Reset unreachable counter and delete issue on success
             self._unreachable_count = 0
+            if hasattr(self, "_normal_interval"):
+                self.update_interval = self._normal_interval
             ir.async_delete_issue(self.hass, DOMAIN, "connection_failed")
 
             # Dynamically update device registry sw_version with live version

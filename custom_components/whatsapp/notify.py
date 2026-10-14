@@ -144,7 +144,7 @@ class WhatsAppNotificationEntity(
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return bool(self.coordinator.data.get("connected", False))
+        return bool((self.coordinator.data or {}).get("connected", False))
 
     async def async_send_message(  # type: ignore[override]
         self,
