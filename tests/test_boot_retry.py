@@ -298,7 +298,9 @@ async def test_coordinator_health_retry_exhausted_raises(hass: HomeAssistant) ->
     coordinator.data = None
 
     with (
-        patch("homeassistant.helpers.issue_registry.async_create_issue") as mock_create_issue,
+        patch(
+            "homeassistant.helpers.issue_registry.async_create_issue"
+        ) as mock_create_issue,
         patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
         pytest.raises(UpdateFailed),
     ):
