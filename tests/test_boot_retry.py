@@ -211,7 +211,10 @@ async def test_entity_availability_transition(hass: HomeAssistant) -> None:
 
     # 2. Addon goes down and grace period expires -> UpdateFailed
     coordinator._unreachable_count = 5
-    with pytest.raises(UpdateFailed):
+    with (
+        patch("homeassistant.helpers.issue_registry.async_create_issue"),
+        pytest.raises(UpdateFailed),
+    ):
         coordinator._handle_unreachable(
             "Cannot connect to host core-whatsapp:8066 [Timeout while contacting DNS servers]"
         )
@@ -272,6 +275,9 @@ async def test_start_session_exponential_backoff_retry(hass: HomeAssistant) -> N
 @pytest.mark.asyncio
 async def test_coordinator_health_retry_exhausted_raises(hass: HomeAssistant) -> None:
     """Test that exhausting health check retries raises UpdateFailed."""
+    if hasattr(hass, "loop") and hasattr(hass.loop, "time"):
+        hass.loop.time.return_value = 0.0
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_URL: "http://core-whatsapp:8066", CONF_API_KEY: "secret"},
@@ -292,6 +298,7 @@ async def test_coordinator_health_retry_exhausted_raises(hass: HomeAssistant) ->
     coordinator.data = None
 
     with (
+        patch("homeassistant.helpers.issue_registry.async_create_issue") as mock_create_issue,
         patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
         pytest.raises(UpdateFailed),
     ):
@@ -300,11 +307,15 @@ async def test_coordinator_health_retry_exhausted_raises(hass: HomeAssistant) ->
     # 1 initial + 4 retries = 5 calls
     assert mock_client.get_health.call_count == 5
     assert mock_sleep.call_count == 4
+    mock_create_issue.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_setup_entry_retry_exhausted_raises(hass: HomeAssistant) -> None:
     """Test that async_setup_entry raises when all setup retries are exhausted."""
+    if hasattr(hass, "loop") and hasattr(hass.loop, "time"):
+        hass.loop.time.return_value = 0.0
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_URL: "http://core-whatsapp:8066", CONF_API_KEY: "secret"},
@@ -322,6 +333,7 @@ async def test_setup_entry_retry_exhausted_raises(hass: HomeAssistant) -> None:
         )
 
         with (
+            patch("homeassistant.helpers.issue_registry.async_create_issue"),
             patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
             pytest.raises(Exception),
         ):
