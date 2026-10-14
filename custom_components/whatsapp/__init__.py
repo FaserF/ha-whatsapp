@@ -25,7 +25,11 @@ from logging import getLogger
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse

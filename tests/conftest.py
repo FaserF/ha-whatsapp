@@ -90,6 +90,7 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
 def _ensure_sockets() -> None:
     import socket
 
+    pytest_socket = None
     try:
         import pytest_socket
 
@@ -110,7 +111,7 @@ def _ensure_sockets() -> None:
     # On Windows, socket.socketpair uses fallback sockets.
     # We patch socket.socketpair to temporarily use _true_socket if available.
     orig_socketpair = getattr(socket, "socketpair", None)
-    if orig_socketpair and hasattr(pytest_socket, "_true_socket"):
+    if orig_socketpair and pytest_socket and hasattr(pytest_socket, "_true_socket"):
 
         def _safe_socketpair(*args: Any, **kwargs: Any) -> Any:
             old_sock = socket.socket

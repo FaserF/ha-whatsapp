@@ -19,9 +19,15 @@ All other unknown issues fall back to a generic :class:`ConfirmRepairFlow`.
 
 from __future__ import annotations
 
-import voluptuous as vol
-from homeassistant import data_entry_flow
-from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
+from homeassistant.components.repairs import (
+    ConfirmRepairFlow,
+    RepairsFlow,
+    RepairsFlowResult,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
@@ -42,7 +48,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
 
     async def async_step_init(
         self, _user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Entry point for the repair flow, forwards to the confirmation step.
 
         Args:
@@ -56,7 +62,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Show a confirmation form and complete the flow when the user confirms.
 
         Args:

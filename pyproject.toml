@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "custom_components"}]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.16"
 # Add actual dependencies here
 
 [tool.poetry.group.dev.dependencies]
@@ -35,7 +35,7 @@ ignore = ["E501", "B008", "SIM102", "SIM105", "SIM117", "E402", "B017", "B904", 
 
 [tool.mypy]
 explicit_package_bases = true
-python_version = "3.14"
+python_version = "3.15"
 strict = true
 ignore_missing_imports = true
 warn_unused_ignores = false

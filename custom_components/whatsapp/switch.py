@@ -33,8 +33,8 @@ async def async_setup_entry(
 
 
 class WhatsAppModerationMasterSwitch(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
-    SwitchEntity,
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SwitchEntity,  # type: ignore[misc]
 ):
     """Switch entity to control global WhatsApp Moderation Engine state."""
 
@@ -69,8 +69,8 @@ class WhatsAppModerationMasterSwitch(
 
 
 class WhatsAppTelegramBridgeMasterSwitch(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
-    SwitchEntity,
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SwitchEntity,  # type: ignore[misc]
 ):
     """Switch entity to control global WhatsApp-Telegram Bridge state."""
 
@@ -105,8 +105,8 @@ class WhatsAppTelegramBridgeMasterSwitch(
 
 
 class WhatsAppAutoResponderSwitch(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],
-    SwitchEntity,
+    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
+    SwitchEntity,  # type: ignore[misc]
 ):
     """Switch entity to control WhatsApp Auto Responder (Away / Vacation) state."""
 
