@@ -36,7 +36,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .helpers import normalize_media_url
+from .helpers import is_connection_or_dns_error, normalize_media_url
 from .helpers import safe_text as _safe_text
 
 _LOGGER = logging.getLogger(__name__)
@@ -394,33 +394,51 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/session/start"
         params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
-            try:
-                # We just fire and forget, or wait for 200 OK
-                async with session.post(
-                    url,
-                    headers=headers,
-                    params=params,
-                    timeout=aiohttp.ClientTimeout(total=20),
-                ) as resp:
-                    if resp.status == 401:
-                        raise HomeAssistantError("Invalid API Key")
-                    if resp.status != 200:
-                        body_text = await resp.text()
-                        _LOGGER.error(
-                            "Start session failed for session %s (HTTP %s): %s",
+        max_attempts = 4
+        retry_delay = 1
+        for attempt in range(max_attempts):
+            async with aiohttp.ClientSession() as session:
+                try:
+                    # We just fire and forget, or wait for 200 OK
+                    async with session.post(
+                        url,
+                        headers=headers,
+                        params=params,
+                        timeout=aiohttp.ClientTimeout(total=20),
+                    ) as resp:
+                        if resp.status == 401:
+                            raise HomeAssistantError("Invalid API Key")
+                        if resp.status != 200:
+                            body_text = await resp.text()
+                            _LOGGER.error(
+                                "Start session failed for session %s (HTTP %s): %s",
+                                self.session_id,
+                                resp.status,
+                                body_text,
+                            )
+                            raise HomeAssistantError(
+                                f"Start session failed (HTTP {resp.status}): {body_text}"
+                            )
+                        return
+                except HomeAssistantError:
+                    raise
+                except Exception as e:
+                    if attempt < max_attempts - 1 and is_connection_or_dns_error(e):
+                        wait_time = min(retry_delay * (2**attempt), 16)
+                        _LOGGER.warning(
+                            "Failed to start session %s (%s). Retrying in %ss (attempt %d/%d)...",
                             self.session_id,
-                            resp.status,
-                            body_text,
+                            e,
+                            wait_time,
+                            attempt + 1,
+                            max_attempts,
                         )
-                        raise HomeAssistantError(
-                            f"Start session failed (HTTP {resp.status}): {body_text}"
+                        await asyncio.sleep(wait_time)
+                    else:
+                        _LOGGER.error(
+                            "Failed to start session %s: %s", self.session_id, e
                         )
-            except HomeAssistantError:
-                raise
-            except Exception as e:
-                _LOGGER.error("Failed to start session %s: %s", self.session_id, e)
-                raise HomeAssistantError(f"Failed to start session: {e}") from e
+                        raise HomeAssistantError(f"Failed to start session: {e}") from e
 
     async def delete_session(self) -> None:
         """Delete the session (Logout/Reset)."""

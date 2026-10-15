@@ -21,6 +21,7 @@ is responsible for:
 
 from __future__ import annotations
 
+import asyncio
 from logging import getLogger
 from typing import Any
 
@@ -35,6 +36,17 @@ from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import ServiceValidationError
 
+try:
+    from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+except ImportError:
+
+    class ConfigEntryAuthFailed(Exception):  # type: ignore[no-redef] # noqa: N818
+        pass
+
+    class ConfigEntryNotReady(Exception):  # type: ignore[no-redef] # noqa: N818
+        pass
+
+
 from .api import WhatsAppApiClient
 from .const import (
     CONF_API_KEY,
@@ -48,6 +60,7 @@ from .const import (
     EVENT_MESSAGE_SENT,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .helpers import is_connection_or_dns_error
 
 _LOGGER = getLogger(__name__)
 
@@ -255,7 +268,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
     }
 
-    await coordinator.async_config_entry_first_refresh()
+    # Retry initial coordinator refresh with exponential backoff on DNS/connection/timeout errors
+    # to avoid failing immediately or permanently giving up after fast DNS resolver attempts.
+    max_setup_retries = 4
+    setup_retry_delay = 1
+    for attempt in range(max_setup_retries):
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            break
+        except Exception as err:
+            if isinstance(err, ConfigEntryAuthFailed):
+                raise
+            if attempt < max_setup_retries - 1 and is_connection_or_dns_error(err):
+                wait_time = min(setup_retry_delay * (2**attempt), 16)
+                _LOGGER.warning(
+                    "Initial connection to WhatsApp gateway failed (%s). "
+                    "Retrying in %ss (attempt %d/%d)...",
+                    err,
+                    wait_time,
+                    attempt + 1,
+                    max_setup_retries,
+                )
+                await asyncio.sleep(wait_time)
+            else:
+                _LOGGER.error(
+                    "Failed to connect to WhatsApp gateway on startup after %d attempts: %s",
+                    attempt + 1,
+                    err,
+                )
+                raise
 
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:

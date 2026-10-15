@@ -198,3 +198,33 @@ def normalize_media_url(url: str, ha_base_url: str | None = None) -> str:
     if url.startswith("/") and ha_base_url:
         return f"{ha_base_url.rstrip('/')}{url}"
     return url
+
+
+def is_connection_or_dns_error(err: Any) -> bool:
+    """Return True if an error represents a transient DNS, network, or timeout failure."""
+    if isinstance(err, (TimeoutError, OSError)):
+        return True
+    try:
+        import aiohttp
+
+        if isinstance(err, aiohttp.ClientError):
+            return True
+    except ImportError:
+        pass
+    err_str = str(err).lower()
+    return any(
+        kw in err_str
+        for kw in (
+            "dns",
+            "cannot connect",
+            "connection refused",
+            "connection reset",
+            "timeout",
+            "timed out",
+            "unreachable",
+            "name or service not known",
+            "temporary failure in name resolution",
+            "host is unreachable",
+            "network is unreachable",
+        )
+    )

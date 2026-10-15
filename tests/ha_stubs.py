@@ -32,7 +32,12 @@ def _get_or_create_class(name: str, base: type = object) -> type:
         cls.__name__ = name
         # Determine module name
         mod_prefix = "homeassistant"
-        if name in ["HomeAssistantError", "ServiceValidationError"]:
+        if name in [
+            "HomeAssistantError",
+            "ServiceValidationError",
+            "ConfigEntryAuthFailed",
+            "ConfigEntryNotReady",
+        ]:
             mod_prefix = "homeassistant.exceptions"
         elif name in ["DataUpdateCoordinator", "CoordinatorEntity"]:
             mod_prefix = "homeassistant.helpers.update_coordinator"
@@ -50,6 +55,10 @@ HomeAssistantError = _get_or_create_class("HomeAssistantError", Exception)
 ServiceValidationError = _get_or_create_class(
     "ServiceValidationError", HomeAssistantError
 )
+ConfigEntryAuthFailed = _get_or_create_class(
+    "ConfigEntryAuthFailed", HomeAssistantError
+)
+ConfigEntryNotReady = _get_or_create_class("ConfigEntryNotReady", HomeAssistantError)
 
 
 # Core
@@ -168,6 +177,10 @@ class CoordinatorEntity(_CoordinatorEntityBase):  # type: ignore[valid-type, mis
     @property
     def unique_id(self) -> str | None:
         return getattr(self, "_attr_unique_id", None)
+
+    @property
+    def available(self) -> bool:
+        return getattr(self.coordinator, "last_update_success", True)
 
     def __class_getitem__(cls, _: Any) -> Any:
         return cls
@@ -431,6 +444,8 @@ def _build_ha_stub_modules() -> None:
         "homeassistant.exceptions",
         HomeAssistantError=HomeAssistantError,
         ServiceValidationError=ServiceValidationError,
+        ConfigEntryAuthFailed=ConfigEntryAuthFailed,
+        ConfigEntryNotReady=ConfigEntryNotReady,
     )
 
     # homeassistant.core
