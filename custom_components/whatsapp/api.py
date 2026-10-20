@@ -208,13 +208,13 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             # Remove formatting from local part only, except hyphen for g.us group IDs?
             # Actually, standard JIDs don't have spaces/parens. The issue says "before constructing @s.whatsapp.net".
             # If it already has @, maybe we just strip spaces, parens, and + but KEEP hyphens.
-            clean_target = re.sub(r'[\s\(\)\+]', '', target)
+            clean_target = re.sub(r"[\s\(\)\+]", "", target)
             return clean_target
 
         # Clean all non-digit characters, except hyphen for group IDs
         # We handle + and parens by just extracting digits and hyphens
         # But wait, group IDs have one hyphen. Let's just remove specific formatting chars first.
-        clean_target = re.sub(r'[\s\(\)\+]', '', target)
+        clean_target = re.sub(r"[\s\(\)\+]", "", target)
 
         # If it contains exactly one hyphen and both parts are numeric,
         # it's likely an old-style group ID (creator-timestamp)
@@ -2279,7 +2279,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status == 404:
-                raise HomeAssistantError(f"Target chat {target} does not exist.")
+                raise HomeAssistantError("Failed to create group: endpoint not found")
             if resp.status == 200:
                 return cast(dict[str, Any], await resp.json())
             text = await resp.text()
@@ -2305,7 +2305,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status == 404:
-                raise HomeAssistantError(f"Target chat {target} does not exist.")
+                raise HomeAssistantError(f"Target chat {jid} does not exist.")
             if resp.status == 200:
                 return cast(dict[str, Any], await resp.json())
             text = await resp.text()
