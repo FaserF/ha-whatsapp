@@ -540,24 +540,40 @@ data:
 
 ### `whatsapp.clear_chat`
 
-Clears all messages in a chat history.
+Clears all messages in a chat history, effectively emptying the conversation while keeping the chat itself listed in your chat list.
+
+**Fields**:
+- **account** (Optional): Specify the account to use if you have multiple accounts configured.
+- **target**: The phone number or Group JID to clear.
+  - Examples: `"491701234567"`, `"+49 170 1234567"`, `"120363012345678901@g.us"`
 
 ```yaml
 service: whatsapp.clear_chat
 data:
   account: "..."
-  target: "..."
+  target: "491701234567"
 ```
 
 ### `whatsapp.delete_chat`
 
-Deletes a chat from WhatsApp.
+Deletes a chat entirely from WhatsApp. The conversation will be removed from your chat list.
+
+**Fields**:
+- **account** (Optional): Specify the account to use if you have multiple accounts configured.
+- **target**: The phone number or Group JID to delete.
+  - Examples: `"491701234567"`, `"+49 170 1234567"`, `"120363012345678901@g.us"`
+
+**Example Automation**: Periodic cleanup of test or alert chats to prevent ban risk.
 
 ```yaml
-service: whatsapp.delete_chat
-data:
-  account: "..."
-  target: "..."
+alias: "WhatsApp: Cleanup Test Chat"
+trigger:
+  - platform: time
+    at: "03:00:00"
+action:
+  - service: whatsapp.delete_chat
+    data:
+      target: "491701234567"
 ```
 
 ### `whatsapp.get_chat_messages`
@@ -577,7 +593,9 @@ data:
 
 ### `whatsapp.get_contacts`
 
-Retrieves the list of contacts cached from your paired phone. Returns response data with contact details (id/JID, name from phonebook, notify/pushName, verified_name). Note: 'notify' is populated when contacts send a message, 'verified_name' is for Business accounts only.
+Retrieves the list of contacts cached from your paired phone. Returns response data with contact details (id/JID, name from phonebook, notify/pushName, verified_name). Note: 'notify' is populated when contacts send a message, 'verified_name' is for Business accounts only. 
+
+**Managing Contacts**: This service pulls contacts synchronized directly from the phonebook on your paired device. If you wish to manage contacts, you should add or edit them within the contacts app on the actual paired phone. The changes will eventually sync and reflect in the output of `whatsapp.get_contacts`.
 
 ```yaml
 service: whatsapp.get_contacts

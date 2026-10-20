@@ -200,17 +200,31 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
         # If it already has an @, assume it's a full JID (e.g. standard, group, or lid)
         if "@" in target:
-            return target.replace("+", "") if target.startswith("+") else target
+            # Clean leading +, spaces, parens, but wait - JIDs shouldn't have formatting.
+            # If the user passed something like "+49 151 12345678@s.whatsapp.net", we should clean it.
+            # But "12345-6789@g.us" shouldn't have its hyphen removed!
+            # Let's extract the domain and local part.
+            local_part, domain = target.rsplit("@", 1)
+            # Remove formatting from local part only, except hyphen for g.us group IDs?
+            # Actually, standard JIDs don't have spaces/parens. The issue says "before constructing @s.whatsapp.net".
+            # If it already has @, maybe we just strip spaces, parens, and + but KEEP hyphens.
+            clean_target = re.sub(r"[\s\(\)\+]", "", target)
+            return clean_target
+
+        # Clean all non-digit characters, except hyphen for group IDs
+        # We handle + and parens by just extracting digits and hyphens
+        # But wait, group IDs have one hyphen. Let's just remove specific formatting chars first.
+        clean_target = re.sub(r"[\s\(\)\+]", "", target)
 
         # If it contains exactly one hyphen and both parts are numeric,
         # it's likely an old-style group ID (creator-timestamp)
-        if "-" in target:
-            parts = target.split("-")
+        if "-" in clean_target:
+            parts = clean_target.split("-")
             if len(parts) == 2 and all(p.isdigit() for p in parts):
-                return f"{target}@g.us"
+                return f"{clean_target}@g.us"
 
         # Clean all non-digit characters for further analysis
-        clean_number = "".join(filter(str.isdigit, target))
+        clean_number = "".join(filter(str.isdigit, clean_target))
 
         # Handle European national trunk zero e.g. 490176... -> 49176...
         clean_number = re.sub(
@@ -2264,6 +2278,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ):
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
+            if resp.status == 404:
+                raise HomeAssistantError("Failed to create group: endpoint not found")
             if resp.status == 200:
                 return cast(dict[str, Any], await resp.json())
             text = await resp.text()
@@ -2288,6 +2304,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         ):
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
+            if resp.status == 404:
+                raise HomeAssistantError(f"Target chat {jid} does not exist.")
             if resp.status == 200:
                 return cast(dict[str, Any], await resp.json())
             text = await resp.text()
@@ -3141,6 +3159,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp,
         ):
+            if resp.status == 404:
+                raise HomeAssistantError(f"Target chat {target} does not exist.")
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status == 200:
@@ -3165,6 +3185,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp,
         ):
+            if resp.status == 404:
+                raise HomeAssistantError(f"Target chat {target} does not exist.")
             if resp.status == 401:
                 raise HomeAssistantError("Invalid API Key")
             if resp.status == 200:

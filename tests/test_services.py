@@ -55,6 +55,8 @@ async def test_services(hass: HomeAssistant) -> None:
         mock_instance.check_number = AsyncMock(
             return_value={"number": "12345", "exists": True, "in_contacts": True}
         )
+        mock_instance.clear_chat = AsyncMock(return_value={})
+        mock_instance.delete_chat = AsyncMock(return_value={})
 
         # Setup
         await hass.config_entries.async_setup(entry.entry_id)
@@ -335,3 +337,21 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.check_number.assert_awaited_with("12345")
+
+        # 18. Test clear_chat
+        await hass.services.async_call(
+            DOMAIN,
+            "clear_chat",
+            {"target": "+49 (0)151 12345678"},
+            blocking=True,
+        )
+        mock_instance.clear_chat.assert_awaited_with("+49 (0)151 12345678")
+
+        # 19. Test delete_chat
+        await hass.services.async_call(
+            DOMAIN,
+            "delete_chat",
+            {"target": "12345-6789"},
+            blocking=True,
+        )
+        mock_instance.delete_chat.assert_awaited_with("12345-6789")
