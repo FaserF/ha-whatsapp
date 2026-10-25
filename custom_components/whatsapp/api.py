@@ -82,6 +82,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         session_id: str = "default",
         mask_sensitive_data: bool = False,
         whitelist: list[str] | None = None,
+        recipient_aliases: dict[str, str] | None = None,
         config_url: str | None = None,
         ha_base_url: str | None = None,
         session: aiohttp.ClientSession | None = None,
@@ -94,6 +95,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         self.session_id = session_id
         self.mask_sensitive_data = mask_sensitive_data
         self.whitelist = whitelist or []
+        self.recipient_aliases = recipient_aliases or {}
         self.retry_attempts = 2
         self.buttons_as_polls = False
         self._active_button_polls: dict[str, dict[str, Any]] = {}
@@ -188,6 +190,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Ensure the target is a valid JID.
 
         Handles:
+        - Aliases defined in recipient_aliases
         - Full JIDs with @domain
         - Old-style group IDs with hyphen (creator-timestamp)
         - Modern numeric group IDs (16+ digits)
@@ -197,6 +200,10 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return target
 
         target = target.strip()
+
+        # Check aliases first
+        if target in self.recipient_aliases:
+            target = str(self.recipient_aliases[target]).strip()
 
         # If it already has an @, assume it's a full JID (e.g. standard, group, or lid)
         if "@" in target:
