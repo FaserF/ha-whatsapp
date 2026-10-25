@@ -7,17 +7,22 @@ from ha_stubs import _build_ha_stub_modules
 _build_ha_stub_modules()
 
 
+# We must monkey-patch the thread check to avoid failure from pycares
+import threading
+
 import pytest
 from homeassistant.core import HomeAssistant
 
-# We must monkey-patch the thread check to avoid failure from pycares
-import threading
 if not getattr(threading, "_patched", False):
     original_enumerate = threading.enumerate
 
     def patched_enumerate():
         threads = original_enumerate()
-        return [t for t in threads if not getattr(t, "name", "").endswith("(_run_safe_shutdown_loop)")]
+        return [
+            t
+            for t in threads
+            if not getattr(t, "name", "").endswith("(_run_safe_shutdown_loop)")
+        ]
 
     threading.enumerate = patched_enumerate
     threading._patched = True
