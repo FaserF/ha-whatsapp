@@ -23,10 +23,12 @@ try:
     import probatio as vol
 except ImportError:
     import voluptuous as vol  # type: ignore[no-redef]
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.components.repairs import (
     ConfirmRepairFlow,
     RepairsFlow,
-    RepairsFlowResult,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
@@ -48,7 +50,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
 
     async def async_step_init(
         self, _user_input: dict[str, str] | None = None
-    ) -> RepairsFlowResult:
+    ) -> FlowResult:
         """Entry point for the repair flow, forwards to the confirmation step.
 
         Args:
@@ -62,7 +64,7 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
-    ) -> RepairsFlowResult:
+    ) -> FlowResult:
         """Show a confirmation form and complete the flow when the user confirms.
 
         Args:
