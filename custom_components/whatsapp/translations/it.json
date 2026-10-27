@@ -103,7 +103,8 @@
           "whitelist": "Utenti/gruppi autorizzati (numeri di telefono o ID gruppo separati da virgola; lascia vuoto per nessuna whitelist)",
           "self_messages": "Elabora i messaggi inviati da te (fallback legacy; è consigliato l'evento message_sent)",
           "buttons_as_polls": "Emula i pulsanti con i sondaggi (converte send_buttons in sondaggi nativi e genera eventi pulsante al voto)",
-          "reset_session": "Reimposta sessione (disconnetti e cancella i dati)"
+          "reset_session": "Reimposta sessione (disconnetti e cancella i dati)",
+          "recipient_aliases": "Recipient Aliases (YAML dict mapping names to numbers/JIDs)"
         },
         "description": "⚠️ ATTENZIONE: 'Reimposta sessione' ti disconnette ed elimina i dati di sessione sull'add-on."
       }

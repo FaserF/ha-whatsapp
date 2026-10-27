@@ -32,6 +32,7 @@ from .const import (
     CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RECIPIENT_ALIASES,
     CONF_RETRY_ATTEMPTS,
     CONF_SELF_MESSAGES,
     CONF_URL,
@@ -1091,6 +1092,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                     },
                 ): vol.Any(None, str),
                 vol.Optional(
+                    CONF_RECIPIENT_ALIASES,
+                    default=self._config_entry.options.get(CONF_RECIPIENT_ALIASES, {}),
+                ): selector.ObjectSelector(),
+                vol.Optional(
                     CONF_SELF_MESSAGES,
                     default=self._config_entry.options.get(CONF_SELF_MESSAGES, False),
                 ): bool,
@@ -1196,6 +1201,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 user_input[CONF_WHITELIST] = (user_input[CONF_WHITELIST] or "").strip()
             else:
                 user_input[CONF_WHITELIST] = ""
+
+            if CONF_RECIPIENT_ALIASES not in user_input or not isinstance(
+                user_input[CONF_RECIPIENT_ALIASES], dict
+            ):
+                user_input[CONF_RECIPIENT_ALIASES] = {}
 
             return self.async_create_entry(title="", data=user_input)
 

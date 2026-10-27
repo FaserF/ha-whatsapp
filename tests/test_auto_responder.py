@@ -6,8 +6,27 @@ from ha_stubs import _build_ha_stub_modules
 
 _build_ha_stub_modules()
 
-import pytest  # noqa: E402
-from homeassistant.core import HomeAssistant  # noqa: E402
+
+# We must monkey-patch the thread check to avoid failure from pycares
+import threading
+
+import pytest
+from homeassistant.core import HomeAssistant
+
+if not getattr(threading, "_patched", False):
+    original_enumerate = threading.enumerate
+
+    def patched_enumerate():
+        threads = original_enumerate()
+        return [
+            t
+            for t in threads
+            if not getattr(t, "name", "").endswith("(_run_safe_shutdown_loop)")
+        ]
+
+    threading.enumerate = patched_enumerate
+    threading._patched = True
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 
 from custom_components.whatsapp.api import WhatsAppApiClient  # noqa: E402

@@ -53,6 +53,7 @@ from .const import (
     CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RECIPIENT_ALIASES,
     CONF_SELF_MESSAGES,
     CONF_WHITELIST,
     DOMAIN,
@@ -192,6 +193,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if whitelist_str:
         whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
 
+    recipient_aliases = entry.options.get(CONF_RECIPIENT_ALIASES) or {}
+
     session_id = entry.data.get("session_id", "default")
 
     # Resolve internal container IPs/hostnames for the 'Visit' button
@@ -255,6 +258,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         session_id=session_id,
         mask_sensitive_data=mask_sensitive_data,
         whitelist=whitelist,
+        recipient_aliases=recipient_aliases,
         config_url=config_url,
         ha_base_url=ha_base_url,
         session=session,

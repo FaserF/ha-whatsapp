@@ -103,7 +103,8 @@
           "whitelist": "Whitelisted Users/Groups (Comma-separated phone numbers or Group IDs. Leave empty for no whitelist)",
           "self_messages": "Process messages from self (Legacy fallback; message_sent event is recommended)",
           "buttons_as_polls": "Emulate Buttons via Polls (Converts send_buttons to native Polls & fires button events on vote)",
-          "reset_session": "Reset Session (Logout & Clear Data)"
+          "reset_session": "Reset Session (Logout & Clear Data)",
+          "recipient_aliases": "Recipient Aliases (YAML dict mapping names to numbers/JIDs)"
         },
         "description": "⚠️ CAUTION: 'Reset Session' will log you out and delete session data on the Addon."
       }
