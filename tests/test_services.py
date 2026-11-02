@@ -355,3 +355,53 @@ async def test_services(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_instance.delete_chat.assert_awaited_with("12345-6789")
+
+
+async def test_send_message_multiple_targets(hass: HomeAssistant) -> None:
+    """Test sending message to multiple targets (list and comma-separated)."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "http://localhost:8066", CONF_API_KEY: "mock"},
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.get_stats = AsyncMock(return_value={"connected": True})
+        mock_instance.get_status = AsyncMock(return_value={"connected": True})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.send_message = AsyncMock(side_effect=["msg_1", "msg_2", "msg_3", "msg_4"])
+
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        hass.data[DOMAIN][entry.entry_id]["client"] = mock_instance
+
+        # Test list of targets
+        res = await hass.services.async_call(
+            DOMAIN,
+            "send_message",
+            {"target": ["49111", "49222"], "message": "Broadcast text"},
+            blocking=True,
+            return_response=True,
+        )
+        assert res["success"] is True
+        assert res["message_id"] == "msg_1"
+        assert res["message_ids"] == ["msg_1", "msg_2"]
+        assert mock_instance.send_message.call_count == 2
+
+        # Test comma-separated string of targets
+        res2 = await hass.services.async_call(
+            DOMAIN,
+            "send_message",
+            {"target": "49333, 49444", "message": "Comma broadcast"},
+            blocking=True,
+            return_response=True,
+        )
+        assert res2["success"] is True
+        assert res2["message_id"] == "msg_3"
+        assert res2["message_ids"] == ["msg_3", "msg_4"]
+        assert mock_instance.send_message.call_count == 4

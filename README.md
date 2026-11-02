@@ -136,12 +136,23 @@ If entities are `disabled`, check your Home Assistant "Entities" settings and en
 
 #### 1. Native WhatsApp Services (Recommended)
 
-Use these for the most robust experience in YAML.
+Use these for the most robust experience in YAML. `target` accepts a single number, a comma-separated string, or a YAML list of multiple recipients:
 
 ```yaml
-service: whatsapp.send_message
+action: whatsapp.send_message
 data:
-  target: "+491234567890"
+  target:
+    - "+491234567890"
+    - "+491987654321"
+  message: "Hello from HA!"
+```
+
+Or with a comma-separated string:
+
+```yaml
+action: whatsapp.send_message
+data:
+  target: "+491234567890, +491987654321"
   message: "Hello from HA!"
 ```
 

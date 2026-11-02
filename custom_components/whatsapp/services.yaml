@@ -1,366 +1,396 @@
-# =============================================================================
-# WhatsApp Integration - Home Assistant Services
-# =============================================================================
-# All services support phone numbers (with/without +), Group IDs, and full JIDs.
-# The integration automatically normalizes formats and adds @s.whatsapp.net/@g.us.
-# =============================================================================
-
 send_message:
   name: Send Message
-  description: >
-    Sends a plain text message to a WhatsApp user or group.
-    This is the most basic messaging action. Use it for notifications,
-    alerts, or any text-based communication from your automations.
-    Supports emoji, line breaks (\n), and basic formatting (*bold*, _italic_).
+  description: 'Sends a plain text message to a WhatsApp user or group. This is the
+    most basic messaging action. Use it for notifications, alerts, or any text-based
+    communication from your automations. Supports emoji, line breaks (\n), and basic
+    formatting (*bold*, _italic_).
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: >
-        The recipient's phone number (with country code) or a Group ID.
-        Examples: "49123456789", "+1-555-123-4567", "120363123456789012@g.us".
-        The '+' prefix and WhatsApp suffixes are added automatically.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     message:
       name: Message
-      description: >
-        The text content to send. Supports WhatsApp formatting:
-        *bold*, _italic_, ~strikethrough~, ```monospace```.
-        Use \n for line breaks.
-      example: "🏠 *Home Assistant Alert*\n\nThe front door was opened at {{ now().strftime('%H:%M') }}."
+      description: 'The text content to send. Supports WhatsApp formatting: *bold*,
+        _italic_, ~strikethrough~, ```monospace```. Use \n for line breaks.
+
+        '
+      example: '🏠 *Home Assistant Alert*
+
+
+        The front door was opened at {{ now().strftime(''%H:%M'') }}.'
       required: true
       selector:
         text:
           multiline: true
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_poll:
   name: Send Poll
-  description: >
-    Sends an interactive poll/survey to a WhatsApp user or group.
-    Recipients can vote on the options. Perfect for household decisions,
-    dinner choices, or gathering feedback from family members.
-    Note: Poll results are received via webhook events.
+  description: 'Sends an interactive poll/survey to a WhatsApp user or group. Recipients
+    can vote on the options. Perfect for household decisions, dinner choices, or gathering
+    feedback from family members. Note: Poll results are received via webhook events.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the poll to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     question:
       name: Question
       description: The poll question that recipients will vote on.
-      example: "What should we have for dinner tonight?"
+      example: What should we have for dinner tonight?
       required: true
       selector:
-        text:
+        text: null
     options:
       name: Options
-      description: >
-        List of voting options (minimum 2, maximum 12 unique options required by WhatsApp). Provide as a YAML list or JSON array.
+      description: 'List of voting options (minimum 2, maximum 12 unique options required
+        by WhatsApp). Provide as a YAML list or JSON array.
+
+        '
       example:
-        - "Pizza 🍕"
-        - "Sushi 🍣"
-        - "Pasta 🍝"
-        - "Order something else"
+      - Pizza 🍕
+      - Sushi 🍣
+      - Pasta 🍝
+      - Order something else
       required: true
       selector:
-        object:
+        object: null
     allow_multiple_responses:
       name: Allow Multiple Selections
-      description: >
-        If enabled, recipients can select multiple options in the poll.
+      description: 'If enabled, recipients can select multiple options in the poll.
         If disabled, the poll is single-choice.
+
+        '
       example: true
       default: false
       selector:
-        boolean:
+        boolean: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_image:
   name: Send Image
-  description: >
-    Sends an image with an optional caption to a WhatsApp user or group.
-    The image must be accessible via a public URL (HTTPS recommended).
-    Ideal for sending camera snapshots, graphs, or notifications with visuals.
-    Supported formats: JPEG, PNG, WebP. Max size: 16MB.
+  description: 'Sends an image with an optional caption to a WhatsApp user or group.
+    The image must be accessible via a public URL (HTTPS recommended). Ideal for sending
+    camera snapshots, graphs, or notifications with visuals. Supported formats: JPEG,
+    PNG, WebP. Max size: 16MB.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the image to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     url:
       name: Image URL
-      description: >
-        A publicly accessible HTTPS URL to the image file.
-        For local files, use a service like your Home Assistant external URL
-        with /local/ path or a camera snapshot URL.
-      example: "https://my-home.duckdns.org/local/camera_snapshots/front_door.jpg"
+      description: 'A publicly accessible HTTPS URL to the image file. For local files,
+        use a service like your Home Assistant external URL with /local/ path or a
+        camera snapshot URL.
+
+        '
+      example: https://my-home.duckdns.org/local/camera_snapshots/front_door.jpg
       required: true
       selector:
-        text:
+        text: null
     caption:
       name: Caption
       description: Optional text caption displayed below the image. Supports formatting.
-      example: "📷 Front door camera snapshot at {{ now().strftime('%H:%M:%S') }}"
+      example: 📷 Front door camera snapshot at {{ now().strftime('%H:%M:%S') }}
       selector:
         text:
           multiline: true
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_document:
   name: Send Document
-  description: >
-    Sends a document/file to a WhatsApp user or group.
-    Supports PDF, Word, Excel, ZIP, and many other file types.
-    Perfect for sending reports, invoices, backups, or log files.
-    The file must be accessible via a public URL. Max size: 100MB.
+  description: 'Sends a document/file to a WhatsApp user or group. Supports PDF, Word,
+    Excel, ZIP, and many other file types. Perfect for sending reports, invoices,
+    backups, or log files. The file must be accessible via a public URL. Max size:
+    100MB.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the document to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     url:
       name: Document URL
-      description: >
-        A publicly accessible HTTPS URL to the document.
-        Must start with http:// or https://.
-      example: "https://my-home.duckdns.org/local/reports/energy_report.pdf"
+      description: 'A publicly accessible HTTPS URL to the document. Must start with
+        http:// or https://.
+
+        '
+      example: https://my-home.duckdns.org/local/reports/energy_report.pdf
       required: true
       selector:
-        text:
+        text: null
     file_name:
       name: File Name
-      description: >
-        Override the filename shown to the recipient.
-        If not provided, the filename is extracted from the URL.
-      example: "Energy_Report_January_2024.pdf"
+      description: 'Override the filename shown to the recipient. If not provided,
+        the filename is extracted from the URL.
+
+        '
+      example: Energy_Report_January_2024.pdf
       selector:
-        text:
+        text: null
     mimetype:
       name: MIME Type
-      description: >
-        Optional MIME type for the document (e.g., 'audio/mpeg', 'application/pdf', 'video/mp4').
-        If not provided, the MIME type will be automatically inferred from the file name.
-      example: "audio/mpeg"
+      description: 'Optional MIME type for the document (e.g., ''audio/mpeg'', ''application/pdf'',
+        ''video/mp4''). If not provided, the MIME type will be automatically inferred
+        from the file name.
+
+        '
+      example: audio/mpeg
       selector:
-        text:
+        text: null
     message:
       name: Caption
       description: Optional text caption displayed with the document.
-      example: "📊 Here's your monthly energy consumption report."
+      example: 📊 Here's your monthly energy consumption report.
       selector:
-        text:
+        text: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_video:
   name: Send Video
-  description: >
-    Sends a video file to a WhatsApp user or group.
-    Useful for sending security camera clips, doorbell recordings,
-    or any video content. Supported formats: MP4, 3GP, MOV.
-    Max size: 16MB for standard, 64MB for WhatsApp Web.
+  description: 'Sends a video file to a WhatsApp user or group. Useful for sending
+    security camera clips, doorbell recordings, or any video content. Supported formats:
+    MP4, 3GP, MOV. Max size: 16MB for standard, 64MB for WhatsApp Web.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the video to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     url:
       name: Video URL
       description: A publicly accessible HTTPS URL to the video file.
-      example: "https://my-home.duckdns.org/local/clips/doorbell_motion.mp4"
+      example: https://my-home.duckdns.org/local/clips/doorbell_motion.mp4
       required: true
       selector:
-        text:
+        text: null
     message:
       name: Caption
       description: Optional caption displayed with the video.
-      example: "🚪 Motion detected at front door - {{ now().strftime('%H:%M') }}"
+      example: 🚪 Motion detected at front door - {{ now().strftime('%H:%M') }}
       selector:
-        text:
+        text: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
@@ -375,69 +405,76 @@ send_video:
         number:
           mode: box
           min: 1
-
 send_audio:
   name: Send Audio
-  description: >
-    Sends an audio file or voice note to a WhatsApp user or group.
-    Can send as a regular audio file (shows as playable file) or
-    as a voice note/PTT (shows with waveform, like a recorded message).
-    Supported formats: MP3, OGG, WAV, AAC. Max size: 16MB.
+  description: 'Sends an audio file or voice note to a WhatsApp user or group. Can
+    send as a regular audio file (shows as playable file) or as a voice note/PTT (shows
+    with waveform, like a recorded message). Supported formats: MP3, OGG, WAV, AAC.
+    Max size: 16MB.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the audio to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     url:
       name: Audio URL
       description: A publicly accessible HTTPS URL to the audio file.
-      example: "https://my-home.duckdns.org/local/audio/doorbell_chime.mp3"
+      example: https://my-home.duckdns.org/local/audio/doorbell_chime.mp3
       required: true
       selector:
-        text:
+        text: null
     ptt:
       name: Voice Note (Push-to-Talk)
-      description: >
-        If enabled, sends as a voice note with waveform visualization
-        (like a recorded voice message). If disabled, sends as a regular
-        audio file attachment.
+      description: 'If enabled, sends as a voice note with waveform visualization
+        (like a recorded voice message). If disabled, sends as a regular audio file
+        attachment.
+
+        '
       example: true
       default: false
       selector:
-        boolean:
+        boolean: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
@@ -452,34 +489,37 @@ send_audio:
         number:
           mode: box
           min: 1
-
 send_location:
   name: Send Location
-  description: >
-    Sends a location pin to a WhatsApp user or group.
-    The recipient sees an interactive map preview they can tap to open
-    in their maps app. Perfect for sharing addresses, meeting points,
-    or your home location for deliveries.
+  description: 'Sends a location pin to a WhatsApp user or group. The recipient sees
+    an interactive map preview they can tap to open in their maps app. Perfect for
+    sharing addresses, meeting points, or your home location for deliveries.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the location to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     latitude:
       name: Latitude
-      description: The latitude coordinate (decimal degrees). Use device_tracker or zone entities.
+      description: The latitude coordinate (decimal degrees). Use device_tracker or
+        zone entities.
       example: 48.137154
       required: true
       selector:
@@ -502,636 +542,677 @@ send_location:
     name:
       name: Location Name
       description: A friendly name for the location (shown as title on the map).
-      example: "Home"
+      example: Home
       selector:
-        text:
+        text: null
     address:
       name: Address
       description: The street address (shown below the name on the map preview).
-      example: "Marienplatz 1, 80331 München, Germany"
+      example: Marienplatz 1, 80331 München, Germany
       selector:
-        text:
+        text: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_event:
   name: Send Event
-  description: >
-    Sends an interactive WhatsApp Group Event message to a chat or group.
+  description: 'Sends an interactive WhatsApp Group Event message to a chat or group.
     Group members can RSVP directly inside WhatsApp.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number / Group ID
-      description: The phone number or Group ID to send the event to.
-      example: "123456789@g.us"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: 123456789@g.us
       required: true
       selector:
-        text:
+        object: null
     name:
       name: Event Name
       description: The title/name of the event.
-      example: "Squash - Tuesday evening"
+      example: Squash - Tuesday evening
       required: true
       selector:
-        text:
+        text: null
     description:
       name: Description
       description: Additional details or description of the event.
-      example: "Court 1 booked from 20:00 to 21:00"
+      example: Court 1 booked from 20:00 to 21:00
       selector:
         text:
           multiline: true
     date:
       name: Date & Time
       description: The start date and time of the event (ISO format).
-      example: "2026-07-22T20:00:00"
+      example: '2026-07-22T20:00:00'
       selector:
-        text:
+        text: null
     location:
       name: Location
       description: The location name or address of the event.
-      example: "SquashCity Amsterdam"
+      example: SquashCity Amsterdam
       selector:
-        text:
+        text: null
     join_link:
       name: Join Link
       description: An optional video or voice call link to join the event.
-      example: "https://call.whatsapp.com/video/example"
+      example: https://call.whatsapp.com/video/example
       selector:
-        text:
+        text: null
     is_canceled:
       name: Is Canceled
       description: Set to true if the event has been canceled.
       example: false
       default: false
       selector:
-        boolean:
+        boolean: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_contact:
   name: Send Contact (vCard)
-  description: >
-    Sends a contact card (vCard) to a WhatsApp user or group.
-    The recipient can save the contact directly to their phone.
-    Useful for sharing business contacts, emergency numbers,
-    or service provider details.
+  description: 'Sends a contact card (vCard) to a WhatsApp user or group. The recipient
+    can save the contact directly to their phone. Useful for sharing business contacts,
+    emergency numbers, or service provider details.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send the contact to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     name:
       name: Display Name
       description: The full name of the contact as it should appear.
-      example: "Dr. Max Mustermann"
+      example: Dr. Max Mustermann
       required: true
       selector:
-        text:
+        text: null
     contact_number:
       name: Phone Number
       description: The phone number for the contact card (with country code).
-      example: "+49 89 12345678"
+      example: +49 89 12345678
       required: true
       selector:
-        text:
-
+        text: null
 send_reaction:
   name: Send Reaction
-  description: >
-    Adds an emoji reaction to a specific message.
-    Just like tapping and holding a message in WhatsApp to react.
-    Requires the message_id which you receive from webhook events
-    or from the response of a send action.
+  description: 'Adds an emoji reaction to a specific message. Just like tapping and
+    holding a message in WhatsApp to react. Requires the message_id which you receive
+    from webhook events or from the response of a send action.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Chat
-      description: The phone number or Group ID where the message is located.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     message_id:
       name: Message ID
-      description: >
-        The unique WhatsApp message ID to react to.
-        Format: 3EB0XXXXXXXXXXXXXXXXXX (received via webhook or action response).
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The unique WhatsApp message ID to react to. Format: 3EB0XXXXXXXXXXXXXXXXXX
+        (received via webhook or action response).
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       required: true
       selector:
-        text:
+        text: null
     reaction:
       name: Reaction Emoji
       description: The emoji to react with. Use any single emoji.
-      example: "👍"
+      example: 👍
       required: true
       selector:
-        text:
-
+        text: null
 send_buttons:
   name: Send Buttons
-  description: >
-    Sends a message with interactive buttons that the recipient can tap.
-    Note: WhatsApp/Meta has deprecated legacy interactive buttons on standard Multi-Device (Web) accounts, which may cause modern WhatsApp clients to display only text without clickable buttons. For reliable 1-click interactions, use 'whatsapp.send_poll' instead.
-    See [Buttons Guide](https://faserf.github.io/ha-whatsapp/buttons) for details.
+  description: 'Sends a message with interactive buttons that the recipient can tap.
+    Note: WhatsApp/Meta has deprecated legacy interactive buttons on standard Multi-Device
+    (Web) accounts, which may cause modern WhatsApp clients to display only text without
+    clickable buttons. For reliable 1-click interactions, use ''whatsapp.send_poll''
+    instead. See [Buttons Guide](https://faserf.github.io/ha-whatsapp/buttons) for
+    details.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     message:
       name: Message Body
       description: The main text message displayed above the buttons.
-      example: "🚨 *Security Alert*\n\nMotion detected at the front door. What would you like to do?"
+      example: '🚨 *Security Alert*
+
+
+        Motion detected at the front door. What would you like to do?'
       required: true
       selector:
         text:
           multiline: true
     buttons:
       name: Buttons
-      description: >
-        List of buttons. Each button needs an 'id' and 'displayText'.
-        The ID is returned when the button is clicked (via webhook).
-        Max 3 buttons. Also supports Telegram inline_keyboard format.
+      description: 'List of buttons. Each button needs an ''id'' and ''displayText''.
+        The ID is returned when the button is clicked (via webhook). Max 3 buttons.
+        Also supports Telegram inline_keyboard format.
+
+        '
       example:
-        - id: "arm_alarm"
-          displayText: "🔒 Arm Alarm"
-        - id: "view_camera"
-          displayText: "📷 View Camera"
-        - id: "ignore"
-          displayText: "✓ Dismiss"
+      - id: arm_alarm
+        displayText: 🔒 Arm Alarm
+      - id: view_camera
+        displayText: 📷 View Camera
+      - id: ignore
+        displayText: ✓ Dismiss
       required: true
       selector:
-        object:
+        object: null
     footer:
       name: Footer Text
       description: Optional small text shown below the buttons.
-      example: "Tap a button to respond"
+      example: Tap a button to respond
       selector:
-        text:
+        text: null
     quote:
       name: Quote Message ID
-      description: >
-        The ID of a message to quote/reply to in this new message.
-        If both 'quote' and 'reply_to' are provided, 'quote' takes precedence.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The ID of a message to quote/reply to in this new message. If
+        both ''quote'' and ''reply_to'' are provided, ''quote'' takes precedence.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     reply_to:
       name: Reply To Message ID
-      description: >
-        Legacy alias for quote. The ID of a message to quote/reply to.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'Legacy alias for quote. The ID of a message to quote/reply to.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       selector:
-        text:
+        text: null
     expiration:
       name: Expiration (Seconds)
-      description: >
-        Duration after which the message disappears (Disappearing Messages).
-        Must match the chat's settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
+      description: 'Duration after which the message disappears (Disappearing Messages).
+        Must match the chat''s settings (0=Off, 86400=24h, 604800=7d, 7776000=90d).
         Helps resolve the "old version" warning in disappearing chats.
+
+        '
       example: 86400
       selector:
         number:
           mode: box
           min: 0
           max: 7776000
-
 send_list:
   name: Send List Message (Menu)
-  description: >
-    Sends an interactive list/menu that expands when the user taps a button.
-    Contains sections with selectable rows. When a row is selected,
-    its ID is sent back via webhook. Ideal for complex menus,
-    settings selection, or multi-option responses.
+  description: 'Sends an interactive list/menu that expands when the user taps a button.
+    Contains sections with selectable rows. When a row is selected, its ID is sent
+    back via webhook. Ideal for complex menus, settings selection, or multi-option
+    responses.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
-      name: Target Number
-      description: The phone number or Group ID to send to.
-      example: "49171234567"
+      name: Target / Recipients
+      description: 'The recipient''s phone number, Group ID, comma-separated list,
+        or a YAML list of recipients. Examples: ''49123456789'', ''49123456789, 49987654321'',
+        or [''49123456789'', ''49987654321''].'
+      example: '49171234567'
       required: true
       selector:
-        text:
+        object: null
     title:
       name: Header Title
       description: The bold title shown at the top of the message.
-      example: "🏠 Smart Home Control"
+      example: 🏠 Smart Home Control
       selector:
-        text:
+        text: null
     text:
       name: Body Text
       description: The main message text explaining the menu.
-      example: "Select an action from the menu below to control your home."
+      example: Select an action from the menu below to control your home.
       selector:
         text:
           multiline: true
     button_text:
       name: Menu Button Label
       description: The text on the button that opens the list menu.
-      example: "Open Menu"
+      example: Open Menu
       selector:
-        text:
+        text: null
     sections:
       name: Menu Sections
-      description: >
-        The sections and rows for the list menu. Each section has a title
+      description: 'The sections and rows for the list menu. Each section has a title
         and rows. Each row needs: id, title, and optional description.
+
+        '
       example:
-        - title: "Lighting"
-          rows:
-            - id: "lights_on"
-              title: "💡 All Lights On"
-              description: "Turn on all lights in the house"
-            - id: "lights_off"
-              title: "🌙 All Lights Off"
-              description: "Turn off all lights"
-        - title: "Climate"
-          rows:
-            - id: "heating_boost"
-              title: "🔥 Heating Boost"
-              description: "Boost heating for 1 hour"
-            - id: "ac_on"
-              title: "❄️ AC On"
-              description: "Turn on air conditioning"
+      - title: Lighting
+        rows:
+        - id: lights_on
+          title: 💡 All Lights On
+          description: Turn on all lights in the house
+        - id: lights_off
+          title: 🌙 All Lights Off
+          description: Turn off all lights
+      - title: Climate
+        rows:
+        - id: heating_boost
+          title: 🔥 Heating Boost
+          description: Boost heating for 1 hour
+        - id: ac_on
+          title: ❄️ AC On
+          description: Turn on air conditioning
       required: true
       selector:
-        object:
-
+        object: null
 revoke_message:
   name: Revoke (Delete) Message
-  description: >
-    Deletes a previously sent message for everyone in the chat.
-    Works like "Delete for Everyone" in WhatsApp. The message is replaced
-    with "This message was deleted". Must be called within the WhatsApp
-    time limit (usually ~1 hour for groups, longer for individual chats).
+  description: 'Deletes a previously sent message for everyone in the chat. Works
+    like "Delete for Everyone" in WhatsApp. The message is replaced with "This message
+    was deleted". Must be called within the WhatsApp time limit (usually ~1 hour for
+    groups, longer for individual chats).
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
       name: Target Chat
       description: The phone number or Group ID where the message was sent.
-      example: "49171234567"
+      example: '49171234567'
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
-      description: >
-        The unique ID of the message to delete.
-        Obtained from the webhook event or send action response.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      description: 'The unique ID of the message to delete. Obtained from the webhook
+        event or send action response.
+
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
       required: true
       selector:
-        text:
-
+        text: null
 edit_message:
   name: Edit Message
-  description: >
-    Edits the text content of a previously sent message.
-    The message will show "(edited)" indicator. Useful for correcting
-    typos or updating information in a sent message.
-    Only works for text messages, not media.
+  description: 'Edits the text content of a previously sent message. The message will
+    show "(edited)" indicator. Useful for correcting typos or updating information
+    in a sent message. Only works for text messages, not media.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
       name: Target Chat
       description: The phone number or Group ID where the message was sent.
-      example: "49171234567"
+      example: '49171234567'
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: The unique ID of the message to edit.
-      example: "3EB0B8A7C2E4F6789ABCDE"
+      example: 3EB0B8A7C2E4F6789ABCDE
       required: true
       selector:
-        text:
+        text: null
     message:
       name: New Message Text
       description: The new text content that will replace the original message.
-      example: "Updated: The meeting is now at 3 PM instead of 2 PM."
+      example: 'Updated: The meeting is now at 3 PM instead of 2 PM.'
       required: true
       selector:
         text:
           multiline: true
-
 update_presence:
   name: Update Presence
-  description: >
-    Updates your online presence status in a specific chat.
-    Shows typing indicator, recording indicator, or online/offline status.
-    Use "composing" before sending a message to show "typing...",
-    or "recording" to show "recording audio...".
+  description: 'Updates your online presence status in a specific chat. Shows typing
+    indicator, recording indicator, or online/offline status. Use "composing" before
+    sending a message to show "typing...", or "recording" to show "recording audio...".
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
       name: Target Chat
       description: The phone number or Group ID to update presence for.
-      example: "49171234567"
+      example: '49171234567'
       required: true
       selector:
-        text:
+        text: null
     presence:
       name: Presence Status
-      description: >
-        The presence state to broadcast:
-        • available: Show as online
-        • unavailable: Show as offline
-        • composing: Show "typing..." indicator
-        • recording: Show "recording audio..." indicator
-        • paused: Clear typing indicator
-      example: "composing"
+      description: 'The presence state to broadcast: • available: Show as online •
+        unavailable: Show as offline • composing: Show "typing..." indicator • recording:
+        Show "recording audio..." indicator • paused: Clear typing indicator
+
+        '
+      example: composing
       required: true
       selector:
         select:
           options:
-            - label: "Online"
-              value: "available"
-            - label: "Offline"
-              value: "unavailable"
-            - label: "Typing..."
-              value: "composing"
-            - label: "Recording Audio..."
-              value: "recording"
-            - label: "Clear Indicator"
-              value: "paused"
-
+          - label: Online
+            value: available
+          - label: Offline
+            value: unavailable
+          - label: Typing...
+            value: composing
+          - label: Recording Audio...
+            value: recording
+          - label: Clear Indicator
+            value: paused
 configure_webhook:
   name: Configure Webhook
-  description: >
-    Configures the webhook URL where the WhatsApp Home Assistant App sends incoming
-    message events. This is how Home Assistant receives incoming messages,
-    button clicks, poll votes, and read receipts. Usually set during
-    initial configuration, but can be updated dynamically.
+  description: 'Configures the webhook URL where the WhatsApp Home Assistant App sends
+    incoming message events. This is how Home Assistant receives incoming messages,
+    button clicks, poll votes, and read receipts. Usually set during initial configuration,
+    but can be updated dynamically.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     url:
       name: Webhook URL
-      description: >
-        The full URL where events should be posted.
-        Typically your Home Assistant webhook URL.
-      example: "https://my-home.duckdns.org/api/webhook/whatsapp_incoming"
+      description: 'The full URL where events should be posted. Typically your Home
+        Assistant webhook URL.
+
+        '
+      example: https://my-home.duckdns.org/api/webhook/whatsapp_incoming
       required: true
       selector:
-        text:
+        text: null
     enabled:
       name: Enabled
       description: Enable or disable the webhook. Use to temporarily pause event forwarding.
       example: true
       default: true
       selector:
-        boolean:
+        boolean: null
     token:
       name: Security Token
-      description: >
-        Optional security token sent as X-Webhook-Token header.
-        Use to verify that requests come from your WhatsApp Home Assistant App.
-      example: "my_secret_token_12345"
-      selector:
-        text:
+      description: 'Optional security token sent as X-Webhook-Token header. Use to
+        verify that requests come from your WhatsApp Home Assistant App.
 
+        '
+      example: my_secret_token_12345
+      selector:
+        text: null
 search_groups:
   name: Search Groups
-  description: >
-    Finds WhatsApp Group IDs by searching for group names.
+  description: 'Finds WhatsApp Group IDs by searching for group names.
 
-    ⚠️ IMPORTANT: Results appear as a PERSISTENT NOTIFICATION in Home Assistant!
-    After running this service, click the bell icon (🔔) in the sidebar to see results.
+    ⚠️ IMPORTANT: Results appear as a PERSISTENT NOTIFICATION in Home Assistant! After
+    running this service, click the bell icon (🔔) in the sidebar to see results.
 
     The notification shows a table with Group Name, Group ID, and participant count.
     Copy the Group ID (format: 120363012345678901@g.us) to use in other services.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     name_filter:
       name: Name Filter
-      description: >
-        Optional keyword to filter results (case-insensitive).
-        Leave empty to list ALL your groups.
-      example: "Family"
-      selector:
-        text:
+      description: 'Optional keyword to filter results (case-insensitive). Leave empty
+        to list ALL your groups.
 
+        '
+      example: Family
+      selector:
+        text: null
 mark_as_read:
   name: Mark Messages as Read
-  description: >
-    Marks messages as read in a chat (blue double-check ✓✓).
-    Works for both individual chats AND group chats.
+  description: 'Marks messages as read in a chat (blue double-check ✓✓). Works for
+    both individual chats AND group chats.
 
-    • With message_id: Marks that specific message as read
-    • Without message_id: Marks ALL unread messages in the chat as read
+    • With message_id: Marks that specific message as read • Without message_id: Marks
+    ALL unread messages in the chat as read
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
       name: Target Phone ID
       description: The phone number to make the message read.
-      example: "49171234567"
+      example: '49171234567'
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID (Optional)
-      description: >
-        The specific message ID to mark as read.
-        Leave empty to mark ALL unread messages in the chat.
-        Format: 3EB0XXXXXXXXXXXXXXXXXX (from incoming message webhook).
-      example: "3EB0B8A7C2E4F6789ABCDE"
-      selector:
-        text:
+      description: 'The specific message ID to mark as read. Leave empty to mark ALL
+        unread messages in the chat. Format: 3EB0XXXXXXXXXXXXXXXXXX (from incoming
+        message webhook).
 
+        '
+      example: 3EB0B8A7C2E4F6789ABCDE
+      selector:
+        text: null
 mark_as_unread:
   name: Mark Chat as Unread
-  description: >
-    Marks a specific chat as unread.
-    Works for both individual chats AND group chats.
+  description: 'Marks a specific chat as unread. Works for both individual chats AND
+    group chats.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        Provide the phone number (e.g., "49123456789") or the Entry ID.
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). Provide the phone
+        number (e.g., "49123456789") or the Entry ID. If only one account is configured,
+        this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     target:
       name: Target Phone ID
       description: The phone number or group ID to mark as unread.
-      example: "49171234567"
+      example: '49171234567'
       required: true
       selector:
-        text:
-
+        text: null
 get_contacts:
   name: Get Contacts
-  description: >
-    Retrieves the list of contacts cached from your paired phone.
-    Returns response data with contact details (id/JID, name from phonebook, notify/pushName, verified_name).
-    Note: 'notify' is populated when contacts send a message, 'verified_name' is for Business accounts only.
+  description: 'Retrieves the list of contacts cached from your paired phone. Returns
+    response data with contact details (id/JID, name from phonebook, notify/pushName,
+    verified_name). Note: ''notify'' is populated when contacts send a message, ''verified_name''
+    is for Business accounts only.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
-      selector:
-        text:
+      description: 'The WhatsApp account to use (Service Instance). If only one account
+        is configured, this can be omitted.
 
+        '
+      example: '49171234567'
+      selector:
+        text: null
 check_number:
   name: Check Number
-  description: >
-    Checks if a phone number exists on WhatsApp and whether it is saved in your paired phone's contacts.
-    Returns response data with 'exists', 'in_contacts', 'name', 'notify', and 'jid'.
+  description: 'Checks if a phone number exists on WhatsApp and whether it is saved
+    in your paired phone''s contacts. Returns response data with ''exists'', ''in_contacts'',
+    ''name'', ''notify'', and ''jid''.
+
+    '
   fields:
     account:
       name: Account
-      description: >
-        The WhatsApp account to use (Service Instance).
-        If only one account is configured, this can be omitted.
-      example: "49171234567"
+      description: 'The WhatsApp account to use (Service Instance). If only one account
+        is configured, this can be omitted.
+
+        '
+      example: '49171234567'
       selector:
-        text:
+        text: null
     number:
       name: Phone Number
-      description: >
-        The phone number to check (with country code).
-      example: "49171234567"
+      description: 'The phone number to check (with country code).
+
+        '
+      example: '49171234567'
       required: true
       selector:
-        text:
-
+        text: null
 create_group:
   name: Create Group
   description: Creates a new WhatsApp group with subject and initial participants.
@@ -1140,20 +1221,19 @@ create_group:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     subject:
       name: Subject
       description: Group title / name.
       required: true
       selector:
-        text:
+        text: null
     participants:
       name: Participants
       description: List of phone numbers to add to the group.
       required: true
       selector:
-        object:
-
+        object: null
 add_group_participant:
   name: Add Group Participant
   description: Adds participants to an existing WhatsApp group.
@@ -1162,20 +1242,19 @@ add_group_participant:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID (e.g., 120363... @g.us).
       required: true
       selector:
-        text:
+        text: null
     participants:
       name: Participants
       description: List of phone numbers to add.
       required: true
       selector:
-        object:
-
+        object: null
 remove_group_participant:
   name: Remove Group Participant
   description: Removes participants from a WhatsApp group.
@@ -1184,20 +1263,19 @@ remove_group_participant:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     participants:
       name: Participants
       description: List of phone numbers to remove.
       required: true
       selector:
-        object:
-
+        object: null
 promote_group_participant:
   name: Promote Group Participant
   description: Promotes participants to group admin.
@@ -1206,20 +1284,19 @@ promote_group_participant:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     participants:
       name: Participants
       description: List of phone numbers to promote.
       required: true
       selector:
-        object:
-
+        object: null
 demote_group_participant:
   name: Demote Group Participant
   description: Demotes group admins to regular participants.
@@ -1228,20 +1305,19 @@ demote_group_participant:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     participants:
       name: Participants
       description: List of phone numbers to demote.
       required: true
       selector:
-        object:
-
+        object: null
 leave_group:
   name: Leave Group
   description: Leaves a WhatsApp group.
@@ -1250,14 +1326,13 @@ leave_group:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID to leave.
       required: true
       selector:
-        text:
-
+        text: null
 update_group_subject:
   name: Update Group Subject
   description: Changes the title / subject of a WhatsApp group.
@@ -1266,20 +1341,19 @@ update_group_subject:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     subject:
       name: Subject
       description: New group title.
       required: true
       selector:
-        text:
-
+        text: null
 update_group_description:
   name: Update Group Description
   description: Changes the description of a WhatsApp group.
@@ -1288,13 +1362,13 @@ update_group_description:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     description:
       name: Description
       description: New group description text.
@@ -1302,7 +1376,6 @@ update_group_description:
       selector:
         text:
           multiline: true
-
 update_group_settings:
   name: Update Group Settings
   description: Configures group announcement mode and info restriction mode.
@@ -1311,24 +1384,23 @@ update_group_settings:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Group ID
       description: Target Group JID.
       required: true
       selector:
-        text:
+        text: null
     announce:
       name: Announcement Mode
       description: If true, only admins can send messages.
       selector:
-        boolean:
+        boolean: null
     locked:
       name: Locked Info Mode
       description: If true, only admins can edit group settings/description.
       selector:
-        boolean:
-
+        boolean: null
 join_group:
   name: Join Group
   description: Joins a group using an invite link or code.
@@ -1337,14 +1409,13 @@ join_group:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     code:
       name: Invite Code / Link
       description: Group invite code or full URL.
       required: true
       selector:
-        text:
-
+        text: null
 star_message:
   name: Star Message
   description: Stars a specific message in a chat.
@@ -1353,20 +1424,19 @@ star_message:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: The chat JID or number.
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: ID of the message to star.
       required: true
       selector:
-        text:
-
+        text: null
 unstar_message:
   name: Unstar Message
   description: Unstars a specific message in a chat.
@@ -1375,20 +1445,19 @@ unstar_message:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: The chat JID or number.
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: ID of the message to unstar.
       required: true
       selector:
-        text:
-
+        text: null
 pin_message:
   name: Pin Message
   description: Pins a message in a chat.
@@ -1397,26 +1466,25 @@ pin_message:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: The chat JID or number.
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: ID of the message to pin.
       required: true
       selector:
-        text:
+        text: null
     duration:
       name: Duration (Seconds)
       description: Duration to pin message (default 86400 / 24 hours).
       selector:
         number:
           mode: box
-
 unpin_message:
   name: Unpin Message
   description: Unpins a message in a chat.
@@ -1425,20 +1493,19 @@ unpin_message:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: The chat JID or number.
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: ID of the message to unpin.
       required: true
       selector:
-        text:
-
+        text: null
 forward_message:
   name: Forward Message
   description: Forwards an existing message to another chat target.
@@ -1447,26 +1514,25 @@ forward_message:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Source Target Number / Group ID
       description: Original chat where message exists.
       required: true
       selector:
-        text:
+        text: null
     message_id:
       name: Message ID
       description: ID of message to forward.
       required: true
       selector:
-        text:
+        text: null
     destination:
       name: Destination Target
       description: Recipient phone number or Group ID.
       required: true
       selector:
-        text:
-
+        text: null
 send_status:
   name: Send Status
   description: Posts a text or image/media status (story) to status@broadcast.
@@ -1475,7 +1541,7 @@ send_status:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     message:
       name: Message Text
       description: Text content for status.
@@ -1486,13 +1552,12 @@ send_status:
       name: Media URL
       description: Image/media URL for status update.
       selector:
-        text:
+        text: null
     caption:
       name: Caption
       description: Caption for media status.
       selector:
-        text:
-
+        text: null
 get_profile_picture:
   name: Get Profile Picture
   description: Fetches profile picture / avatar URL of contact or group.
@@ -1501,14 +1566,13 @@ get_profile_picture:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Number or Group JID.
       required: true
       selector:
-        text:
-
+        text: null
 get_contact_info:
   name: Get Contact Info
   description: Fetches contact status/about message.
@@ -1517,14 +1581,13 @@ get_contact_info:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number
       description: Contact phone number or JID.
       required: true
       selector:
-        text:
-
+        text: null
 block_contact:
   name: Block Contact
   description: Blocks a contact number.
@@ -1533,14 +1596,13 @@ block_contact:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number
       description: Contact number to block.
       required: true
       selector:
-        text:
-
+        text: null
 unblock_contact:
   name: Unblock Contact
   description: Unblocks a contact number.
@@ -1549,14 +1611,13 @@ unblock_contact:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number
       description: Contact number to unblock.
       required: true
       selector:
-        text:
-
+        text: null
 archive_chat:
   name: Archive Chat
   description: Archives a chat.
@@ -1565,14 +1626,13 @@ archive_chat:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to archive.
       required: true
       selector:
-        text:
-
+        text: null
 unarchive_chat:
   name: Unarchive Chat
   description: Unarchives a chat.
@@ -1581,14 +1641,13 @@ unarchive_chat:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to unarchive.
       required: true
       selector:
-        text:
-
+        text: null
 mute_chat:
   name: Mute Chat
   description: Mutes notifications for a chat.
@@ -1597,20 +1656,19 @@ mute_chat:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to mute.
       required: true
       selector:
-        text:
+        text: null
     duration_ms:
       name: Duration (ms)
       description: Duration in milliseconds (default 8 hours).
       selector:
         number:
           mode: box
-
 unmute_chat:
   name: Unmute Chat
   description: Unmutes notifications for a chat.
@@ -1619,34 +1677,33 @@ unmute_chat:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to unmute.
       required: true
       selector:
-        text:
-
+        text: null
 get_channel_info:
   name: Get Channel Info
-  description: Fetches metadata for a WhatsApp Channel (Newsletter) via JID or invite code.
+  description: Fetches metadata for a WhatsApp Channel (Newsletter) via JID or invite
+    code.
   fields:
     account:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Channel JID
       description: Channel JID (e.g. 120363000000000000@newsletter).
       selector:
-        text:
+        text: null
     code:
       name: Invite Code
       description: Channel invite link or code.
       selector:
-        text:
-
+        text: null
 follow_channel:
   name: Follow Channel
   description: Follows a WhatsApp Channel (Newsletter).
@@ -1655,14 +1712,13 @@ follow_channel:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Channel JID
       description: Channel JID to follow.
       required: true
       selector:
-        text:
-
+        text: null
 unfollow_channel:
   name: Unfollow Channel
   description: Unfollows a WhatsApp Channel (Newsletter).
@@ -1671,14 +1727,13 @@ unfollow_channel:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Channel JID
       description: Channel JID to unfollow.
       required: true
       selector:
-        text:
-
+        text: null
 mute_channel:
   name: Mute Channel
   description: Mutes notifications for a WhatsApp Channel.
@@ -1687,14 +1742,13 @@ mute_channel:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Channel JID
       description: Channel JID to mute.
       required: true
       selector:
-        text:
-
+        text: null
 unmute_channel:
   name: Unmute Channel
   description: Unmutes notifications for a WhatsApp Channel.
@@ -1703,14 +1757,13 @@ unmute_channel:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Channel JID
       description: Channel JID to unmute.
       required: true
       selector:
-        text:
-
+        text: null
 add_chat_label:
   name: Add Chat Label
   description: Adds a WhatsApp Business label to a chat.
@@ -1719,20 +1772,19 @@ add_chat_label:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to label.
       required: true
       selector:
-        text:
+        text: null
     label_id:
       name: Label ID
       description: ID of the label to add.
       required: true
       selector:
-        text:
-
+        text: null
 remove_chat_label:
   name: Remove Chat Label
   description: Removes a WhatsApp Business label from a chat.
@@ -1741,20 +1793,19 @@ remove_chat_label:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to remove label from.
       required: true
       selector:
-        text:
+        text: null
     label_id:
       name: Label ID
       description: ID of the label to remove.
       required: true
       selector:
-        text:
-
+        text: null
 clear_chat:
   name: Clear Chat
   description: Clears all messages in a chat history but keeps the chat in your list.
@@ -1763,14 +1814,13 @@ clear_chat:
       name: Account
       description: WhatsApp account to use (optional if you only have one account).
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to clear (e.g. 491701234567, +49 170 1234567, or 120363012345678901@g.us).
       required: true
       selector:
-        text:
-
+        text: null
 delete_chat:
   name: Delete Chat
   description: Deletes a chat entirely from WhatsApp.
@@ -1779,14 +1829,13 @@ delete_chat:
       name: Account
       description: WhatsApp account to use (optional if you only have one account).
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to delete (e.g. 491701234567, +49 170 1234567, or 120363012345678901@g.us).
       required: true
       selector:
-        text:
-
+        text: null
 get_chat_messages:
   name: Get Chat Messages
   description: Fetches recent stored messages for a chat.
@@ -1795,22 +1844,20 @@ get_chat_messages:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Number / Group ID
       description: Chat to retrieve messages for.
       required: true
       selector:
-        text:
+        text: null
     limit:
       name: Message Limit
       description: Maximum number of messages to return (default 50).
       selector:
         number:
           mode: box
-
 enable_moderation:
-
   name: Enable Group Moderation
   description: Enables group moderation engine for a target WhatsApp group.
   fields:
@@ -1818,14 +1865,13 @@ enable_moderation:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Group JID
       description: Group JID (e.g. 1203630123456789@g.us).
       required: true
       selector:
-        text:
-
+        text: null
 disable_moderation:
   name: Disable Group Moderation
   description: Disables group moderation engine for a target WhatsApp group.
@@ -1834,41 +1880,40 @@ disable_moderation:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Group JID
       description: Group JID (e.g. 1203630123456789@g.us).
       required: true
       selector:
-        text:
-
+        text: null
 warn_user:
   name: Issue User Warning
-  description: Issues a warning to a group user and enforces penalty upon reaching maximum warnings.
+  description: Issues a warning to a group user and enforces penalty upon reaching
+    maximum warnings.
   fields:
     account:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Group JID
       description: Group JID where the violation occurred.
       required: true
       selector:
-        text:
+        text: null
     user_id:
       name: User Phone Number / ID
       description: Target user's phone number or ID.
       required: true
       selector:
-        text:
+        text: null
     reason:
       name: Reason
       description: Reason for issuing the warning.
       selector:
-        text:
-
+        text: null
 clear_warnings:
   name: Clear User Warnings
   description: Clears all active warnings for a group member.
@@ -1877,20 +1922,19 @@ clear_warnings:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Group JID
       description: Group JID.
       required: true
       selector:
-        text:
+        text: null
     user_id:
       name: User Phone Number / ID
       description: Target user's phone number or ID.
       required: true
       selector:
-        text:
-
+        text: null
 import_moderation_config:
   name: Import Moderation Config
   description: Imports JSON moderation configuration for a group.
@@ -1899,40 +1943,39 @@ import_moderation_config:
       name: Account
       description: WhatsApp account to use.
       selector:
-        text:
+        text: null
     target:
       name: Target Group JID
       description: Target group JID.
       required: true
       selector:
-        text:
+        text: null
     config:
       name: Configuration Data
       description: Dictionary containing group moderation configuration.
       required: true
       selector:
-        object:
-
+        object: null
 configure_telegram_bot:
   name: Configure Telegram Bot
-  description: Configures or updates Telegram Bot token and active state for the native bridge.
+  description: Configures or updates Telegram Bot token and active state for the native
+    bridge.
   fields:
     account:
       name: Account
       description: WhatsApp account instance to target.
       selector:
-        text:
+        text: null
     bot_token:
       name: Bot Token
       description: Telegram Bot Token provided by @BotFather.
       selector:
-        text:
+        text: null
     enabled:
       name: Enabled
       description: Toggle the Telegram bridge engine on or off globally.
       selector:
-        boolean:
-
+        boolean: null
 add_telegram_mapping:
   name: Add Telegram Mapping
   description: Creates or updates a chat bridging mapping between WhatsApp and Telegram.
@@ -1941,69 +1984,70 @@ add_telegram_mapping:
       name: Account
       description: WhatsApp account instance to target.
       selector:
-        text:
+        text: null
     bot_id:
       name: Telegram Bot ID
       description: ID of the configured Telegram Bot to use for this mapping.
       selector:
-        text:
+        text: null
     mapping_name:
       name: Mapping Name
       description: Custom friendly name for this mapping (Auto-generated if omitted).
       selector:
-        text:
+        text: null
     wa_jid:
       name: WhatsApp Target JID
       description: WhatsApp Group ID or Phone Number JID (e.g. 1203630123456789@g.us).
       required: true
       selector:
-        text:
+        text: null
     tg_chat_id:
       name: Telegram Chat ID
       description: Telegram Group / Supergroup / Channel ID (e.g. -1001234567890).
       required: true
       selector:
-        text:
+        text: null
     sync_mode:
       name: Sync Direction Mode
-      description: "Directional sync mode: 'bidirectional', 'outbound', or 'inbound'."
+      description: 'Directional sync mode: ''bidirectional'', ''outbound'', or ''inbound''.'
       selector:
         select:
           options:
-            - "bidirectional"
-            - "outbound"
-            - "inbound"
+          - bidirectional
+          - outbound
+          - inbound
     sync_self_messages:
       name: Sync Self Messages
-      description: "Enable mirroring messages manually sent by the bot WhatsApp account (Default: false)."
+      description: 'Enable mirroring messages manually sent by the bot WhatsApp account
+        (Default: false).'
       selector:
-        boolean:
+        boolean: null
     tg_thread_id:
       name: Telegram Topic ID
       description: Optional Forum Topic thread ID for Telegram Forum supergroups.
       selector:
-        text:
+        text: null
     convert_formatting:
       name: Convert Formatting
       description: Convert WhatsApp formatting syntax to Telegram HTML syntax.
       selector:
-        boolean:
+        boolean: null
     anonymize_phone_numbers:
       name: Anonymize Phone Numbers
       description: Mask middle digits of phone numbers in headers.
       selector:
-        boolean:
+        boolean: null
     ignore_command_prefixes:
       name: Ignore Command Prefixes
       description: Comma separated list of prefixes to ignore (e.g. !, /).
       selector:
-        text:
+        text: null
     is_direct_chat_mirror:
       name: 1:1 Direct Chat Mirror
-      description: Enables clean 1:1 message relay without header prefixes for dedicated WhatsApp single-contact groups.
+      description: Enables clean 1:1 message relay without header prefixes for dedicated
+        WhatsApp single-contact groups.
       selector:
-        boolean:
-
+        boolean: null
 remove_telegram_mapping:
   name: Remove Telegram Mapping
   description: Deletes an existing Telegram chat mapping by ID.
@@ -2012,14 +2056,13 @@ remove_telegram_mapping:
       name: Account
       description: WhatsApp account instance to target.
       selector:
-        text:
+        text: null
     mapping_id:
       name: Mapping ID
       description: The ID of the mapping to delete.
       required: true
       selector:
-        text:
-
+        text: null
 set_auto_responder:
   name: Set Auto Responder
   description: Configures the WhatsApp Auto Responder (Away / Vacation response).
@@ -2028,51 +2071,50 @@ set_auto_responder:
       name: Account
       description: The WhatsApp account to configure (e.g. phone number or Entry ID).
       selector:
-        text:
+        text: null
     enabled:
       name: Enabled
       description: Enable or disable the Auto Responder.
       selector:
-        boolean:
+        boolean: null
     start_time:
       name: Start Time
-      description: Optional start date/time (ISO 8601 string, e.g. 2026-08-20T08:00). Leave empty to start immediately.
+      description: Optional start date/time (ISO 8601 string, e.g. 2026-08-20T08:00).
+        Leave empty to start immediately.
       selector:
-        text:
+        text: null
     end_time:
       name: End Time
-      description: Optional end date/time (ISO 8601 string, e.g. 2026-08-30T18:00). Leave empty for indefinite duration.
+      description: Optional end date/time (ISO 8601 string, e.g. 2026-08-30T18:00).
+        Leave empty for indefinite duration.
       selector:
-        text:
+        text: null
     direct_only:
       name: Direct Chats Only
-      description: Set to true to reply only in 1:1 private chats (default), or false to also reply in group chats.
+      description: Set to true to reply only in 1:1 private chats (default), or false
+        to also reply in group chats.
       selector:
-        boolean:
+        boolean: null
     once_per_contact:
       name: Once Per Contact
-      description: Set to true to send at most one automated reply per person during the period (default), or false to reply on every incoming message.
+      description: Set to true to send at most one automated reply per person during
+        the period (default), or false to reply on every incoming message.
       selector:
-        boolean:
+        boolean: null
     message_template:
       name: Message Template
-      description: "The automated reply template. Placeholders: {sender_name}, {start_time}, {end_time}, {end_time_text}, {once_notice}."
+      description: 'The automated reply template. Placeholders: {sender_name}, {start_time},
+        {end_time}, {end_time_text}, {once_notice}.'
       selector:
         text:
           multiline: true
-
 reset_auto_responder_seen:
   name: Reset Auto Responder Contacts
-  description: Clears the list of contacts who already received an automatic reply, allowing them to receive a response again.
+  description: Clears the list of contacts who already received an automatic reply,
+    allowing them to receive a response again.
   fields:
     account:
       name: Account
       description: The WhatsApp account to target.
       selector:
-        text:
-
-
-
-
-
-
+        text: null
