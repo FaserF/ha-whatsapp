@@ -82,15 +82,15 @@ After starting, navigate to `http://YOUR_SERVER_IP:8066` on your web browser to 
 
 The Integration connects Home Assistant's core to the App and provides the entities.
 
-### Option A: HACS (Recommended)
+### Option A: Home Assistant Marketplace (Recommended)
 
-1. **Install Repository**: Add the custom repository in HACS.
+1. **Install Repository**: Add the custom repository in Settings > Marketplace.
 
 <div class="btn-myha-wrapper">
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Open HACS</span></a>
+  <a href="https://my.home-assistant.io/redirect/marketplace_repository/?owner=FaserF&repository=ha-whatsapp&category=integration" target="_blank" class="btn-myha"><span class="logo-box"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path d="M12,4L2,11V22h20V11M12,5.84L20,11.44V20.5H15V15.5A3,3 0 0,0 12,12.5A3,3 0 0,0 9,15.5V20.5H4V11.44L12,5.84Z" fill="white" /></svg></span><span class="label-box">Open Marketplace</span></a>
 </div>
 
-1. **Restart**: Once installed via HACS, **Restart Home Assistant**.
+1. **Restart**: Once installed via Marketplace, **Restart Home Assistant**.
 
 ### Option B: Manual Installation (Fallback)
 

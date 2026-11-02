@@ -13,6 +13,6 @@ A full-featured WhatsApp integration for Home Assistant, allowing you to send me
 
 ## Installation
 
-Search for **WhatsApp** in HACS or click the button below:
+Search for **WhatsApp** in the Home Assistant Marketplace or click the button below:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
+[![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
