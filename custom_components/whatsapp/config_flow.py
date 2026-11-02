@@ -942,8 +942,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
 
     async def async_create_flow_entry(self, my_number: str | None) -> ConfigFlowResult:
-        """Create the config entry, performing safety check first."""
-        self._abort_if_unique_id_configured()
+        """Create or update the config entry, performing safety check first."""
+        reauth_entry = getattr(self, "_reauth_entry", None)
+        if not reauth_entry:
+            self._abort_if_unique_id_configured()
 
         show_warning = False
         show_fallback = False
@@ -992,7 +994,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if self.client:
             await self.client.close()
 
-        if show_warning or show_fallback:
+        if (show_warning or show_fallback) and not reauth_entry:
             self.context["my_number"] = my_number  # type: ignore[typeddict-unknown-key]
             wtype = "fallback" if show_fallback else "new_account"
             self.context["warning_type"] = wtype  # type: ignore[typeddict-unknown-key]
@@ -1008,14 +1010,153 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         api_key = self.discovery_info.get(CONF_API_KEY) or (
             self.client.api_key if self.client else ""
         )
+
+        entry_data = {
+            "session_id": self.session_id,
+            CONF_URL: url,
+            CONF_API_KEY: api_key,
+            "system_id": self.discovery_info.get("system_id"),
+        }
+
+        if reauth_entry:
+            return self.async_update_reload_and_abort(
+                reauth_entry,
+                data=entry_data,
+                reason="reauth_successful",
+            )
+
         return self.async_create_entry(
             title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
-            data={
-                "session_id": self.session_id,
-                CONF_URL: url,
-                CONF_API_KEY: api_key,
-                "system_id": self.discovery_info.get("system_id"),
-            },
+            data=entry_data,
+        )
+
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle initiation of re-authentication flow."""
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context.get("entry_id") or ""
+        )
+        if not self._reauth_entry:
+            # Fall back to matching by session_id or unique_id
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.data.get("session_id") == entry_data.get("session_id"):
+                    self._reauth_entry = entry
+                    break
+            if not self._reauth_entry:
+                entries = self.hass.config_entries.async_entries(DOMAIN)
+                if entries:
+                    self._reauth_entry = entries[0]
+
+        self.session_id = (
+            entry_data.get("session_id")
+            or (self._reauth_entry.data.get("session_id") if self._reauth_entry else None)
+            or "default"
+        )
+        self.discovery_info[CONF_URL] = (
+            entry_data.get(CONF_URL)
+            or (self._reauth_entry.data.get(CONF_URL) if self._reauth_entry else None)
+            or "http://localhost:8066"
+        )
+        self.discovery_info[CONF_API_KEY] = (
+            entry_data.get(CONF_API_KEY)
+            or (self._reauth_entry.data.get(CONF_API_KEY) if self._reauth_entry else None)
+            or ""
+        )
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle re-auth confirmation and start QR / pairing verification."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            # User confirmed they want to re-authenticate / re-pair
+            self.client = WhatsAppApiClient(
+                host=str(self.discovery_info[CONF_URL]),
+                api_key=str(self.discovery_info[CONF_API_KEY]),
+                session_id=self.session_id,
+            )
+            # Reconnect or fetch QR
+            return await self.async_step_scan()
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({}),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle integration reconfiguration (HA 2024.11+)."""
+        reconfig_entry = self._get_reconfigure_entry()
+        if not reconfig_entry:
+            entries = self.hass.config_entries.async_entries(DOMAIN)
+            if entries:
+                reconfig_entry = entries[0]
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            clean_api_key = user_input.get(CONF_API_KEY, "").strip()
+            self.discovery_info[CONF_URL] = user_input["host"]
+            self.discovery_info[CONF_API_KEY] = clean_api_key
+            if reconfig_entry:
+                self.session_id = reconfig_entry.data.get("session_id", "default")
+                self._reauth_entry = reconfig_entry
+
+            self.client = WhatsAppApiClient(
+                host=str(user_input["host"]),
+                api_key=clean_api_key,
+                session_id=self.session_id,
+            )
+            try:
+                await self.client.connect()
+            except Exception as e:
+                _LOGGER.warning("Reconfigure connect check failed: %s", e)
+                errors["base"] = "cannot_connect"
+                return self.async_show_form(
+                    step_id="reconfigure",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("host", default=user_input.get("host")): str,
+                            vol.Required(
+                                CONF_API_KEY, default=clean_api_key
+                            ): selector.TextSelector(
+                                selector.TextSelectorConfig(
+                                    type=selector.TextSelectorType.PASSWORD
+                                )
+                            ),
+                        }
+                    ),
+                    errors=errors,
+                )
+            return await self.async_step_scan()
+
+        default_host = (
+            reconfig_entry.data.get(CONF_URL, "http://localhost:8066")
+            if reconfig_entry
+            else "http://localhost:8066"
+        )
+        default_key = (
+            reconfig_entry.data.get(CONF_API_KEY, "") if reconfig_entry else ""
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("host", default=default_host): str,
+                    vol.Required(
+                        CONF_API_KEY, default=default_key
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
         )
 
     async def async_step_account_warning(

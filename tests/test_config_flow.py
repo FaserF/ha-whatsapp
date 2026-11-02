@@ -90,6 +90,79 @@ async def test_form(hass: HomeAssistant) -> None:
     assert len(mock_setup_entry.mock_calls) == 1
 
 
+async def test_reauth_flow(hass: HomeAssistant) -> None:
+    """Test the re-authentication flow."""
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="49176123456",
+        data={
+            CONF_SESSION_ID: "default",
+            CONF_URL: "http://localhost:8066",
+            CONF_API_KEY: "old_key",
+        },
+        entry_id="test_reauth_entry",
+    )
+    mock_entry.add_to_hass(hass)
+    hass.config_entries.async_entries.return_value = [mock_entry]
+
+    from custom_components.whatsapp.config_flow import ConfigFlow
+
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.context = {
+        "source": config_entries.SOURCE_REAUTH,
+        "entry_id": mock_entry.entry_id,
+        "unique_id": mock_entry.unique_id,
+    }
+    from unittest.mock import MagicMock
+    flow.async_update_reload_and_abort = MagicMock(
+        return_value={"type": FlowResultType.ABORT, "reason": "reauth_successful"}
+    )
+
+    with (
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.connect",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.get_stats",
+            new_callable=AsyncMock,
+            return_value={"my_number": "49176123456", "connected": True},
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.get_chats",
+            new_callable=AsyncMock,
+            return_value={"total_chats": 10, "initial_chats_received": True},
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.get_qr_code",
+            new_callable=AsyncMock,
+            return_value="data:image/png;base64,mockqr",
+        ),
+        patch(
+            "custom_components.whatsapp.config_flow.WhatsAppApiClient.close",
+            new_callable=AsyncMock,
+        ),
+    ):
+        result = await flow.async_step_reauth(dict(mock_entry.data))
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "reauth_confirm"
+
+        # Submit reauth_confirm
+        result2 = await flow.async_step_reauth_confirm({})
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] in ("scan", "already_connected")
+
+        if result2["step_id"] == "already_connected":
+            result3 = await flow.async_step_already_connected({"action": "use_existing"})
+        else:
+            result3 = await flow.async_step_scan({})
+
+        assert result3["type"] == FlowResultType.ABORT
+        assert result3["reason"] == "reauth_successful"
+
+
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test options flow."""
     # Create a mock entry

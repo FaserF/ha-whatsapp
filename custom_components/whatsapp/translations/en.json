@@ -64,6 +64,18 @@
           "action": "How would you like to proceed?"
         },
         "description": "An active WhatsApp session was found for **{phone_number}**.\n\nYou can use this existing session or log out to pair a different phone."
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate WhatsApp",
+        "description": "Your WhatsApp session is disconnected or expired. Click Submit to re-scan the QR code or enter a pairing code to restore the connection."
+      },
+      "reconfigure": {
+        "title": "Reconfigure WhatsApp",
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (from Addon UI)"
+        },
+        "description": "Update the host URL or API key for your WhatsApp Addon and re-link your session."
       }
     },
     "error": {

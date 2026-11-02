@@ -347,7 +347,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                         self.hass,
                         DOMAIN,
                         "session_expired",
-                        is_fixable=False,
+                        is_fixable=True,
                         severity=ir.IssueSeverity.WARNING,
                         translation_key="session_expired",
                         learn_more_url="https://faserf.github.io/ha-whatsapp/setup/",
@@ -358,7 +358,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                         self.hass,
                         DOMAIN,
                         "connection_error_baileys",
-                        is_fixable=False,
+                        is_fixable=True,
                         severity=ir.IssueSeverity.WARNING,
                         translation_key="connection_error_baileys",
                     )

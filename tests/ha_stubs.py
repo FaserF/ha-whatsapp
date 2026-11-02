@@ -221,11 +221,28 @@ class ConfigFlow:
         self.hass: Any = None
         self.context: dict[str, Any] = {}
 
+    def _get_reconfigure_entry(self) -> Any:
+        entry_id = self.context.get("entry_id")
+        if self.hass and entry_id:
+            return self.hass.config_entries.async_get_entry(entry_id)
+        return None
+
     def async_show_form(self, step_id: str, **kwargs: Any) -> dict[str, Any]:
         return {"type": "form", "step_id": step_id, "errors": kwargs.get("errors")}
 
     def async_create_entry(self, title: str, data: Any) -> dict[str, Any]:
         return {"type": "create_entry", "title": title, "data": data, "version": 1}
+
+    def async_update_reload_and_abort(
+        self,
+        entry: Any,
+        *,
+        data: Any = None,
+        reason: str = "reauth_successful",
+    ) -> dict[str, Any]:
+        if data and hasattr(entry, "data"):
+            entry.data.update(data)
+        return {"type": "abort", "reason": reason}
 
     def async_abort(
         self, reason: str, description_placeholders: Any = None
@@ -582,6 +599,7 @@ def _build_ha_stub_modules() -> None:
         ConfigFlowResult=dict,
         SOURCE_USER="user",
         SOURCE_REAUTH="reauth",
+        SOURCE_RECONFIGURE="reconfigure",
     )
 
     # voluptuous

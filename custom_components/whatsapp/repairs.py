@@ -37,8 +37,7 @@ from .const import DOMAIN
 class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
     """Guided fix-flow for WhatsApp integration issues.
 
-    Presents a simple confirmation step to the user.  Subclass this class
-    to add more sophisticated multi-step flows for specific issue types.
+    Presents a confirmation or triggers re-auth to let the user re-pair WhatsApp.
     """
 
     def __init__(self, issue_id: str) -> None:
@@ -74,6 +73,22 @@ class WhatsAppRepairFlow(RepairsFlow):  # type: ignore[misc]
             shows the form or creates a completed-entry to close the issue.
         """
         if user_input is not None:
+            # If session is expired or connection lost, trigger reauth flow for the entry
+            if self.issue_id in ("session_expired", "connection_error_baileys"):
+                entries = self.hass.config_entries.async_entries(DOMAIN)
+                for entry in entries:
+                    self.hass.async_create_task(
+                        self.hass.config_entries.flow.async_init(
+                            DOMAIN,
+                            context={
+                                "source": "reauth",
+                                "entry_id": entry.entry_id,
+                                "unique_id": entry.unique_id,
+                            },
+                            data=dict(entry.data),
+                        )
+                    )
+
             # Clear the issue
             if self.issue_id:
                 ir.async_delete_issue(self.hass, DOMAIN, self.issue_id)

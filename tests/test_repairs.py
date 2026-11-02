@@ -60,3 +60,29 @@ async def test_repair_flow_reconnect_success() -> None:
 
         # Verify issue is cleared
         mock_delete_issue.assert_called_with(hass, DOMAIN, "connection_failed")
+
+
+async def test_repair_flow_session_expired_triggers_reauth() -> None:
+    """Test that repairing session_expired triggers a reauth flow for the entry."""
+    hass = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry_id"
+    mock_entry.unique_id = "49176123456"
+    mock_entry.data = {"session_id": "default", "host": "http://localhost:8066", "api_key": "123"}
+    hass.config_entries.async_entries.return_value = [mock_entry]
+
+    with patch(
+        "custom_components.whatsapp.repairs.ir.async_delete_issue"
+    ) as mock_delete_issue:
+        from custom_components.whatsapp.repairs import WhatsAppRepairFlow
+
+        flow = WhatsAppRepairFlow("session_expired")
+        flow.hass = hass
+
+        from homeassistant.data_entry_flow import FlowResultType
+
+        result = await flow.async_step_confirm({})
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        mock_delete_issue.assert_called_with(hass, DOMAIN, "session_expired")
+        assert hass.async_create_task.called

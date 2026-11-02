@@ -64,6 +64,18 @@
           "action": "Wie möchtest du fortfahren?"
         },
         "description": "Eine aktive WhatsApp-Sitzung für **{phone_number}** wurde gefunden.\n\nDu kannst diese bestehende Sitzung verwenden oder dich abmelden, um ein anderes Telefon zu koppeln."
+      },
+      "reauth_confirm": {
+        "title": "WhatsApp erneut authentifizieren",
+        "description": "Deine WhatsApp-Sitzung ist getrennt oder abgelaufen. Klicke auf Absenden, um den QR-Code erneut zu scannen oder einen Kopplungscode einzugeben und die Verbindung wiederherzustellen."
+      },
+      "reconfigure": {
+        "title": "WhatsApp neu konfigurieren",
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (aus Addon UI)"
+        },
+        "description": "Aktualisiere die Host-URL oder das API-Token deines WhatsApp-Addons und verknüpfe deine Sitzung erneut."
       }
     },
     "error": {
