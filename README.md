@@ -1,4 +1,4 @@
-# 💬 HA WhatsApp Integration
+﻿# 💬 HA WhatsApp Integration
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="100" alt="WhatsApp Logo">
 
@@ -43,8 +43,8 @@
 
 | Device / Service | Integration Use Case | Link |
 | :--- | :--- | :--- |
-| **Home Assistant Green & Offizielle Smart-Home-Hardware** | Empfohlene Hardware-Basis für lokale Home Assistant Integrationen | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-hardware) |
-| **Home Assistant Connect ZBT-1 (Zigbee / Thread)** | Lokales Zigbee2MQTT, ZHA & Matter-over-Thread Funknetz | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-zigbee) |
+| **Home Assistant Green & Official Hardware** | Recommended hardware foundation for local Home Assistant integrations | [Official Device Page →](https://fabiseitz.de/go/ha-hardware) |
+| **Home Assistant Connect ZBT-1 (Zigbee / Thread)** | Local Zigbee2MQTT, ZHA & Matter-over-Thread wireless mesh | [Official Device Page →](https://fabiseitz.de/go/ha-zigbee) |
 
 
 ---
