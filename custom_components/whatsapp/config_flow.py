@@ -7,6 +7,7 @@ import logging
 import re
 import uuid
 from typing import Any
+from urllib.parse import urlparse
 
 try:
     import probatio as vol
@@ -856,12 +857,37 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.discovery_info["system_id"] = system_id
         self.discovery_info[CONF_API_KEY] = api_key
 
-        if system_id:
-            # First check if any entry already has this system_id
-            for entry in self.hass.config_entries.async_entries(DOMAIN):
-                if entry.data.get("system_id") == system_id:
-                    return self.async_abort(reason="already_configured")
+        def _normalize_host_port(url_or_host: str) -> str:
+            s = url_or_host.strip()
+            if not s.startswith(("http://", "https://")):
+                s = "http://" + s
+            parsed = urlparse(s)
+            netloc = parsed.netloc or parsed.path
+            if ":" in netloc:
+                h, p = netloc.split(":", 1)
+            else:
+                h, p = netloc, ("443" if parsed.scheme == "https" else "80")
+            if h in ("localhost", "127.0.0.1", "0.0.0.0"):
+                h = "localhost"
+            return f"{h}:{p}"
 
+        disc_host_port = _normalize_host_port(suggested_url)
+
+        # Check existing entries for matching system_id or host/port
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            entry_sys_id = entry.data.get("system_id")
+            if system_id and entry_sys_id == system_id:
+                return self.async_abort(reason="already_configured")
+
+            entry_url = entry.data.get(CONF_URL) or entry.data.get("host") or ""
+            if entry_url and _normalize_host_port(entry_url) == disc_host_port:
+                if system_id and not entry_sys_id:
+                    new_data = dict(entry.data)
+                    new_data["system_id"] = system_id
+                    self.hass.config_entries.async_update_entry(entry, data=new_data)
+                return self.async_abort(reason="already_configured")
+
+        if system_id:
             await self.async_set_unique_id(system_id)
             self._abort_if_unique_id_configured(updates={CONF_URL: suggested_url})
         else:

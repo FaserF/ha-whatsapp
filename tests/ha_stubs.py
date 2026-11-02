@@ -417,12 +417,24 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if "homeassistant.helpers.service_info.zeroconf" not in sys.modules:
-        _stub("homeassistant.helpers.service_info")
-        _stub(
-            "homeassistant.helpers.service_info.zeroconf",
-            ZeroconfServiceInfo=MagicMock,
-        )
+    for sub in [
+        "dhcp",
+        "ssdp",
+        "mqtt",
+        "bluetooth",
+        "usb",
+        "hassio",
+        "esphome",
+        "zeroconf",
+    ]:
+        mod_name = f"homeassistant.helpers.service_info.{sub}"
+        if mod_name not in sys.modules:
+            try:
+                import importlib
+
+                importlib.import_module(mod_name)
+            except Exception:
+                _stub(mod_name, MagicMock())
 
     if "homeassistant" in sys.modules:
         if getattr(sys.modules["homeassistant"], "_is_stub", False):

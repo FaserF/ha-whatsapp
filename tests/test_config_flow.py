@@ -125,3 +125,55 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         CONF_WHITELIST: "",
         CONF_SELF_MESSAGES: False,
     }
+
+
+async def test_zeroconf_abort_already_configured_by_url(hass: HomeAssistant) -> None:
+    """Test that zeroconf discovery aborts if host/port is already configured."""
+    from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
+
+    entry = MockConfigEntry(
+        version=1,
+        domain=DOMAIN,
+        title="WhatsApp (49176123456)",
+        data={
+            CONF_SESSION_ID: "default",
+            CONF_URL: "http://192.168.1.100:8066",
+            CONF_API_KEY: "mock_key",
+        },
+        unique_id="49176123456",
+        entry_id="test_existing_hub",
+    )
+    entry.add_to_hass(hass)
+    hass.config_entries.async_entries.return_value = [entry]
+
+    from unittest.mock import MagicMock
+
+    def mock_update_entry(e, **kwargs):
+        if "data" in kwargs:
+            object.__setattr__(e, "data", kwargs["data"])
+        return True
+
+    hass.config_entries.async_update_entry = MagicMock(side_effect=mock_update_entry)
+
+    discovery_info = ZeroconfServiceInfo(
+        ip_address="192.168.1.100",
+        ip_addresses=["192.168.1.100"],
+        hostname="whatsapp-gw.local.",
+        name="WhatsApp Gateway._ha-whatsapp._tcp.local.",
+        port=8066,
+        properties={"system_id": "test-addon-sys-id-123", "api_key": "mock_key"},
+        type="_ha-whatsapp._tcp.local.",
+    )
+
+    from custom_components.whatsapp.config_flow import ConfigFlow
+
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.context = {"source": config_entries.SOURCE_ZEROCONF}
+
+    result = await flow.async_step_zeroconf(discovery_info)
+
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    # Verify that system_id was backfilled into the existing entry
+    assert entry.data.get("system_id") == "test-addon-sys-id-123"
