@@ -68,7 +68,11 @@ async def test_repair_flow_session_expired_triggers_reauth() -> None:
     mock_entry = MagicMock()
     mock_entry.entry_id = "test_entry_id"
     mock_entry.unique_id = "49176123456"
-    mock_entry.data = {"session_id": "default", "host": "http://localhost:8066", "api_key": "123"}
+    mock_entry.data = {
+        "session_id": "default",
+        "host": "http://localhost:8066",
+        "api_key": "123",
+    }
     hass.config_entries.async_entries.return_value = [mock_entry]
 
     with patch(

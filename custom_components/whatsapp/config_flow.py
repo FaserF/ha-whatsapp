@@ -1030,9 +1030,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             data=entry_data,
         )
 
-    async def async_step_reauth(
-        self, entry_data: dict[str, Any]
-    ) -> ConfigFlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
         """Handle initiation of re-authentication flow."""
         self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context.get("entry_id") or ""
@@ -1050,7 +1048,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 
         self.session_id = (
             entry_data.get("session_id")
-            or (self._reauth_entry.data.get("session_id") if self._reauth_entry else None)
+            or (
+                self._reauth_entry.data.get("session_id")
+                if self._reauth_entry
+                else None
+            )
             or "default"
         )
         self.discovery_info[CONF_URL] = (
@@ -1060,7 +1062,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
         self.discovery_info[CONF_API_KEY] = (
             entry_data.get(CONF_API_KEY)
-            or (self._reauth_entry.data.get(CONF_API_KEY) if self._reauth_entry else None)
+            or (
+                self._reauth_entry.data.get(CONF_API_KEY)
+                if self._reauth_entry
+                else None
+            )
             or ""
         )
         return await self.async_step_reauth_confirm()

@@ -115,6 +115,7 @@ async def test_reauth_flow(hass: HomeAssistant) -> None:
         "unique_id": mock_entry.unique_id,
     }
     from unittest.mock import MagicMock
+
     flow.async_update_reload_and_abort = MagicMock(
         return_value={"type": FlowResultType.ABORT, "reason": "reauth_successful"}
     )
@@ -155,7 +156,9 @@ async def test_reauth_flow(hass: HomeAssistant) -> None:
         assert result2["step_id"] in ("scan", "already_connected")
 
         if result2["step_id"] == "already_connected":
-            result3 = await flow.async_step_already_connected({"action": "use_existing"})
+            result3 = await flow.async_step_already_connected(
+                {"action": "use_existing"}
+            )
         else:
             result3 = await flow.async_step_scan({})
 
