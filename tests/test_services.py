@@ -373,7 +373,9 @@ async def test_send_message_multiple_targets(hass: HomeAssistant) -> None:
         mock_instance.get_status = AsyncMock(return_value={"connected": True})
         mock_instance.get_dashboard = AsyncMock(return_value={})
         mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
-        mock_instance.send_message = AsyncMock(side_effect=["msg_1", "msg_2", "msg_3", "msg_4"])
+        mock_instance.send_message = AsyncMock(
+            side_effect=["msg_1", "msg_2", "msg_3", "msg_4"]
+        )
 
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
