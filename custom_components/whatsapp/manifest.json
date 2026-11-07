@@ -19,5 +19,6 @@
       "name": "whatsapp*",
       "type": "_ha-whatsapp._tcp.local."
     }
-  ]
+  ],
+  "quality_scale": "platinum"
 }
