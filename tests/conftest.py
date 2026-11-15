@@ -18,6 +18,18 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
 
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     try:
+        import aiodns
+
+        _orig_dns_cancel = aiodns.DNSResolver.cancel
+
+        def _safe_dns_cancel(self: Any) -> None:
+            if hasattr(self, "_channel"):
+                _orig_dns_cancel(self)
+
+        aiodns.DNSResolver.cancel = _safe_dns_cancel
+    except Exception:
+        pass
+    try:
         import pytest_socket
 
         # Intercept socket_allow_hosts so any downstream call

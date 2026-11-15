@@ -22,6 +22,7 @@ is responsible for:
 from __future__ import annotations
 
 import asyncio
+import time
 from logging import getLogger
 from typing import Any
 
@@ -413,6 +414,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.debug("Firing WhatsApp sent event: %s", sent_data)
             hass.bus.async_fire(EVENT_MESSAGE_SENT, sent_data)
 
+            # Sync coordinator stats in real time so sent entity reflects state change immediately
+            client_stats = getattr(client, "stats", None)
+            if (
+                isinstance(client_stats, dict)
+                and coordinator.data
+                and isinstance(coordinator.data, dict)
+            ):
+                updated_data = dict(coordinator.data)
+                updated_stats = dict(updated_data.get("stats", {}))
+                updated_stats.update(client_stats)
+                updated_data["stats"] = updated_stats
+                coordinator.async_set_updated_data(updated_data)
+
             # --- Loop Guard (highest priority for received events) ---
             # If the message ID was sent by HA itself, drop it from received events
             # to prevent infinite feedback loops in automations.
@@ -470,6 +484,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         _LOGGER.debug("Firing WhatsApp event: %s", data)
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
+
+        # Update client statistics in real time so received sensor and Activity Log update immediately
+        client_stats = getattr(client, "stats", None)
+        if isinstance(client_stats, dict):
+            client_stats["received"] = (client_stats.get("received") or 0) + 1
+            if (
+                "lifetime_received" in client_stats
+                and client_stats["lifetime_received"] is not None
+            ):
+                client_stats["lifetime_received"] = (
+                    int(client_stats["lifetime_received"]) + 1
+                )
+            msg_text = data.get("text") or data.get("message") or ""
+            sender_val = data.get("sender_number") or data.get("sender") or ""
+            client_stats["last_received_message"] = msg_text
+            client_stats["last_received_sender"] = sender_val
+            client_stats["last_received_time"] = int(time.time() * 1000)
+
+            # Notify coordinator listeners immediately so entities reflect the new state in real time
+            if coordinator.data and isinstance(coordinator.data, dict):
+                updated_data = dict(coordinator.data)
+                updated_stats = dict(updated_data.get("stats", {}))
+                updated_stats.update(client_stats)
+                updated_data["stats"] = updated_stats
+                coordinator.async_set_updated_data(updated_data)
+            else:
+                hass.async_create_task(coordinator.async_request_refresh())
 
         # Check for interactive button / template response
         raw_msg_msg = raw_msg.get("message", {})
@@ -643,7 +684,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             return [s.strip() for s in raw_target.split(",") if s.strip()]
         return [str(raw_target).strip()]
 
-    async def _dispatch_to_targets(targets: list[str], send_fn: Any) -> dict[str, Any]:
+    async def _dispatch_to_targets(
+        targets: list[str],
+        send_fn: Any,
+        client: WhatsAppApiClient | None = None,
+    ) -> dict[str, Any]:
         if not targets:
             raise HomeAssistantError("At least one target recipient is required.")
         msg_ids: list[str] = []
@@ -660,6 +705,21 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             raise HomeAssistantError(
                 f"Failed to send to {len(errors)} recipient(s): {', '.join(f'{r}: {e}' for r, e in errors)}"
             )
+        # Update coordinator entity states in real time
+        if client:
+            client_stats = getattr(client, "stats", None)
+            if isinstance(client_stats, dict):
+                for _eid, inst_data in hass.data.get(DOMAIN, {}).items():
+                    if inst_data.get("client") is client and "coordinator" in inst_data:
+                        coord = inst_data["coordinator"]
+                        if coord.data and isinstance(coord.data, dict):
+                            updated_data = dict(coord.data)
+                            updated_stats = dict(updated_data.get("stats", {}))
+                            updated_stats.update(client_stats)
+                            updated_data["stats"] = updated_stats
+                            coord.async_set_updated_data(updated_data)
+                        break
+
         res: dict[str, Any] = {
             "success": True,
             "message_id": msg_ids[0] if msg_ids else None,
@@ -681,6 +741,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         def _get_quoted() -> str | None:
             return data["quote"] if "quote" in data else data.get("reply_to")
 
+        async def _dispatch(targets_list: list[str], send_func: Any) -> dict[str, Any]:
+            return await _dispatch_to_targets(targets_list, send_func, client=client)
+
         if service in (
             "send_message",
             "send_poll",
@@ -698,7 +761,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             targets = _parse_service_targets(data.get("target"))
 
             if service == "send_message":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_message(
                         t,
@@ -708,7 +771,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_poll":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_poll(
                         t,
@@ -722,7 +785,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_image":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_image(
                         t,
@@ -733,7 +796,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_location":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_location(
                         t,
@@ -746,7 +809,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_event":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_event(
                         t,
@@ -760,7 +823,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_reaction":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_reaction(
                         t,
@@ -769,7 +832,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_document":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_document(
                         t,
@@ -782,7 +845,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_video":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_video(
                         t,
@@ -794,7 +857,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_audio":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_audio(
                         t,
@@ -806,7 +869,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_list":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_list(
                         t,
@@ -819,7 +882,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_contact":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_contact(
                         t,
@@ -828,7 +891,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     ),
                 )
             elif service == "send_buttons":
-                return await _dispatch_to_targets(
+                return await _dispatch(
                     targets,
                     lambda t: client.send_buttons(
                         t,

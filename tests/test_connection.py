@@ -422,3 +422,45 @@ async def test_send_contact_camelcase_payload(api_client: WhatsAppApiClient) -> 
         )
         assert payload["contactName"] == "John Doe"
         assert payload["contactNumber"] == "4915123456789"
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_ensure_polling_restarts_stalled_task(
+    api_client: WhatsAppApiClient,
+) -> None:
+    """Watchdog restarts polling task when last successful poll exceeds timeout."""
+    import asyncio
+    import time
+
+    api_client._polling_enabled = True
+    # Simulate a running task that has stalled for 120 seconds
+    dummy_task = asyncio.create_task(asyncio.sleep(100))
+    api_client._polling_task = dummy_task
+    api_client._last_poll_successful_time = time.time() - 120.0
+
+    with patch.object(
+        asyncio, "create_task", wraps=asyncio.create_task
+    ) as mock_create_task:
+        api_client.ensure_polling(interval=5)
+        # Old stalled task should be cancelled and a new one created
+        assert (
+            dummy_task.cancelled() or getattr(dummy_task, "cancelling", lambda: 0)() > 0
+        )
+        assert mock_create_task.call_count == 1
+    # Clean up
+    if api_client._polling_task:
+        api_client._polling_task.cancel()
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_get_stats_failure_marks_disconnected(
+    api_client: WhatsAppApiClient,
+) -> None:
+    """When get_stats encounters connection error, connected flag is marked False."""
+    api_client.stats["connected"] = True
+    api_client._connected = True
+
+    with patch.object(api_client, "_get_session", side_effect=OSError("Network down")):
+        stats = await api_client.get_stats()
+        assert stats["connected"] is False
+        assert api_client._connected is False

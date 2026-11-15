@@ -27,6 +27,7 @@ import contextlib
 import json
 import logging
 import re
+import time
 from collections import deque
 from collections.abc import AsyncGenerator
 from typing import Any, cast
@@ -116,6 +117,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         }
         self._callback: Any = None
         self._polling_task: asyncio.Task[Any] | None = None
+        self._last_poll_successful_time: float = 0.0
         self._session: aiohttp.ClientSession | None = session
         self._owns_session: bool = session is None
         # Tracks IDs of messages sent by this HA integration so echoes can be
@@ -334,6 +336,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
             return
 
         self._polling_enabled = True
+        self._last_poll_successful_time = time.time()
         self._polling_task = asyncio.create_task(self._poll_loop(interval))
         _LOGGER.debug("Started polling loop with interval %ss", interval)
 
@@ -349,15 +352,34 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         _LOGGER.debug("Stopped polling loop")
 
     def ensure_polling(self, interval: int = 2) -> None:
-        """Ensure the polling loop task is active if polling was enabled."""
+        """Ensure the polling loop task is active and not stalled."""
         if not getattr(self, "_polling_enabled", False):
             return
 
-        if self._polling_task is None or self._polling_task.done():
-            _LOGGER.warning(
-                "Event polling loop task was not running (done=%s). Restarting...",
-                self._polling_task.done() if self._polling_task else "None",
+        now = time.time()
+        stalled_timeout = max(60.0, interval * 4.0)
+        is_stalled = (
+            self._last_poll_successful_time > 0
+            and (now - self._last_poll_successful_time) > stalled_timeout
+        )
+
+        if self._polling_task is None or self._polling_task.done() or is_stalled:
+            reason = (
+                "task was None"
+                if self._polling_task is None
+                else (
+                    "task was done"
+                    if self._polling_task.done()
+                    else f"polling stalled ({now - self._last_poll_successful_time:.1f}s > {stalled_timeout}s without successful poll)"
+                )
             )
+            _LOGGER.warning(
+                "Event polling loop watchdog triggered (%s). Restarting polling loop...",
+                reason,
+            )
+            if self._polling_task and not self._polling_task.done():
+                self._polling_task.cancel()
+            self._last_poll_successful_time = now
             self._polling_task = asyncio.create_task(self._poll_loop(interval))
 
     async def _poll_loop(self, interval: int) -> None:
@@ -378,6 +400,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                     ) as resp,
                 ):
                     if resp.status == 200:
+                        self._last_poll_successful_time = time.time()
                         try:
                             events = await resp.json()
                         except Exception as json_err:
@@ -401,8 +424,23 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
                                         exc_info=True,
                                     )
                     elif resp.status == 401:
+                        await resp.text()
                         _LOGGER.error("Polling failed: Invalid API Key")
                         await asyncio.sleep(10)
+                    elif resp.status == 429:
+                        await resp.text()
+                        _LOGGER.warning(
+                            "Event polling rate limited (HTTP 429) by WhatsApp gateway, backing off for 15s..."
+                        )
+                        await asyncio.sleep(15)
+                    else:
+                        resp_text = await resp.text()
+                        _LOGGER.debug(
+                            "Polling received HTTP status %s: %s",
+                            resp.status,
+                            resp_text,
+                        )
+                        await asyncio.sleep(5)
 
             except asyncio.CancelledError:
                 break
@@ -420,7 +458,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         max_attempts = 4
         retry_delay = 1
         for attempt in range(max_attempts):
-            async with aiohttp.ClientSession() as session:
+            async with self._get_session() as session:
                 try:
                     # We just fire and forget, or wait for 200 OK
                     async with session.post(
@@ -656,58 +694,59 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/stats"
         params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(
+        try:
+            async with (
+                self._get_session() as session,
+                session.get(
                     url,
                     headers=headers,
                     params=params,
                     timeout=aiohttp.ClientTimeout(total=20),
-                ) as resp:
-                    if resp.status == 401:
-                        _LOGGER.error(
-                            "Auth failed during stats fetch for session %s",
-                            self.session_id,
-                        )
-                        raise WhatsAppAuthError("Invalid API Key")
-                    if resp.status == 429:
-                        _LOGGER.warning(
-                            "Stats fetch failed: Rate limited (429) for session %s",
-                            self.session_id,
-                        )
-                        raise WhatsAppRateLimitError("Too many requests")
-                    if resp.status == 200:
-                        data: dict[str, Any] = await resp.json()
-                        self.stats.update(_safe_text(data))
-                        # Also update connectivity bit
-                        if "connected" in data:
-                            self._connected = bool(data.get("connected", False))
-                        else:
-                            # Fallback check to /status if connected field missing
-                            try:
-                                status_res = await self.get_status()
-                                self._connected = bool(
-                                    status_res.get("connected", False)
-                                )
-                            except Exception:
-                                self._connected = bool(
-                                    self.stats.get("connected", False)
-                                )
-                        self._disconnect_reason = data.get("disconnect_reason")
-                        return self.stats
-                    _LOGGER.warning(
-                        "Stats fetch received unexpected HTTP status %s for session %s",
-                        resp.status,
+                ) as resp,
+            ):
+                if resp.status == 401:
+                    _LOGGER.error(
+                        "Auth failed during stats fetch for session %s",
                         self.session_id,
                     )
-                    self._connected = False
-            except (WhatsAppAuthError, WhatsAppRateLimitError):
+                    raise WhatsAppAuthError("Invalid API Key")
+                if resp.status == 429:
+                    _LOGGER.warning(
+                        "Stats fetch failed: Rate limited (429) for session %s",
+                        self.session_id,
+                    )
+                    raise WhatsAppRateLimitError("Too many requests")
+                if resp.status == 200:
+                    data: dict[str, Any] = await resp.json()
+                    self.stats.update(_safe_text(data))
+                    # Also update connectivity bit
+                    if "connected" in data:
+                        self._connected = bool(data.get("connected", False))
+                    else:
+                        # Fallback check to /status if connected field missing
+                        try:
+                            status_res = await self.get_status()
+                            self._connected = bool(status_res.get("connected", False))
+                        except Exception:
+                            self._connected = bool(self.stats.get("connected", False))
+                    self._disconnect_reason = data.get("disconnect_reason")
+                    return self.stats
+                _LOGGER.warning(
+                    "Stats fetch received unexpected HTTP status %s for session %s",
+                    resp.status,
+                    self.session_id,
+                )
                 self._connected = False
-                raise
-            except Exception as e:
-                _LOGGER.debug("Failed to fetch stats: %s", e)
-                # If we can't reach addon, mark disconnected
-                self._connected = False
+                self.stats["connected"] = False
+        except (WhatsAppAuthError, WhatsAppRateLimitError):
+            self._connected = False
+            self.stats["connected"] = False
+            raise
+        except Exception as e:
+            _LOGGER.debug("Failed to fetch stats: %s", e)
+            # If we can't reach addon, mark disconnected
+            self._connected = False
+            self.stats["connected"] = False
         return self.stats
 
     async def get_chats(self) -> dict[str, Any]:
@@ -715,7 +754,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/chats"
         params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
+        async with self._get_session() as session:
             try:
                 async with session.get(
                     url,
@@ -749,7 +788,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     async def get_health(self) -> dict[str, Any]:
         """Fetch health status from the Addon."""
         url = f"{self.host}/health"
-        async with aiohttp.ClientSession() as session:
+        async with self._get_session() as session:
             try:
                 async with session.get(
                     url,
@@ -767,7 +806,7 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/api/dashboard"
         params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
+        async with self._get_session() as session:
             try:
                 async with session.get(
                     url,
