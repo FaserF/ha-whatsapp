@@ -61,7 +61,6 @@ async def async_setup_entry(
             WhatsAppStatSensor(coordinator, entry, "failed"),
             WhatsAppChatsSensor(coordinator, entry),
             WhatsAppModerationWarningsSensor(coordinator, entry),
-            WhatsAppModerationRaidStatusSensor(coordinator, entry),
             WhatsAppPendingCaptchasSensor(coordinator, entry),
         ]
     )
@@ -346,103 +345,6 @@ class WhatsAppModerationWarningsSensor(
                 )
                 if self.native_value > 0
                 else "No active warnings"
-            ),
-        }
-
-
-class WhatsAppModerationRaidStatusSensor(
-    CoordinatorEntity[WhatsAppDataUpdateCoordinator],  # type: ignore[misc]
-    SensorEntity,  # type: ignore[misc]
-):
-    """Sensor reporting total groups with Anti-Raid shield active.
-
-    Disabled by default and automatically activated in the entity registry
-    as soon as moderation becomes active (globally or for any group).
-    It is disabled again when moderation is fully turned off.
-    """
-
-    _attr_has_entity_name = True
-    _attr_translation_key = "moderation_raid_status"
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(
-        self, coordinator: WhatsAppDataUpdateCoordinator, entry: ConfigEntry
-    ) -> None:
-        """Initialise the sensor."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.entry_id}_moderation_raid_status"
-        self._attr_device_info = coordinator.client.get_device_info()
-
-    async def async_added_to_hass(self) -> None:
-        """React to entity added to hass; sync registry enabled state first."""
-        await super().async_added_to_hass()
-        self._sync_registry_enabled()
-
-    def _sync_registry_enabled(self) -> None:
-        """Enable or disable this entity in the registry based on moderation state."""
-        sync_moderation_registry_enabled(self)
-
-    def _handle_coordinator_update(self) -> None:
-        """React to coordinator data updates; sync registry enabled state first."""
-        self._sync_registry_enabled()
-        if self.enabled:
-            super()._handle_coordinator_update()
-
-    @property
-    def native_value(self) -> int:
-        """Return the number of groups with active Anti-Raid shield."""
-        data = self.coordinator.data or {}
-        mod = data.get("moderation", {})
-        groups = mod.get("groups", {})
-        active_raid_groups = 0
-        for group in groups.values():
-            antispam = group.get("antispam", {})
-            if antispam.get("anti_raid", {}).get("enabled"):
-                active_raid_groups += 1
-        return active_raid_groups
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return detailed Anti-Raid shield status attributes."""
-        data = self.coordinator.data or {}
-        mod = data.get("moderation", {})
-        groups = mod.get("groups", {})
-        chats_data = data.get("chats", {})
-
-        # Build map of JID -> chat name from chats data
-        chat_names: dict[str, str] = {}
-        if isinstance(chats_data, dict):
-            for c in chats_data.get("groups", []):
-                if isinstance(c, dict) and c.get("jid"):
-                    chat_names[str(c.get("jid"))] = str(
-                        c.get("name") or c.get("subject") or c.get("jid")
-                    )
-        elif isinstance(chats_data, list):
-            for c in chats_data:
-                if isinstance(c, dict) and c.get("jid"):
-                    chat_names[str(c.get("jid"))] = str(
-                        c.get("name") or c.get("subject") or c.get("jid")
-                    )
-
-        active_groups: list[str] = []
-        for gid, group in groups.items():
-            antispam = group.get("antispam", {})
-            if antispam.get("anti_raid", {}).get("enabled"):
-                name = (
-                    group.get("name")
-                    or group.get("subject")
-                    or chat_names.get(str(gid))
-                    or str(gid)
-                )
-                active_groups.append(str(name))
-        return {
-            "active_shield_count": len(active_groups),
-            "protected_groups": active_groups,
-            "status_description": (
-                f"Active in {len(active_groups)} group(s)"
-                if active_groups
-                else "Not active in any group"
             ),
         }
 

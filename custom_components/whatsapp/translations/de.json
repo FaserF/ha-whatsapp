@@ -434,16 +434,13 @@
       "moderation_warnings": {
         "name": "Aktive Moderations-Verwarnungen"
       },
-      "moderation_raid_status": {
-        "name": "Anti-Raid Schutz-Status"
-      },
       "pending_captchas": {
         "name": "Ausstehende Captcha-Verifizierungen"
       }
     },
     "switch": {
       "moderation_master": {
-        "name": "Moderation Engine"
+        "name": "Moderation & Anti-Raid"
       },
       "telegram_bridge_master": {
         "name": "Telegram-Brücke"
@@ -455,12 +452,6 @@
     "binary_sensor": {
       "connection": {
         "name": "Verbindung"
-      },
-      "moderation_status": {
-        "name": "WhatsApp Moderations-Engine"
-      },
-      "telegram_bridge_status": {
-        "name": "Telegram Bridge Status"
       }
     },
     "button": {

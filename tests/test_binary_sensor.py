@@ -101,11 +101,4 @@ async def test_binary_sensor(hass: HomeAssistant) -> None:
         state = hass.states.get("binary_sensor.whatsapp")
         assert state
         assert state.state == "off"
-
         assert state.attributes["passkey_required"] is False
-
-        # Check moderation status binary sensor
-        mod_state = hass.states.get("binary_sensor.whatsapp_moderation_status")
-        if mod_state:
-            assert mod_state.state == "off"
-            assert "managed_groups_count" in mod_state.attributes

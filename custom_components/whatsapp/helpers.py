@@ -146,10 +146,10 @@ def async_sync_moderation_entities(
         hass,
         [
             f"{entry_id}_moderation_warnings",
-            f"{entry_id}_moderation_raid_status",
-            f"{entry_id}_moderation_status",
+            f"{entry_id}_switch_moderation_master",
         ],
         is_moderation_active(coordinator_data),
+        domains=("sensor", "switch"),
     )
 
 
@@ -159,9 +159,9 @@ def async_sync_telegram_bridge_entities(
     """Sync Telegram bridge entity enabled state in entity registry."""
     async_sync_entities_by_unique_ids(
         hass,
-        [f"{entry_id}_telegram_bridge_status"],
+        [f"{entry_id}_switch_telegram_bridge_master"],
         is_telegram_bridge_active(coordinator_data),
-        domains=("binary_sensor",),
+        domains=("switch",),
     )
 
 
