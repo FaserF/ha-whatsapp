@@ -64,6 +64,18 @@
           "action": "Come vuoi procedere?"
         },
         "description": "È stata trovata una sessione WhatsApp attiva per **{phone_number}**.\n\nPuoi usare questa sessione oppure disconnetterti per associare un altro telefono."
+      },
+      "reauth_confirm": {
+        "title": "Riautentica WhatsApp",
+        "description": "La sessione di WhatsApp è disconnessa o scaduta. Fai clic su Invia per eseguire nuovamente la scansione del codice QR o inserire un codice di associazione per ripristinare la connessione."
+      },
+      "reconfigure": {
+        "title": "Riconfigura WhatsApp",
+        "data": {
+          "host": "URL host dell'add-on",
+          "api_key": "Token API (dall'interfaccia dell'add-on)"
+        },
+        "description": "Aggiorna l'URL dell'host o il token API per il tuo add-on WhatsApp e ricollega la tua sessione."
       }
     },
     "error": {
