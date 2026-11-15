@@ -7,13 +7,25 @@ on:
 jobs:
   auto-fix:
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.actor != 'faserf-hermes-agent[bot]'
     permissions:
       contents: write
     steps:
+      - name: Generate GitHub App token for Hermes
+        id: app-token
+        if: env.HAS_BOT_CREDS == 'true'
+        uses: actions/create-github-app-token@v1
+        continue-on-error: true
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+        env:
+          HAS_BOT_CREDS: ${{ secrets.BOT_APP_ID != '' && secrets.BOT_PRIVATE_KEY != '' }}
+
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref_name }}
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
@@ -29,3 +41,6 @@ jobs:
         with:
           commit_message: "chore: auto-fix linting issues"
           branch: ${{ github.ref_name }}
+          commit_user_name: "faserf-hermes-agent[bot]"
+          commit_user_email: "342667397+faserf-hermes-agent[bot]@users.noreply.github.com"
+          commit_author: "faserf-hermes-agent[bot] <342667397+faserf-hermes-agent[bot]@users.noreply.github.com>"
