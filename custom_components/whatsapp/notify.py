@@ -124,7 +124,7 @@ class WhatsAppNotificationEntity(
     _attr_has_entity_name = True
     _attr_translation_key = "whatsapp"
     _attr_unique_id = "whatsapp_notify"
-    _attr_state: str | None = None
+    _attr_state: str | None = None  # type: ignore[assignment]
 
     def __init__(
         self,
