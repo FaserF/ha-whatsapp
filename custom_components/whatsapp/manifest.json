@@ -12,6 +12,7 @@
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/FaserF/ha-whatsapp/issues/",
+  "quality_scale": "platinum",
   "requirements": [],
   "version": "2.1.8-dev0",
   "zeroconf": [
@@ -19,6 +20,5 @@
       "name": "whatsapp*",
       "type": "_ha-whatsapp._tcp.local."
     }
-  ],
-  "quality_scale": "platinum"
+  ]
 }
