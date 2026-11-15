@@ -23,6 +23,7 @@ Both services support the same message features:
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -44,6 +45,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .api import WhatsAppApiClient
 from .const import CONF_RETRY_ATTEMPTS, DOMAIN
@@ -121,6 +123,7 @@ class WhatsAppNotificationEntity(
     _attr_has_entity_name = True
     _attr_translation_key = "whatsapp"
     _attr_unique_id = "whatsapp_notify"
+    _attr_state: str | None = None
 
     def __init__(
         self,
@@ -140,6 +143,22 @@ class WhatsAppNotificationEntity(
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_notify"
         self._attr_device_info = coordinator.client.get_device_info()
+        self._sync_state_from_coordinator()
+
+    def _sync_state_from_coordinator(self) -> None:
+        """Derive state timestamp from coordinator metadata if available."""
+        if self._attr_state is None and self.coordinator.data:
+            last_sent = self.coordinator.data.get("last_message_sent")
+            if last_sent and str(last_sent) != "None":
+                self._attr_state = str(last_sent)
+            elif last_update := self.coordinator.data.get("last_update"):
+                if str(last_update) != "None":
+                    self._attr_state = str(last_update)
+
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._sync_state_from_coordinator()
+        super()._handle_coordinator_update()
 
     @property
     def available(self) -> bool:
@@ -197,8 +216,16 @@ class WhatsAppNotificationEntity(
                 f"{', '.join(r for r, _ in errors)}"
             )
 
+        now_dt = dt_util.utcnow() if hasattr(dt_util, "utcnow") else None
+        if now_dt is not None and hasattr(now_dt, "isoformat"):
+            self._attr_state = now_dt.isoformat()
+        else:
+            self._attr_state = datetime.now(UTC).isoformat()
+
         if hasattr(self, "_async_record_notification"):
             self._async_record_notification()
+        if getattr(self, "hass", None) is not None:
+            self.async_write_ha_state()
 
 
 async def async_send_whatsapp_message(

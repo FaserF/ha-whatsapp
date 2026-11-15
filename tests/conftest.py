@@ -93,7 +93,10 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
     from unittest.mock import patch
 
     if sys.platform == "win32":
-        with patch("aiodns.DNSResolver.__init__", return_value=None):
+        try:
+            with patch("aiodns.DNSResolver.__init__", return_value=None):
+                yield
+        except (ImportError, ModuleNotFoundError):
             yield
     else:
         yield

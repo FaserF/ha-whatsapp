@@ -210,7 +210,10 @@ def test_services_yaml_keys_translated() -> None:
     if not services_yaml_path.exists():
         pytest.skip("services.yaml missing")
 
-    import yaml
+    try:
+        import yaml
+    except ImportError:
+        pytest.skip("PyYAML missing")
 
     with open(services_yaml_path, encoding="utf-8") as f:
         services_data = yaml.safe_load(f) or {}

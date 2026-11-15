@@ -1177,7 +1177,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         s = cv.string(val).strip()
         if not s:
             raise vol.Invalid("Target recipient cannot be empty")
-        return s
+        return str(s)
 
     s_target_field = vol.All(vol.Any(cv.string, [cv.string]), _validate_service_targets)
     s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}  # type: ignore[misc]

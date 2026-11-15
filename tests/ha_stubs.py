@@ -127,7 +127,7 @@ _DataUpdateCoordinatorBase = _get_or_create_class("DataUpdateCoordinator")
 class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-type, misc]
     def __init__(self, hass: Any, *_args: Any, **kwargs: Any) -> None:
         self.hass = hass
-        self.data: Any = {"connected": True, "stats": {"sent": 0, "failed": 0}}
+        self.data: Any = None
         self._listeners: list[Callable[[], None]] = []
         if "config_entry" in kwargs:
             self.config_entry = kwargs["config_entry"]
@@ -154,6 +154,11 @@ class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-t
 
     async def async_request_refresh(self) -> None:
         await self.async_refresh()
+        for listener in list(self._listeners):
+            listener()
+
+    def async_set_updated_data(self, data: Any) -> None:
+        self.data = data
         for listener in list(self._listeners):
             listener()
 
@@ -451,7 +456,7 @@ def _build_ha_stub_modules() -> None:
 
                 importlib.import_module(mod_name)
             except Exception:
-                _stub(mod_name, MagicMock())
+                _stub(mod_name)
 
     if "homeassistant" in sys.modules:
         if getattr(sys.modules["homeassistant"], "_is_stub", False):
@@ -534,11 +539,20 @@ def _build_ha_stub_modules() -> None:
         DeviceInfo=dict,
     )
 
+    class ZeroconfServiceInfo:
+        def __init__(self, **kwargs: Any) -> None:
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+            if not hasattr(self, "host"):
+                self.host = str(
+                    kwargs.get("ip_address") or kwargs.get("hostname") or "localhost"
+                )
+
     # homeassistant.helpers.service_info.zeroconf
     _stub("homeassistant.helpers.service_info")
     _stub(
         "homeassistant.helpers.service_info.zeroconf",
-        ZeroconfServiceInfo=MagicMock,
+        ZeroconfServiceInfo=ZeroconfServiceInfo,
     )
 
     # homeassistant.components.hassio
@@ -600,6 +614,7 @@ def _build_ha_stub_modules() -> None:
         SOURCE_USER="user",
         SOURCE_REAUTH="reauth",
         SOURCE_RECONFIGURE="reconfigure",
+        SOURCE_ZEROCONF="zeroconf",
     )
 
     # voluptuous
