@@ -599,6 +599,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     elif hasattr(hass, "async_create_task"):
         hass.async_create_task(client.start_session(), name="whatsapp_start_session")
 
+    # Clean up deprecated entities consolidated into switch attributes
+    try:
+        from homeassistant.helpers import entity_registry as er
+
+        ent_reg = er.async_get(hass)
+        for sub in (
+            "_moderation_status",
+            "_telegram_bridge_status",
+            "_moderation_raid_status",
+        ):
+            old_unique_id = f"{entry.entry_id}{sub}"
+            for platform in ("binary_sensor", "sensor"):
+                if old_entity_id := ent_reg.async_get_entity_id(
+                    platform, DOMAIN, old_unique_id
+                ):
+                    _LOGGER.info(
+                        "Removing deprecated redundant WhatsApp entity: %s",
+                        old_entity_id,
+                    )
+                    ent_reg.async_remove(old_entity_id)
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.debug("Entity registry cleanup skipped: %s", exc)
+
     # Register services globally
     await async_setup_services(hass)
 
