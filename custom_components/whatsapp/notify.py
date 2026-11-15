@@ -145,20 +145,35 @@ class WhatsAppNotificationEntity(
         self._attr_device_info = coordinator.client.get_device_info()
         self._sync_state_from_coordinator()
 
+    def _set_notify_state(self, val: str) -> None:
+        """Set notify entity timestamp state compatible with HA core NotifyEntity."""
+        self.__dict__.pop("state", None)
+        self._NotifyEntity__last_notified_isoformat = val  # type: ignore[attr-defined]
+        self._attr_state = val
+
     def _sync_state_from_coordinator(self) -> None:
         """Derive state timestamp from coordinator metadata if available."""
-        if self._attr_state is None and self.coordinator.data:
+        current = (
+            getattr(self, "_NotifyEntity__last_notified_isoformat", None)
+            or self._attr_state
+        )
+        if current is None and self.coordinator.data:
             last_sent = self.coordinator.data.get("last_message_sent")
             if last_sent and str(last_sent) != "None":
-                self._attr_state = str(last_sent)
+                self._set_notify_state(str(last_sent))
             elif last_update := self.coordinator.data.get("last_update"):
                 if str(last_update) != "None":
-                    self._attr_state = str(last_update)
+                    self._set_notify_state(str(last_update))
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._sync_state_from_coordinator()
         super()._handle_coordinator_update()
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added to Home Assistant."""
+        await super().async_added_to_hass()
+        self._sync_state_from_coordinator()
 
     @property
     def available(self) -> bool:
