@@ -50,6 +50,7 @@ from homeassistant.util import dt as dt_util
 from .api import WhatsAppApiClient
 from .const import CONF_RETRY_ATTEMPTS, DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .helpers import format_timestamp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -157,13 +158,25 @@ class WhatsAppNotificationEntity(
             getattr(self, "_NotifyEntity__last_notified_isoformat", None)
             or self._attr_state
         )
-        if current is None and self.coordinator.data:
-            last_sent = self.coordinator.data.get("last_message_sent")
-            if last_sent and str(last_sent) != "None":
+        if current in (None, "unknown", "unavailable", ""):
+            stats = (
+                (self.coordinator.data or {}).get("stats", {})
+                if isinstance(self.coordinator.data, dict)
+                else {}
+            )
+            last_sent = stats.get("last_sent_time") or stats.get("last_message_sent")
+            if last_sent and str(last_sent) not in ("None", "unknown", ""):
                 self._set_notify_state(str(last_sent))
-            elif last_update := self.coordinator.data.get("last_update"):
-                if str(last_update) != "None":
-                    self._set_notify_state(str(last_update))
+            elif start_time := stats.get("start_time"):
+                ts = format_timestamp(start_time)
+                if ts and str(ts) not in ("None", "unknown", ""):
+                    self._set_notify_state(str(ts))
+            else:
+                now_dt = dt_util.utcnow() if hasattr(dt_util, "utcnow") else None
+                if now_dt is not None and hasattr(now_dt, "isoformat"):
+                    self._set_notify_state(now_dt.isoformat())
+                else:
+                    self._set_notify_state(datetime.now(UTC).isoformat())
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -174,6 +187,8 @@ class WhatsAppNotificationEntity(
         """Handle entity which will be added to Home Assistant."""
         await super().async_added_to_hass()
         self._sync_state_from_coordinator()
+        if getattr(self, "hass", None) is not None:
+            self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
