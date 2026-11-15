@@ -464,3 +464,47 @@ async def test_get_stats_failure_marks_disconnected(
         stats = await api_client.get_stats()
         assert stats["connected"] is False
         assert api_client._connected is False
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_get_qr_code_states(api_client: WhatsAppApiClient) -> None:
+    """Test get_qr_code handling of ready, waiting, connected, and error states."""
+    from collections.abc import AsyncGenerator
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def _mock_cm(sess: Any) -> AsyncGenerator[Any, None]:
+        yield sess
+
+    # 1. Ready state returns the QR data URL
+    mock_ready = mock_aiohttp_post(
+        json_data={"status": "qr_ready", "qr": "data:image/png;base64,mockqr"}
+    )
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_ready)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == "data:image/png;base64,mockqr"
+
+    # 2. Waiting state returns empty string
+    mock_waiting = mock_aiohttp_post(json_data={"status": "waiting_for_qr", "qr": None})
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_waiting)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == ""
+
+    # 3. Connected state marks connected True and returns empty string
+    api_client._connected = False
+    mock_connected = mock_aiohttp_post(json_data={"status": "connected", "qr": None})
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_connected)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == ""
+        assert api_client._connected is True
+
+    # 4. Error state returns empty string
+    with patch.object(api_client, "_get_session", side_effect=OSError("Offline")):
+        qr = await api_client.get_qr_code()
+        assert qr == ""

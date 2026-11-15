@@ -529,48 +529,50 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         url = f"{self.host}/qr"
         params = {"session_id": self.session_id}
         headers = {"X-Auth-Token": self.api_key} if self.api_key else {}
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(
+        try:
+            async with (
+                self._get_session() as session,
+                session.get(
                     url,
                     headers=headers,
                     params=params,
                     timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
-                    if resp.status == 401:
-                        raise WhatsAppAuthError("Invalid API Key")
-                    if resp.status == 200:
-                        data = await resp.json()
-                        status = data.get("status", "")
-                        qr = data.get("qr", "")
-                        _LOGGER.debug(
-                            "QR endpoint returned status=%s, qr_present=%s",
-                            status,
-                            bool(qr),
-                        )
+                ) as resp,
+            ):
+                if resp.status == 401:
+                    raise WhatsAppAuthError("Invalid API Key")
+                if resp.status == 200:
+                    data = await resp.json()
+                    status = data.get("status", "")
+                    qr = data.get("qr", "")
+                    _LOGGER.debug(
+                        "QR endpoint returned status=%s, qr_present=%s",
+                        status,
+                        bool(qr),
+                    )
 
-                        if status == "connected":
-                            # Already connected, no QR needed
-                            _LOGGER.info(
-                                "Addon reports already connected, no QR code needed"
-                            )
-                            return ""
-                        if qr:
-                            return str(qr)
-                        if status in ("waiting", "waiting_for_qr"):
-                            # QR not yet generated
-                            _LOGGER.debug("Addon is still generating QR code")
-                            return ""
-                        _LOGGER.warning("QR endpoint payload status: %s", status)
+                    if status == "connected":
+                        # Already connected, no QR needed
+                        self._connected = True
+                        _LOGGER.info(
+                            "Addon reports already connected, no QR code needed"
+                        )
                         return ""
-                    _LOGGER.warning("QR endpoint returned HTTP status %s", resp.status)
+                    if qr:
+                        return str(qr)
+                    if status in ("waiting", "waiting_for_qr"):
+                        # QR not yet generated
+                        _LOGGER.debug("Addon is still generating QR code")
+                        return ""
+                    _LOGGER.warning("QR endpoint payload status: %s", status)
                     return ""
-            except (HomeAssistantError, WhatsAppAuthError):
-                raise
-            except Exception as e:
-                _LOGGER.error("Error fetching QR from addon: %s", e)
+                _LOGGER.warning("QR endpoint returned HTTP status %s", resp.status)
                 return ""
-        return ""
+        except (HomeAssistantError, WhatsAppAuthError):
+            raise
+        except Exception as e:
+            _LOGGER.error("Error fetching QR from addon: %s", e)
+            return ""
 
     async def request_pairing_code(self, phone_number: str) -> str:
         """Request a pairing code for phone number authentication."""
