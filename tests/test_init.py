@@ -5,6 +5,8 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import ha_stubs
+import pytest
+from homeassistant.exceptions import ConfigEntryNotReady
 
 ha_stubs._build_ha_stub_modules()
 
@@ -241,3 +243,33 @@ async def test_incoming_message_invalid_or_none_payload(hass: HomeAssistant) -> 
             callback("invalid_string")  # type: ignore[arg-type]
             callback(123)  # type: ignore[arg-type]
             assert mock_fire.call_count == 0
+
+
+async def test_setup_entry_connection_error_raises_config_entry_not_ready(
+    hass: HomeAssistant,
+) -> None:
+    """Verify that connection failure on boot retries and marks config entry not ready."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry_conn_err",
+    )
+    entry.add_to_hass(hass)
+
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("homeassistant.helpers.issue_registry.async_create_issue"),
+    ):
+        mock_instance = mock_client_cls.return_value
+        mock_instance.get_health = AsyncMock(
+            return_value={"status": "unreachable", "details": "Connection refused"}
+        )
+        mock_instance.connect = AsyncMock(side_effect=OSError("Connection refused"))
+        mock_instance.close = AsyncMock()
+
+        with (
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+            pytest.raises(ConfigEntryNotReady),
+        ):
+            await hass.config_entries.async_setup(entry.entry_id)
+        assert mock_sleep.call_count >= 1

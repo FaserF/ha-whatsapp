@@ -274,7 +274,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Retry initial coordinator refresh with exponential backoff on DNS/connection/timeout errors
     # to avoid failing immediately or permanently giving up after fast DNS resolver attempts.
-    max_setup_retries = 4
+    max_setup_retries = 5
     setup_retry_delay = 1
     for attempt in range(max_setup_retries):
         try:
@@ -300,6 +300,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     attempt + 1,
                     err,
                 )
+                if is_connection_or_dns_error(err):
+                    raise ConfigEntryNotReady(
+                        f"Failed to connect to WhatsApp gateway on startup after {attempt + 1} attempts: {err}"
+                    ) from err
                 raise
 
     # Handle incoming messages
