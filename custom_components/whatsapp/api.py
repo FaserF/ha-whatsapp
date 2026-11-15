@@ -388,6 +388,8 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
 
                         if isinstance(events, list) and self._callback:
                             for event in events:
+                                if not isinstance(event, dict):
+                                    continue
                                 if _LOGGER.isEnabledFor(logging.DEBUG):
                                     _LOGGER.debug("Received event: %s", event)
                                 try:

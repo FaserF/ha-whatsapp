@@ -305,6 +305,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message or event from API."""
+        if not isinstance(data, dict):
+            _LOGGER.debug("Skipping non-dict incoming event payload: %s", data)
+            return
+
         event_type = str(data.get("type", "")).lower()
         if event_type in (
             "config_updated",
