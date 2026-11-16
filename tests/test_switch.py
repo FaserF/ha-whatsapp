@@ -49,3 +49,16 @@ async def test_switch_entities_setup(hass: HomeAssistant) -> None:
 
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
+
+        # Check moderation master switch attributes
+        mod_switch = hass.states.get("switch.whatsapp_moderation_engine")
+        if mod_switch:
+            assert "managed_groups_count" in mod_switch.attributes
+            assert "active_shield_count" in mod_switch.attributes
+            assert "protected_groups" in mod_switch.attributes
+
+        # Check telegram bridge switch attributes
+        tg_switch = hass.states.get("switch.whatsapp_telegram_bridge")
+        if tg_switch:
+            assert "mappings_count" in tg_switch.attributes
+            assert "active_mappings_count" in tg_switch.attributes

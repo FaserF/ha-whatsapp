@@ -1,4 +1,4 @@
-name: CI Orchestrator
+﻿name: CI Orchestrator
 
 on:
   push:
@@ -36,12 +36,25 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token for Hermes
+        id: app-token
+        if: env.HAS_BOT_CREDS == 'true'
+        uses: actions/create-github-app-token@v3
+        continue-on-error: true
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+        env:
+          HAS_BOT_CREDS: ${{ secrets.BOT_APP_ID != '' && secrets.BOT_PRIVATE_KEY != '' }}
+
       - uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
 
       - name: Install Python Dependencies
         run: |
@@ -70,14 +83,22 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "style: auto-fix and format with Ruff [skip ci]"
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_user_name: "faserf-hermes-agent[bot]"
+          commit_user_email: "342667397+faserf-hermes-agent[bot]@users.noreply.github.com"
+          commit_author: "faserf-hermes-agent[bot] <342667397+faserf-hermes-agent[bot]@users.noreply.github.com>"
           push_options: "--force"
 
       - name: Run Mypy
         run: |
           DOMAIN=$(python -c "import json, glob; print(json.load(open(glob.glob('custom_components/*/manifest.json')[0]))['domain'])")
           mypy "custom_components/$DOMAIN"
+      - name: Check Quality Scale
+        run: |
+          if [ -f script/check_quality_scale.py ]; then
+            pip install probatio packaging
+            python script/check_quality_scale.py
+          fi
+
 
       - name: Run Tests
         run: |

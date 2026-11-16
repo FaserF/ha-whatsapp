@@ -38,6 +38,7 @@ CONF_MARK_AS_READ = "mark_as_read"
 CONF_RETRY_ATTEMPTS = "retry_attempts"
 
 CONF_WHITELIST = "whitelist"
+CONF_RECIPIENT_ALIASES = "recipient_aliases"
 CONF_SESSION_ID = "session_id"
 CONF_MASK_SENSITIVE_DATA = "mask_sensitive_data"
 CONF_DEBUG_PAYLOADS = "debug_payloads"

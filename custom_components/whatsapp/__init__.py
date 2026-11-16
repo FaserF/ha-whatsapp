@@ -21,15 +21,32 @@ is responsible for:
 
 from __future__ import annotations
 
+import asyncio
+import time
 from logging import getLogger
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+
+try:
+    from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+except ImportError:
+
+    class ConfigEntryAuthFailed(Exception):  # type: ignore[no-redef] # noqa: N818
+        pass
+
+    class ConfigEntryNotReady(Exception):  # type: ignore[no-redef] # noqa: N818
+        pass
+
 
 from .api import WhatsAppApiClient
 from .const import (
@@ -37,6 +54,7 @@ from .const import (
     CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RECIPIENT_ALIASES,
     CONF_SELF_MESSAGES,
     CONF_WHITELIST,
     DOMAIN,
@@ -44,6 +62,7 @@ from .const import (
     EVENT_MESSAGE_SENT,
 )
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .helpers import is_connection_or_dns_error
 
 _LOGGER = getLogger(__name__)
 
@@ -175,6 +194,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if whitelist_str:
         whitelist = [x.strip() for x in whitelist_str.split(",") if x.strip()]
 
+    recipient_aliases = entry.options.get(CONF_RECIPIENT_ALIASES) or {}
+
     session_id = entry.data.get("session_id", "default")
 
     # Resolve internal container IPs/hostnames for the 'Visit' button
@@ -238,6 +259,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         session_id=session_id,
         mask_sensitive_data=mask_sensitive_data,
         whitelist=whitelist,
+        recipient_aliases=recipient_aliases,
         config_url=config_url,
         ha_base_url=ha_base_url,
         session=session,
@@ -251,11 +273,47 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
     }
 
-    await coordinator.async_config_entry_first_refresh()
+    # Retry initial coordinator refresh with exponential backoff on DNS/connection/timeout errors
+    # to avoid failing immediately or permanently giving up after fast DNS resolver attempts.
+    max_setup_retries = 5
+    setup_retry_delay = 1
+    for attempt in range(max_setup_retries):
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            break
+        except Exception as err:
+            if isinstance(err, ConfigEntryAuthFailed):
+                raise
+            if attempt < max_setup_retries - 1 and is_connection_or_dns_error(err):
+                wait_time = min(setup_retry_delay * (2**attempt), 16)
+                _LOGGER.warning(
+                    "Initial connection to WhatsApp gateway failed (%s). "
+                    "Retrying in %ss (attempt %d/%d)...",
+                    err,
+                    wait_time,
+                    attempt + 1,
+                    max_setup_retries,
+                )
+                await asyncio.sleep(wait_time)
+            else:
+                _LOGGER.error(
+                    "Failed to connect to WhatsApp gateway on startup after %d attempts: %s",
+                    attempt + 1,
+                    err,
+                )
+                if is_connection_or_dns_error(err):
+                    raise ConfigEntryNotReady(
+                        f"Failed to connect to WhatsApp gateway on startup after {attempt + 1} attempts: {err}"
+                    ) from err
+                raise
 
     # Handle incoming messages
     def handle_incoming_message(data: dict[str, Any]) -> None:
         """Handle incoming message or event from API."""
+        if not isinstance(data, dict):
+            _LOGGER.debug("Skipping non-dict incoming event payload: %s", data)
+            return
+
         event_type = str(data.get("type", "")).lower()
         if event_type in (
             "config_updated",
@@ -356,6 +414,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.debug("Firing WhatsApp sent event: %s", sent_data)
             hass.bus.async_fire(EVENT_MESSAGE_SENT, sent_data)
 
+            # Sync coordinator stats in real time so sent entity reflects state change immediately
+            client_stats = getattr(client, "stats", None)
+            if (
+                isinstance(client_stats, dict)
+                and coordinator.data
+                and isinstance(coordinator.data, dict)
+            ):
+                updated_data = dict(coordinator.data)
+                updated_stats = dict(updated_data.get("stats", {}))
+                updated_stats.update(client_stats)
+                updated_data["stats"] = updated_stats
+                coordinator.async_set_updated_data(updated_data)
+
             # --- Loop Guard (highest priority for received events) ---
             # If the message ID was sent by HA itself, drop it from received events
             # to prevent infinite feedback loops in automations.
@@ -413,6 +484,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         _LOGGER.debug("Firing WhatsApp event: %s", data)
         hass.bus.async_fire(EVENT_MESSAGE_RECEIVED, data)
+
+        # Update client statistics in real time so received sensor and Activity Log update immediately
+        client_stats = getattr(client, "stats", None)
+        if isinstance(client_stats, dict):
+            client_stats["received"] = (client_stats.get("received") or 0) + 1
+            if (
+                "lifetime_received" in client_stats
+                and client_stats["lifetime_received"] is not None
+            ):
+                client_stats["lifetime_received"] = (
+                    int(client_stats["lifetime_received"]) + 1
+                )
+            msg_text = data.get("text") or data.get("message") or ""
+            sender_val = data.get("sender_number") or data.get("sender") or ""
+            client_stats["last_received_message"] = msg_text
+            client_stats["last_received_sender"] = sender_val
+            client_stats["last_received_time"] = int(time.time() * 1000)
+
+            # Notify coordinator listeners immediately so entities reflect the new state in real time
+            if coordinator.data and isinstance(coordinator.data, dict):
+                updated_data = dict(coordinator.data)
+                updated_stats = dict(updated_data.get("stats", {}))
+                updated_stats.update(client_stats)
+                updated_data["stats"] = updated_stats
+                coordinator.async_set_updated_data(updated_data)
+            else:
+                hass.async_create_task(coordinator.async_request_refresh())
 
         # Check for interactive button / template response
         raw_msg_msg = raw_msg.get("message", {})
@@ -501,6 +599,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     elif hasattr(hass, "async_create_task"):
         hass.async_create_task(client.start_session(), name="whatsapp_start_session")
 
+    # Clean up deprecated entities consolidated into switch attributes
+    try:
+        from homeassistant.helpers import entity_registry as er
+
+        ent_reg = er.async_get(hass)
+        for sub in (
+            "_moderation_status",
+            "_telegram_bridge_status",
+            "_moderation_raid_status",
+        ):
+            old_unique_id = f"{entry.entry_id}{sub}"
+            for platform in ("binary_sensor", "sensor"):
+                if old_entity_id := ent_reg.async_get_entity_id(
+                    platform, DOMAIN, old_unique_id
+                ):
+                    _LOGGER.info(
+                        "Removing deprecated redundant WhatsApp entity: %s",
+                        old_entity_id,
+                    )
+                    ent_reg.async_remove(old_entity_id)
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.debug("Entity registry cleanup skipped: %s", exc)
+
     # Register services globally
     await async_setup_services(hass)
 
@@ -574,6 +695,64 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     if _SERVICES_REGISTERED:
         return
 
+    def _parse_service_targets(raw_target: Any) -> list[str]:
+        if not raw_target:
+            return []
+        if isinstance(raw_target, (list, tuple, set)):
+            results: list[str] = []
+            for item in raw_target:
+                results.extend(_parse_service_targets(item))
+            return results
+        if isinstance(raw_target, str):
+            return [s.strip() for s in raw_target.split(",") if s.strip()]
+        return [str(raw_target).strip()]
+
+    async def _dispatch_to_targets(
+        targets: list[str],
+        send_fn: Any,
+        client: WhatsAppApiClient | None = None,
+    ) -> dict[str, Any]:
+        if not targets:
+            raise HomeAssistantError("At least one target recipient is required.")
+        msg_ids: list[str] = []
+        errors: list[tuple[str, Exception]] = []
+        for tgt in targets:
+            try:
+                mid = await send_fn(tgt)
+                msg_ids.append(mid)
+            except Exception as err:
+                if len(targets) == 1:
+                    raise
+                errors.append((tgt, err))
+        if errors and not msg_ids:
+            raise HomeAssistantError(
+                f"Failed to send to {len(errors)} recipient(s): {', '.join(f'{r}: {e}' for r, e in errors)}"
+            )
+        # Update coordinator entity states in real time
+        if client:
+            client_stats = getattr(client, "stats", None)
+            if isinstance(client_stats, dict):
+                for _eid, inst_data in hass.data.get(DOMAIN, {}).items():
+                    if inst_data.get("client") is client and "coordinator" in inst_data:
+                        coord = inst_data["coordinator"]
+                        if coord.data and isinstance(coord.data, dict):
+                            updated_data = dict(coord.data)
+                            updated_stats = dict(updated_data.get("stats", {}))
+                            updated_stats.update(client_stats)
+                            updated_data["stats"] = updated_stats
+                            coord.async_set_updated_data(updated_data)
+                        break
+
+        res: dict[str, Any] = {
+            "success": True,
+            "message_id": msg_ids[0] if msg_ids else None,
+        }
+        if len(targets) > 1:
+            res["message_ids"] = msg_ids
+            if errors:
+                res["errors"] = [f"{r}: {e}" for r, e in errors]
+        return res
+
     async def _handle_service(call: ServiceCall) -> Any:
         """General service handler for routing."""
         account = call.data.get("account")
@@ -585,94 +764,167 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         def _get_quoted() -> str | None:
             return data["quote"] if "quote" in data else data.get("reply_to")
 
-        if service == "send_message":
-            msg_id = await client.send_message(
-                data.get("target", ""),
-                data.get("message", ""),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_poll":
-            msg_id = await client.send_poll(
-                data.get("target", ""),
-                data.get("question", ""),
-                data.get("options", []),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-                allow_multiple_responses=data.get("allow_multiple_responses", False),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_image":
-            msg_id = await client.send_image(
-                data.get("target", ""),
-                data.get("url", ""),
-                data.get("caption"),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_location":
-            msg_id = await client.send_location(
-                data.get("target", ""),
-                float(data.get("latitude", 0)),
-                float(data.get("longitude", 0)),
-                data.get("name"),
-                data.get("address"),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_event":
-            msg_id = await client.send_event(
-                data.get("target", ""),
-                data.get("name", ""),
-                description=data.get("description"),
-                date=data.get("date"),
-                location=data.get("location"),
-                join_link=data.get("join_link"),
-                is_canceled=data.get("is_canceled", False),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_reaction":
-            msg_id = await client.send_reaction(
-                data.get("target", ""),
-                data.get("reaction", ""),
-                data.get("message_id", ""),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_document":
-            msg_id = await client.send_document(
-                data.get("target", ""),
-                data.get("url", ""),
-                data.get("file_name"),
-                data.get("message"),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-                mimetype=data.get("mimetype") or data.get("mime_type"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_video":
-            msg_id = await client.send_video(
-                data.get("target", ""),
-                data.get("url", ""),
-                data.get("message"),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-                seconds=data.get("seconds"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_audio":
-            msg_id = await client.send_audio(
-                data.get("target", ""),
-                data.get("url", ""),
-                data.get("ptt", False),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-                seconds=data.get("seconds"),
-            )
-            return {"success": True, "message_id": msg_id}
+        async def _dispatch(targets_list: list[str], send_func: Any) -> dict[str, Any]:
+            return await _dispatch_to_targets(targets_list, send_func, client=client)
+
+        if service in (
+            "send_message",
+            "send_poll",
+            "send_image",
+            "send_location",
+            "send_event",
+            "send_reaction",
+            "send_document",
+            "send_video",
+            "send_audio",
+            "send_list",
+            "send_contact",
+            "send_buttons",
+        ):
+            targets = _parse_service_targets(data.get("target"))
+
+            if service == "send_message":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_message(
+                        t,
+                        data.get("message", ""),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                    ),
+                )
+            elif service == "send_poll":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_poll(
+                        t,
+                        data.get("question", ""),
+                        data.get("options", []),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                        allow_multiple_responses=data.get(
+                            "allow_multiple_responses", False
+                        ),
+                    ),
+                )
+            elif service == "send_image":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_image(
+                        t,
+                        data.get("url", ""),
+                        data.get("caption"),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                    ),
+                )
+            elif service == "send_location":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_location(
+                        t,
+                        float(data.get("latitude", 0)),
+                        float(data.get("longitude", 0)),
+                        data.get("name"),
+                        data.get("address"),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                    ),
+                )
+            elif service == "send_event":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_event(
+                        t,
+                        data.get("name", ""),
+                        description=data.get("description"),
+                        date=data.get("date"),
+                        location=data.get("location"),
+                        join_link=data.get("join_link"),
+                        is_canceled=data.get("is_canceled", False),
+                        expiration=data.get("expiration"),
+                    ),
+                )
+            elif service == "send_reaction":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_reaction(
+                        t,
+                        data.get("reaction", ""),
+                        data.get("message_id", ""),
+                    ),
+                )
+            elif service == "send_document":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_document(
+                        t,
+                        data.get("url", ""),
+                        data.get("file_name"),
+                        data.get("message"),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                        mimetype=data.get("mimetype") or data.get("mime_type"),
+                    ),
+                )
+            elif service == "send_video":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_video(
+                        t,
+                        data.get("url", ""),
+                        data.get("message"),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                        seconds=data.get("seconds"),
+                    ),
+                )
+            elif service == "send_audio":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_audio(
+                        t,
+                        data.get("url", ""),
+                        data.get("ptt", False),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                        seconds=data.get("seconds"),
+                    ),
+                )
+            elif service == "send_list":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_list(
+                        t,
+                        data.get("title") or "",
+                        data.get("text") or "",
+                        data.get("button_text") or "",
+                        data.get("sections", []),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                    ),
+                )
+            elif service == "send_contact":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_contact(
+                        t,
+                        data.get("name", ""),
+                        data.get("contact_number", ""),
+                    ),
+                )
+            elif service == "send_buttons":
+                return await _dispatch(
+                    targets,
+                    lambda t: client.send_buttons(
+                        t,
+                        data.get("message", ""),
+                        data.get("buttons", []),
+                        data.get("footer"),
+                        quoted_message_id=_get_quoted(),
+                        expiration=data.get("expiration"),
+                    ),
+                )
         elif service == "revoke_message":
             msg_id = await client.revoke_message(
                 data.get("target", ""), data.get("message_id", "")
@@ -685,24 +937,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 data.get("message", ""),
             )
             return {"success": True, "message_id": msg_id}
-        elif service == "send_list":
-            msg_id = await client.send_list(
-                data.get("target", ""),
-                data.get("title") or "",
-                data.get("text") or "",
-                data.get("button_text") or "",
-                data.get("sections", []),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
-        elif service == "send_contact":
-            msg_id = await client.send_contact(
-                data.get("target", ""),
-                data.get("name", ""),
-                data.get("contact_number", ""),
-            )
-            return {"success": True, "message_id": msg_id}
+
         elif service == "configure_webhook":
             await client.set_webhook(
                 data.get("url", ""), data.get("enabled", True), data.get("token")
@@ -711,16 +946,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         elif service == "update_presence":
             await client.set_presence(data.get("target", ""), data.get("presence", ""))
             return {"success": True}
-        elif service == "send_buttons":
-            msg_id = await client.send_buttons(
-                data.get("target", ""),
-                data.get("message", ""),
-                data.get("buttons", []),
-                data.get("footer"),
-                quoted_message_id=_get_quoted(),
-                expiration=data.get("expiration"),
-            )
-            return {"success": True, "message_id": msg_id}
+
         elif service == "mark_as_read":
             await client.mark_as_read(data.get("target", ""), data.get("message_id"))
             return {"success": True}
@@ -965,6 +1191,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     # Define common schemas
+    def _validate_service_targets(val: Any) -> list[str] | str:
+        if isinstance(val, (list, tuple, set)):
+            cleaned = [cv.string(x) for x in val]
+            if not cleaned:
+                raise vol.Invalid("Target recipient list cannot be empty")
+            return cleaned
+        s = cv.string(val).strip()
+        if not s:
+            raise vol.Invalid("Target recipient cannot be empty")
+        return str(s)
+
+    s_target_field = vol.All(vol.Any(cv.string, [cv.string]), _validate_service_targets)
     s_account: dict[vol.Marker, Any] = {vol.Optional("account"): cv.string}  # type: ignore[misc]
     # Note: Both 'quote' and 'reply_to' are accepted for backwards compatibility.
     # If both are provided, 'quote' takes precedence over 'reply_to'.
@@ -977,7 +1215,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     msg_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("message"): cv.string,
     }
     hass.services.async_register(
@@ -1006,7 +1244,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     poll_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("question"): cv.string,
         vol.Required("options"): _validate_poll_options,
         vol.Optional("allow_multiple_responses", default=False): cv.boolean,
@@ -1020,7 +1258,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     image_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("url"): cv.string,
         vol.Optional("caption"): cv.string,
     }
@@ -1033,7 +1271,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     doc_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("url"): cv.string,
         vol.Optional("file_name"): cv.string,
         vol.Optional("message"): cv.string,
@@ -1047,7 +1285,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     video_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("url"): cv.string,
         vol.Optional("message"): cv.string,
         vol.Optional("seconds"): cv.positive_int,
@@ -1061,7 +1299,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     audio_schema: dict[vol.Marker, Any] = {  # type: ignore[misc]
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("url"): cv.string,
         vol.Optional("ptt", default=False): cv.boolean,
         vol.Optional("seconds"): cv.positive_int,
@@ -1100,7 +1338,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     list_schema: dict[vol.Marker, Any] = {
         **s_account,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("sections"): cv.match_all,
         vol.Optional("expiration"): vol.Any(None, vol.Coerce(int)),
         vol.Optional("title"): cv.string,
@@ -1116,7 +1354,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     contact_schema: dict[vol.Marker, Any] = {
         **s_account,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("name"): cv.string,
         vol.Required("contact_number"): cv.string,
     }
@@ -1141,7 +1379,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     loc_schema: dict[vol.Marker, Any] = {
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("latitude"): vol.Coerce(float),
         vol.Required("longitude"): vol.Coerce(float),
         vol.Optional("name"): cv.string,
@@ -1156,7 +1394,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     event_schema: dict[vol.Marker, Any] = {
         **s_account,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("name"): cv.string,
         vol.Optional("description"): cv.string,
         vol.Optional("date"): cv.string,
@@ -1174,7 +1412,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     react_schema: dict[vol.Marker, Any] = {
         **s_account,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("reaction"): cv.string,
         vol.Required("message_id"): cv.string,
     }
@@ -1200,7 +1438,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     )
     buttons_schema: dict[vol.Marker, Any] = {
         **s_quotable,
-        vol.Required("target"): cv.string,
+        vol.Required("target"): s_target_field,
         vol.Required("message"): cv.string,
         vol.Required("buttons"): vol.All(cv.ensure_list, [dict]),
         vol.Optional("footer"): cv.string,

@@ -146,10 +146,10 @@ def async_sync_moderation_entities(
         hass,
         [
             f"{entry_id}_moderation_warnings",
-            f"{entry_id}_moderation_raid_status",
-            f"{entry_id}_moderation_status",
+            f"{entry_id}_switch_moderation_master",
         ],
         is_moderation_active(coordinator_data),
+        domains=("sensor", "switch"),
     )
 
 
@@ -159,9 +159,9 @@ def async_sync_telegram_bridge_entities(
     """Sync Telegram bridge entity enabled state in entity registry."""
     async_sync_entities_by_unique_ids(
         hass,
-        [f"{entry_id}_telegram_bridge_status"],
+        [f"{entry_id}_switch_telegram_bridge_master"],
         is_telegram_bridge_active(coordinator_data),
-        domains=("binary_sensor",),
+        domains=("switch",),
     )
 
 
@@ -198,3 +198,33 @@ def normalize_media_url(url: str, ha_base_url: str | None = None) -> str:
     if url.startswith("/") and ha_base_url:
         return f"{ha_base_url.rstrip('/')}{url}"
     return url
+
+
+def is_connection_or_dns_error(err: Any) -> bool:
+    """Return True if an error represents a transient DNS, network, or timeout failure."""
+    if isinstance(err, (TimeoutError, OSError)):
+        return True
+    try:
+        import aiohttp
+
+        if isinstance(err, aiohttp.ClientError):
+            return True
+    except ImportError:
+        pass
+    err_str = str(err).lower()
+    return any(
+        kw in err_str
+        for kw in (
+            "dns",
+            "cannot connect",
+            "connection refused",
+            "connection reset",
+            "timeout",
+            "timed out",
+            "unreachable",
+            "name or service not known",
+            "temporary failure in name resolution",
+            "host is unreachable",
+            "network is unreachable",
+        )
+    )

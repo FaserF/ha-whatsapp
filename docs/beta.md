@@ -31,13 +31,13 @@ Before we begin, let's clarify the terms:
 
 ---
 
-## 1. Installing the Beta Integration (HACS)
+## 1. Installing the Beta Integration (Marketplace)
 
 The integration communicates with Home Assistant. To get the latest changes (e.g., new services, bug fixes in the python code), you need the Beta version of the integration.
 
-**Prerequisites:** You must have HACS installed.
+**Prerequisites:** Home Assistant 2026.11 or newer (Marketplace included natively).
 
-1. Open **Home Assistant** and go to **HACS**.
+1. Open **Home Assistant** and go to **Settings > Marketplace**.
 2. Click on **Integrations**.
 3. Find the **Home Assistant WhatsApp** integration in your list.
    - If you haven't installed it yet, search for "Home Assistant WhatsApp" and install it.
@@ -46,7 +46,7 @@ The integration communicates with Home Assistant. To get the latest changes (e.g
 6. Look for the version selection. You might see a link or dropdown that says **"Need a different version?"** (or similar, depending on text layout).
 7. Select the latest version from the list.
    - Beta/Pre-release versions are typically marked with a **"b"** in the version number (e.g., `v0.1.2b4`).
-   - HACS may explicitly label them as **"Pre-release"**.
+   - Marketplace may explicitly label them as **"Pre-release"**.
 8. Click **Download**.
 9. After the download finishes, you **must restart Home Assistant** for the changes to take effect.
 
@@ -99,7 +99,7 @@ The App runs the actual WhatsApp Web client (Baileys) in the background. To get 
 
 | Component       | How to get Beta/Edge                                              |
 | :-------------- | :---------------------------------------------------------------- |
-| **Integration** | HACS -> Redownload -> Show beta versions                          |
+| **Integration** | Marketplace -> Change version -> Show beta versions               |
 | **App**         | App Store -> Add Repository `...#edge` -> Install WhatsApp (Edge) |
 
 Happy Testing! 🧪

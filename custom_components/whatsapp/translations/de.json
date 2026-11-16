@@ -64,6 +64,18 @@
           "action": "Wie möchtest du fortfahren?"
         },
         "description": "Eine aktive WhatsApp-Sitzung für **{phone_number}** wurde gefunden.\n\nDu kannst diese bestehende Sitzung verwenden oder dich abmelden, um ein anderes Telefon zu koppeln."
+      },
+      "reauth_confirm": {
+        "title": "WhatsApp erneut authentifizieren",
+        "description": "Deine WhatsApp-Sitzung ist getrennt oder abgelaufen. Klicke auf Absenden, um den QR-Code erneut zu scannen oder einen Kopplungscode einzugeben und die Verbindung wiederherzustellen."
+      },
+      "reconfigure": {
+        "title": "WhatsApp neu konfigurieren",
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (aus Addon UI)"
+        },
+        "description": "Aktualisiere die Host-URL oder das API-Token deines WhatsApp-Addons und verknüpfe deine Sitzung erneut."
       }
     },
     "error": {
@@ -103,7 +115,8 @@
           "whitelist": "Whitelist für Benutzer/Gruppen (Kommagetrennte Telefonnummern oder Gruppen-IDs. Leer lassen für keine Whitelist)",
           "self_messages": "Nachrichten von sich selbst verarbeiten (Legacy-Fallback; message_sent Event empfohlen)",
           "buttons_as_polls": "Buttons über Umfragen emulieren (Sendet Buttons automatisch als native Umfrage und feuert Button-Events bei Abstimmung)",
-          "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)"
+          "reset_session": "Sitzung zurücksetzen (Abmelden und Addon-Daten löschen)",
+          "recipient_aliases": "Recipient Aliases (YAML dict mapping names to numbers/JIDs)"
         },
         "description": "⚠️ ACHTUNG: 'Sitzung zurücksetzen' meldet dich ab und löscht die Sitzungsdaten im Addon."
       }
@@ -134,6 +147,10 @@
         "quote": {
           "name": "Zitierte Nachricht-ID",
           "description": "Die ID einer Nachricht, auf die geantwortet/zitiert werden soll."
+        },
+        "reply_to": {
+          "name": "Antwort auf Nachricht-ID",
+          "description": "Legacy-Alias für quote. Die ID einer Nachricht, auf die geantwortet/zitiert werden soll."
         },
         "expiration": {
           "name": "Ablaufzeit (Sekunden)",
@@ -417,16 +434,13 @@
       "moderation_warnings": {
         "name": "Aktive Moderations-Verwarnungen"
       },
-      "moderation_raid_status": {
-        "name": "Anti-Raid Schutz-Status"
-      },
       "pending_captchas": {
         "name": "Ausstehende Captcha-Verifizierungen"
       }
     },
     "switch": {
       "moderation_master": {
-        "name": "Moderation Engine"
+        "name": "Moderation & Anti-Raid"
       },
       "telegram_bridge_master": {
         "name": "Telegram-Brücke"
@@ -438,12 +452,6 @@
     "binary_sensor": {
       "connection": {
         "name": "Verbindung"
-      },
-      "moderation_status": {
-        "name": "WhatsApp Moderations-Engine"
-      },
-      "telegram_bridge_status": {
-        "name": "Telegram Bridge Status"
       }
     },
     "button": {

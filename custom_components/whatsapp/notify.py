@@ -23,10 +23,15 @@ Both services support the same message features:
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant.components.notify import (  # type: ignore[attr-defined]
     ATTR_DATA,
     ATTR_MESSAGE,
@@ -40,10 +45,12 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .api import WhatsAppApiClient
 from .const import CONF_RETRY_ATTEMPTS, DOMAIN
 from .coordinator import WhatsAppDataUpdateCoordinator
+from .helpers import format_timestamp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,6 +124,7 @@ class WhatsAppNotificationEntity(
     _attr_has_entity_name = True
     _attr_translation_key = "whatsapp"
     _attr_unique_id = "whatsapp_notify"
+    _attr_state: str | None = None  # type: ignore[assignment]
 
     def __init__(
         self,
@@ -136,11 +144,56 @@ class WhatsAppNotificationEntity(
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_notify"
         self._attr_device_info = coordinator.client.get_device_info()
+        self._sync_state_from_coordinator()
+
+    def _set_notify_state(self, val: str) -> None:
+        """Set notify entity timestamp state compatible with HA core NotifyEntity."""
+        self.__dict__.pop("state", None)
+        self._NotifyEntity__last_notified_isoformat = val  # type: ignore[attr-defined]
+        self._attr_state = val
+
+    def _sync_state_from_coordinator(self) -> None:
+        """Derive state timestamp from coordinator metadata if available."""
+        current = (
+            getattr(self, "_NotifyEntity__last_notified_isoformat", None)
+            or self._attr_state
+        )
+        if current in (None, "unknown", "unavailable", ""):
+            stats = (
+                (self.coordinator.data or {}).get("stats", {})
+                if isinstance(self.coordinator.data, dict)
+                else {}
+            )
+            last_sent = stats.get("last_sent_time") or stats.get("last_message_sent")
+            if last_sent and str(last_sent) not in ("None", "unknown", ""):
+                self._set_notify_state(str(last_sent))
+            elif start_time := stats.get("start_time"):
+                ts = format_timestamp(start_time)
+                if ts and str(ts) not in ("None", "unknown", ""):
+                    self._set_notify_state(str(ts))
+            else:
+                now_dt = dt_util.utcnow() if hasattr(dt_util, "utcnow") else None
+                if now_dt is not None and hasattr(now_dt, "isoformat"):
+                    self._set_notify_state(now_dt.isoformat())
+                else:
+                    self._set_notify_state(datetime.now(UTC).isoformat())
+
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._sync_state_from_coordinator()
+        super()._handle_coordinator_update()
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added to Home Assistant."""
+        await super().async_added_to_hass()
+        self._sync_state_from_coordinator()
+        if getattr(self, "hass", None) is not None:
+            self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return bool(self.coordinator.data.get("connected", False))
+        return bool((self.coordinator.data or {}).get("connected", False))
 
     async def async_send_message(  # type: ignore[override]
         self,
@@ -193,8 +246,16 @@ class WhatsAppNotificationEntity(
                 f"{', '.join(r for r, _ in errors)}"
             )
 
+        now_dt = dt_util.utcnow() if hasattr(dt_util, "utcnow") else None
+        if now_dt is not None and hasattr(now_dt, "isoformat"):
+            self._attr_state = now_dt.isoformat()
+        else:
+            self._attr_state = datetime.now(UTC).isoformat()
+
         if hasattr(self, "_async_record_notification"):
             self._async_record_notification()
+        if getattr(self, "hass", None) is not None:
+            self.async_write_ha_state()
 
 
 async def async_send_whatsapp_message(

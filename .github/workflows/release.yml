@@ -64,7 +64,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
 
       - name: Calculate Version and Release Details
         id: get_version
@@ -100,12 +100,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
 
       - name: Configure Git and pull latest
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "faserf-hermes-agent[bot]"
+          git config --global user.email "342667397+faserf-hermes-agent[bot]@users.noreply.github.com"
           git reset --hard HEAD
           git pull --rebase origin ${{ github.ref_name }}
 
@@ -253,8 +253,8 @@ jobs:
  
       - name: Post-Release Dev Bump
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "faserf-hermes-agent[bot]"
+          git config --global user.email "342667397+faserf-hermes-agent[bot]@users.noreply.github.com"
           git reset --hard HEAD
           git pull --rebase origin ${{ github.ref_name }}
           git fetch --tags

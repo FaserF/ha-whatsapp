@@ -422,3 +422,89 @@ async def test_send_contact_camelcase_payload(api_client: WhatsAppApiClient) -> 
         )
         assert payload["contactName"] == "John Doe"
         assert payload["contactNumber"] == "4915123456789"
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_ensure_polling_restarts_stalled_task(
+    api_client: WhatsAppApiClient,
+) -> None:
+    """Watchdog restarts polling task when last successful poll exceeds timeout."""
+    import asyncio
+    import time
+
+    api_client._polling_enabled = True
+    # Simulate a running task that has stalled for 120 seconds
+    dummy_task = asyncio.create_task(asyncio.sleep(100))
+    api_client._polling_task = dummy_task
+    api_client._last_poll_successful_time = time.time() - 120.0
+
+    with patch.object(
+        asyncio, "create_task", wraps=asyncio.create_task
+    ) as mock_create_task:
+        api_client.ensure_polling(interval=5)
+        # Old stalled task should be cancelled and a new one created
+        assert (
+            dummy_task.cancelled() or getattr(dummy_task, "cancelling", lambda: 0)() > 0
+        )
+        assert mock_create_task.call_count == 1
+    # Clean up
+    if api_client._polling_task:
+        api_client._polling_task.cancel()
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_get_stats_failure_marks_disconnected(
+    api_client: WhatsAppApiClient,
+) -> None:
+    """When get_stats encounters connection error, connected flag is marked False."""
+    api_client.stats["connected"] = True
+    api_client._connected = True
+
+    with patch.object(api_client, "_get_session", side_effect=OSError("Network down")):
+        stats = await api_client.get_stats()
+        assert stats["connected"] is False
+        assert api_client._connected is False
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_get_qr_code_states(api_client: WhatsAppApiClient) -> None:
+    """Test get_qr_code handling of ready, waiting, connected, and error states."""
+    from collections.abc import AsyncGenerator
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def _mock_cm(sess: Any) -> AsyncGenerator[Any, None]:
+        yield sess
+
+    # 1. Ready state returns the QR data URL
+    mock_ready = mock_aiohttp_post(
+        json_data={"status": "qr_ready", "qr": "data:image/png;base64,mockqr"}
+    )
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_ready)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == "data:image/png;base64,mockqr"
+
+    # 2. Waiting state returns empty string
+    mock_waiting = mock_aiohttp_post(json_data={"status": "waiting_for_qr", "qr": None})
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_waiting)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == ""
+
+    # 3. Connected state marks connected True and returns empty string
+    api_client._connected = False
+    mock_connected = mock_aiohttp_post(json_data={"status": "connected", "qr": None})
+    with patch.object(
+        api_client, "_get_session", side_effect=lambda: _mock_cm(mock_connected)
+    ):
+        qr = await api_client.get_qr_code()
+        assert qr == ""
+        assert api_client._connected is True
+
+    # 4. Error state returns empty string
+    with patch.object(api_client, "_get_session", side_effect=OSError("Offline")):
+        qr = await api_client.get_qr_code()
+        assert qr == ""

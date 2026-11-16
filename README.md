@@ -1,8 +1,8 @@
-# 💬 HA WhatsApp Integration
+﻿# 💬 HA WhatsApp Integration
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="100" alt="WhatsApp Logo">
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![Home Assistant Marketplace](https://img.shields.io/badge/Home_Assistant-Marketplace-41BDF5.svg?style=for-the-badge&logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
 [![Downloads (Current release)](<https://img.shields.io/github/downloads/FaserF/ha-whatsapp/latest/whatsapp.zip?label=Downloads%20(Current%20release)&style=flat-square>)](https://github.com/FaserF/ha-whatsapp/releases)
 [![GitHub Release](https://img.shields.io/github/v/release/FaserF/ha-whatsapp.svg)](https://github.com/FaserF/ha-whatsapp/releases)
 
@@ -39,6 +39,16 @@
 
 ---
 
+## 🔌 Recommended Hardware & Ecosystem Links
+
+| Device / Service | Integration Use Case | Link |
+| :--- | :--- | :--- |
+| **Home Assistant Green & Official Hardware** | Recommended hardware foundation for local Home Assistant integrations | [Official Device Page →](https://fabiseitz.de/go/ha-hardware) |
+| **Home Assistant Connect ZBT-1 (Zigbee / Thread)** | Local Zigbee2MQTT, ZHA & Matter-over-Thread wireless mesh | [Official Device Page →](https://fabiseitz.de/go/ha-zigbee) |
+
+
+---
+
 > [!CAUTION]
 > **Legal Disclaimer**
 >
@@ -50,14 +60,14 @@
 
 ## 📥 Installation
 
-### HACS (Recommended)
+### Home Assistant Marketplace (Recommended)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=FaserF&repository=ha-whatsapp&category=integration)
 
-1. Click the button above or add this repository as a **custom repository** in HACS:
-   - Go to HACS → Integrations → ⋮ (menu) → Custom repositories
+1. Click the button above or add this repository as a **custom repository** in the Marketplace:
+   - Go to Settings → Marketplace → ⋮ (menu) → Custom repositories
    - Add: `https://github.com/FaserF/ha-whatsapp` (Category: Integration)
-2. Install "Home Assistant WhatsApp" from HACS.
+2. Install "Home Assistant WhatsApp" from the Marketplace.
 3. Restart Home Assistant.
 4. Add the integration via Settings → Devices & Services → Add Integration → WhatsApp.
 
@@ -126,12 +136,23 @@ If entities are `disabled`, check your Home Assistant "Entities" settings and en
 
 #### 1. Native WhatsApp Services (Recommended)
 
-Use these for the most robust experience in YAML.
+Use these for the most robust experience in YAML. `target` accepts a single number, a comma-separated string, or a YAML list of multiple recipients:
 
 ```yaml
-service: whatsapp.send_message
+action: whatsapp.send_message
 data:
-  target: "+491234567890"
+  target:
+    - "+491234567890"
+    - "+491987654321"
+  message: "Hello from HA!"
+```
+
+Or with a comma-separated string:
+
+```yaml
+action: whatsapp.send_message
+data:
+  target: "+491234567890, +491987654321"
   message: "Hello from HA!"
 ```
 
@@ -520,7 +541,7 @@ You **Must** run either the **[Home Assistant App](https://github.com/FaserF/has
 We use a structured release cycle to ensure stability while providing new features:
 
 - **Stable (v1.x.x)**: Recommended for all users. Tested and verified for production use.
-- **Beta (v1.x.xbX)**: Public testing of new features. Recommended if you want the latest tech and can provide feedback. Available via HACS "Redownload" -> "Show beta versions".
+- **Beta (v1.x.xbX)**: Public testing of new features. Recommended if you want the latest tech and can provide feedback. Available via Marketplace "Redownload" / "Change version" -> "Show beta versions".
 - **Edge/Dev (v1.x.x-dev)**: Bleeding edge from the master branch. May be unstable. Only for developers.
 
 Releases are automatically created when the version in `manifest.json` is updated.

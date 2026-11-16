@@ -103,6 +103,8 @@ Since the Addon uses an unofficial API client (Baileys), WhatsApp's automated sp
 **Prevention & Mitigation**:
 
 - **Warming up**: Use an established number with real chat history. Do not use freshly registered SIM cards for bots.
+- **Use WhatsApp Business**: Using a dedicated **WhatsApp Business account** rather than a standard personal account often provides significantly better tolerance for automation and notifications, especially on newly registered numbers.
+- **Chat Management**: Avoid keeping irrelevant or ephemeral automated chats open indefinitely. Use the `whatsapp.clear_chat` and `whatsapp.delete_chat` actions to periodically clean up test or alert chats.
 - **Save Contacts**: Only message users who have your bot's number saved in their address book.
 - **Automation Delays**: Never send rapid burst messages. Put `delay` actions (5–10s) in Home Assistant automations between consecutive message steps.
 - **Appeal**: If banned, you can usually request a review directly inside the official WhatsApp app. In most cases, first-time suspensions are restored within 24 hours.

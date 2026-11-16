@@ -5,6 +5,8 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import ha_stubs
+import pytest
+from homeassistant.exceptions import ConfigEntryNotReady
 
 ha_stubs._build_ha_stub_modules()
 
@@ -198,3 +200,143 @@ async def test_loop_guard_blocks_ha_echo(hass: HomeAssistant) -> None:
                 "Loop guard failed: HA echo fired EVENT_MESSAGE_RECEIVED"
             )
             assert EVENT_MESSAGE_SENT in events_fired
+
+
+async def test_incoming_message_invalid_or_none_payload(hass: HomeAssistant) -> None:
+    """Verify that None or non-dict payloads do not raise AttributeError."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry_invalid_payload",
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.get_stats = AsyncMock(
+            return_value={"sent": 0, "failed": 0, "connected": True}
+        )
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(
+            return_value={"total_chats": 0, "groups": []}
+        )
+        mock_instance.was_sent_by_ha = MagicMock(return_value=False)
+        callback: Callable[[dict[str, Any]], None] | None = None
+
+        def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
+            nonlocal callback
+            callback = cb
+
+        mock_instance.register_callback = MagicMock(side_effect=reg_cb)
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
+        mock_instance.close = AsyncMock()
+
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        assert callback is not None
+        with patch.object(hass.bus, "async_fire") as mock_fire:
+            callback(None)  # type: ignore[arg-type]
+            callback("invalid_string")  # type: ignore[arg-type]
+            callback(123)  # type: ignore[arg-type]
+            assert mock_fire.call_count == 0
+
+
+async def test_setup_entry_connection_error_raises_config_entry_not_ready(
+    hass: HomeAssistant,
+) -> None:
+    """Verify that connection failure on boot retries and marks config entry not ready."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry_conn_err",
+    )
+    entry.add_to_hass(hass)
+
+    with (
+        patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls,
+        patch("homeassistant.helpers.issue_registry.async_create_issue"),
+    ):
+        mock_instance = mock_client_cls.return_value
+        mock_instance.get_health = AsyncMock(
+            return_value={"status": "unreachable", "details": "Connection refused"}
+        )
+        mock_instance.connect = AsyncMock(side_effect=OSError("Connection refused"))
+        mock_instance.close = AsyncMock()
+
+        with (
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+            pytest.raises(ConfigEntryNotReady),
+        ):
+            await hass.config_entries.async_setup(entry.entry_id)
+        assert mock_sleep.call_count >= 1
+
+
+async def test_real_time_stat_updates_and_polling_watchdog(
+    hass: HomeAssistant,
+) -> None:
+    """Verify that incoming messages update coordinator stats in real time and watchdog recovers stalled polling."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry_realtime",
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.stats = {
+            "sent": 0,
+            "received": 0,
+            "failed": 0,
+            "last_sent_message": None,
+            "last_received_message": None,
+            "connected": True,
+        }
+        mock_instance.get_stats = AsyncMock(return_value=dict(mock_instance.stats))
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(
+            return_value={"total_chats": 0, "groups": []}
+        )
+        mock_instance.was_sent_by_ha = MagicMock(return_value=False)
+        mock_instance.is_allowed = MagicMock(return_value=True)
+
+        callback: Callable[[dict[str, Any]], None] | None = None
+
+        def reg_cb(cb: Callable[[dict[str, Any]], None]) -> None:
+            nonlocal callback
+            callback = cb
+
+        mock_instance.register_callback = MagicMock(side_effect=reg_cb)
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
+        mock_instance.close = AsyncMock()
+
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+        assert coordinator.data["stats"]["received"] == 0
+
+        # Simulate receiving an incoming WhatsApp message via registered callback
+        assert callback is not None
+        callback(
+            {
+                "sender": "491701234567@s.whatsapp.net",
+                "sender_number": "491701234567",
+                "text": "Hello real-time!",
+                "id": "MSG_REALTIME_123",
+            }
+        )
+
+        # Verify client stats and coordinator data updated in real time immediately
+        assert mock_instance.stats["received"] == 1
+        assert mock_instance.stats["last_received_message"] == "Hello real-time!"
+        assert mock_instance.stats["last_received_sender"] == "491701234567"
+        assert coordinator.data["stats"]["received"] == 1
+        assert coordinator.data["stats"]["last_received_message"] == "Hello real-time!"

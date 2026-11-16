@@ -18,6 +18,18 @@ def pytest_sessionstart(session: Any) -> None:  # noqa: ARG001
 
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     try:
+        import aiodns
+
+        _orig_dns_cancel = aiodns.DNSResolver.cancel
+
+        def _safe_dns_cancel(self: Any) -> None:
+            if hasattr(self, "_channel"):
+                _orig_dns_cancel(self)
+
+        aiodns.DNSResolver.cancel = _safe_dns_cancel
+    except Exception:
+        pass
+    try:
         import pytest_socket
 
         # Intercept socket_allow_hosts so any downstream call
@@ -81,7 +93,10 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
     from unittest.mock import patch
 
     if sys.platform == "win32":
-        with patch("aiodns.DNSResolver.__init__", return_value=None):
+        try:
+            with patch("aiodns.DNSResolver.__init__", return_value=None):
+                yield
+        except (ImportError, ModuleNotFoundError):
             yield
     else:
         yield
@@ -90,6 +105,7 @@ def _patch_aiodns_resolver() -> Generator[None, None, None]:
 def _ensure_sockets() -> None:
     import socket
 
+    pytest_socket = None
     try:
         import pytest_socket
 
@@ -110,7 +126,7 @@ def _ensure_sockets() -> None:
     # On Windows, socket.socketpair uses fallback sockets.
     # We patch socket.socketpair to temporarily use _true_socket if available.
     orig_socketpair = getattr(socket, "socketpair", None)
-    if orig_socketpair and hasattr(pytest_socket, "_true_socket"):
+    if orig_socketpair and pytest_socket and hasattr(pytest_socket, "_true_socket"):
 
         def _safe_socketpair(*args: Any, **kwargs: Any) -> Any:
             old_sock = socket.socket

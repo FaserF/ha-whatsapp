@@ -7,8 +7,12 @@ import logging
 import re
 import uuid
 from typing import Any
+from urllib.parse import urlparse
 
-import voluptuous as vol
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -29,6 +33,7 @@ from .const import (
     CONF_BUTTONS_AS_POLLS,
     CONF_MARK_AS_READ,
     CONF_POLLING_INTERVAL,
+    CONF_RECIPIENT_ALIASES,
     CONF_RETRY_ATTEMPTS,
     CONF_SELF_MESSAGES,
     CONF_URL,
@@ -852,12 +857,37 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         self.discovery_info["system_id"] = system_id
         self.discovery_info[CONF_API_KEY] = api_key
 
-        if system_id:
-            # First check if any entry already has this system_id
-            for entry in self.hass.config_entries.async_entries(DOMAIN):
-                if entry.data.get("system_id") == system_id:
-                    return self.async_abort(reason="already_configured")
+        def _normalize_host_port(url_or_host: str) -> str:
+            s = url_or_host.strip()
+            if not s.startswith(("http://", "https://")):
+                s = "http://" + s
+            parsed = urlparse(s)
+            netloc = parsed.netloc or parsed.path
+            if ":" in netloc:
+                h, p = netloc.split(":", 1)
+            else:
+                h, p = netloc, ("443" if parsed.scheme == "https" else "80")
+            if h in ("localhost", "127.0.0.1", "0.0.0.0"):
+                h = "localhost"
+            return f"{h}:{p}"
 
+        disc_host_port = _normalize_host_port(suggested_url)
+
+        # Check existing entries for matching system_id or host/port
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            entry_sys_id = entry.data.get("system_id")
+            if system_id and entry_sys_id == system_id:
+                return self.async_abort(reason="already_configured")
+
+            entry_url = entry.data.get(CONF_URL) or entry.data.get("host") or ""
+            if entry_url and _normalize_host_port(entry_url) == disc_host_port:
+                if system_id and not entry_sys_id:
+                    new_data = dict(entry.data)
+                    new_data["system_id"] = system_id
+                    self.hass.config_entries.async_update_entry(entry, data=new_data)
+                return self.async_abort(reason="already_configured")
+
+        if system_id:
             await self.async_set_unique_id(system_id)
             self._abort_if_unique_id_configured(updates={CONF_URL: suggested_url})
         else:
@@ -912,8 +942,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         )
 
     async def async_create_flow_entry(self, my_number: str | None) -> ConfigFlowResult:
-        """Create the config entry, performing safety check first."""
-        self._abort_if_unique_id_configured()
+        """Create or update the config entry, performing safety check first."""
+        reauth_entry = getattr(self, "_reauth_entry", None)
+        if not reauth_entry:
+            self._abort_if_unique_id_configured()
 
         show_warning = False
         show_fallback = False
@@ -962,7 +994,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         if self.client:
             await self.client.close()
 
-        if show_warning or show_fallback:
+        if (show_warning or show_fallback) and not reauth_entry:
             self.context["my_number"] = my_number  # type: ignore[typeddict-unknown-key]
             wtype = "fallback" if show_fallback else "new_account"
             self.context["warning_type"] = wtype  # type: ignore[typeddict-unknown-key]
@@ -978,14 +1010,159 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
         api_key = self.discovery_info.get(CONF_API_KEY) or (
             self.client.api_key if self.client else ""
         )
+
+        entry_data = {
+            "session_id": self.session_id,
+            CONF_URL: url,
+            CONF_API_KEY: api_key,
+            "system_id": self.discovery_info.get("system_id"),
+        }
+
+        if reauth_entry:
+            return self.async_update_reload_and_abort(
+                reauth_entry,
+                data=entry_data,
+                reason="reauth_successful",
+            )
+
         return self.async_create_entry(
             title=f"WhatsApp ({my_number})" if my_number else "WhatsApp",
-            data={
-                "session_id": self.session_id,
-                CONF_URL: url,
-                CONF_API_KEY: api_key,
-                "system_id": self.discovery_info.get("system_id"),
-            },
+            data=entry_data,
+        )
+
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
+        """Handle initiation of re-authentication flow."""
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context.get("entry_id") or ""
+        )
+        if not self._reauth_entry:
+            # Fall back to matching by session_id or unique_id
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.data.get("session_id") == entry_data.get("session_id"):
+                    self._reauth_entry = entry
+                    break
+            if not self._reauth_entry:
+                entries = self.hass.config_entries.async_entries(DOMAIN)
+                if entries:
+                    self._reauth_entry = entries[0]
+
+        self.session_id = (
+            entry_data.get("session_id")
+            or (
+                self._reauth_entry.data.get("session_id")
+                if self._reauth_entry
+                else None
+            )
+            or "default"
+        )
+        self.discovery_info[CONF_URL] = (
+            entry_data.get(CONF_URL)
+            or (self._reauth_entry.data.get(CONF_URL) if self._reauth_entry else None)
+            or "http://localhost:8066"
+        )
+        self.discovery_info[CONF_API_KEY] = (
+            entry_data.get(CONF_API_KEY)
+            or (
+                self._reauth_entry.data.get(CONF_API_KEY)
+                if self._reauth_entry
+                else None
+            )
+            or ""
+        )
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle re-auth confirmation and start QR / pairing verification."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            # User confirmed they want to re-authenticate / re-pair
+            self.client = WhatsAppApiClient(
+                host=str(self.discovery_info[CONF_URL]),
+                api_key=str(self.discovery_info[CONF_API_KEY]),
+                session_id=self.session_id,
+            )
+            # Reconnect or fetch QR
+            return await self.async_step_scan()
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({}),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle integration reconfiguration (HA 2024.11+)."""
+        reconfig_entry = self._get_reconfigure_entry()
+        if not reconfig_entry:
+            entries = self.hass.config_entries.async_entries(DOMAIN)
+            if entries:
+                reconfig_entry = entries[0]
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            clean_api_key = user_input.get(CONF_API_KEY, "").strip()
+            self.discovery_info[CONF_URL] = user_input["host"]
+            self.discovery_info[CONF_API_KEY] = clean_api_key
+            if reconfig_entry:
+                self.session_id = reconfig_entry.data.get("session_id", "default")
+                self._reauth_entry = reconfig_entry
+
+            self.client = WhatsAppApiClient(
+                host=str(user_input["host"]),
+                api_key=clean_api_key,
+                session_id=self.session_id,
+            )
+            try:
+                await self.client.connect()
+            except Exception as e:
+                _LOGGER.warning("Reconfigure connect check failed: %s", e)
+                errors["base"] = "cannot_connect"
+                return self.async_show_form(
+                    step_id="reconfigure",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("host", default=user_input.get("host")): str,
+                            vol.Required(
+                                CONF_API_KEY, default=clean_api_key
+                            ): selector.TextSelector(
+                                selector.TextSelectorConfig(
+                                    type=selector.TextSelectorType.PASSWORD
+                                )
+                            ),
+                        }
+                    ),
+                    errors=errors,
+                )
+            return await self.async_step_scan()
+
+        default_host = (
+            reconfig_entry.data.get(CONF_URL, "http://localhost:8066")
+            if reconfig_entry
+            else "http://localhost:8066"
+        )
+        default_key = (
+            reconfig_entry.data.get(CONF_API_KEY, "") if reconfig_entry else ""
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("host", default=default_host): str,
+                    vol.Required(
+                        CONF_API_KEY, default=default_key
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
         )
 
     async def async_step_account_warning(
@@ -1087,6 +1264,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                         )
                     },
                 ): vol.Any(None, str),
+                vol.Optional(
+                    CONF_RECIPIENT_ALIASES,
+                    default=self._config_entry.options.get(CONF_RECIPIENT_ALIASES, {}),
+                ): selector.ObjectSelector(),
                 vol.Optional(
                     CONF_SELF_MESSAGES,
                     default=self._config_entry.options.get(CONF_SELF_MESSAGES, False),
@@ -1193,6 +1374,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore[misc]
                 user_input[CONF_WHITELIST] = (user_input[CONF_WHITELIST] or "").strip()
             else:
                 user_input[CONF_WHITELIST] = ""
+
+            if CONF_RECIPIENT_ALIASES not in user_input or not isinstance(
+                user_input[CONF_RECIPIENT_ALIASES], dict
+            ):
+                user_input[CONF_RECIPIENT_ALIASES] = {}
 
             return self.async_create_entry(title="", data=user_input)
 

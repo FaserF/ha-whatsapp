@@ -32,7 +32,12 @@ def _get_or_create_class(name: str, base: type = object) -> type:
         cls.__name__ = name
         # Determine module name
         mod_prefix = "homeassistant"
-        if name in ["HomeAssistantError", "ServiceValidationError"]:
+        if name in [
+            "HomeAssistantError",
+            "ServiceValidationError",
+            "ConfigEntryAuthFailed",
+            "ConfigEntryNotReady",
+        ]:
             mod_prefix = "homeassistant.exceptions"
         elif name in ["DataUpdateCoordinator", "CoordinatorEntity"]:
             mod_prefix = "homeassistant.helpers.update_coordinator"
@@ -50,6 +55,10 @@ HomeAssistantError = _get_or_create_class("HomeAssistantError", Exception)
 ServiceValidationError = _get_or_create_class(
     "ServiceValidationError", HomeAssistantError
 )
+ConfigEntryAuthFailed = _get_or_create_class(
+    "ConfigEntryAuthFailed", HomeAssistantError
+)
+ConfigEntryNotReady = _get_or_create_class("ConfigEntryNotReady", HomeAssistantError)
 
 
 # Core
@@ -102,6 +111,7 @@ class Platform:
     BUTTON = "button"
     NOTIFY = "notify"
     SENSOR = "sensor"
+    SWITCH = "switch"
 
 
 class EntityCategory:
@@ -117,7 +127,7 @@ _DataUpdateCoordinatorBase = _get_or_create_class("DataUpdateCoordinator")
 class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-type, misc]
     def __init__(self, hass: Any, *_args: Any, **kwargs: Any) -> None:
         self.hass = hass
-        self.data: Any = {"connected": True, "stats": {"sent": 0, "failed": 0}}
+        self.data: Any = None
         self._listeners: list[Callable[[], None]] = []
         if "config_entry" in kwargs:
             self.config_entry = kwargs["config_entry"]
@@ -141,6 +151,14 @@ class DataUpdateCoordinator(_DataUpdateCoordinatorBase):  # type: ignore[valid-t
                     from ha_stubs import mock_add_entities
 
                     mock_add_entities(self.hass, [entity])
+
+    async def async_request_refresh(self) -> None:
+        await self.async_refresh()
+        for listener in list(self._listeners):
+            listener()
+
+    def async_set_updated_data(self, data: Any) -> None:
+        self.data = data
         for listener in list(self._listeners):
             listener()
 
@@ -160,6 +178,14 @@ class CoordinatorEntity(_CoordinatorEntityBase):  # type: ignore[valid-type, mis
         self.hass: Any = None
         self.entity_id: str | None = None
         coordinator.async_add_listener(self.async_write_ha_state)
+
+    @property
+    def unique_id(self) -> str | None:
+        return getattr(self, "_attr_unique_id", None)
+
+    @property
+    def available(self) -> bool:
+        return getattr(self.coordinator, "last_update_success", True)
 
     def __class_getitem__(cls, _: Any) -> Any:
         return cls
@@ -200,11 +226,28 @@ class ConfigFlow:
         self.hass: Any = None
         self.context: dict[str, Any] = {}
 
+    def _get_reconfigure_entry(self) -> Any:
+        entry_id = self.context.get("entry_id")
+        if self.hass and entry_id:
+            return self.hass.config_entries.async_get_entry(entry_id)
+        return None
+
     def async_show_form(self, step_id: str, **kwargs: Any) -> dict[str, Any]:
         return {"type": "form", "step_id": step_id, "errors": kwargs.get("errors")}
 
     def async_create_entry(self, title: str, data: Any) -> dict[str, Any]:
         return {"type": "create_entry", "title": title, "data": data, "version": 1}
+
+    def async_update_reload_and_abort(
+        self,
+        entry: Any,
+        *,
+        data: Any = None,
+        reason: str = "reauth_successful",
+    ) -> dict[str, Any]:
+        if data and hasattr(entry, "data"):
+            entry.data.update(data)
+        return {"type": "abort", "reason": reason}
 
     def async_abort(
         self, reason: str, description_placeholders: Any = None
@@ -396,12 +439,24 @@ class MockConfigEntry:
 
 def _build_ha_stub_modules() -> None:
     """Create lightweight stub modules so `import homeassistant.*` works."""
-    if "homeassistant.helpers.service_info.zeroconf" not in sys.modules:
-        _stub("homeassistant.helpers.service_info")
-        _stub(
-            "homeassistant.helpers.service_info.zeroconf",
-            ZeroconfServiceInfo=MagicMock,
-        )
+    for sub in [
+        "dhcp",
+        "ssdp",
+        "mqtt",
+        "bluetooth",
+        "usb",
+        "hassio",
+        "esphome",
+        "zeroconf",
+    ]:
+        mod_name = f"homeassistant.helpers.service_info.{sub}"
+        if mod_name not in sys.modules:
+            try:
+                import importlib
+
+                importlib.import_module(mod_name)
+            except Exception:
+                _stub(mod_name)
 
     if "homeassistant" in sys.modules:
         if getattr(sys.modules["homeassistant"], "_is_stub", False):
@@ -423,6 +478,8 @@ def _build_ha_stub_modules() -> None:
         "homeassistant.exceptions",
         HomeAssistantError=HomeAssistantError,
         ServiceValidationError=ServiceValidationError,
+        ConfigEntryAuthFailed=ConfigEntryAuthFailed,
+        ConfigEntryNotReady=ConfigEntryNotReady,
     )
 
     # homeassistant.core
@@ -463,6 +520,7 @@ def _build_ha_stub_modules() -> None:
         boolean=bool,
         match_all=lambda x: x,
         positive_int=int,
+        config_entry_only_config_schema=lambda *args, **kwargs: MagicMock(),
     )
 
     # homeassistant.helpers.entity_registry
@@ -481,11 +539,20 @@ def _build_ha_stub_modules() -> None:
         DeviceInfo=dict,
     )
 
+    class ZeroconfServiceInfo:
+        def __init__(self, **kwargs: Any) -> None:
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+            if not hasattr(self, "host"):
+                self.host = str(
+                    kwargs.get("ip_address") or kwargs.get("hostname") or "localhost"
+                )
+
     # homeassistant.helpers.service_info.zeroconf
     _stub("homeassistant.helpers.service_info")
     _stub(
         "homeassistant.helpers.service_info.zeroconf",
-        ZeroconfServiceInfo=MagicMock,
+        ZeroconfServiceInfo=ZeroconfServiceInfo,
     )
 
     # homeassistant.components.hassio
@@ -546,6 +613,8 @@ def _build_ha_stub_modules() -> None:
         ConfigFlowResult=dict,
         SOURCE_USER="user",
         SOURCE_REAUTH="reauth",
+        SOURCE_RECONFIGURE="reconfigure",
+        SOURCE_ZEROCONF="zeroconf",
     )
 
     # voluptuous
@@ -559,6 +628,9 @@ def _build_ha_stub_modules() -> None:
     vol_mod.All = lambda *x: x[0]
     vol_mod.Length = lambda **x: x
     vol_mod.Coerce = lambda x: x
+
+    # probatio
+    sys.modules["probatio"] = vol_mod
 
     # Finalize parents
     ha = _stub("homeassistant")
@@ -585,7 +657,7 @@ def _build_ha_stub_modules() -> None:
     components.notify = sys.modules["homeassistant.components.notify"]
     components.hassio = sys.modules["homeassistant.components.hassio"]
 
-    # components.binary_sensor / sensor
+    # components.binary_sensor / sensor / button / switch
     _stub(
         "homeassistant.components.binary_sensor",
         BinarySensorDeviceClass=MagicMock(),
@@ -596,6 +668,14 @@ def _build_ha_stub_modules() -> None:
         SensorDeviceClass=MagicMock(),
         SensorEntity=object,
         SensorStateClass=MagicMock(),
+    )
+    _stub(
+        "homeassistant.components.button",
+        ButtonEntity=object,
+    )
+    _stub(
+        "homeassistant.components.switch",
+        SwitchEntity=object,
     )
 
     # components.diagnostics
@@ -613,6 +693,7 @@ def _build_ha_stub_modules() -> None:
         "homeassistant.components.repairs",
         RepairsFlow=RepairsFlow,
         ConfirmRepairFlow=ConfirmRepairFlow,
+        RepairsFlowResult=object,
     )
     components.repairs = repairs_mod
 

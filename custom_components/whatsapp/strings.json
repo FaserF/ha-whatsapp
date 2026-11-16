@@ -64,6 +64,18 @@
           "action": "How would you like to proceed?"
         },
         "description": "An active WhatsApp session was found for **{phone_number}**.\n\nYou can use this existing session or log out to pair a different phone."
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate WhatsApp",
+        "description": "Your WhatsApp session is disconnected or expired. Click Submit to re-scan the QR code or enter a pairing code to restore the connection."
+      },
+      "reconfigure": {
+        "title": "Reconfigure WhatsApp",
+        "data": {
+          "host": "Addon Host URL",
+          "api_key": "API Token (from Addon UI)"
+        },
+        "description": "Update the host URL or API key for your WhatsApp Addon and re-link your session."
       }
     },
     "error": {
@@ -101,6 +113,7 @@
           "api_key": "API Key",
           "retry_attempts": "Retry Attempts (on failure)",
           "whitelist": "Whitelisted Users/Groups (Comma-separated phone numbers or Group IDs. Leave empty for no whitelist)",
+          "recipient_aliases": "Recipient Aliases (YAML dict mapping names to numbers/JIDs)",
           "self_messages": "Process messages from self (Legacy fallback; message_sent event is recommended)",
           "buttons_as_polls": "Emulate Buttons via Polls (Converts send_buttons to native Polls & fires button events on vote)",
           "reset_session": "Reset Session (Logout & Clear Data)"
@@ -134,6 +147,10 @@
         "quote": {
           "name": "Quote Message ID",
           "description": "The ID of a message to quote/reply to."
+        },
+        "reply_to": {
+          "name": "Reply To Message ID",
+          "description": "Legacy alias for quote. The ID of a message to quote/reply to."
         },
         "expiration": {
           "name": "Expiration (Seconds)",
@@ -417,16 +434,13 @@
       "moderation_warnings": {
         "name": "Active Moderation Warnings"
       },
-      "moderation_raid_status": {
-        "name": "Anti-Raid Shield Status"
-      },
       "pending_captchas": {
         "name": "Pending Captcha Verifications"
       }
     },
     "switch": {
       "moderation_master": {
-        "name": "Moderation Engine"
+        "name": "Moderation & Anti-Raid Engine"
       },
       "telegram_bridge_master": {
         "name": "Telegram Bridge"
@@ -438,12 +452,6 @@
     "binary_sensor": {
       "connection": {
         "name": "Connection"
-      },
-      "moderation_status": {
-        "name": "WhatsApp Moderation Engine"
-      },
-      "telegram_bridge_status": {
-        "name": "Telegram Bridge Status"
       }
     },
     "button": {
