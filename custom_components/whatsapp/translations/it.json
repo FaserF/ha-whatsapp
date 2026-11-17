@@ -67,7 +67,7 @@
       },
       "reauth_confirm": {
         "title": "Riautentica WhatsApp",
-        "description": "La sessione di WhatsApp è disconnessa o scaduta. Fai clic su Invia per eseguire nuovamente la scansione del codice QR o inserire un codice di associazione per ripristinare la connessione."
+        "description": "La sessione WhatsApp è disconnessa o scaduta. Fai clic su Invia per scansionare di nuovo il codice QR o inserire un codice di associazione e ripristinare la connessione."
       },
       "reconfigure": {
         "title": "Riconfigura WhatsApp",
@@ -116,7 +116,7 @@
           "self_messages": "Elabora i messaggi inviati da te (fallback legacy; è consigliato l'evento message_sent)",
           "buttons_as_polls": "Emula i pulsanti con i sondaggi (converte send_buttons in sondaggi nativi e genera eventi pulsante al voto)",
           "reset_session": "Reimposta sessione (disconnetti e cancella i dati)",
-          "recipient_aliases": "Recipient Aliases (YAML dict mapping names to numbers/JIDs)"
+          "recipient_aliases": "Alias dei destinatari (dizionario YAML che associa nomi a numeri/JID)"
         },
         "description": "⚠️ ATTENZIONE: 'Reimposta sessione' ti disconnette ed elimina i dati di sessione sull'add-on."
       }
