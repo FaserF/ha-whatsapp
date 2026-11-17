@@ -157,13 +157,19 @@ action:
       message: "Sent message to {{ trigger.event.data.recipient_number }}: {{ trigger.event.data.content }}"
 ```
 
-### 5. Reaction as a Quick Reply (Script)
+### 5. Reaction as a Quick Reply
 
-This one is a script, not an automation (add it under **Settings → Automations & Scenes → Scripts**), because it waits for a reaction to the message it just sent. Send a message and act when someone reacts to it. `whatsapp.send_message` returns the ID of the sent message, which is matched against `reacted_message_id`. This also works for reactions to messages sent by Home Assistant.
+When the garage has been open for 10 minutes, send a message and close it if someone reacts with 👍. `whatsapp.send_message` returns the ID of the sent message, which is matched against `reacted_message_id`. This also works for reactions to messages sent by Home Assistant.
 
 ```yaml
 alias: "WhatsApp: Close Garage on Reaction"
-sequence:
+mode: single
+trigger:
+  - platform: state
+    entity_id: cover.garage_door
+    to: "open"
+    for: "00:10:00"
+action:
   - service: whatsapp.send_message
     data:
       target: "49171234567"
