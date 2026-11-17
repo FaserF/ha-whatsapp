@@ -157,9 +157,9 @@ action:
       message: "Sent message to {{ trigger.event.data.recipient_number }}: {{ trigger.event.data.content }}"
 ```
 
-### 5. Reaction as a Quick Reply
+### 5. Reaction as a Quick Reply (Script)
 
-Send a message and act when someone reacts to it. `whatsapp.send_message` returns the ID of the sent message, which is matched against `reacted_message_id`. This also works for reactions to messages sent by Home Assistant.
+This one is a script, not an automation (add it under **Settings → Automations & Scenes → Scripts**), because it waits for a reaction to the message it just sent. Send a message and act when someone reacts to it. `whatsapp.send_message` returns the ID of the sent message, which is matched against `reacted_message_id`. This also works for reactions to messages sent by Home Assistant.
 
 ```yaml
 alias: "WhatsApp: Close Garage on Reaction"
@@ -188,7 +188,7 @@ Notes:
 
 - `id` of a reaction event is the reaction's own ID, not the reacted message's.
 - Removing a reaction fires the event again with an empty `reaction`.
-- Reactions made from the linked account itself are fired as `whatsapp_message_sent`.
+- Reactions made from the linked account itself are fired as `whatsapp_message_sent`. With **Allow Self-Messages** enabled they also fire `whatsapp_message_received`, with `sender` set to `me`.
 - If the reactor's phone number can't be resolved from their WhatsApp LID, `sender` stays an `@lid` JID.
 
 ---

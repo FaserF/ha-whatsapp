@@ -108,7 +108,7 @@ On modern mobile clients, button messages render only as plain text header/messa
 ### 4. Interactive Polls as Universal Replacement
 Polls (`whatsapp.send_poll`) trigger `whatsapp_message_received` or poll update events when selected and work seamlessly without account restrictions.
 
-For a simple yes/no, an emoji reaction to the sent message also works. See [Reaction as a Quick Reply](events.md#5-reaction-as-a-quick-reply).
+For a simple yes/no, an emoji reaction to the sent message also works. See [Reaction as a Quick Reply](events.md#5-reaction-as-a-quick-reply-script).
 
 
 ---
