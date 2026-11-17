@@ -196,6 +196,7 @@ Notes:
 - Removing a reaction fires the event again with an empty `reaction`.
 - Reactions made from the linked account itself are fired as `whatsapp_message_sent`. With **Allow Self-Messages** enabled they also fire `whatsapp_message_received`, with `sender` set to `me`.
 - If the reactor's phone number can't be resolved from their WhatsApp LID, `sender` stays an `@lid` JID.
+- If a whitelist is configured, reactions from chats that aren't on it are dropped, like any other incoming message. This also applies to your own reactions with **Allow Self-Messages** enabled.
 
 ---
 
