@@ -906,6 +906,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
         """Internal send message logic."""
         url = f"{self.host}/send_message"
         params = {"session_id": self.session_id}
+        if number.endswith("@newsletter"):
+            quoted_message_id = None
+            expiration = None
         payload: dict[str, Any] = {
             "number": number,
             "message": message,
@@ -1142,6 +1145,9 @@ class WhatsAppApiClient:  # noqa: PLR0904 – many public API methods are intent
     ) -> str:
         """Internal send image logic."""
         url = f"{self.host}/send_image"
+        if number.endswith("@newsletter"):
+            quoted_message_id = None
+            expiration = None
         payload: dict[str, Any] = {
             "number": number,
             "url": self._normalize_url(image_url),

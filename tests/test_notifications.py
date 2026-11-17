@@ -247,3 +247,58 @@ async def test_notify_service_lifecycle_and_account_resolution() -> None:
     # Unload entry_2 (last entry)
     await async_unload_entry(hass, entry2)
     assert ("notify", "whatsapp") not in registered_services
+
+
+async def test_send_to_newsletter_channel_strips_unsupported_options() -> None:
+    """Test that sending to @newsletter channels omits quoted message and expiration."""
+    from custom_components.whatsapp.api import WhatsAppApiClient
+
+    client = WhatsAppApiClient("http://127.0.0.1:3000", session_id="default")
+    captured_payloads: list[dict[str, Any]] = []
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.json = AsyncMock(return_value={"status": "sent", "id": "MSG123"})
+
+    class MockSessionContext:
+        async def __aenter__(self) -> Any:
+            return self
+
+        async def __aexit__(self, *args: Any) -> None:
+            pass
+
+        def post(self, url: str, **kwargs: Any) -> Any:
+            captured_payloads.append(kwargs.get("json", {}))
+
+            class MockRespContext:
+                async def __aenter__(self) -> Any:
+                    return mock_resp
+
+                async def __aexit__(self, *args: Any) -> None:
+                    pass
+
+            return MockRespContext()
+
+    with patch("aiohttp.ClientSession", return_value=MockSessionContext()):
+        # 1. send_message to channel
+        await client._send_message_internal(
+            "120363000000000000@newsletter",
+            "Channel broadcast",
+            quoted_message_id="PREV_MSG_123",
+            expiration=3600,
+        )
+        assert "quotedMessageId" not in captured_payloads[0]
+        assert "expiration" not in captured_payloads[0]
+        assert captured_payloads[0]["number"] == "120363000000000000@newsletter"
+
+        # 2. send_image to channel
+        await client._send_image_internal(
+            "120363000000000000@newsletter",
+            "https://example.com/image.jpg",
+            caption="Channel snapshot",
+            quoted_message_id="PREV_MSG_123",
+            expiration=3600,
+        )
+        assert "quotedMessageId" not in captured_payloads[1]
+        assert "expiration" not in captured_payloads[1]
+        assert captured_payloads[1]["number"] == "120363000000000000@newsletter"
