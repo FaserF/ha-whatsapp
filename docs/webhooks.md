@@ -104,7 +104,7 @@ The payload is a JSON object containing the complete event data for every incomi
 | Field | Type | Description |
 | :---- | :--- | :---------- |
 | `id` | `string` | Unique WhatsApp message ID |
-| `type` | `string` | Message type: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `poll`, `poll_update`, `button_reply`, `list_reply`, `event` |
+| `type` | `string` | Message type: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `poll`, `poll_update`, `reaction`, `button_reply`, `list_reply`, `event` |
 | `content` | `string\|null` | Text content of the message (or transcribed STT text for voice notes if configured) |
 | `sender` | `string` | Full WhatsApp JID of the sender |
 | `person_jid` | `string` | JID of the actual person (differs from `sender` in group messages) |
@@ -122,6 +122,8 @@ The payload is a JSON object containing the complete event data for every incomi
 | `is_group_admin` | `bool` | `true` if sender is a WhatsApp group admin (only applies in groups) |
 | `session_id` | `string` | Session identifier (useful for multi-instance setups) |
 | `vote` | `object\|null` | Poll vote data (only present for `poll_update` type) |
+| `reaction` | `string` | Emoji of a reaction, empty when removed (only present for `reaction` type) |
+| `reacted_message_id` | `string` | ID of the message that was reacted to (only present for `reaction` type) |
 | `raw` | `object` | Complete raw Baileys message object for advanced use cases |
 
 ---
