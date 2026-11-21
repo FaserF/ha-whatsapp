@@ -9,6 +9,10 @@ from unittest.mock import MagicMock
 
 _LOGGER = logging.getLogger(__name__)
 
+if sys.platform == "win32":
+    sys.modules.setdefault("fcntl", MagicMock())
+    sys.modules.setdefault("resource", MagicMock())
+
 # --- Singleton Classes to ensure identity across reloads ---
 
 

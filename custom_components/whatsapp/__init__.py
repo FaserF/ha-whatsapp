@@ -296,15 +296,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
                 await asyncio.sleep(wait_time)
             else:
+                if is_connection_or_dns_error(err):
+                    _LOGGER.warning(
+                        "WhatsApp gateway not ready after %d attempts (%s); scheduling retry",
+                        attempt + 1,
+                        err,
+                    )
+                    raise ConfigEntryNotReady(
+                        f"Failed to connect to WhatsApp gateway on startup after {attempt + 1} attempts: {err}"
+                    ) from err
                 _LOGGER.error(
                     "Failed to connect to WhatsApp gateway on startup after %d attempts: %s",
                     attempt + 1,
                     err,
                 )
-                if is_connection_or_dns_error(err):
-                    raise ConfigEntryNotReady(
-                        f"Failed to connect to WhatsApp gateway on startup after {attempt + 1} attempts: {err}"
-                    ) from err
                 raise
 
     # Handle incoming messages
