@@ -340,3 +340,56 @@ async def test_real_time_stat_updates_and_polling_watchdog(
         assert mock_instance.stats["last_received_sender"] == "491701234567"
         assert coordinator.data["stats"]["received"] == 1
         assert coordinator.data["stats"]["last_received_message"] == "Hello real-time!"
+
+
+async def test_handle_incoming_message_non_dict_payload(
+    hass: HomeAssistant,
+) -> None:
+    """Ensure handle_incoming_message safely ignores None or non-dict payloads (Fixes #1300)."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_URL: "test", CONF_API_KEY: "abc"},
+        entry_id="test_entry_non_dict",
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.whatsapp.WhatsAppApiClient") as mock_client_cls:
+        mock_instance = mock_client_cls.return_value
+        mock_instance.connect = AsyncMock(return_value=True)
+        mock_instance.stats = {
+            "received": 0,
+            "last_received_message": "None",
+            "last_received_sender": "None",
+        }
+        mock_instance.get_stats = AsyncMock(return_value=dict(mock_instance.stats))
+        mock_instance.get_health = AsyncMock(return_value={"status": "connected"})
+        mock_instance.get_dashboard = AsyncMock(return_value={})
+        mock_instance.get_chats = AsyncMock(
+            return_value={"total_chats": 0, "groups": []}
+        )
+        mock_instance.was_sent_by_ha = MagicMock(return_value=False)
+        mock_instance.is_allowed = MagicMock(return_value=True)
+
+        callback: Callable[[Any], None] | None = None
+
+        def reg_cb(cb: Callable[[Any], None]) -> None:
+            nonlocal callback
+            callback = cb
+
+        mock_instance.register_callback = MagicMock(side_effect=reg_cb)
+        mock_instance.start_polling = AsyncMock()
+        mock_instance.start_session = AsyncMock(return_value=None)
+        mock_instance.close = AsyncMock()
+
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        assert callback is not None
+        # Passing None or non-dict payloads must not throw AttributeError
+        callback(None)
+        callback("string payload")
+        callback(12345)
+        callback([])
+
+        # Received counter must remain 0
+        assert mock_instance.stats["received"] == 0

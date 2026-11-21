@@ -88,6 +88,7 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
         self.entry = entry
         self._connected: bool = False
         self._unreachable_count: int = 0
+        self._disconnected_cycles: int = 0
 
         polling_interval = entry.options.get(CONF_POLLING_INTERVAL, 30)
         self._normal_interval: timedelta = timedelta(seconds=polling_interval)
@@ -276,6 +277,11 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                     ):
                         connected = True
                         stats["connected"] = True
+                    if (
+                        isinstance(status_info, dict)
+                        and status_info.get("isConnecting") is True
+                    ):
+                        stats["isConnecting"] = True
                 except Exception as status_err:
                     _LOGGER.debug("Status fallback check failed: %s", status_err)
 
@@ -353,17 +359,27 @@ class WhatsAppDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):  # t
                         learn_more_url="https://faserf.github.io/ha-whatsapp/setup/",
                     )
                     ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
-                else:
-                    ir.async_create_issue(
-                        self.hass,
-                        DOMAIN,
-                        "connection_error_baileys",
-                        is_fixable=True,
-                        severity=ir.IssueSeverity.WARNING,
-                        translation_key="connection_error_baileys",
+                elif stats.get("isConnecting") or stats.get("is_connecting"):
+                    # Gateway is actively reconnecting — suppress temporary repair alert
+                    _LOGGER.debug(
+                        "WhatsApp gateway is actively reconnecting; deferring connection repair issue"
                     )
                     ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
+                else:
+                    self._disconnected_cycles += 1
+                    # Only raise repair issue after 2 consecutive failed update cycles to avoid spamming on brief reconnects
+                    if self._disconnected_cycles >= 2:
+                        ir.async_create_issue(
+                            self.hass,
+                            DOMAIN,
+                            "connection_error_baileys",
+                            is_fixable=True,
+                            severity=ir.IssueSeverity.WARNING,
+                            translation_key="connection_error_baileys",
+                        )
+                    ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
             else:
+                self._disconnected_cycles = 0
                 ir.async_delete_issue(self.hass, DOMAIN, "session_expired")
                 ir.async_delete_issue(self.hass, DOMAIN, "connection_error_baileys")
                 ir.async_delete_issue(self.hass, DOMAIN, "passkey_required")
