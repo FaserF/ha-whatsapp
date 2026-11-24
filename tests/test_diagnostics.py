@@ -21,7 +21,7 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
     """Test diagnostics redaction."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_URL: "test", CONF_API_KEY: "SENSITIVE_DATA", "other": "ok"},
+        data={CONF_URL: "test", CONF_[REDACTED_SECRET_88208], "other": "ok"},
     )
     entry.add_to_hass(hass)
 
