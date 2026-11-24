@@ -1,8 +1,8 @@
-name: Labeler
+name: Pull Request Labeler
 
 on:
   pull_request_target:
-    branches: ["main"]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
@@ -12,9 +12,8 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - name: 🏷️ Sync Labels
-        uses: actions/labeler@v7
+      - uses: actions/labeler@v6
         with:
-          repo-token: ${{ github.token }}
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/labeler.yml
           sync-labels: true
