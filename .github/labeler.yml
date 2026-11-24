@@ -1,29 +1,21 @@
-# GitHub Labeler Configuration
-# https://github.com/actions/labeler
+# Pull Request Labeler configuration
+enhancement:
+  - head-branch: ['^feat/', '^feature/']
 
-code:
-  - changed-files:
-      - any-glob-to-any-file: 'custom_components/whatsapp/**/*'
+bug:
+  - head-branch: ['^fix/', '^bugfix/']
+
+dependencies:
+  - head-branch: ['^renovate/', '^deps/']
 
 documentation:
   - changed-files:
-      - any-glob-to-any-file:
-          - 'docs/**/*'
-          - 'README.md'
-          - 'EXAMPLES.md'
-
-tests:
-  - changed-files:
-      - any-glob-to-any-file: 'tests/**/*'
+    - any-glob-to-any-file: ['**/*.md', 'docs/**']
 
 ci:
   - changed-files:
-      - any-glob-to-any-file:
-          - '.github/workflows/**/*'
+    - any-glob-to-any-file: ['.github/**', 'scripts/**']
 
-dependencies:
+tests:
   - changed-files:
-      - any-glob-to-any-file:
-          - 'pyproject.toml'
-          - 'hacs.json'
-          - 'renovate.json'
+    - any-glob-to-any-file: ['tests/**', '**/*test*']
