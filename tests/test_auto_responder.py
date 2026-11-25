@@ -8,10 +8,10 @@ _build_ha_stub_modules()
 
 
 # We must monkey-patch the thread check to avoid failure from pycares
-import threading
+import threading  # noqa: E402
 
-import pytest
-from homeassistant.core import HomeAssistant
+import pytest  # noqa: E402
+from homeassistant.core import HomeAssistant  # noqa: E402
 
 if not getattr(threading, "_patched", False):
     original_enumerate = threading.enumerate

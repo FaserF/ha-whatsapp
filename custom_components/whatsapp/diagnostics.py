@@ -28,6 +28,8 @@ from .const import DOMAIN
 
 TO_REDACT = {
     "api_key",
+    "token",
+    "password",
     "session_data",
     "session",
     "phone_number",
@@ -35,6 +37,15 @@ TO_REDACT = {
     "last_sent_target",
     "last_received_sender",
     "last_message",
+    "url",
+    "host",
+    "ip_address",
+    "jid",
+    "remote_jid",
+    "push_name",
+    "chat_id",
+    "webhook_url",
+    "webhook_secret",
 }
 
 
@@ -69,6 +80,6 @@ async def async_get_config_entry_diagnostics(
     return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
         "client_connected": coordinator.data.get("connected", False),
-        "stats": coordinator.data.get("stats", {}),
+        "stats": async_redact_data(coordinator.data.get("stats", {}), TO_REDACT),
         "addon_debug": async_redact_data(addon_debug_info, TO_REDACT),
     }
