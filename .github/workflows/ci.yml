@@ -3,8 +3,17 @@ name: CI
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - ".github/ISSUE_TEMPLATE/**"
   pull_request:
     branches: [main, master]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+  workflow_dispatch:
 
 permissions:
   contents: write
