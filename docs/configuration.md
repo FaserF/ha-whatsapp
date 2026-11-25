@@ -84,7 +84,7 @@ When running the App as a standalone Docker container (outside Home Assistant OS
 | `ADMIN_NUMBERS`                      | `""`             | String     | Comma-separated phone numbers allowed to use `ha-app-*` admin control commands (e.g. `491761234567, 491769876543`). |
 | `MARK_ONLINE`                        | `false`          | Boolean    | Keep WhatsApp online status active continuously while container runs.                                               |
 | `SYNC_FULL_HISTORY`                  | `false`          | Boolean    | Synchronize full chat history upon pairing or reconnecting.                                                         |
-| `MASK_REDACTED_SECRET_77820`                | `false`          | Boolean    | Mask phone numbers and message content in log outputs.                                                              |
+| `MASK_SENSITIVE_DATA`                | `false`          | Boolean    | Mask phone numbers and message content in log outputs.                                                              |
 | `UI_AUTH_ENABLED`                    | `false`          | Boolean    | Enable HTTP Basic Auth for Web UI access.                                                                           |
 | `UI_AUTH_PASSWORD`                   | `""`             | String     | Password for Web UI access (Username is always `admin`).                                                            |
 | `MEDIA_FOLDER`                       | `""`             | String     | Path to directory for permanent media storage.                                                                      |
